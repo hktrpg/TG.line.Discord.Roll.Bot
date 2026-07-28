@@ -53,14 +53,16 @@ if (process.env.mongoURL) {
         groupid: { type: String, index: true },
         trpgDatabasefunction: [{
             topic: { type: String, index: true },
-            contact: String
+            contact: String,
+            serial: Number
         }]
     }));
 
     models.trpgDatabaseAllgroup = mongoose.model('trpgDatabaseAllgroup', new Schema({
         trpgDatabaseAllgroup: [{
             topic: String,
-            contact: String
+            contact: String,
+            serial: Number
         }]
     }));
 
@@ -89,7 +91,8 @@ if (process.env.mongoURL) {
         groupid: { type: String, index: true },
         trpgCommandfunction: [{
             topic: { type: String, index: true },
-            contact: String
+            contact: String,
+            serial: Number
         }]
     }));
 
@@ -148,7 +151,8 @@ if (process.env.mongoURL) {
         trpgDarkRollingfunction: [{
             userid: { type: String, index: true },
             diyName: String,
-            displayname: String
+            displayname: String,
+            serial: Number
         }]
     }));
 
@@ -464,7 +468,8 @@ if (process.env.mongoURL) {
         userID: { type: String, index: true },
         name: String,
         shortName: String,
-        imageLink: String
+        imageLink: String,
+        serial: Number
     }));
 
     models.whatsapp = mongoose.model('whatsapp', new Schema({

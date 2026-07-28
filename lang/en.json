@@ -1065,7 +1065,7 @@
           "description": "Show entry content",
           "options": {
             "topic": {
-              "description": "Keyword or index"
+              "description": "Keyword or ID"
             }
           }
         }
@@ -1100,7 +1100,7 @@
           "description": "Show server entry content",
           "options": {
             "topic": {
-              "description": "Keyword or index"
+              "description": "Keyword or ID"
             }
           }
         }
@@ -1270,10 +1270,10 @@
           "description": "Admin: sync legacy data to server dice"
         },
         "del": {
-          "description": "Admin: delete server dice by index",
+          "description": "Admin: delete server dice by title",
           "options": {
-            "serials": {
-              "description": "Index(es), space-separated"
+            "name": {
+              "description": "Dice name(s), space-separated"
             }
           }
         }
@@ -1303,7 +1303,15 @@
           "description": "Delete character",
           "options": {
             "target": {
-              "description": "Index or short name"
+              "description": "ID or short name"
+            }
+          }
+        },
+        "del": {
+          "description": "Delete character",
+          "options": {
+            "target": {
+              "description": "ID or short name"
             }
           }
         }
@@ -1363,10 +1371,10 @@
           "description": "List all keywords"
         },
         "del": {
-          "description": "Delete by index or all",
+          "description": "Delete by ID or all",
           "options": {
             "target": {
-              "description": "Index or all"
+              "description": "ID or all"
             }
           }
         },
@@ -1374,7 +1382,7 @@
           "description": "Run saved command",
           "options": {
             "keyword": {
-              "description": "Keyword or index"
+              "description": "Keyword or ID"
             }
           }
         }
@@ -2589,18 +2597,18 @@
   "ddr": {
     "game_name": "【Dark Roll GM】 .drgm (addgm del show) dr ddr dddr",
     "no_database": "Dark roll GM feature requires database connection.",
-    "help": "【🎲 Dark Roll GM】\n╭──── 📝 Overview ────\n│ • GM-only private roll delivery\n│ • Multiple GMs can receive dark rolls\n│ • Custom GM display names supported\n│\n├──── 👑 GM commands ────\n│ ■ Basics:\n│ • .drgm addgm\n│   Register as GM\n│\n│ • .drgm addgm [alias]\n│   Register with a display alias\n│   (omit alias to show your real name)\n│\n│ • .drgm show\n│   List current GMs\n│\n│ • .drgm del [index]\n│   Remove a GM by index\n│\n│ • .drgm del all\n│   Clear all GMs\n│\n├──── 🎲 Dark roll modes ────\n│ ■ Three modes:\n│\n│ • dr [command]\n│   Result to yourself only\n│   e.g. dr cc 80 Brawl\n│\n│ • ddr [command]\n│   Result to GM and yourself\n│   e.g. ddr cc 80 Brawl\n│\n│ • dddr [command]\n│   Result to GM only\n│   e.g. dddr cc 80 Brawl\n│\n├──── 💡 Examples ────\n│ 1️⃣ Set GM:\n│ • .drgm addgm\n│   Register with your name\n│\n│ • .drgm addgm HostA\n│   Register as \"HostA\"\n│\n│ 2️⃣ Roll:\n│ • dr 2d6\n│   Roll 2d6; only you see the result\n│\n│ • ddr cc 50 Stealth\n│   Stealth check; you and GM see it\n│\n│ • dddr .sc 1/1d3\n│   Sanity check; GM only\n│\n├──── ⚠️ Notes ────\n│ • Use .drgm show to confirm GMs first\n│ • Multiple GMs can receive the same dark roll\n│ • Aliases help keep GMs anonymous\n│ • Indexes change after deletes — check show again\n╰──────────────",
+    "help": "【🎲 Dark Roll GM】\n╭──── 📝 Overview ────\n│ • GM-only private roll delivery\n│ • Multiple GMs can receive dark rolls\n│ • Custom GM display names supported\n│\n├──── 👑 GM commands ────\n│ ■ Basics:\n│ • .drgm addgm\n│   Register as GM\n│\n│ • .drgm addgm [alias]\n│   Register with a display alias\n│   (omit alias to show your real name)\n│\n│ • .drgm show\n│   List current GMs\n│\n│ • .drgm del [ID]\n│   Remove a GM by ID\n│\n│ • .drgm del all\n│   Clear all GMs\n│\n├──── 🎲 Dark roll modes ────\n│ ■ Three modes:\n│\n│ • dr [command]\n│   Result to yourself only\n│   e.g. dr cc 80 Brawl\n│\n│ • ddr [command]\n│   Result to GM and yourself\n│   e.g. ddr cc 80 Brawl\n│\n│ • dddr [command]\n│   Result to GM only\n│   e.g. dddr cc 80 Brawl\n│\n├──── 💡 Examples ────\n│ 1️⃣ Set GM:\n│ • .drgm addgm\n│   Register with your name\n│\n│ • .drgm addgm HostA\n│   Register as \"HostA\"\n│\n│ 2️⃣ Roll:\n│ • dr 2d6\n│   Roll 2d6; only you see the result\n│\n│ • ddr cc 50 Stealth\n│   Stealth check; you and GM see it\n│\n│ • dddr .sc 1/1d3\n│   Sanity check; GM only\n│\n├──── ⚠️ Notes ────\n│ • Use .drgm show to confirm GMs first\n│ • Multiple GMs can receive the same dark roll\n│ • Aliases help keep GMs anonymous\n│ • Delete uses fixed IDs (not renumbered after other deletes)\n╰──────────────",
     "line_friend_hint": "\nDue to LINE's behavior, your display name may not appear when rolling in groups. Add the bot as a friend by sending any message:\nhttps://line.me/R/ti/p/@hktrpg",
-    "add_success": "Added: {{name}}",
+    "add_success": "✅ Added\n📝 Name: {{name}}\n🆔 ID: {{serial}}\n\nDelete: .drgm del {{serial}}",
     "add_failed": "Failed to add. Please try again later.",
     "add_duplicate": "Already on the GM list.",
     "del_all_success": "Removed all GMs from the list.",
     "del_failed": "Delete failed. Please try again later.",
-    "del_success": "Deleted GM #{{index}}",
+    "del_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}",
     "del_no_gm": "No dark-roll GM registered.",
     "del_no_index": "No GM registered or invalid index.",
-    "show_header": "Registered dark-roll GMs:",
-    "show_entry": "\n{{index}}: {{name}}\n",
+    "show_header": "📑 Dark-roll GM list\n",
+    "show_entry": "#{{serial}}: {{name}}\n",
     "not_in_group": "Not in a group channel.",
     "no_gm": "No dark-roll GM registered."
   },
@@ -2959,16 +2967,18 @@
   },
   "myname": {
     "game_name": "【Your Names】.myname / .me .me1 .me alias",
-    "help": "【👥 Roleplay Names】(Discord only)\n╭──── 📝 Overview ────\n│ • Set persona display name and avatar\n│ • Quickly switch personas while chatting\n│ • Embed roll commands in messages\n│\n├──── ⚙️ Manage personas ────\n│ ■ Add:\n│ • .myname \"Name\" image_url alias\n│   Example:\n.myname \"Izumi Zoushi\"\nhttps://imgur.com/xxx.jpg zo\n│   *Quote names that contain spaces\n│\n│ ■ Manage:\n│ • .myname show\n│   List personas\n│ • .myname delete index|alias\n│   Delete a persona\n│\n├──── 🎭 Speak ────\n│ ■ Plain:\n│ • .me message\n│   Speak without a persona\n│\n│ ■ By index:\n│ • .meN message\n│   e.g. .me1 \"Good morning!\"\n│\n│ ■ By alias:\n│ • .meAlias message\n│   e.g. .mezo \"Let's play\"\n│\n│ ■ History:\n│ • .mehistory\n│   Last 20 .me lines in this channel\n│\n│ ■ Inline rolls:\n│ • Use [[command]] inside the message\n│   Example:\n.mezo \"I'll try!\"\n[[CC 80]] [[立FLAG]]\n│\n├──── ⚠️ Notes ────\n│ • Needs Webhook and message permissions\n│ • Discord or Imgur image URLs\n│ • Invalid images fall back to default avatar\n╰──────────────",
+    "help": "【👥 Roleplay Names】(Discord only)\n╭──── 📝 Overview ────\n│ • Set persona display name and avatar\n│ • Quickly switch personas while chatting\n│ • Embed roll commands in messages\n│\n├──── ⚙️ Manage personas ────\n│ ■ Add:\n│ • .myname \"Name\" image_url alias\n│   Example:\n.myname \"Izumi Zoushi\"\nhttps://imgur.com/xxx.jpg zo\n│   *Quote names that contain spaces\n│\n│ ■ Manage:\n│ • .myname show\n│   List personas\n│ • .myname del/delete index|alias\n│   Delete a persona\n│\n├──── 🎭 Speak ────\n│ ■ Plain:\n│ • .me message\n│   Speak without a persona\n│\n│ ■ By index:\n│ • .meN message\n│   e.g. .me1 \"Good morning!\"\n│\n│ ■ By alias:\n│ • .meAlias message\n│   e.g. .mezo \"Let's play\"\n│\n│ ■ History:\n│ • .mehistory\n│   Last 20 .me lines in this channel\n│\n│ ■ Inline rolls:\n│ • Use [[command]] inside the message\n│   Example:\n.mezo \"I'll try!\"\n[[CC 80]] [[立FLAG]]\n│\n├──── ⚠️ Notes ────\n│ • Needs Webhook and message permissions\n│ • Discord or Imgur image URLs\n│ • Invalid images fall back to default avatar\n╰──────────────",
     "channel_only": "{{command}} is only available in a channel.",
     "history_error": "Error processing speech history.",
-    "delete_usage": "Delete: .myname delete [index or short name]\ne.g. .myname delete 0",
-    "delete_success": "Removed: {{name}}",
-    "delete_error": "Delete failed.\nUse .myname delete [index or short name]\nSee .myname show for indices.",
+    "delete_usage": "Delete: .myname del/delete [ID or short name]\ne.g. .myname del 0",
+    "delete_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}{{shortNameLine}}",
+    "delete_success_alias": "\n🏷️ Alias: {{shortName}}",
+    "delete_error": "Delete failed.\nUse .myname del/delete [ID or short name]\nSee .myname show for IDs.",
     "limit_reached": ".myname limit: {{limit}} characters.\nSupport: https://www.patreon.com/HKTRPG",
     "invalid_url": "Invalid input.\nImage URL must start with http/https.",
     "add_error": "Something went wrong. Please try again later.",
-    "add_success": "Added character: {{name}}",
+    "add_success": "✅ Added\n📝 Name: {{name}}\n🆔 ID: {{serial}}{{shortNameLine}}\n\nUse {{hint}} + message",
+    "add_success_alias": "\n🏷️ Alias: {{shortName}}",
     "me_empty": ".me / .mee repeats your message via webhook.\nPlease enter content.",
     "process_error": "Error processing message.",
     "role_error": "Error processing character message.",
@@ -3101,17 +3111,17 @@
   },
   "trpgdb": {
     "game_name": "【Database】 .db(p) (add del show custom keyword)",
-    "help": "【📚 Custom Database】\n╭──── 💡 Overview ────\n│ Store and recall custom text, numbers, or emoji\n│ Group database (.db) and public database (.dbp)\n│\n├──── 📝 Group commands ────\n│ • .db add keyword content\n│   Add an entry\n│ • .db show\n│   List entries\n│ • .db del title\n│   Delete by title\n│ • .db keyword/index\n│   Show entry content\n│\n├──── 🌐 Public commands ────\n│ • .dbp add/show\n│   Add / list public entries\n│ • .dbp keyword/index\n│   Show public entry\n│ • .dbp newType\n│   See special-effect examples\n│\n├──── ✨ Placeholders ────\n│ ■ Basics:\n│ • {br} — newline\n│ • {ran:100} — random 1–100\n│ • {random:5-20} — random 5–20\n│ • {server.member_count} — member count\n│ • {my.name} — user name\n│\n│ ■ With .level enabled:\n│ • {my.level} — level\n│ • {my.exp} — EXP\n│ • {my.title} — title\n│ • {my.Ranking} — rank\n│ • {my.RankingPer} — rank percent\n│ • {allgp.name} — random member name\n│ • {allgp.title} — random title\n│\n├──── 📖 Examples ────\n│ 1. Store a list:\n│ .db add armor leather{br}chain{br}plate\n│\n│ 2. Random reply:\n│ .db add luck Today luck is {ran:100}\n│\n│ 3. Dynamic info:\n│ .db add server Members: {server.member_count}\n│ {my.name} level is {my.level}\n├──── ⚠️ Notes ────\n│ • Keywords: letters, numbers, emoji\n│ • If not applied, use show to refresh\n╰──────────────",
+    "help": "【📚 Custom Database】\n╭──── 💡 Overview ────\n│ Store and recall custom text, numbers, or emoji\n│ Group database (.db) and public database (.dbp)\n│\n├──── 📝 Group commands ────\n│ • .db add keyword content\n│   Add an entry\n│ • .db show\n│   List entries\n│ • .db del title\n│   Delete by title\n│ • .db keyword/ID\n│   Show entry content\n│\n├──── 🌐 Public commands ────\n│ • .dbp add/show\n│   Add / list public entries\n│ • .dbp keyword/ID\n│   Show public entry\n│ • .dbp newType\n│   See special-effect examples\n│\n├──── ✨ Placeholders ────\n│ ■ Basics:\n│ • {br} — newline\n│ • {ran:100} — random 1–100\n│ • {random:5-20} — random 5–20\n│ • {server.member_count} — member count\n│ • {my.name} — user name\n│\n│ ■ With .level enabled:\n│ • {my.level} — level\n│ • {my.exp} — EXP\n│ • {my.title} — title\n│ • {my.Ranking} — rank\n│ • {my.RankingPer} — rank percent\n│ • {allgp.name} — random member name\n│ • {allgp.title} — random title\n│\n├──── 📖 Examples ────\n│ 1. Store a list:\n│ .db add armor leather{br}chain{br}plate\n│\n│ 2. Random reply:\n│ .db add luck Today luck is {ran:100}\n│\n│ 3. Dynamic info:\n│ .db add server Members: {server.member_count}\n│ {my.name} level is {my.level}\n├──── ⚠️ Notes ────\n│ • Keywords: letters, numbers, emoji\n│ • If not applied, use show to refresh\n╰──────────────",
     "not_in_group": "❌ Not in a group channel.",
     "no_title": "❌ Missing title.\n\n",
     "no_content": "❌ Missing content.\n\n",
     "limit_reached": "⚠️ Keyword limit reached ({{limit}}).\n💎 Support: https://www.patreon.com/HKTRPG\n\n",
-    "usage_footer": "💡 Usage:\n• By index: .db index\n• By title: .db title\n• List: .db show [page]\n• Add: .db add title content\n• Delete: .db del title/index",
+    "usage_footer": "💡 Usage:\n• By index: .db index\n• By title: .db title\n• List: .db show [page]\n• Add: .db add title content\n• Delete: .db del title",
     "duplicate_title": "❌ Failed: duplicate title.\n\n",
-    "add_success": "✅ Added: {{title}}\n\n",
-    "delete_specify": "❌ Specify title or index to delete.\n\n",
+    "add_success": "✅ Added\n📝 Title: {{title}}\n🆔 ID: {{serial}}\n\nUse .db {{serial}} or .db {{title}}",
+    "delete_specify": "❌ Specify title to delete.\n\n",
     "not_found_title": "❌ Not found: \"{{title}}\"\n\n",
-    "deleted": "🗑️ Deleted: \"{{title}}\"\n\n",
+    "deleted": "✅ Deleted\n📝 Title: {{title}}\n🆔 ID: {{serial}}\n\n",
     "not_found_keyword": "No matching keyword.",
     "not_found_index": "No keyword at that index.",
     "not_in_group_short": "Not in a group.",
@@ -3119,7 +3129,7 @@
     "global_no_content": "❌ Failed: missing content.",
     "global_limit": "⚠️ Global keyword limit reached (100).",
     "global_duplicate": "❌ Failed: duplicate keyword.",
-    "global_add_success": "✅ Added: {{title}}\n",
+    "global_add_success": "✅ Added\n📝 Title: {{title}}\n🆔 ID: {{serial}}\n\nUse .dbp {{serial}} or .dbp {{title}}",
     "list_empty": "📝 No keywords configured.\n\n",
     "list_header": "📚 Database (page {{page}}/{{total}})\n╭──────────────────────────────────────\n",
     "list_row_pair": "│ #{{i1}}: {{t1}} #{{i2}}: {{t2}}\n",
@@ -3128,9 +3138,9 @@
     "global_list_header": "🌐 Global DB (page {{page}}/{{total}})\n╭──────────────────────────────────────\n",
     "list_next_page": "\n\n💡 .db show {{page}} for next page",
     "list_special_tags": "💡 Tags:\n• {br} - newline\n• {ran:100} - random 1-100\n• {random:5-20} - random 5-20\n• {my.name} - your name\n• {my.level} - your level\n• {my.exp} - your EXP\n• {my.title} - your title\n• {my.Ranking} - your rank\n• {server.member_count} - member count",
-    "add_success_view": "💡 View:\n• By index: .db {{index}}\n• By title: .db {{title}}\n\n💡 More:\n• List: .db show [page]\n• Delete: .db del {{index}}",
-    "delete_del_hint": "💡 Usage:\n• Delete: .db del title\n• Delete by index: .db del index\n• List: .db show\n• Add: .db add title content",
-    "delete_after_hint": "💡 Usage:\n• List: .db show\n• Add: .db add title content\n• Delete: .db del title/index",
+    "add_success_view": "💡 View:\n• By index: .db {{index}}\n• By title: .db {{title}}\n\n💡 More:\n• List: .db show [page]\n• Delete: .db del {{title}}",
+    "delete_del_hint": "💡 Usage:\n• Delete: .db del title\n• List: .db show\n• Add: .db add title content",
+    "delete_after_hint": "💡 .db show — list\n💡 .db add title content — add",
     "global_add_hints": "💡 View:\n• By index: .dbp {{index}}\n• By title: .dbp {{title}}",
     "global_usage_footer": "💡 Usage:\n• By index: .dbp index\n• By title: .dbp title\n• List: .dbp show [page]\n• Add: .dbp add title content",
     "global_list_next_page": "\n\n💡 .dbp show {{page}} for next page",
@@ -3138,7 +3148,7 @@
   },
   "random_ans": {
     "game_name": "【Custom Dice/Reply】 .ra(p)(s)(count) (add del show custom name)",
-    "help": "【🎲 Custom Dice Lists】\n╭──── 📝 Variants ────\n│ • .ra  — group shared\n│ • .ras — public shared\n│ • .rap — personal\n│\n├──── ⚙️ Manage ────\n│ ■ Add:\n│ • .ra add name opt1 opt2...\n│   Options can be added repeatedly; max 3000 chars\n│\n│ ■ View / delete:\n│ • .ra show\n│   List all dice\n│ • .ra show name\n│   Show one list\n│ • .ra del name\n│   Delete one list\n│\n├──── 🎲 Roll ────\n│ ■ Single pick:\n│ • .ra name/index\n│   Pick one result\n│\n│ ■ Animated:\n│ • .raa name/index\n│   Animated single pick\n│\n│ ■ Multi-pick:\n│ • .raN list1 list2...\n│   N picks without repeat (max 30)\n│ • .rraN list1 list2...\n│   N picks with repeat (max 30)\n│\n├──── 💫 Placeholders ────\n│ • {br} newline\n│ • {ran:100} random 1–100\n│ • {random:5-20} random 5–20\n│ • {server.member_count} member count\n│ • {my.name} roller name\n│\n├──── 👑 With .level ────\n│ Requires .level enabled:\n│ • {allgp.name} random member\n│ • {allgp.title} random title\n│ • {my.RankingPer} rank percent\n│ • {my.Ranking} current rank\n│ • {my.exp} EXP\n│ • {my.title} title\n│ • {my.level} level\n│\n├──── 💡 Examples ────\n│ • Add:\n│   .ra add alignments LG NG\n│\n│ • Use:\n│   .ra alignments\n│   .ra3 alignments stems branches\n│   .ras10 summon\n│\n│ • By index:\n│   .ra 5\n╰──────────────",
+    "help": "【🎲 Custom Dice Lists】\n╭──── 📝 Variants ────\n│ • .ra  — group shared\n│ • .ras — public shared\n│ • .rap — personal\n│\n├──── ⚙️ Manage ────\n│ ■ Add:\n│ • .ra add name opt1 opt2...\n│   Options can be added repeatedly; max 3000 chars\n│\n│ ■ View / delete:\n│ • .ra show\n│   List all dice\n│ • .ra show name\n│   Show one list\n│ • .ra del name\n│   Delete one list\n│\n├──── 🎲 Roll ────\n│ ■ Single pick:\n│ • .ra name/ID\n│   Pick one result\n│\n│ ■ Animated:\n│ • .raa name/ID\n│   Animated single pick\n│\n│ ■ Multi-pick:\n│ • .raN list1 list2...\n│   N picks without repeat (max 30)\n│ • .rraN list1 list2...\n│   N picks with repeat (max 30)\n│\n├──── 💫 Placeholders ────\n│ • {br} newline\n│ • {ran:100} random 1–100\n│ • {random:5-20} random 5–20\n│ • {server.member_count} member count\n│ • {my.name} roller name\n│\n├──── 👑 With .level ────\n│ Requires .level enabled:\n│ • {allgp.name} random member\n│ • {allgp.title} random title\n│ • {my.RankingPer} rank percent\n│ • {my.Ranking} current rank\n│ • {my.exp} EXP\n│ • {my.title} title\n│ • {my.level} level\n│\n├──── 💡 Examples ────\n│ • Add:\n│   .ra add alignments LG NG\n│\n│ • Use:\n│   .ra alignments\n│   .ra3 alignments stems branches\n│   .ras10 summon\n│\n│ • By index:\n│   .ra 5\n╰──────────────",
     "group_only": "❌ Group channel only.",
     "no_data": "❌ Dice set data not found.",
     "dice_not_found": "❌ Dice \"{{name}}\" not found.\n💡 Use .ra show to list dice.",
@@ -3150,20 +3160,20 @@
     "no_dice_name": " Missing dice name.",
     "no_dice_content": " Missing dice content.",
     "update_too_long": "Update failed: total content exceeds 3000 chars.",
-    "update_success": "Updated.\nUse .ra {{name}} to roll.",
+    "update_success": "✅ Updated\n📝 Name: {{name}}\n🆔 ID: {{serial}}\n\nUse .ra {{name}} or .ra {{serial}} to roll",
     "group_limit": "Group dice limit: {{limit}}.\nSupport: https://www.patreon.com/HKTRPG\n",
-    "add_success": "✅ Added\n📝 Name: {{name}}\n🔢 Options: {{count}}\n\nUse .ra {{name}} to roll",
+    "add_success": "✅ Added\n📝 Name: {{name}}\n🔢 Options: {{count}}\n🆔 ID: {{serial}}\n\nUse .ra {{name}} or .ra {{serial}} to roll",
     "add_failed": "❌ Add failed. Try again later.",
     "delete_no_name": "❌ No dice name specified.",
     "delete_not_found": "❌ Dice \"{{name}}\" not found.\n💡 .ra show — list\n.ra del [name] — delete",
-    "delete_success": "✅ Deleted\n📝 Name: {{name}}\n🔢 Had {{count}} options",
+    "delete_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}\n🔢 Had {{count}} options",
     "delete_failed": "❌ Delete failed. Try again later.",
     "no_dice_configured": "❌ No dice configured.\n\n💡 This feature was updated:\n{{version_note}}\n\n💡 Add: .ra add [name] [opt1] [opt2]...",
     "show_header": "🎲 Group dice: {{name}}\n📝 Options: {{count}}\n🔍 Contents:\n",
     "show_option": "#{{i}}: {{value}}\n",
     "list_header": "📑 Group dice list\n",
-    "list_entry": "#{{i}}: {{name}}\n",
-    "list_footer": "\n💡 .ra show [name] — details\n💡 .ra [name] — roll",
+    "list_entry": "#{{serial}}: {{name}}\n",
+    "list_footer": "\n💡 .ra show [name] — details\n💡 .ra [name]/[id] — roll",
     "multi_hint": "\n\n💡 Tips:\n🔸 .ra[N] [name] — without replacement\n🔸 .rra[N] [name] — with replacement\n🔸 Max 30 draws",
     "max_times_adjusted": "💡 Max 30 draws — adjusted.\n",
     "roll_not_found": "❌ Dice not found.\n",
@@ -3179,15 +3189,19 @@
     "add_failed_prefix": "Add failed.\n",
     "personal_dm_only": " Must use in personal/DM chat.",
     "personal_update_too_long": "Update failed: total content exceeds 2000 chars.",
-    "personal_update_success": "Updated.\nSerial: {{serial}}\nTitle: {{title}}\nContent: {{content}}\n\nUse .rap {{title}} or .rap {{serial}}",
+    "personal_update_success": "✅ Updated\n📝 Name: {{name}}\n🔢 Options: {{count}}\n🆔 ID: {{serial}}\n\nUse .rap {{name}} or .rap {{serial}} to roll",
     "personal_limit": "Personal dice limit: {{limit}}.\nSupport: https://www.patreon.com/HKTRPG\n",
-    "personal_add_success": "Added.\nSerial: {{serial}}\nTitle: {{title}}\nContent: {{content}}\n\nUse .rap {{title}} or .rap {{serial}}\nAdd more: .rap add {{title}} [options]",
+    "personal_add_success": "✅ Added\n📝 Name: {{name}}\n🔢 Options: {{count}}\n🆔 ID: {{serial}}\n\nUse .rap {{name}} or .rap {{serial}} to roll\n💡 .rap add {{name}} — add more options",
     "personal_add_failed": "Add failed. Try again later.",
     "personal_not_found": "Dice name not found. Please check.",
     "personal_empty": "❌ No dice configured.\n\n💡 This feature was updated:\n.rap is now personal dice lists.\nThe old public/group .rap is now .ras.\n\n{{version_note}}\n\n💡 Add: .rap add [name] [opt1] [opt2]...",
-    "personal_list_header": "Personal dice list",
-    "personal_list_footer": "\n\n.rap show [name] — details\n.rap [serial or name] — roll",
+    "personal_list_header": "📑 Personal dice list\n",
+    "personal_list_entry": "#{{serial}}: {{name}}\n",
+    "personal_list_footer": "\n💡 .rap show [name] — details\n💡 .rap [name]/[id] — roll",
     "personal_deleted": "{{count}} item(s) deleted",
+    "personal_delete_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}\n🔢 Had {{count}} options",
+    "personal_delete_usage": "❌ Specify dice name to delete\n💡 .rap del name (by title, not serial)\ne.g. .rap del coin",
+    "personal_delete_not_found": "❌ Title \"{{name}}\" not found\n💡 .rap del uses name, not serial\ne.g. .rap del coin\n💡 .rap show — list",
     "personal_roll_not_found": "❌ Dice not found. Please try again.\n\n💡 This feature was updated:\n.rap is now personal dice lists.\nThe old public/group .rap is now .ras.\n\n{{version_note}}",
     "unnamed": "Anonymous",
     "roll_arrow": "{{title}} → ",
@@ -3195,14 +3209,19 @@
     "server_min_options": " Need at least two options.",
     "server_duplicate": "Add failed: duplicate name.",
     "server_limit": "HKTRPG public dice limit: {{limit}}",
-    "server_add_success": "Added.\nSerial: {{serial}}\nTitle: {{title}}\nContent: {{content}}\n\nUse .ras {{title}} or .ras {{serial}}",
+    "server_add_success": "✅ Added\n📝 Name: {{name}}\n🔢 Options: {{count}}\n🆔 ID: {{serial}}\n\nUse .ras {{name}} or .ras {{serial}} to roll",
     "server_add_failed": "Add failed.",
     "server_not_found": "Dice name not found. Please check.",
     "server_empty": "❌ No dice configured.\n\n💡 This feature was updated:\n.rap is now personal dice lists.\nThe old public/group .rap is now .ras.\n\n{{version_note}}\n\n💡 Add: .ras add [name] [opt1] [opt2]...",
-    "server_list_header": "HKTRPG public dice list",
-    "server_list_footer": "\n\n.ras show [name] — details\n.ras [serial or name] — roll",
+    "server_list_header": "📑 Public dice list\n",
+    "server_list_entry": "#{{serial}}: {{name}}\n",
+    "server_list_footer": "\n💡 .ras show [name] — details\n💡 .ras [name]/[id] — roll",
     "server_migrate_not_found": "❌ randomAnsAllgroup data not found",
-    "admin_done": "{{count}} Done"
+    "server_delete_usage": "❌ Specify dice name to delete\n💡 .ras del name (by title, not serial)",
+    "server_delete_not_found": "❌ Title \"{{name}}\" not found\n💡 .ras del uses name, not serial\n💡 .ras show — list",
+    "server_delete_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}\n🔢 Had {{count}} options",
+    "server_migrate_done": "Synced {{count}} item(s)",
+    "admin_done": "Done: {{count}}"
   },
   "funny": {
     "game_name": "【Fun Rolls】 sort (3+ opts) choice/random luck daily tarot/joke/anime/quote/filler/almanac/blackjoke/love/fortune/stars/answer flag .me",
@@ -3355,7 +3374,7 @@
   },
   "cmd": {
     "game_name": "【Saved Roll Commands】 .cmd (add edit del show custom keyword)",
-    "help": "【💾 Saved Roll Commands】\n╭──── 📝 Commands ────\n│ • .cmd add keyword command\n│   Save a roll command under a keyword\n│ • .cmd edit keyword command\n│   Edit an existing saved command\n│ • .cmd show\n│   List all saved commands\n│ • .cmd del index|all\n│   Delete one or all\n│ • .cmd keyword|index\n│   Run a saved command\n│\n│ Example:\n│ .cmd add melee cc 80 brawl\n│ → .cmd melee\n│\n│ • Use show to refresh if not applied\n╰──────────────",
+    "help": "【💾 Saved Roll Commands】\n╭──── 📝 Commands ────\n│ • .cmd add keyword command\n│   Save a roll command under a keyword\n│ • .cmd edit keyword command\n│   Edit an existing saved command\n│ • .cmd show\n│   List all saved commands\n│ • .cmd del ID|all\n│   Delete one or all\n│ • .cmd keyword|ID\n│   Run a saved command\n│\n│ Example:\n│ .cmd add melee cc 80 brawl\n│ → .cmd melee\n│\n│ • Use show to refresh if not applied\n╰──────────────",
     "no_title": " Missing keyword.\n\n",
     "no_command": " Missing command.\nFormat: .cmd add (keyword) (command)\n",
     "no_command_edit": "Missing command.\nFormat: .cmd edit (keyword) (command)\n\n\n",
@@ -3365,24 +3384,24 @@
     "duplicate_keyword": "Keyword exists. Use .cmd edit or .cmd show.\n\n",
     "limit_reached": "Keyword limit: {{limit}}\nSupport: https://www.patreon.com/HKTRPG\n",
     "add_failed": "Add failed. Try again later.",
-    "add_success": "Added. Run: .cmd {{keyword}}\n{{command}}",
-    "edit_success": "Updated: {{keyword}}\n{{command}}",
-    "add_via_edit_success": "Added: {{keyword}}\n{{command}}",
+    "add_success": "✅ Added\n📝 Keyword: {{keyword}}\n🆔 ID: {{serial}}\n🎲 Command: {{command}}\n\nUse .cmd {{keyword}} or .cmd {{serial}}",
+    "edit_success": "✅ Updated\n📝 Keyword: {{keyword}}\n🆔 ID: {{serial}}\n🎲 Command: {{command}}\n\nUse .cmd {{keyword}} or .cmd {{serial}}",
+    "add_via_edit_success": "✅ Added\n📝 Keyword: {{keyword}}\n🆔 ID: {{serial}}\n🎲 Command: {{command}}\n\nUse .cmd {{keyword}} or .cmd {{serial}}",
     "operation_failed": "Operation failed. Try again later.",
     "delete_all_success": "All keywords removed.",
     "delete_failed": "Delete failed. Try again later.",
     "no_keyword": "No keyword. ",
-    "delete_success": "Removed {{index}}: {{topic}}\n {{command}}",
+    "delete_success": "✅ Deleted\n📝 Keyword: {{topic}}\n🆔 ID: {{index}}\n🎲 Command: {{command}}",
     "keyword_not_found": "Keyword not found. Use .cmd show.\n\n",
     "group_only": "Group channel only. ",
     "group_only_dot": "Group channel only.",
     "slash_add_required": "Keyword and command required.\nExample: .cmd add melee cc 80 brawl",
     "slash_edit_required": "Keyword and new command required.\nExample: .cmd edit melee cc 85 brawl",
-    "slash_del_required": "Index or all required.\nExample: .cmd del 1 or .cmd del all",
-    "slash_execute_required": "Keyword or index required.\nExample: .cmd melee",
+    "slash_del_required": "ID or all required.\nExample: .cmd del 1 or .cmd del all",
+    "slash_execute_required": "Keyword or ID required.\nExample: .cmd melee",
     "unknown_subcommand": "Unknown subcommand.",
-    "list_header": "Saved commands:",
-    "list_entry": "\n{{index}}: {{topic}}\n{{command}}\n",
+    "list_header": "📑 Saved commands\n",
+    "list_entry": "#{{serial}}: {{name}}\n🎲 {{command}}\n",
     "no_keywords": "No saved keywords. ",
     "execute_not_found": "Keyword not found. "
   },

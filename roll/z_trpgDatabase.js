@@ -7,6 +7,7 @@ if (!process.env.mongoURL) {
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/db/records.js');
 const schema = require('../modules/db/schema.js');
+const { findNextSerial, ensureSerials, findBySerial } = require('../modules/db/serial.js');
 const checkTools = require('../modules/chat/check.js');
 const VIP = require('../modules/patreon/veryImportantPerson.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
@@ -14,6 +15,7 @@ const rollbase = require('./rollbase.js');
 
 // 常量定義
 const FUNCTION_LIMIT = [30, 200, 200, 300, 300, 300, 300, 300];
+const DB_SERIAL_START = 1;
 
 /**
  * 數據庫操作相關函數
@@ -231,14 +233,28 @@ function isTopicExists(groupData, topic) {
  * @param {string} content 內容
  * @returns {Object} 數據庫條目
  */
-function createDatabaseEntry(groupid, topic, content) {
+function createDatabaseEntry(groupid, topic, content, serial) {
     return {
         groupid,
         trpgDatabasefunction: [{
             topic,
-            contact: content
+            contact: content,
+            serial
         }]
     };
+}
+
+async function ensureGroupDbSerials(groupid, groupData) {
+    if (!groupData?.trpgDatabasefunction) return groupData;
+
+    const { changed } = ensureSerials(groupData.trpgDatabasefunction, DB_SERIAL_START);
+    if (changed) {
+        await records.setTrpgDatabaseFunction('trpgDatabase', {
+            groupid,
+            trpgDatabasefunction: groupData.trpgDatabasefunction
+        });
+    }
+    return groupData;
 }
 
 /**
@@ -268,24 +284,24 @@ function formatDatabaseList(items, page = 1, pageSize = 20, translate) {
         return t('trpgdb.list_empty') + t('trpgdb.usage_footer');
     }
 
-    const totalPages = Math.ceil(items.length / pageSize);
+    const sortedItems = [...items].sort(
+        (a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY)
+    );
+    const totalPages = Math.ceil(sortedItems.length / pageSize);
     const startIndex = (page - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, items.length);
-    const currentItems = items.slice(startIndex, endIndex);
+    const endIndex = Math.min(startIndex + pageSize, sortedItems.length);
+    const currentItems = sortedItems.slice(startIndex, endIndex);
 
     let output = t('trpgdb.list_header', { page, total: totalPages });
 
     for (let i = 0; i < currentItems.length; i += 2) {
         const item1 = currentItems[i];
         const item2 = currentItems[i + 1];
-        const globalIndex1 = startIndex + i;
-        const globalIndex2 = startIndex + i + 1;
-
-        const padding1 = (globalIndex1 + 1).toString().padStart(2, '0');
+        const padding1 = String(item1.serial ?? '').padStart(2, '0');
         const topic1 = item1.topic.length > 12 ? item1.topic.slice(0, 12) + '...' : item1.topic;
 
         if (item2) {
-            const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
+            const padding2 = String(item2.serial ?? '').padStart(2, '0');
             const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
             output += t('trpgdb.list_row_pair', {
                 i1: padding1,
@@ -342,13 +358,36 @@ function isGlobalTopicExists(database, topic) {
  * @param {string} content 內容
  * @returns {Object} 數據庫條目
  */
-function createGlobalDatabaseEntry(topic, content) {
+function createGlobalDatabaseEntry(topic, content, serial) {
     return {
         trpgDatabaseAllgroup: [{
             topic,
-            contact: content
+            contact: content,
+            serial
         }]
     };
+}
+
+async function ensureGlobalDbSerials(database) {
+    const items = database?.reduce((allItems, group) => {
+        if (group.trpgDatabaseAllgroup) {
+            allItems.push(...group.trpgDatabaseAllgroup);
+        }
+        return allItems;
+    }, []) || [];
+
+    const { changed } = ensureSerials(items, DB_SERIAL_START);
+    if (changed && Array.isArray(database)) {
+        for (const doc of database) {
+            if (!doc?.trpgDatabaseAllgroup) continue;
+            try {
+                await records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', doc);
+            } catch (error) {
+                console.error('[z_trpgDatabase] Failed to persist global serials:', error);
+            }
+        }
+    }
+    return items;
 }
 
 /**
@@ -358,41 +397,30 @@ function createGlobalDatabaseEntry(topic, content) {
  * @param {number} pageSize 每頁數量
  * @returns {string} 格式化後的列表
  */
-function formatGlobalDatabaseList(database, page = 1, pageSize = 20, translate) {
+function formatGlobalDatabaseList(items, page = 1, pageSize = 20, translate) {
     const t = translate || getT({});
-    if (!database || database.length === 0) {
+    if (!items || items.length === 0) {
         return t('trpgdb.list_empty').trimEnd();
     }
 
-    const allItems = database.reduce((acc, group) => {
-        if (group.trpgDatabaseAllgroup) {
-            acc.push(...group.trpgDatabaseAllgroup);
-        }
-        return acc;
-    }, []);
-
-    if (allItems.length === 0) {
-        return t('trpgdb.list_empty').trimEnd();
-    }
-
-    const totalPages = Math.ceil(allItems.length / pageSize);
+    const sortedItems = [...items].sort(
+        (a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY)
+    );
+    const totalPages = Math.ceil(sortedItems.length / pageSize);
     const startIndex = (page - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, allItems.length);
-    const currentItems = allItems.slice(startIndex, endIndex);
+    const endIndex = Math.min(startIndex + pageSize, sortedItems.length);
+    const currentItems = sortedItems.slice(startIndex, endIndex);
 
     let output = t('trpgdb.global_list_header', { page, total: totalPages });
 
     for (let i = 0; i < currentItems.length; i += 2) {
         const item1 = currentItems[i];
         const item2 = currentItems[i + 1];
-        const globalIndex1 = startIndex + i;
-        const globalIndex2 = startIndex + i + 1;
-
-        const padding1 = (globalIndex1 + 1).toString().padStart(2, '0');
+        const padding1 = String(item1.serial ?? '').padStart(2, '0');
         const topic1 = item1.topic.length > 12 ? item1.topic.slice(0, 12) + '...' : item1.topic;
 
         if (item2) {
-            const padding2 = (globalIndex2 + 1).toString().padStart(2, '0');
+            const padding2 = String(item2.serial ?? '').padStart(2, '0');
             const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
             output += t('trpgdb.list_row_pair', {
                 i1: padding1,
@@ -405,7 +433,7 @@ function formatGlobalDatabaseList(database, page = 1, pageSize = 20, translate) 
         }
     }
 
-    output += t('trpgdb.list_footer', { count: allItems.length });
+    output += t('trpgdb.list_footer', { count: items.length });
     output += t('trpgdb.global_usage_footer');
 
     if (totalPages > 1) {
@@ -483,7 +511,10 @@ const rollDiceCommand = async function ({
 
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
-            const groupData = database?.find(data => data.groupid === groupid);
+            const groupData = await ensureGroupDbSerials(
+                groupid,
+                database?.find(data => data.groupid === groupid)
+            );
 
             // 檢查是否達到上限
             if (isGroupDatabaseFull(groupData, limit)) {
@@ -505,18 +536,18 @@ const rollDiceCommand = async function ({
                 .replace(mainMsg[2], '')
                 .replace(/^\s+/, '');
 
-            const newEntry = createDatabaseEntry(groupid, mainMsg[2], content);
+            const serial = findNextSerial(
+                groupData?.trpgDatabasefunction?.map(item => item.serial) || [],
+                DB_SERIAL_START
+            );
+            const newEntry = createDatabaseEntry(groupid, mainMsg[2], content, serial);
 
             // 保存到數據庫
             await records.pushTrpgDatabaseFunction('trpgDatabase', newEntry);
 
-            // 獲取當前索引
-            const currentIndex = (groupData?.trpgDatabasefunction?.length || 0) + 1;
-
-            rply.text = translate('trpgdb.add_success', { title: mainMsg[2] });
-            rply.text += translate('trpgdb.add_success_view', {
-                index: currentIndex,
-                title: mainMsg[2]
+            rply.text = translate('trpgdb.add_success', {
+                title: mainMsg[2],
+                serial
             });
             return rply;
         }
@@ -540,27 +571,15 @@ const rollDiceCommand = async function ({
 
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
-            const groupData = database?.find(data => data.groupid === groupid);
+            const groupData = await ensureGroupDbSerials(
+                groupid,
+                database?.find(data => data.groupid === groupid)
+            );
 
-            let targetIndex = -1;
-            let targetTopic = '';
-
-            // 檢查是否為數字編號
-            if (/^\d+$/.test(mainMsg[2])) {
-                const numberIndex = Number.parseInt(mainMsg[2]) - 1;
-                if (groupData?.trpgDatabasefunction && numberIndex >= 0 && numberIndex < groupData.trpgDatabasefunction.length) {
-                    targetIndex = numberIndex;
-                    targetTopic = groupData.trpgDatabasefunction[numberIndex].topic;
-                }
-            } else {
-                // 查找要刪除的項目（按標題）
-                targetIndex = groupData?.trpgDatabasefunction?.findIndex(
-                    item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
-                );
-                if (targetIndex !== -1 && groupData?.trpgDatabasefunction?.[targetIndex]) {
-                    targetTopic = groupData.trpgDatabasefunction[targetIndex].topic;
-                }
-            }
+            // Delete by title only
+            const targetIndex = groupData?.trpgDatabasefunction?.findIndex(
+                item => item.topic.toLowerCase() === mainMsg[2].toLowerCase()
+            ) ?? -1;
 
             if (targetIndex === -1) {
                 rply.text = translate('trpgdb.not_found_title', { title: mainMsg[2] });
@@ -568,10 +587,14 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            const targetItem = groupData.trpgDatabasefunction[targetIndex];
+            const targetTopic = targetItem.topic;
+            const targetSerial = targetItem.serial;
+
             // 刪除指定索引的數據
             await databaseOperations.deleteGroupDataByIndex(groupid, targetIndex);
 
-            rply.text = translate('trpgdb.deleted', { title: targetTopic });
+            rply.text = translate('trpgdb.deleted', { title: targetTopic, serial: targetSerial });
             rply.text += translate('trpgdb.delete_after_hint');
             return rply;
         }
@@ -582,7 +605,10 @@ const rollDiceCommand = async function ({
             }
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
-            const groupData = database?.find(data => data.groupid === groupid);
+            const groupData = await ensureGroupDbSerials(
+                groupid,
+                database?.find(data => data.groupid === groupid)
+            );
 
             // 如果有標題參數,搜索並顯示該標題的內容
             if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {
@@ -617,12 +643,14 @@ const rollDiceCommand = async function ({
 
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
-            const groupData = database?.find(data => data.groupid === groupid);
+            const groupData = await ensureGroupDbSerials(
+                groupid,
+                database?.find(data => data.groupid === groupid)
+            );
 
-            // 獲取指定索引的內容
-            const index = Number.parseInt(mainMsg[1]) - 1;
-            if (groupData?.trpgDatabasefunction && index >= 0 && index < groupData.trpgDatabasefunction.length) {
-                const content = groupData.trpgDatabasefunction[index];
+            // 獲取指定編號的內容
+            const content = findBySerial(groupData?.trpgDatabasefunction, mainMsg[1]);
+            if (content) {
                 rply.text = `【${content.topic}】\n${content.contact}`;
                 // 處理特殊標記
                 rply.text = await replaceAsync(rply.text, /{(.*?)}/ig, replacer);
@@ -640,7 +668,10 @@ const rollDiceCommand = async function ({
 
             // 獲取群組數據庫
             const database = await databaseOperations.getGroupDatabase();
-            const groupData = database?.find(data => data.groupid === groupid);
+            const groupData = await ensureGroupDbSerials(
+                groupid,
+                database?.find(data => data.groupid === groupid)
+            );
 
             // 查找關鍵字內容（僅限當前群組）
             const content = groupData?.trpgDatabasefunction?.find(
@@ -670,6 +701,7 @@ const rollDiceCommand = async function ({
 
             // 獲取全服數據庫
             const database = await databaseOperations.getGlobalDatabase();
+            const allItems = await ensureGlobalDbSerials(database);
 
             // 檢查是否達到上限
             if (isGlobalDatabaseFull(database)) {
@@ -689,30 +721,25 @@ const rollDiceCommand = async function ({
                 .replace(mainMsg[2], '')
                 .replace(/^\s+/, '');
 
-            const newEntry = createGlobalDatabaseEntry(mainMsg[2], content);
+            const serial = findNextSerial(
+                allItems.map(item => item.serial),
+                DB_SERIAL_START
+            );
+            const newEntry = createGlobalDatabaseEntry(mainMsg[2], content, serial);
 
             // 保存到數據庫
             await records.pushTrpgDatabaseAllGroup('trpgDatabaseAllgroup', newEntry);
 
-            // 獲取當前索引
-            const allItems = database.reduce((acc, group) => {
-                if (group.trpgDatabaseAllgroup) {
-                    acc.push(...group.trpgDatabaseAllgroup);
-                }
-                return acc;
-            }, []);
-            const currentIndex = allItems.length + 1;
-
-            rply.text = translate('trpgdb.global_add_success', { title: mainMsg[2] });
-            rply.text += translate('trpgdb.global_add_hints', {
-                index: currentIndex,
-                title: mainMsg[2]
+            rply.text = translate('trpgdb.global_add_success', {
+                title: mainMsg[2],
+                serial
             });
             return rply;
         }
         case /(^[.]dbp$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]): {
             // 獲取全服數據庫
             const database = await databaseOperations.getGlobalDatabase();
+            const allItems = await ensureGlobalDbSerials(database);
 
             // 如果有標題參數,搜索並顯示該標題的內容
             if (mainMsg[2] && !/^\d+$/.test(mainMsg[2])) {
@@ -732,7 +759,7 @@ const rollDiceCommand = async function ({
             const page = Number.parseInt(mainMsg[2]) || 1;
 
             // 格式化並顯示列表
-            rply.text = formatGlobalDatabaseList(database, page, 20, translate);
+            rply.text = formatGlobalDatabaseList(allItems, page, 20, translate);
             rply.quotes = true;
             return rply;
         }
@@ -740,19 +767,12 @@ const rollDiceCommand = async function ({
 
             // 獲取全服數據庫
             const database = await databaseOperations.getGlobalDatabase();
+            const allItems = await ensureGlobalDbSerials(database);
 
             // 檢查是否為數字編號
             if (/^\d+$/.test(mainMsg[1])) {
-                const numberIndex = Number.parseInt(mainMsg[1]) - 1;
-                const allItems = database.reduce((acc, group) => {
-                    if (group.trpgDatabaseAllgroup) {
-                        acc.push(...group.trpgDatabaseAllgroup);
-                    }
-                    return acc;
-                }, []);
-
-                if (numberIndex >= 0 && numberIndex < allItems.length) {
-                    const content = allItems[numberIndex];
+                const content = findBySerial(allItems, mainMsg[1]);
+                if (content) {
                     rply.text = `【${content.topic}】\n${content.contact}`;
                 } else {
                     rply.text = translate('trpgdb.not_found_index');

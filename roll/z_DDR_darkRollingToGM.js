@@ -41,6 +41,7 @@ if (!DB_READY) {
         discordCommand
     };
 } else {
+const { findNextSerial, ensureSerials, findBySerial } = require('../modules/db/serial.js');
 const trpgDarkRollingfunction = {};
 
 // Initialize data asynchronously
@@ -103,6 +104,24 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             if (channelid)
                 groupid = channelid
             //因為在DISCROD以頻道作單位
+            let groupDarkRolling;
+            if (trpgDarkRollingfunction.trpgDarkRollingfunction) {
+                groupDarkRolling = trpgDarkRollingfunction.trpgDarkRollingfunction.find(item => item.groupid == groupid);
+            }
+            if (groupDarkRolling) {
+                const { changed } = ensureSerials(groupDarkRolling.trpgDarkRollingfunction, 0);
+                if (changed) {
+                    try {
+                        await records.setTrpgDarkRollingFunction('trpgDarkRolling', groupDarkRolling);
+                        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+                        groupDarkRolling = trpgDarkRollingfunction.trpgDarkRollingfunction.find(item => item.groupid == groupid);
+                    } catch (error) {
+                        console.error('[z_DDR_darkRollingToGM] Failed to ensure dark rolling serials:', error);
+                        rply.text = translate('ddr.add_failed');
+                        return rply;
+                    }
+                }
+            }
             if (trpgDarkRollingfunction.trpgDarkRollingfunction)
                 for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                     if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
@@ -113,12 +132,17 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                         }
                     }
                 }
+            const serial = findNextSerial(
+                (groupDarkRolling?.trpgDarkRollingfunction || []).map(item => item.serial),
+                0
+            );
             let temp = {
                 groupid: groupid,
                 trpgDarkRollingfunction: [{
                     userid: userid,
                     diyName: mainMsg[2] || "",
-                    displayname: displayname
+                    displayname: displayname,
+                    serial
                 }]
                 //|| displayname
 
@@ -127,7 +151,10 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 try {
                     await records.pushTrpgDarkRollingFunction('trpgDarkRolling', temp);
                     trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
-                    rply.text = translate('ddr.add_success', { name: mainMsg[2] || displayname || '' });
+                    rply.text = translate('ddr.add_success', {
+                        name: mainMsg[2] || displayname || '',
+                        serial
+                    });
                 } catch (error) {
                     console.error('[z_DDR_darkRollingToGM] Failed to push dark rolling function:', error);
                     rply.text = translate('ddr.add_failed');
@@ -188,22 +215,41 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
             if (channelid)
                 groupid = channelid
             let deleted = false;
-            for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
-                if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
-                    if (mainMsg[2] < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length && mainMsg[2] >= 0) {
-                        let temp = trpgDarkRollingfunction.trpgDarkRollingfunction[i]
-                        temp.trpgDarkRollingfunction.splice(mainMsg[2], 1)
-                        try {
-                            await records.setTrpgDarkRollingFunction('trpgDarkRolling', temp);
-                            trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+            let deletedSerial;
+            let deletedName = '';
+            let groupDarkRolling = trpgDarkRollingfunction.trpgDarkRollingfunction.find(item => item.groupid == groupid);
+            if (groupDarkRolling) {
+                const { changed } = ensureSerials(groupDarkRolling.trpgDarkRollingfunction, 0);
+                if (changed) {
+                    try {
+                        await records.setTrpgDarkRollingFunction('trpgDarkRolling', groupDarkRolling);
+                        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+                        groupDarkRolling = trpgDarkRollingfunction.trpgDarkRollingfunction.find(item => item.groupid == groupid);
+                    } catch (error) {
+                        console.error('[z_DDR_darkRollingToGM] Failed to ensure dark rolling serials:', error);
+                        rply.text = translate('ddr.del_failed');
+                        return rply;
+                    }
+                }
+                const serial = Number(mainMsg[2]);
+                const gm = findBySerial(groupDarkRolling.trpgDarkRollingfunction, serial);
+                const index = groupDarkRolling.trpgDarkRollingfunction.findIndex(item => item.serial === serial);
+                if (gm && index !== -1) {
+                    groupDarkRolling.trpgDarkRollingfunction.splice(index, 1);
+                    try {
+                        await records.setTrpgDarkRollingFunction('trpgDarkRolling', groupDarkRolling);
+                        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
                         deleted = true;
-                        } catch (error) {
-                            console.error('[z_DDR_darkRollingToGM] Failed to delete dark rolling function:', error);
-                        }
+                        deletedSerial = gm.serial;
+                        deletedName = gm.diyName || gm.displayname || '';
+                    } catch (error) {
+                        console.error('[z_DDR_darkRollingToGM] Failed to delete dark rolling function:', error);
                     }
                 }
             }
-            rply.text = deleted ? translate('ddr.del_success', { index: mainMsg[2] }) : translate('ddr.del_no_index');
+            rply.text = deleted
+                ? translate('ddr.del_success', { serial: deletedSerial, name: deletedName })
+                : translate('ddr.del_no_index');
 
             return rply;
         }
@@ -215,6 +261,14 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 groupid = channelid
             try {
                 trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+                let groupDarkRolling = trpgDarkRollingfunction.trpgDarkRollingfunction.find(item => item.groupid == groupid);
+                if (groupDarkRolling) {
+                    const { changed } = ensureSerials(groupDarkRolling.trpgDarkRollingfunction, 0);
+                    if (changed) {
+                        await records.setTrpgDarkRollingFunction('trpgDarkRolling', groupDarkRolling);
+                        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+                    }
+                }
             } catch (error) {
                 console.error('[z_DDR_darkRollingToGM] Failed to get dark rolling data:', error);
                 trpgDarkRollingfunction.trpgDarkRollingfunction = [];
@@ -225,11 +279,13 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                             rply.text += translate('ddr.show_header');
-                            for (let a = 0; a < trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction.length; a++) {
+                            const gmList = [...(trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction || [])]
+                                .sort((a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY));
+                            for (const entry of gmList) {
                                 temp = 1
                                 rply.text += translate('ddr.show_entry', {
-                                    index: a,
-                                    name: trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].diyName || trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction[a].displayname
+                                    serial: entry.serial,
+                                    name: entry.diyName || entry.displayname
                                 });
                             }
                         }

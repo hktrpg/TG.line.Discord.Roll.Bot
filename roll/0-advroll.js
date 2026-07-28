@@ -382,7 +382,11 @@ function xBy(triggermsg, text01, text02, sortMode, botname, translate) {
 		}
 	}
 	returnStr += ' → ' + varcou.join(', ');
-	if (match[5]) returnStr += t('advroll.xby_success', { count: mathjs.evaluate(Number(varsu) + (temptriggermsg || 0)) });
+	if (match[5]) {
+		// temptriggermsg may be a trailing modifier like "+2"; coerce count to string for mathjs.evaluate
+		const count = mathjs.evaluate(String(Number(varsu)) + (temptriggermsg || ''));
+		returnStr += t('advroll.xby_success', { count });
+	}
 	if (text) returnStr += t('advroll.xby_note', { text });
 	return returnStr;
 }

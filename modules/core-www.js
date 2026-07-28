@@ -21,8 +21,9 @@ const {
 } = require('socket.io');
 const candle = require('../modules/misc/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
-const mainCharacter = require('../roll/z_character').mainCharacter;
 const security = require('../utils/security.js');
+const rollWorkerClient = require('./roll-worker/client');
+const { runCharacterAction } = require('./roll-worker/character-action');
 const { buildBusEtaShortcut } = require('./www/bus-shortcut.js');
 const i18n = require('./i18n/i18n.js');
 const patreonTiers = require('./patreon/patreon-tiers.js');
@@ -32,6 +33,20 @@ const {
     safeSocketHandler,
     createRateLimitReject
 } = security;
+
+/**
+ * Character card item roll via Worker when enabled, else local.
+ */
+async function resolveCharacterAction({ doc, item, locale, botname = 'WWW' }) {
+    if (rollWorkerClient.isEnabled()) {
+        try {
+            return await rollWorkerClient.characterAction({ doc, item, locale, botname });
+        } catch (error) {
+            console.error('[Web Server] character-action worker failed, using local:', error?.message || error);
+        }
+    }
+    return runCharacterAction({ doc, item, locale, botname });
+}
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -2050,40 +2065,32 @@ if (io) {
         socket.on('publicRolling', safeSocketHandler('publicRolling', async message => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             if (!message.item || !message.doc) return;
-            let rplyVal = {}
-            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
-            if (result && result.characterReRoll) {
-                rplyVal = await parseRouter.parseInput({
-                    inputStr: result.characterReRollItem,
-                    botname: "WWW",
-                    locale: socket._hktrpgLocale,
-                    t: getSocketT(socket)
-                })
-            }
+            const { characterResult: result, rplyVal } = await resolveCharacterAction({
+                doc: message.doc,
+                item: message.item,
+                locale: socket._hktrpgLocale,
+                botname: 'WWW',
+            });
 
             // 訊息來到後, 會自動跳到analytics.js進行骰組分析
             // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-            if (rplyVal && rplyVal.text) {
+            if (rplyVal && rplyVal.text && result) {
                 socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
             }
         }))
         socket.on('rolling', safeSocketHandler('rolling', async message => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             if (!message.item || !message.doc) return;
-            let rplyVal = {}
-            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
-            if (result && result.characterReRoll) {
-                rplyVal = await parseRouter.parseInput({
-                    inputStr: result.characterReRollItem,
-                    botname: "WWW",
-                    locale: socket._hktrpgLocale,
-                    t: getSocketT(socket)
-                })
-            }
+            const { characterResult: result, rplyVal } = await resolveCharacterAction({
+                doc: message.doc,
+                item: message.item,
+                locale: socket._hktrpgLocale,
+                botname: 'WWW',
+            });
 
             // 訊息來到後, 會自動跳到analytics.js進行骰組分析
             // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-            if (rplyVal && rplyVal.text) {
+            if (rplyVal && rplyVal.text && result) {
                 socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
 
                 // If a selectedGroupId is provided, use it as the target for the roll

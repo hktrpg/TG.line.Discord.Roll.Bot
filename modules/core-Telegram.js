@@ -416,7 +416,7 @@ if (agenda && agenda.agenda) {
     agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
         //指定時間一次
         let data = job.attrs.data;
-        let text = await rollText(data.replyText);
+        let text = await rollText(data.replyText, { botname: 'Telegram', groupid: data.groupid });
         //SendToReply(ctx, text)
         SendToId(
             data.groupid, text
@@ -431,7 +431,7 @@ if (agenda && agenda.agenda) {
     agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
         //指定時間
         let data = job.attrs.data;
-        let text = await rollText(data.replyText);
+        let text = await rollText(data.replyText, { botname: 'Telegram', groupid: data.groupid });
         //SendToReply(ctx, text)
         SendToId(
             data.groupid, text

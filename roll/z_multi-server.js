@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.DISCORD_CHANNEL_SECRET) {
+if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 const variables = {};
@@ -59,6 +59,9 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^create$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                return { needsLocal: true, moduleName: 'z_multi-server' };
+            }
             try {
                 if (groupid) return;
                 let lv = await VIP.viplevelCheckUser(userid);
@@ -90,6 +93,9 @@ const rollDiceCommand = async function ({
             return
         }
         case /^join$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]) && /^\S/.test(mainMsg[3]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                return { needsLocal: true, moduleName: 'z_multi-server' };
+            }
             try {
                 if (groupid) return;
                 let lv = await VIP.viplevelCheckUser(userid);
@@ -124,6 +130,9 @@ const rollDiceCommand = async function ({
             return;
         }
         case /^exit$/i.test(mainMsg[1]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && mainMsg[2]) {
+                return { needsLocal: true, moduleName: 'z_multi-server' };
+            }
             if (!mainMsg[2] && userrole == 3) {
                 await schema.multiServer.findOneAndDelete({ channelid: channelid }).catch(error => {
                     console.error('multiserver #101 mongoDB error:', error.name, error.reason)

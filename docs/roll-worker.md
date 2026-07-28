@@ -37,10 +37,18 @@ Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job proces
 
 ## Discord hybrid routing
 
-- Allowlisted modules (coc, advroll, …) → Worker.
-- `export` / `token` / `openai` / `z_admin` / story-teller / … → local Discord process (needs live client).
-- Worker / nested `needsLocal` → Discord falls back to local parse.
+- Allowlisted modules include dice, token, forward, openai, export, chatroom, **admin**, **story-teller**.
+- `LOCAL_DISCORD_ONLY` is empty — unknown new modules still stay local on Discord.
+- Safe remote without live client: `.admin help|state|debug|id|mongod`, `.patreon *`, `.root help`, `.st help|list|mylist`.
+- Cluster / attachment / export ops → Worker `needsLocal` → Discord local retry.
+- `token`: Gateway prefetches `avatarUrl` before remote parse.
+- `openai`: Gateway prefetches `attachmentsMeta` / `replyContent`; `.ait` text+files can run on Worker (no channel progress msgs).
+- Cluster / export html|txt / forward create / story import → Worker `needsLocal` → Discord local retry.
 
 ## Health
 
 `GET http://127.0.0.1:3950/health`
+
+## Character card (WWW)
+
+`POST /v1/character-action` with `{ doc, item, locale, botname }` — used by WWW socket rolling when `ROLL_WORKER_URL` is set.

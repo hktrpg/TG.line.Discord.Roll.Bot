@@ -2457,7 +2457,11 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, {
+			botname: 'Discord',
+			groupid: data.groupid,
+			channelid: data.channelid,
+		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
 		if (!data.imageLink && !data.roleName)
 			SendToReplychannel(
@@ -2479,7 +2483,11 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, {
+			botname: 'Discord',
+			groupid: data.groupid,
+			channelid: data.channelid,
+		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
 		if (!data.imageLink && !data.roleName)
 			SendToReplychannel(
@@ -2552,7 +2560,7 @@ async function repeatMessages(discord, message) {
 
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
-			let text = await rollText(element.content);
+			let text = await rollText(element.content, { botname: 'Discord' });
 			let pair = (webhook && webhook.isThread) ? { threadId: discord.channel.id } : {};
 			const chunks = typeof text === 'string'
 				? text.match(/[\s\S]{1,2000}/g) || ['']

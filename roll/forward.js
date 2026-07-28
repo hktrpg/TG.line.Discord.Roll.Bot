@@ -2,7 +2,8 @@
 if (!process.env.mongoURL) {
     return;
 }
-if (!process.env.DISCORD_CHANNEL_SECRET) {
+// Load on Discord gateway (secret) or Roll Worker (remote help/show/delete + needsLocal for create).
+if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
@@ -151,6 +152,10 @@ const rollDiceCommand = async function ({
             }
 
             if (!discordMessage || !discordClient) {
+                // Create path needs live Discord API — Gateway retries locally.
+                if (process.env.ROLL_WORKER_MODE === 'true') {
+                    return { needsLocal: true, moduleName: 'forward' };
+                }
                 rply.text = translate('forward.discord_only');
                 return rply;
             }

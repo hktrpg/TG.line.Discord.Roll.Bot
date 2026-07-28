@@ -330,7 +330,7 @@ function setupAgenda(client) {
 	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
 		try {
 			const { groupid, replyText } = job.attrs.data;
-			const text = await rollText(replyText);
+			const text = await rollText(replyText, { botname: 'Whatsapp', groupid });
 			await SendToId(groupid, { text: text }, client);
 			await job.remove();
 		} catch (error) {
@@ -341,7 +341,7 @@ function setupAgenda(client) {
 	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
 		try {
 			const { groupid, replyText, createAt } = job.attrs.data;
-			const text = await rollText(replyText);
+			const text = await rollText(replyText, { botname: 'Whatsapp', groupid });
 			await SendToId(groupid, { text: text }, client);
 			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
 				await job.remove();

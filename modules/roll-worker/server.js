@@ -3,12 +3,18 @@
 const express = require('express');
 const analytics = require('../analytics');
 const { isRemoteAllowed } = require('./route-table');
+const { runCharacterAction } = require('./character-action');
 
 function createRollWorkerApp() {
 	const app = express();
-	app.use(express.json({ limit: '1mb' }));
+	app.use(express.json({ limit: '2mb' }));
 
 	const expectedToken = (process.env.ROLL_WORKER_TOKEN || '').trim();
+	const stats = {
+		parseCount: 0,
+		characterActionCount: 0,
+		needsLocalCount: 0,
+	};
 
 	app.use((req, res, next) => {
 		if (!expectedToken) {
@@ -23,7 +29,14 @@ function createRollWorkerApp() {
 	});
 
 	app.get('/health', (_req, res) => {
-		res.json({ ok: true, role: 'roll-worker', uptime: process.uptime() });
+		res.json({
+			ok: true,
+			role: 'roll-worker',
+			uptime: process.uptime(),
+			parseCount: stats.parseCount,
+			characterActionCount: stats.characterActionCount,
+			needsLocalCount: stats.needsLocalCount,
+		});
 	});
 
 	app.post('/v1/parse', async (req, res) => {
@@ -37,12 +50,11 @@ function createRollWorkerApp() {
 				? analytics.findRollModuleName(mainMsg)
 				: null;
 
-			// Discord-coupled modules must not run here (no live client).
 			if (params.botname === 'Discord' && moduleName && !isRemoteAllowed(moduleName, 'Discord')) {
+				stats.needsLocalCount += 1;
 				return res.status(503).json({ needsLocal: true, moduleName });
 			}
 
-			// Nested cmd / characterReRoll may hit a local-only module mid-flight.
 			const result = await analytics.parseInput({
 				...params,
 				discordClient: null,
@@ -51,10 +63,16 @@ function createRollWorkerApp() {
 			});
 
 			if (result?.needsLocal) {
+				stats.needsLocalCount += 1;
 				return res.status(503).json({ needsLocal: true, moduleName: result.moduleName || moduleName });
 			}
 
-			return res.json(result || {});
+			stats.parseCount += 1;
+			return res.json({
+				...(result || {}),
+				_rollWorker: true,
+				_rollWorkerModule: moduleName || null,
+			});
 		} catch (error) {
 			console.error('[RollWorker] /v1/parse error:', error?.message || error);
 			return res.status(500).json({
@@ -63,6 +81,32 @@ function createRollWorkerApp() {
 		}
 	});
 
+	app.post('/v1/character-action', async (req, res) => {
+		try {
+			const body = req.body || {};
+			const payload = await runCharacterAction({
+				doc: body.doc,
+				item: body.item,
+				locale: body.locale,
+				botname: body.botname || 'WWW',
+			});
+			if (payload.error) {
+				return res.status(400).json(payload);
+			}
+			stats.characterActionCount += 1;
+			return res.json({
+				...payload,
+				_rollWorker: true,
+			});
+		} catch (error) {
+			console.error('[RollWorker] /v1/character-action error:', error?.message || error);
+			return res.status(500).json({
+				error: error?.message || 'character-action failed',
+			});
+		}
+	});
+
+	app.locals.stats = stats;
 	return app;
 }
 

@@ -1268,6 +1268,20 @@ const rollDiceCommand = async function ({
             rply.text = translate('storyteller.importfile_deprecated');
             return rply;
         }
+        default:
+            break;
+    }
+
+    // Import / run / attachment flows need live Discord on Gateway.
+    if (
+        process.env.ROLL_WORKER_MODE === 'true'
+        && !discordClient
+        && !/^(list|mylist)$/.test(sub)
+    ) {
+        return { needsLocal: true, moduleName: 'z-story-teller' };
+    }
+
+    switch (true) {
         case /^import$/.test(sub): {
             // Discord only restriction
             if (String(botname || '').toLowerCase() !== 'discord') {

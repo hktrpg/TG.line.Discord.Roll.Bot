@@ -39,7 +39,7 @@ function logParseMode(logger = console) {
 	if (client.isEnabled()) {
 		const { url, token, timeoutMs } = client.getConfig();
 		info(`[ParseMode] ROLE=gateway | mode=roll-worker-remote | url=${url} | token=${token ? 'set' : 'off'} | timeoutMs=${timeoutMs}`);
-		info('[ParseMode] Discord allowlist → worker; admin/export/token/story → local. Other platforms → worker.');
+		info('[ParseMode] Discord allowlist → worker (admin/story help remote; cluster ops needsLocal). Other platforms → worker.');
 		return;
 	}
 
@@ -68,18 +68,29 @@ function logLocalFallback(reason, meta = {}) {
 	);
 }
 
+function stripWorkerProof(result) {
+	if (!result || typeof result !== 'object') return result;
+	const cleaned = { ...result };
+	delete cleaned._rollWorker;
+	delete cleaned._rollWorkerModule;
+	return cleaned;
+}
+
 /**
  * Route parseInput to Roll Worker or local analytics.
  * @param {object} params - same as analytics.parseInput
  * @param {object} [options]
  * @param {boolean} [options.allowLocalFallback=false] - Discord: fall back to local on worker error / needsLocal
+ * @param {boolean} [options.keepProof=false] - keep `_rollWorker` markers for tests / ops
  */
 async function parseInput(params = {}, options = {}) {
 	const allowLocalFallback = options.allowLocalFallback === true
 		|| params.botname === 'Discord';
+	const keepProof = options.keepProof === true;
 
 	if (!client.isEnabled()) {
-		return analytics.parseInput(params);
+		const local = await analytics.parseInput(params);
+		return keepProof ? { ...local, _rollWorker: false } : local;
 	}
 
 	const mainMsg = typeof params.inputStr === 'string'
@@ -91,25 +102,29 @@ async function parseInput(params = {}, options = {}) {
 
 	const useRemote = isRemoteAllowed(moduleName, params.botname);
 	if (!useRemote) {
-		return analytics.parseInput(params);
+		const local = await analytics.parseInput(params);
+		return keepProof ? { ...local, _rollWorker: false, _rollWorkerModule: moduleName } : local;
 	}
 
+	const remoteParams = await enrichParamsForRemote(params, moduleName);
+
 	try {
-		const result = await client.parse(params);
+		const result = await client.parse(remoteParams);
 		if (result?.needsLocal) {
 			if (allowLocalFallback) {
 				logLocalFallback('needsLocal', {
 					botname: params.botname,
 					moduleName: result.moduleName || moduleName,
 				});
-				return analytics.parseInput(params);
+				const local = await analytics.parseInput(params);
+				return keepProof ? { ...local, _rollWorker: false } : local;
 			}
 			return {
 				text: await getSystemBusyText(params.locale),
 				type: 'text',
 			};
 		}
-		return result;
+		return keepProof ? result : stripWorkerProof(result);
 	} catch (error) {
 		if (allowLocalFallback) {
 			logLocalFallback('workerError', {
@@ -117,7 +132,8 @@ async function parseInput(params = {}, options = {}) {
 				moduleName,
 				error: error?.message || String(error),
 			});
-			return analytics.parseInput(params);
+			const local = await analytics.parseInput(params);
+			return keepProof ? { ...local, _rollWorker: false } : local;
 		}
 		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);
 		return {
@@ -125,6 +141,45 @@ async function parseInput(params = {}, options = {}) {
 			type: 'text',
 		};
 	}
+}
+
+/**
+ * Prefetch Discord-only assets so Worker can run without live client.
+ */
+async function enrichParamsForRemote(params, moduleName) {
+	if (params.botname !== 'Discord') return params;
+	if (!params.discordMessage) return params;
+
+	if (moduleName === 'token') {
+		if (params.avatarUrl) return params;
+		if (!params.discordClient) return params;
+		try {
+			const { getAvatar } = require('../../roll/token.js');
+			if (typeof getAvatar !== 'function') return params;
+			const avatarUrl = await getAvatar(params.discordMessage, params.discordClient);
+			if (!avatarUrl) return params;
+			return { ...params, avatarUrl };
+		} catch (error) {
+			console.warn('[ParseRouter] token avatar prefetch failed:', error?.message || error);
+			return params;
+		}
+	}
+
+	if (moduleName === 'openai') {
+		if (params.attachmentsMeta || params.replyAttachmentsMeta || params.replyContent) {
+			return params;
+		}
+		try {
+			const { prefetchOpenAiDiscordContext } = require('./discord-prefetch');
+			const ctx = await prefetchOpenAiDiscordContext(params.discordMessage, params.discordClient);
+			return { ...params, ...ctx };
+		} catch (error) {
+			console.warn('[ParseRouter] openai prefetch failed:', error?.message || error);
+			return params;
+		}
+	}
+
+	return params;
 }
 
 /**

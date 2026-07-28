@@ -35,6 +35,7 @@ const patreonTiers = require('../modules/patreon/patreon-tiers.js');
 const patreonSync = require('../modules/patreon/patreon-sync.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const scheduleModule = require('../modules/runtime/schedule.js');
+const { adminSubNeedsLiveDiscord } = require('../modules/roll-worker/admin-remote.js');
 const SCHEDULE_DOC_KEY = scheduleModule.SCHEDULE_DOC_KEY || 'default';
 const AGENDA_TIMEZONE = scheduleModule.AGENDA_TIMEZONE || process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong';
 const gameName = function (params = {}) {
@@ -592,6 +593,15 @@ const rollDiceCommand = async function ({
             rply.text = translate('admin.root_admin_only');
             return rply;
         }
+    }
+
+    // Roll Worker: only a small safe subset runs without live Discord client.
+    if (
+        process.env.ROLL_WORKER_MODE === 'true'
+        && !discordClient
+        && adminSubNeedsLiveDiscord(mainMsg[0], mainMsg[1])
+    ) {
+        return { needsLocal: true, moduleName: 'z_admin' };
     }
 
     // Handle different functions based on command type
@@ -1838,6 +1848,7 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
+    adminSubNeedsLiveDiscord,
     discordCommand: discordCommand,
     generatePatreonKey
 };

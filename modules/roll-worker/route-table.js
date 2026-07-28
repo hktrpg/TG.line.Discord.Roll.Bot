@@ -36,17 +36,18 @@ const REMOTE_ALLOWLIST = new Set([
 	'z_DDR_darkRollingToGM',
 	'z_myname',
 	'z_role',
-]);
-
-/** Discord-only / needs live client — never remote. */
-const LOCAL_DISCORD_ONLY = new Set([
-	'export',
+	// Prefetch / needsLocal for Discord-coupled steps (see Phase 3)
 	'forward',
 	'token',
 	'openai',
-	'z_admin',
+	'export',
 	'z_multi-server',
+	'z_admin',
 	'z-story-teller',
+]);
+
+/** Discord-only / needs live client — never remote. Empty after Phase 3c. */
+const LOCAL_DISCORD_ONLY = new Set([
 ]);
 
 function normalizeModuleId(moduleId) {

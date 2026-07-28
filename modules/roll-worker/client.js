@@ -35,6 +35,10 @@ function toSerializableContext(params = {}) {
 		tgDisplayname: params.tgDisplayname || '',
 		locale: params.locale || null,
 		channelType: params.channelType ?? params.discordMessage?.channel?.type ?? null,
+		avatarUrl: params.avatarUrl || null,
+		attachmentsMeta: Array.isArray(params.attachmentsMeta) ? params.attachmentsMeta : null,
+		replyAttachmentsMeta: Array.isArray(params.replyAttachmentsMeta) ? params.replyAttachmentsMeta : null,
+		replyContent: params.replyContent || null,
 	};
 }
 
@@ -64,6 +68,29 @@ async function parse(params) {
 	return response.data;
 }
 
+async function characterAction({ doc, item, locale, botname = 'WWW' } = {}) {
+	const { url, token, timeoutMs } = getConfig();
+	const headers = { 'Content-Type': 'application/json' };
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+
+	const response = await axios.post(
+		`${url}/v1/character-action`,
+		{ doc, item, locale, botname },
+		{ headers, timeout: timeoutMs, validateStatus: () => true }
+	);
+
+	if (response.status < 200 || response.status >= 300) {
+		const message = response.data?.error || `Roll worker HTTP ${response.status}`;
+		const error = new Error(message);
+		error.status = response.status;
+		error.body = response.data;
+		throw error;
+	}
+	return response.data;
+}
+
 async function health() {
 	const { url, token, timeoutMs } = getConfig();
 	const headers = {};
@@ -79,5 +106,6 @@ module.exports = {
 	getConfig,
 	toSerializableContext,
 	parse,
+	characterAction,
 	health,
 };

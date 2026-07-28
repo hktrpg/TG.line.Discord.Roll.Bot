@@ -1,7 +1,8 @@
 "use strict";
 
 const initialize = function () {
-    if (!process.env.DISCORD_CHANNEL_SECRET) {
+    // Load on Discord gateway or Roll Worker (avatarUrl prefetch / needsLocal).
+    if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
         return;
     }
     return variables;
@@ -52,6 +53,7 @@ const rollDiceCommand = async function ({
     discordClient,
     discordMessage,
     displaynameDiscord,
+    avatarUrl,
     locale,
     t
 }) {
@@ -74,20 +76,27 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         }
+        default:
+            break;
+    }
+
+    // Making / upload needs an image URL. Gateway should prefetch avatarUrl for remote worker.
+    if (process.env.ROLL_WORKER_MODE === 'true' && !avatarUrl && !discordMessage) {
+        return { needsLocal: true, moduleName: 'token' };
+    }
+
+    switch (true) {
         case /^\.tokenupload$/.test(mainMsg[0]): {
-            return await uploadImage(discordMessage, discordClient, translate);
+            return await uploadImage(discordMessage, discordClient, translate, avatarUrl);
         }
         case /^\.token2$/.test(mainMsg[0]): {
-            //get avatar  or reply message image
-            return await circleTokernMaker(discordMessage, inputStr, mainMsg, discordClient, translate, i18nParams);
+            return await circleTokernMaker(discordMessage, inputStr, mainMsg, discordClient, translate, i18nParams, avatarUrl);
         }
         case /^\.token3$/.test(mainMsg[0]): {
-            //get avatar  or reply message image
-            return await circleTokernMaker3(discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord, translate, i18nParams);
+            return await circleTokernMaker3(discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord, translate, i18nParams, avatarUrl);
         }
         case /^\S/.test(mainMsg[1]) || !mainMsg[1]: {
-            //get avatar  or reply message image
-            const result = await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient, translate, i18nParams);
+            const result = await polaroidTokernMaker(discordMessage, inputStr, mainMsg, discordClient, translate, i18nParams, avatarUrl);
             if (!result.text && !result.sendImage) {
                 result.text = failWithHelp(translate, i18nParams);
             }
@@ -100,9 +109,9 @@ const rollDiceCommand = async function ({
 }
 
 
-const uploadImage = async (discordMessage, discordClient, translate) => {
+const uploadImage = async (discordMessage, discordClient, translate, avatarUrl = null) => {
     let rply = { text: '', sendImage: '' };
-    const avatar = await getAvatar(discordMessage, discordClient)
+    const avatar = await getAvatar(discordMessage, discordClient, avatarUrl)
 
     if (!avatar) {
         rply.text = translate('token.upload_no_image');
@@ -140,11 +149,11 @@ const uploadImage = async (discordMessage, discordClient, translate) => {
     return rply;
 }
 
-const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient, translate, i18nParams = {}) => {
+const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient, translate, i18nParams = {}, avatarUrl = null) => {
     let rply = { text: '', sendImage: '' };
     try {
         const text = await getName(discordMessage, inputStr, mainMsg)
-        const avatar = await getAvatar(discordMessage, discordClient)
+        const avatar = await getAvatar(discordMessage, discordClient, avatarUrl)
         if (!avatar) {
             rply.text = noReplyImageWithHelp(translate, i18nParams);
             return rply;
@@ -172,11 +181,11 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
         return rply;
     }
 }
-const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord, translate, i18nParams = {}) => {
+const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClient, displaynameDiscord, translate, i18nParams = {}, avatarUrl = null) => {
     let rply = { text: '', sendImage: '' };
     try {
         const text = await getName(discordMessage, inputStr, mainMsg)
-        const avatar = await getAvatar(discordMessage, discordClient)
+        const avatar = await getAvatar(discordMessage, discordClient, avatarUrl)
         if (!avatar) {
             rply.text = noReplyImageWithHelp(translate, i18nParams);
             return rply;
@@ -228,11 +237,11 @@ async function maskImage(path, maskPath) {
     //    return await image.writeAsync('./assets/token/test2345.png'); // Returns Promise
 }
 
-const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient, translate = getT({}), i18nParams = {}) => {
+const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordClient, translate = getT({}), i18nParams = {}, avatarUrl = null) => {
     let rply = { text: '', sendImage: '' };
     try {
         const text = await getName(discordMessage, inputStr, mainMsg)
-        const avatar = await getAvatar(discordMessage, discordClient)
+        const avatar = await getAvatar(discordMessage, discordClient, avatarUrl)
         if (!avatar) {
             rply.text = failWithHelp(translate, i18nParams);
             return rply;
@@ -266,7 +275,11 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
     }
 }
 
-const getAvatar = async (discordMessage, discordClient) => {
+const getAvatar = async (discordMessage, discordClient, avatarUrl = null) => {
+    // Prefetched by Discord gateway for Roll Worker (serializable URL only).
+    if (avatarUrl && typeof avatarUrl === 'string') {
+        return avatarUrl;
+    }
     if (!discordMessage) {
         return null;
     }

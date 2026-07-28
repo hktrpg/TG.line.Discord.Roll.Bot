@@ -35,8 +35,8 @@ function isWebContext(params) {
 }
 
 function isDmContext(params) {
-    const channel = params.discordMessage?.channel;
-    if (channel?.type === 1) {
+    const channelType = params.channelType ?? params.discordMessage?.channel?.type;
+    if (channelType === 1) {
         return true;
     }
     // Web chat rooms omit groupid but are not DMs

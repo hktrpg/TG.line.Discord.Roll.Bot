@@ -483,7 +483,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 	agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, { botname: 'Line', groupid: data.groupid });
 		//SendToReply(ctx, text)
 		SendToId(
 			data.groupid, text
@@ -498,7 +498,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 	agenda.agenda.define("scheduleCronMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, { botname: 'Line', groupid: data.groupid });
 		//SendToReply(ctx, text)
 		SendToId(
 			data.groupid, text

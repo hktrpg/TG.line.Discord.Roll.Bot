@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.DISCORD_CHANNEL_SECRET) {
+if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 let variables = {};
@@ -364,6 +364,9 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                return { needsLocal: true, moduleName: 'export' };
+            }
             if (!channelid || !groupid) {
                 rply.text = translate('export.channel_only');
                 return rply;
@@ -523,6 +526,9 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^txt$/i.test(mainMsg[1]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                return { needsLocal: true, moduleName: 'export' };
+            }
             rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkBot,
                 gid: groupid,

@@ -73,6 +73,10 @@ class RollContext {
 		this.channelType = params.channelType ?? params.discordMessage?.channel?.type ?? null;
 		this.titleName = params.titleName || '';
 		this.tgDisplayname = params.tgDisplayname || '';
+		this.avatarUrl = params.avatarUrl || null;
+		this.attachmentsMeta = Array.isArray(params.attachmentsMeta) ? params.attachmentsMeta : null;
+		this.replyAttachmentsMeta = Array.isArray(params.replyAttachmentsMeta) ? params.replyAttachmentsMeta : null;
+		this.replyContent = params.replyContent || null;
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
 		this.t = params.t || i18n.createTranslator(this.locale);
 		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
@@ -95,6 +99,10 @@ class RollContext {
 			channelType: this.channelType,
 			titleName: this.titleName,
 			tgDisplayname: this.tgDisplayname,
+			avatarUrl: this.avatarUrl,
+			attachmentsMeta: this.attachmentsMeta,
+			replyAttachmentsMeta: this.replyAttachmentsMeta,
+			replyContent: this.replyContent,
 			locale: this.locale,
 			t: this.t
 		};

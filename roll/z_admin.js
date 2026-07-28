@@ -1541,9 +1541,11 @@ const rollDiceCommand = async function ({
 
                 let csvContent;
                 try {
-                    const response = await fetch(attachment.url);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    csvContent = await response.text();
+                    const { safeFetchText } = require('../modules/roll-worker/safe-fetch');
+                    const downloaded = await safeFetchText(attachment.url, {
+                        maxBytes: MAX_CSV_SIZE_BYTES,
+                    });
+                    csvContent = downloaded.text;
                 } catch (error) {
                     rply.text = translate('admin.import_csv_read_failed', { message: error.message || error });
                     return rply;

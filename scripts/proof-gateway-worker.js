@@ -926,7 +926,83 @@ async function main() {
 			console.log('[proof] PASS Schedule skipExp (Phase 3t)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3t)');
+		// 35) Phase 3u: findRollList gate + empty export + HMAC + SSRF
+		{
+			pinGatewayWorkerUrl();
+			const parseRouter = require('../modules/roll-worker/parse-router');
+			assert(parseRouter.shouldSkipLocalFindRollList('Whatsapp') === false, 'WhatsApp never skips findRollList');
+			assert(parseRouter.shouldSkipLocalFindRollList('Telegram') === false, 'TG never skips findRollList');
+
+			const { hasExportHistoryMessages } = require('../modules/roll-worker/export-history');
+			assert(hasExportHistoryMessages({ sum_messages: [] }) === false, 'empty export history not satisfied');
+			assert(hasExportHistoryMessages({ sum_messages: [{}] }) === true, 'non-empty export history ok');
+
+			const { attachGatewayAuth, verifyGatewayAuth } = require('../modules/roll-worker/request-auth');
+			const signed = attachGatewayAuth({
+				inputStr: '1d3',
+				userid: 'proof-user',
+				botname: 'Telegram',
+			}, PROOF_TOKEN);
+			assert(verifyGatewayAuth(signed, PROOF_TOKEN).ok === true, 'HMAC verify ok');
+			const tampered = { ...signed, userid: 'forged-admin' };
+			assert(verifyGatewayAuth(tampered, PROOF_TOKEN).ok === false, 'HMAC rejects tampered userid');
+
+			// Bearer without signature → 401
+			const unsignedReject = await new Promise((resolve, reject) => {
+				const data = JSON.stringify({ inputStr: '1d3', botname: 'Telegram' });
+				const req = http.request({
+					hostname: '127.0.0.1',
+					port: PORT,
+					path: '/v1/parse',
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Content-Length': Buffer.byteLength(data),
+						Authorization: `Bearer ${PROOF_TOKEN}`,
+					},
+				}, (res) => {
+					let raw = '';
+					res.on('data', (c) => { raw += c; });
+					res.on('end', () => resolve({ status: res.statusCode, body: raw }));
+				});
+				req.on('error', reject);
+				req.write(data);
+				req.end();
+			});
+			assert(unsignedReject.status === 401, 'unsigned body rejected', unsignedReject);
+
+			const { assertSafeDiscordFetchUrl } = require('../modules/roll-worker/safe-fetch');
+			const meta = await assertSafeDiscordFetchUrl('https://169.254.169.254/latest/meta-data/');
+			assert(meta.ok === false, 'SSRF blocks link-local metadata');
+			const evil = await assertSafeDiscordFetchUrl('https://evil.example/a.csv');
+			assert(evil.ok === false, 'SSRF blocks non-Discord host');
+
+			const {
+				resolveForwardOwnershipLive,
+			} = require('../modules/roll-worker/forward-ownership');
+			const live = await resolveForwardOwnershipLive({
+				channels: {
+					fetch: async () => ({
+						messages: {
+							fetch: async (id) => {
+								if (String(id) === 'msg-ref') throw new Error('Unknown Message');
+								return {
+									content: 'x',
+									mentions: { users: new Map() },
+									interaction: null,
+									reference: { messageId: 'msg-ref' },
+								};
+							},
+						},
+					}),
+				},
+			}, { sourceChannelId: '1', sourceMessageId: '2', userid: 'u' });
+			assert(live.ok === false && live.errorKey === 'forward.not_your_button', 'forward deleted ref fails closed', live);
+
+			console.log('[proof] PASS Phase 3u review fixes (gate/HMAC/SSRF/export/forward)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3u)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

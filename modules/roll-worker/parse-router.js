@@ -294,7 +294,8 @@ async function enrichParamsForRemote(params, moduleName) {
 	}
 
 	if (moduleName === 'export') {
-		if (params.exportHistoryMeta?.sum_messages) return params;
+		const { hasExportHistoryMessages } = require('./export-history');
+		if (hasExportHistoryMessages(params.exportHistoryMeta)) return params;
 		const parts = String(params.inputStr || '').trim().match(/\S+/ig) || [];
 		const sub = String(parts[1] || '').toLowerCase();
 		if ((sub === 'html' || sub === 'txt') && params.discordClient && params.channelid) {
@@ -388,12 +389,12 @@ async function enrichParamsForRemote(params, moduleName) {
 
 /**
  * Whether gateway should skip local findRollList and always ask the router/worker.
- * When worker URL is set, new prefixes live on worker — local findRollList can miss them.
+ * Always false: Gateway and Worker share the same roll/* codebase, so local
+ * findRollList is the command gate. Skipping caused WhatsApp/TG/Line chatter to
+ * hit /v1/parse (EXP + load) for every group message.
  */
-function shouldSkipLocalFindRollList(botname) {
-	if (!client.isEnabled()) return false;
-	// Discord still uses local findRollList for allowlist routing.
-	return botname !== 'Discord';
+function shouldSkipLocalFindRollList() {
+	return false;
 }
 
 module.exports = {

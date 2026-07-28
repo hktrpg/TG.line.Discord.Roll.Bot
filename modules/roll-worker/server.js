@@ -4,6 +4,10 @@ const express = require('express');
 const analytics = require('../analytics');
 const { isRemoteAllowed } = require('./route-table');
 const { runCharacterAction } = require('./character-action');
+const {
+	verifyGatewayAuth,
+	stripGatewayAuth,
+} = require('./request-auth');
 
 function isLoopbackHost(host) {
 	const h = String(host || '').toLowerCase();
@@ -32,7 +36,7 @@ function createRollWorkerApp(options = {}) {
 		}
 
 		if (!expectedToken) {
-			if (allowNoToken || isLoopbackHost(bindHost)) {
+			if (allowNoToken) {
 				return next();
 			}
 			return res.status(401).json({
@@ -56,13 +60,20 @@ function createRollWorkerApp(options = {}) {
 			parseCount: stats.parseCount,
 			characterActionCount: stats.characterActionCount,
 			needsLocalCount: stats.needsLocalCount,
-			auth: expectedToken ? 'required' : (allowNoToken ? 'disabled' : 'loopback-only'),
+			auth: expectedToken ? 'required' : (allowNoToken ? 'disabled' : 'token-required'),
 		});
 	});
 
 	app.post('/v1/parse', async (req, res) => {
 		try {
-			const params = req.body || {};
+			const rawParams = req.body || {};
+			const auth = verifyGatewayAuth(rawParams, expectedToken, {
+				required: Boolean(expectedToken),
+			});
+			if (!auth.ok) {
+				return res.status(401).json({ error: `Unauthorized: ${auth.error}` });
+			}
+			const params = stripGatewayAuth(rawParams);
 			const mainMsg = typeof params.inputStr === 'string'
 				? params.inputStr.replaceAll(/^\s/g, '').match(/\S+/ig)
 				: null;
@@ -96,7 +107,7 @@ function createRollWorkerApp(options = {}) {
 
 			stats.parseCount += 1;
 			return res.json({
-				...(result || {}),
+				...result,
 				_rollWorker: true,
 				_rollWorkerModule: moduleName || null,
 			});
@@ -110,7 +121,14 @@ function createRollWorkerApp(options = {}) {
 
 	app.post('/v1/character-action', async (req, res) => {
 		try {
-			const body = req.body || {};
+			const rawBody = req.body || {};
+			const auth = verifyGatewayAuth(rawBody, expectedToken, {
+				required: Boolean(expectedToken),
+			});
+			if (!auth.ok) {
+				return res.status(401).json({ error: `Unauthorized: ${auth.error}` });
+			}
+			const body = stripGatewayAuth(rawBody);
 			const payload = await runCharacterAction({
 				doc: body.doc,
 				item: body.item,
@@ -135,6 +153,8 @@ function createRollWorkerApp(options = {}) {
 
 	app.locals.stats = stats;
 	app.locals.expectedToken = expectedToken;
+	app.locals.allowNoToken = allowNoToken;
+	app.locals.bindHost = bindHost;
 	return app;
 }
 
@@ -144,23 +164,31 @@ function startRollWorkerServer() {
 	const token = (process.env.ROLL_WORKER_TOKEN || '').trim();
 	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true';
 
+	if (!token && !allowNoToken) {
+		console.error(
+			'[RollWorker] Refusing to start without ROLL_WORKER_TOKEN'
+			+ ' (set ROLL_WORKER_ALLOW_NO_TOKEN=true only for local tests)'
+		);
+		// eslint-disable-next-line n/no-process-exit
+		process.exit(1);
+	}
+	if (!token && allowNoToken) {
+		console.warn(
+			'[RollWorker] WARNING: ROLL_WORKER_ALLOW_NO_TOKEN=true — /v1/* accepts unauthenticated requests'
+			+ (isLoopbackHost(host) ? ' on this bind host' : '')
+			+ '. Never use in production.'
+		);
+	}
 	if (!token && !allowNoToken && !isLoopbackHost(host)) {
 		console.error('[RollWorker] Refusing to bind non-loopback without ROLL_WORKER_TOKEN');
 		// eslint-disable-next-line n/no-process-exit
 		process.exit(1);
 	}
-	if (!token) {
-		console.warn(
-			'[RollWorker] WARNING: ROLL_WORKER_TOKEN unset — /v1/* accepts unauthenticated requests'
-			+ (isLoopbackHost(host) ? ' on loopback only' : '')
-			+ '. Set ROLL_WORKER_TOKEN on worker and all gateways.'
-		);
-	}
 
 	const app = createRollWorkerApp({ host });
 	const server = app.listen(port, host, () => {
 		console.log(`[RollWorker] Listening on http://${host}:${port}`
-			+ (token ? ' (auth required)' : ' (auth off)'));
+			+ (token ? ' (auth + gateway signature required)' : ' (auth off)'));
 	});
 	return { app, server };
 }

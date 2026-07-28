@@ -24,9 +24,11 @@ ROLL_WORKER_TOKEN=change-me-shared-secret
 
 Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 
-**Auth:** set the same `ROLL_WORKER_TOKEN` on worker and every gateway. Loopback without a token is allowed only as a local fallback (loud warning); non-loopback bind refuses to start without a token.
+**Auth:** set the same `ROLL_WORKER_TOKEN` on worker and every gateway. Worker refuses to start without a token unless `ROLL_WORKER_ALLOW_NO_TOKEN=true` (local tests only). Gateways attach an HMAC signature (`_gatewayAuth`) over identity and Discord prefetch claims; Worker rejects unsigned/expired bodies when a token is set.
 
 **Artifacts:** Worker writes `export/` and `temp/` under `ROLL_ARTIFACT_ROOT` (default: process cwd). Gateway and Worker must share that directory (same machine cwd or a mounted volume). Gateway skips attach when the file is missing.
+
+**SSRF:** Worker-side URL fetches (CSV / avatar / story / openai attachments) allowlist Discord CDN hosts and block private/link-local targets.
 ## Process tips
 
 | Process | Env focus |
@@ -49,7 +51,7 @@ Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job proces
 
 ## Separation status
 
-**Module split is complete (Phase 3 → 3t).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. Worker outages fall back to local analytics on all platforms (opt-out: `allowLocalFallback: false`). Export history prefetch skips GP cooldown / low userrole; chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false. Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP.
+**Module split is complete (Phase 3 → 3u).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. Worker outages fall back to local analytics on all platforms (opt-out: `allowLocalFallback: false`). Export history prefetch skips GP cooldown / low userrole; empty `sum_messages` does not count as prefetch. Chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false (deleted reply-refs fail closed). Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP. Non-Discord platforms keep local `findRollList` as the command gate so chatter does not hit Worker / award EXP via parse.
 
 ## Health
 

@@ -1,8 +1,8 @@
 "use strict";
 
 /**
- * Phase 3g: export html|txt with Gateway-prefetched history → Worker remote;
- * story list / update with meta → Worker remote.
+ * Phase 3g: export html|txt with Gateway-prefetched history ??Worker remote;
+ * story list / update with meta ??Worker remote.
  */
 jest.setTimeout(90_000);
 
@@ -12,6 +12,7 @@ const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
 const PORT = 39_69;
+const TOKEN = 'phase-spawn-token';
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -65,6 +66,7 @@ describe('Phase 3g export/story Worker remote (spawned)', () => {
 	let child;
 	let client;
 	const prevUrl = process.env.ROLL_WORKER_URL;
+	const prevToken = process.env.ROLL_WORKER_TOKEN;
 
 	beforeAll(async () => {
 		child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
@@ -74,6 +76,8 @@ describe('Phase 3g export/story Worker remote (spawned)', () => {
 				ROLL_WORKER_MODE: 'true',
 				ROLL_WORKER_HOST: '127.0.0.1',
 				ROLL_WORKER_PORT: String(PORT),
+				ROLL_WORKER_TOKEN: TOKEN,
+				ROLL_WORKER_URL: '',
 				OPENAI_SWITCH: process.env.OPENAI_SWITCH || 'true',
 				DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
 			},
@@ -81,6 +85,7 @@ describe('Phase 3g export/story Worker remote (spawned)', () => {
 		});
 
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PORT}`;
+		process.env.ROLL_WORKER_TOKEN = TOKEN;
 		jest.resetModules();
 		client = require('../modules/roll-worker/client');
 		await waitHealth();
@@ -89,6 +94,8 @@ describe('Phase 3g export/story Worker remote (spawned)', () => {
 	afterAll(async () => {
 		if (prevUrl === undefined) delete process.env.ROLL_WORKER_URL;
 		else process.env.ROLL_WORKER_URL = prevUrl;
+		if (prevToken === undefined) delete process.env.ROLL_WORKER_TOKEN;
+		else process.env.ROLL_WORKER_TOKEN = prevToken;
 		if (child && !child.killed) {
 			child.kill('SIGTERM');
 			await sleep(400);

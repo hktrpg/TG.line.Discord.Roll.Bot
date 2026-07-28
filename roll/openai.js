@@ -77,6 +77,15 @@ const TRANSLATION_SYSTEM_PROMPT = `
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const { encode } = require('gpt-tokenizer');
+
+async function fetchDiscordAttachment(url) {
+	const { assertSafeDiscordFetchUrl } = require('../modules/roll-worker/safe-fetch');
+	const gate = await assertSafeDiscordFetchUrl(url);
+	if (!gate.ok) {
+		throw new Error(`Unsafe attachment URL: ${gate.error}`);
+	}
+	return fetch(url);
+}
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
 // eslint-disable-next-line n/no-extraneous-require
@@ -1119,7 +1128,7 @@ class TranslateAi extends OpenAI {
         try {
             debugLog(`[CHUNK_PROCESS] Starting chunked processing for ${attachment.name} (${fileType})`);
 
-            const response = await fetch(attachment.url);
+            const response = await fetchDiscordAttachment(attachment.url);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -2158,12 +2167,12 @@ class TranslateAi extends OpenAI {
                     } else {
                         // Check if it's a text file (original behavior for small files)
                         if (attachment.contentType?.match(/text/i) || fileType === 'TEXT') {
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const data = await response.text();
                             extractedText = data;
                         } else if (fileType) {
                             // Process PDF, DOCX, and image files (original method for smaller files)
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const buffer = await response.buffer();
                             extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
                         } else {
@@ -2233,12 +2242,12 @@ class TranslateAi extends OpenAI {
                     } else {
                         // Check if it's a text file (original behavior for small files)
                         if (attachment.contentType?.match(/text/i) || fileType === 'TEXT') {
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const data = await response.text();
                             extractedText = data;
                         } else if (fileType) {
                             // Process PDF, DOCX, and image files (original method for smaller files)
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const buffer = await response.buffer();
                             extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
                         } else {

@@ -1,6 +1,7 @@
 "use strict";
 
 const axios = require('axios');
+const { attachGatewayAuth } = require('./request-auth');
 
 const DEFAULT_URL = 'http://127.0.0.1:3950';
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -61,9 +62,10 @@ async function parse(params) {
 		headers.Authorization = `Bearer ${token}`;
 	}
 
+	const body = attachGatewayAuth(toSerializableContext(params), token);
 	const response = await axios.post(
 		`${url}/v1/parse`,
-		toSerializableContext(params),
+		body,
 		{ headers, timeout: timeoutMs, validateStatus: () => true }
 	);
 
@@ -93,9 +95,10 @@ async function characterAction({ doc, item, locale, botname = 'WWW' } = {}) {
 		headers.Authorization = `Bearer ${token}`;
 	}
 
+	const body = attachGatewayAuth({ doc, item, locale, botname }, token);
 	const response = await axios.post(
 		`${url}/v1/character-action`,
-		{ doc, item, locale, botname },
+		body,
 		{ headers, timeout: timeoutMs, validateStatus: () => true }
 	);
 

@@ -54,7 +54,8 @@ describe('roll-worker HTTP server', () => {
 
 	beforeAll(async () => {
 		process.env.ROLL_WORKER_MODE = 'true';
-		const app = createRollWorkerApp();
+		delete process.env.ROLL_WORKER_TOKEN;
+		const app = createRollWorkerApp({ allowNoToken: true });
 		({ server, port } = await listen(app));
 	});
 

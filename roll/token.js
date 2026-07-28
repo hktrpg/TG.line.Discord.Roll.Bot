@@ -14,7 +14,6 @@ const path = require('path');
 const jimp = require('jimp');
 const sharp = require('sharp');
 const { SlashCommandBuilder } = require('discord.js');
-const axios = require('axios').default;
 const GeoPattern = require('geopattern');
 const { imgbox } = require("imgbox");
 const { getPool } = require('../modules/db/pool');
@@ -375,8 +374,9 @@ const getName = async (discordMessage, inputStr) => {
 
 const getImage = async url => {
     try {
-        const response = await axios({ url, responseType: "arraybuffer" });
-        return response.data;
+        const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
+        const downloaded = await safeFetchBuffer(url, { maxBytes: 8 * 1024 * 1024 });
+        return downloaded.buffer;
     } catch (error) {
         console.error('Error fetching image:', error);
         return null;

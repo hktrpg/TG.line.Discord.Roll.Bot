@@ -2,7 +2,6 @@
 const path = require('node:path');
 const fs = require('node:fs');
 const { SlashCommandBuilder } = require('discord.js');
-const axios = require('axios').default;
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
 // Optional persistence via Mongo (gracefully degrade if unavailable)
@@ -1150,8 +1149,9 @@ async function getAttachmentInfo(discordMessage, discordClient) {
 }
 
 async function downloadText(url) {
-    const resp = await axios({ url, responseType: 'arraybuffer', timeout: 15_000 });
-    return Buffer.from(resp.data).toString('utf8');
+    const { safeFetchText } = require('../modules/roll-worker/safe-fetch');
+    const downloaded = await safeFetchText(url, { maxBytes: 5 * 1024 * 1024 });
+    return downloaded.text;
 }
 
 function estimateJsonErrorLine(text, error) {

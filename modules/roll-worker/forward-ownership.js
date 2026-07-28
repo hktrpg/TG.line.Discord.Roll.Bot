@@ -39,9 +39,13 @@ async function resolveForwardOwnershipLive(discordClient, {
 		isInteractionUser = (sourceMessage.interaction.user.id === userid);
 	}
 	if (!isMentioned && !isInteractionUser && sourceMessage.reference?.messageId) {
-		const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
-		if (refMessage?.author?.id === userid) {
-			isMentioned = true;
+		try {
+			const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
+			if (refMessage?.author?.id === userid) {
+				isMentioned = true;
+			}
+		} catch {
+			// Deleted/missing reply reference — treat as ownership not verified.
 		}
 	}
 	if (!isMentioned && !isInteractionUser) {

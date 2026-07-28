@@ -12,6 +12,7 @@ const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
 const PORT = 39_70;
+const TOKEN = 'phase-spawn-token';
 const ADMIN_ID = 'proof-admin-3h';
 
 function sleep(ms) {
@@ -80,6 +81,7 @@ describe('Phase 3h admin/token Worker remote (spawned)', () => {
 	let child;
 	let client;
 	const prevUrl = process.env.ROLL_WORKER_URL;
+	const prevToken = process.env.ROLL_WORKER_TOKEN;
 
 	beforeAll(async () => {
 		child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
@@ -89,6 +91,8 @@ describe('Phase 3h admin/token Worker remote (spawned)', () => {
 				ROLL_WORKER_MODE: 'true',
 				ROLL_WORKER_HOST: '127.0.0.1',
 				ROLL_WORKER_PORT: String(PORT),
+				ROLL_WORKER_TOKEN: TOKEN,
+				ROLL_WORKER_URL: '',
 				ADMIN_SECRET: ADMIN_ID,
 				OPENAI_SWITCH: process.env.OPENAI_SWITCH || 'true',
 				DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
@@ -97,6 +101,7 @@ describe('Phase 3h admin/token Worker remote (spawned)', () => {
 		});
 
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PORT}`;
+		process.env.ROLL_WORKER_TOKEN = TOKEN;
 		jest.resetModules();
 		client = require('../modules/roll-worker/client');
 		await waitHealth();
@@ -105,6 +110,8 @@ describe('Phase 3h admin/token Worker remote (spawned)', () => {
 	afterAll(async () => {
 		if (prevUrl === undefined) delete process.env.ROLL_WORKER_URL;
 		else process.env.ROLL_WORKER_URL = prevUrl;
+		if (prevToken === undefined) delete process.env.ROLL_WORKER_TOKEN;
+		else process.env.ROLL_WORKER_TOKEN = prevToken;
 		if (child && !child.killed) {
 			child.kill('SIGTERM');
 			await sleep(400);

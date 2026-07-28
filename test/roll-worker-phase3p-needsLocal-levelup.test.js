@@ -110,14 +110,16 @@ describe('Phase 3p live worker 503 needsLocal carries LevelUp', () => {
 
 	it('HTTP 503 JSON includes LevelUp keys from mocked-shaped server path', async () => {
 		// Direct HTTP against live worker: real token needsLocal body must be parseable.
+		const { attachGatewayAuth } = require('../modules/roll-worker/request-auth');
+		const payload = attachGatewayAuth({
+			inputStr: '.token Hero',
+			botname: 'Discord',
+			userid: 'u-3p-http',
+			groupid: 'g-3p',
+			locale: 'zh-tw',
+		}, TOKEN);
 		const body = await new Promise((resolve, reject) => {
-			const data = JSON.stringify({
-				inputStr: '.token Hero',
-				botname: 'Discord',
-				userid: 'u-3p-http',
-				groupid: 'g-3p',
-				locale: 'zh-tw',
-			});
+			const data = JSON.stringify(payload);
 			const req = http.request({
 				hostname: '127.0.0.1',
 				port: PORT,

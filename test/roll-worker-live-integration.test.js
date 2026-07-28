@@ -54,6 +54,7 @@ describe('roll-worker live Worker+Gateway proof (spawned process)', () => {
 	const prevUrl = process.env.ROLL_WORKER_URL;
 
 	beforeAll(async () => {
+		const TOKEN = process.env.ROLL_WORKER_TOKEN || 'live-integration-token';
 		child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
 			cwd: ROOT,
 			env: {
@@ -61,6 +62,8 @@ describe('roll-worker live Worker+Gateway proof (spawned process)', () => {
 				ROLL_WORKER_MODE: 'true',
 				ROLL_WORKER_HOST: '127.0.0.1',
 				ROLL_WORKER_PORT: String(PORT),
+				ROLL_WORKER_TOKEN: TOKEN,
+				ROLL_WORKER_URL: '',
 				OPENAI_SWITCH: process.env.OPENAI_SWITCH || 'true',
 				DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
 			},
@@ -68,6 +71,7 @@ describe('roll-worker live Worker+Gateway proof (spawned process)', () => {
 		});
 
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PORT}`;
+		process.env.ROLL_WORKER_TOKEN = TOKEN;
 		jest.resetModules();
 		client = require('../modules/roll-worker/client');
 		await waitHealth();
@@ -76,6 +80,7 @@ describe('roll-worker live Worker+Gateway proof (spawned process)', () => {
 	afterAll(async () => {
 		if (prevUrl === undefined) delete process.env.ROLL_WORKER_URL;
 		else process.env.ROLL_WORKER_URL = prevUrl;
+		delete process.env.ROLL_WORKER_TOKEN;
 		if (child && !child.killed) {
 			child.kill('SIGTERM');
 			await sleep(400);

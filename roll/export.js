@@ -28,13 +28,14 @@ const fs = require('fs').promises;
 const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
+const { createWriteStream } = require('fs');
+const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
+const moment = require('moment-timezone');
+const { hasExportHistoryMessages } = require('../modules/roll-worker/export-history');
 const {
 	getExportDir,
 	truncateExportHistoryForDemo,
 } = require('../modules/roll-worker/artifacts');
-const { createWriteStream } = require('fs');
-const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
-const moment = require('moment-timezone');
 const { getPool } = require('../modules/db/pool');
 const htmlPool = getPool('html');
 const schema = require('../modules/db/schema.js');
@@ -372,7 +373,7 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !exportHistoryMeta?.sum_messages) {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !hasExportHistoryMessages(exportHistoryMeta)) {
                 return { needsLocal: true, moduleName: 'export' };
             }
             if (!channelid || !groupid) {
@@ -403,7 +404,7 @@ const rollDiceCommand = async function ({
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
-            if (!exportHistoryMeta?.sum_messages) {
+            if (!hasExportHistoryMessages(exportHistoryMeta)) {
                 try {
                     C = await discordClient.channels.fetch(channelid);
                 } catch (error) {
@@ -454,7 +455,7 @@ const rollDiceCommand = async function ({
 
 
             await sendDiscordExportWaitNotice(discordMessage, userid, translate);
-            if (exportHistoryMeta?.sum_messages) {
+            if (hasExportHistoryMessages(exportHistoryMeta)) {
                 M = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
             } else {
                 const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
@@ -540,7 +541,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^txt$/i.test(mainMsg[1]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !exportHistoryMeta?.sum_messages) {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !hasExportHistoryMessages(exportHistoryMeta)) {
                 return { needsLocal: true, moduleName: 'export' };
             }
             rply.text = checkTools.permissionErrMsg({ locale,
@@ -571,7 +572,7 @@ const rollDiceCommand = async function ({
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
-            if (!exportHistoryMeta?.sum_messages) {
+            if (!hasExportHistoryMessages(exportHistoryMeta)) {
                 try {
                     C = await discordClient.channels.fetch(channelid);
                 } catch (error) {
@@ -608,11 +609,11 @@ const rollDiceCommand = async function ({
 
             console.log('USE EXPORT TXT')
             await sendDiscordExportWaitNotice(discordMessage, userid, translate);
-            if (exportHistoryMeta?.sum_messages) {
+            if (hasExportHistoryMessages(exportHistoryMeta)) {
                 // Prefetch may use HTML-shaped embeds/attachments; normalize for TXT join().
                 const limited = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
                 M = {
-                    totalSize: limited.totalSize || limited.sum_messages.length,
+                    totalSize: limited.totalSize ?? limited.sum_messages.length,
                     sum_messages: limited.sum_messages.map((msg) => ({
                         ...msg,
                         embeds: (msg.embeds || []).map((e) => (typeof e === 'string'

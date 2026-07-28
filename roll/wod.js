@@ -4,6 +4,9 @@ const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18
 let rollbase = require('./rollbase.js');
 let variables = {};
 
+/** .5wd8 / .5wd10+2 / .5wd8-1+2 */
+const WOD_REGEX = /^[.](\d+)(wd|wod)(\d{0,2})((?:[+-]\d+)*)$/i;
+
 const gameName = function (params = {}) {
     return resolveGameName(params, 'wod.game_name', '【WOD黑暗世界】.xWDy');
 }
@@ -13,7 +16,7 @@ const gameType = function () {
 }
 const prefixs = function () {
 	return [{
-		first: /^[.](\d+)(wd)(\d|)((\+|-)(\d+)|)$/i,
+		first: WOD_REGEX,
 		second: null
 	}]
 }
@@ -31,7 +34,7 @@ const rollDiceCommand = async function ({ mainMsg, locale, t }) {
 		type: 'text',
 		text: ''
 	};
-	let matchwod = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(mainMsg[0]); //判斷式  [0]3wd8+10,[1]3,[2]wd,[3]8,[4]+10,[5]+,[6]10  
+	let matchwod = WOD_REGEX.exec(mainMsg[0]);
 	if (matchwod && matchwod[1] >= 1 && matchwod[1] <= 600)
 		rply.text = await wod(mainMsg[0], mainMsg[1], translate);
 	return rply;
@@ -95,7 +98,8 @@ module.exports = {
 	prefixs: prefixs,
 	gameType: gameType,
 	gameName: gameName,
-	discordCommand: discordCommand
+	discordCommand: discordCommand,
+	WOD_REGEX
 };
 /**
  * WOD黑暗世界
@@ -109,36 +113,30 @@ async function wod(triggermsg, text, translate) {
 	let returnStr = triggermsg + ' [';
 	let varcou = 0;
 	let varsu = 0;
-	let match = /^[.](\d+)(wd|wod)(\d|)((\+|-)(\d+)|)$/i.exec(triggermsg);
-	if (match[3] == "") {
-		match[3] = 10
-	}
-	if (match[3] <= 3) {
+	let match = WOD_REGEX.exec(triggermsg);
+	let rerollMin = match[3] === '' ? 10 : Number(match[3]);
+	if (rerollMin <= 3) {
 		return t('wod.reroll_min');
 	}
 
 	for (let i = 0; i < Number(match[1]); i++) {
 		varcou = rollbase.Dice(10)
 		returnStr += varcou + ', ';
-		if (varcou >= match[3]) {
+		if (varcou >= rerollMin) {
 			i--
 		}
 		if (varcou >= 8) {
 			varsu++;
 		}
 	}
-	if (match[5] == '+') {
-		for (let i = 0; i < Number(match[6]); i++) {
-			varsu++;
+	// Support multiple modifiers: .5wd8-1+2 → net +1
+	const modifiers = match[4] ? match[4].match(/[+-]\d+/g) : null;
+	if (modifiers) {
+		for (const mod of modifiers) {
+			varsu += Number(mod);
 		}
 	}
-	if (match[5] == '-') {
-
-		for (let i = 0; i < Number(match[6]); i++) {
-			varsu--;
-		}
-	}
-	const rolls = returnStr.replace(/[,][ ]$/, '');
+	const rolls = returnStr.replace(/[,][ ]$/, '').replace(triggermsg + ' [', '');
 	const suffix = text != null ? ' ; ' + text : '';
 	return t('wod.result', { cmd: triggermsg, rolls, count: varsu, suffix });
 }

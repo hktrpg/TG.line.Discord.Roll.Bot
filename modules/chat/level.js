@@ -189,17 +189,23 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
     let username = userInfo.name;
     let userlevel = userInfo.Level;
     let userexp = userInfo.EXP;
-    let usermember_count = Math.max(membercount, 1);  // avoid division by zero for ranking %
 
     // Rank = count of members with EXP strictly greater than this user, +1 (avoids loading all members)
-    const countAbove = await schema.trpgLevelSystemMember.countDocuments({
-        groupid,
-        EXP: { $gt: userInfo.EXP }
-    }).catch(error => {
-        console.error('level #120 mongoDB error:', error.name, error.reason ?? error.message);
-        checkMongodb.dbErrOccurs();
-        return 0;
-    });
+    // Also get total members when platform did not provide membercount (e.g. Plurk)
+    const [countAbove, dbMemberCount] = await Promise.all([
+        schema.trpgLevelSystemMember.countDocuments({
+            groupid,
+            EXP: { $gt: userInfo.EXP }
+        }).catch(error => {
+            console.error('level #120 mongoDB error:', error.name, error.reason ?? error.message);
+            checkMongodb.dbErrOccurs();
+            return 0;
+        }),
+        (!membercount || membercount < 1)
+            ? schema.trpgLevelSystemMember.countDocuments({ groupid }).catch(() => 1)
+            : Promise.resolve(0)
+    ]);
+    let usermember_count = Math.max(Number(membercount) || 0, dbMemberCount, 1);
     const userRanking = countAbove + 1;
     let userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
     let userTitle = await checkTitle(userlevel, gpInfo.Title, locale);

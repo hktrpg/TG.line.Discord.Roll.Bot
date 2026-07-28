@@ -50,6 +50,7 @@ function toSerializableContext(params = {}) {
 		csvAttachmentMeta: params.csvAttachmentMeta || null,
 		fixShardMeta: params.fixShardMeta || null,
 		slashDeployMeta: params.slashDeployMeta || null,
+		skipExp: Boolean(params.skipExp),
 	};
 }
 

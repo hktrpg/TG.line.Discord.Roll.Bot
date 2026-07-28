@@ -28,6 +28,9 @@ async function rollDiceExpression(match, expression, options = {}) {
 		locale: options.locale || null,
 		groupid: options.groupid || null,
 		userid: options.userid || null,
+		channelid: options.channelid || null,
+		// Schedule [[dice]] substitution must never award channel XP.
+		skipExp: true,
 	}, { allowLocalFallback: true });
 	return (result && result.text) ? result.text : match;
 }

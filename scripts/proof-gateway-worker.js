@@ -840,7 +840,93 @@ async function main() {
 			console.log('[proof] PASS export gate + chatroom members.fetch (Phase 3r)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3r)');
+		// 33) Phase 3s: forward Gateway live-retry ownership when prefetch flags false
+		{
+			const {
+				shouldLiveResolveForwardOwnership,
+				resolveForwardOwnershipLive,
+			} = require('../modules/roll-worker/forward-ownership');
+
+			const planWorker = shouldLiveResolveForwardOwnership({
+				hasPrefetch: true,
+				isMentioned: false,
+				isInteractionUser: false,
+				discordClient: null,
+				rollWorkerMode: true,
+			});
+			assert(planWorker.action === 'needsLocal', 'worker ownership → needsLocal', planWorker);
+
+			const planGateway = shouldLiveResolveForwardOwnership({
+				hasPrefetch: true,
+				isMentioned: false,
+				isInteractionUser: false,
+				discordClient: { channels: {} },
+				rollWorkerMode: true,
+			});
+			assert(planGateway.action === 'liveFetch', 'gateway ownership → liveFetch', planGateway);
+
+			let liveFetchCount = 0;
+			const fakeClient = {
+				channels: {
+					fetch: async (channelId) => {
+						liveFetchCount += 1;
+						assert(String(channelId) === '2', 'live fetch source channel', channelId);
+						return {
+							messages: {
+								fetch: async (id) => {
+									if (String(id) === 'msg-ref') return { author: { id: 'u-proof-3s' } };
+									return {
+										content: 'Hero的角色',
+										mentions: { users: new Map() },
+										interaction: null,
+										reference: { messageId: 'msg-ref' },
+									};
+								},
+							},
+						};
+					},
+				},
+			};
+			const live = await resolveForwardOwnershipLive(fakeClient, {
+				sourceChannelId: '2',
+				sourceMessageId: '3',
+				userid: 'u-proof-3s',
+			});
+			assert(liveFetchCount === 1, 'Gateway live-retried channel fetch', { liveFetchCount });
+			assert(live.ok === true, 'reply-ref ownership ok', live);
+			assert(live.isMentioned === true, 'isMentioned via reply-ref', live);
+			assert(live.messageContent === 'Hero的角色', 'messageContent', live);
+			console.log('[proof] PASS forward Gateway live ownership retry (Phase 3s)');
+		}
+
+		// 34) Phase 3t: Schedule [[dice]] skipExp (no EXPUP) with groupid
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '1d3',
+				botname: 'Schedule',
+				groupid: 'g-proof-3t',
+				userid: 'u-proof-3t',
+				skipExp: true,
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(result._rollWorker === true, 'Schedule skipExp remotes', result);
+			assert(after.parseCount === before.parseCount + 1, 'Schedule skipExp parseCount++', { before, after });
+			assert(!result.LevelUp, 'skipExp leaves LevelUp empty', result);
+			assert(String(result.text || '').length > 0, 'Schedule dice text', result);
+
+			// getRoll always injects skipExp into parseRouter (unit-proven in Jest; contract here).
+			const getRollSrc = require('node:fs').readFileSync(
+				require('node:path').join(__dirname, '../modules/chat/getRoll.js'),
+				'utf8'
+			);
+			assert(/skipExp:\s*true/.test(getRollSrc), 'getRoll sets skipExp:true', getRollSrc.slice(0, 400));
+			console.log('[proof] PASS Schedule skipExp (Phase 3t)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3t)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

@@ -208,39 +208,38 @@ const rollDiceCommand = async function ({
             }
 
             try {
-                if (!hasPrefetch) {
-                    const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
-                    if (!sourceChannel) {
-                        rply.text = translate('forward.channel_not_found');
-                        return rply;
-                    }
-
-                    const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
-                    if (!sourceMessage) {
-                        rply.text = translate('forward.message_not_found');
-                        return rply;
-                    }
-
-                    messageContent = sourceMessage.content;
-                    if (sourceMessage.mentions && sourceMessage.mentions.users) {
-                        isMentioned = [...sourceMessage.mentions.users.entries()]
-                            .some(([userId]) => userId === userid);
-                    }
-                    if (sourceMessage.interaction && sourceMessage.interaction.user) {
-                        isInteractionUser = (sourceMessage.interaction.user.id === userid);
-                    }
-                    if (!isMentioned && !isInteractionUser) {
-                        if (sourceMessage.reference?.messageId) {
-                            const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
-                            if (refMessage.author.id === userid) {
-                                isMentioned = true;
-                            }
-                        } else {
-                            rply.text = translate('forward.not_your_button');
-                            return rply;
-                        }
-                    }
-                }
+                const {
+					shouldLiveResolveForwardOwnership,
+					resolveForwardOwnershipLive,
+				} = require('../modules/roll-worker/forward-ownership');
+				const ownershipPlan = shouldLiveResolveForwardOwnership({
+					hasPrefetch,
+					isMentioned,
+					isInteractionUser,
+					discordClient,
+					rollWorkerMode: process.env.ROLL_WORKER_MODE === 'true',
+				});
+				if (ownershipPlan.action === 'needsLocal') {
+					return { needsLocal: true, moduleName: 'forward' };
+				}
+				if (ownershipPlan.action === 'error') {
+					rply.text = translate(ownershipPlan.errorKey);
+					return rply;
+				}
+				if (ownershipPlan.action === 'liveFetch') {
+					const live = await resolveForwardOwnershipLive(discordClient, {
+						sourceChannelId,
+						sourceMessageId,
+						userid,
+					});
+					if (!live.ok) {
+						rply.text = translate(live.errorKey || 'forward.not_your_button');
+						return rply;
+					}
+					messageContent = live.messageContent;
+					isMentioned = live.isMentioned;
+					isInteractionUser = live.isInteractionUser;
+				}
 
                 if (!messageContent || messageContent.trim() === '') {
                     rply.text = translate('forward.no_buttons');
@@ -251,15 +250,6 @@ const rollDiceCommand = async function ({
                     !messageContent.endsWith('的角色卡') &&
                     !/要求擲骰\/點擊/.test(messageContent)) {
                     rply.text = translate('forward.invalid_button_type');
-                    return rply;
-                }
-
-                if (hasPrefetch && !isMentioned && !isInteractionUser) {
-                    // Prefetch may fail reply-reference ownership check — Gateway retries with live Discord.
-                    if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
-                        return { needsLocal: true, moduleName: 'forward' };
-                    }
-                    rply.text = translate('forward.not_your_button');
                     return rply;
                 }
 

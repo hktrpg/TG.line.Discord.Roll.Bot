@@ -17,15 +17,17 @@ describe('Phase 3r canPrefetchExportHistory', () => {
 	});
 
 	it('blocks prefetch when userrole < 2', async () => {
-		process.env.mongoURL = 'mongodb://localhost/test';
-		const { canPrefetchExportHistory } = require('../modules/roll-worker/discord-prefetch');
-		const gate = await canPrefetchExportHistory({
-			userid: 'u1',
-			groupid: 'g1',
-			userrole: 1,
+		await jest.isolateModulesAsync(async () => {
+			process.env.mongoURL = 'mongodb://localhost/test';
+			const { canPrefetchExportHistory } = require('../modules/roll-worker/discord-prefetch');
+			const gate = await canPrefetchExportHistory({
+				userid: 'u1',
+				groupid: 'g1',
+				userrole: 1,
+			});
+			expect(gate.allow).toBe(false);
+			expect(gate.reason).toBe('userrole');
 		});
-		expect(gate.allow).toBe(false);
-		expect(gate.reason).toBe('userrole');
 	});
 
 	it('blocks prefetch when GP is on cooldown', async () => {
@@ -106,7 +108,7 @@ describe('Phase 3r enrichParamsForRemote skips export prefetch on gate deny', ()
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
 				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
-				parse: jest.fn(async () => ({ text: 'ok', type: 'text' })),
+				parse: jest.fn(async () => ({ text: 'ok', type: 'text', _rollWorker: true })),
 			}));
 			jest.doMock('../modules/analytics', () => ({
 				parseInput: jest.fn(),
@@ -135,88 +137,95 @@ describe('Phase 3r enrichParamsForRemote skips export prefetch on gate deny', ()
 				discordClient: { channels: { fetch: jest.fn() } },
 				discordMessage: { channel: { name: 'x' } },
 				locale: 'zh-tw',
-			});
+			}, { keepProof: true });
 
 			expect(prefetchExportHistory).not.toHaveBeenCalled();
 			expect(result._rollWorker).toBe(true);
+			expect(result.text).toBe('ok');
 		});
 	});
 });
 
 describe('Phase 3r prefetchChatroomChannel uses guild.members.fetch', () => {
 	it('checks ManageChannels for the invoking userid', async () => {
-		const { PermissionsBitField } = require('discord.js');
-		const invokingMember = { id: 'user-invoker' };
-		const otherMember = { id: 'user-other' };
-		const permissionsFor = jest.fn((member) => ({
-			has: (flag) => member === invokingMember && flag === PermissionsBitField.Flags.ManageChannels,
-		}));
-		const membersFetch = jest.fn(async (id) => {
-			if (String(id) === 'user-invoker') return invokingMember;
-			return otherMember;
-		});
-		const channelFetch = jest.fn(async () => {
-			throw new Error('GuildChannel.fetch must not be used with userid');
-		});
-		const discordClient = {
-			channels: {
-				fetch: jest.fn(async () => ({
-					guildId: 'g1',
-					name: 'room',
-					guild: {
-						name: 'Guild',
-						members: { fetch: membersFetch },
-					},
-					fetch: channelFetch,
-					permissionsFor,
-				})),
-			},
-		};
+		await jest.isolateModulesAsync(async () => {
+			jest.unmock('../modules/roll-worker/discord-prefetch');
+			const { PermissionsBitField } = require('discord.js');
+			const invokingMember = { id: 'user-invoker' };
+			const otherMember = { id: 'user-other' };
+			const permissionsFor = jest.fn((member) => ({
+				has: (flag) => member === invokingMember && flag === PermissionsBitField.Flags.ManageChannels,
+			}));
+			const membersFetch = jest.fn(async (id) => {
+				if (String(id) === 'user-invoker') return invokingMember;
+				return otherMember;
+			});
+			const channelFetch = jest.fn(async () => {
+				throw new Error('GuildChannel.fetch must not be used with userid');
+			});
+			const discordClient = {
+				channels: {
+					fetch: jest.fn(async () => ({
+						guildId: 'g1',
+						name: 'room',
+						guild: {
+							name: 'Guild',
+							members: { fetch: membersFetch },
+						},
+						fetch: channelFetch,
+						permissionsFor,
+					})),
+				},
+			};
 
-		const { prefetchChatroomChannel } = require('../modules/roll-worker/discord-prefetch');
-		const out = await prefetchChatroomChannel(discordClient, {
-			channelId: 'c1',
-			userid: 'user-invoker',
-		});
+			const { prefetchChatroomChannel } = require('../modules/roll-worker/discord-prefetch');
+			const out = await prefetchChatroomChannel(discordClient, {
+				channelId: 'c1',
+				userid: 'user-invoker',
+			});
 
-		expect(channelFetch).not.toHaveBeenCalled();
-		expect(membersFetch).toHaveBeenCalledWith('user-invoker');
-		expect(permissionsFor).toHaveBeenCalledWith(invokingMember);
-		expect(out).toEqual({
-			allowed: true,
-			channelId: 'c1',
-			guildId: 'g1',
-			guildName: 'Guild',
-			channelName: 'room',
+			expect(channelFetch).not.toHaveBeenCalled();
+			expect(membersFetch).toHaveBeenCalledWith('user-invoker');
+			expect(permissionsFor).toHaveBeenCalledWith(invokingMember);
+			expect(out).toEqual({
+				allowed: true,
+				channelId: 'c1',
+				guildId: 'g1',
+				guildName: 'Guild',
+				channelName: 'room',
+			});
 		});
 	});
 
 	it('returns allowed false when invoking user lacks ManageChannels', async () => {
-		const { PermissionsBitField } = require('discord.js');
-		const invokingMember = { id: 'user-no-perm' };
-		const discordClient = {
-			channels: {
-				fetch: jest.fn(async () => ({
-					guildId: 'g1',
-					name: 'room',
-					guild: {
-						name: 'Guild',
-						members: {
-							fetch: jest.fn(async () => invokingMember),
+		await jest.isolateModulesAsync(async () => {
+			jest.unmock('../modules/roll-worker/discord-prefetch');
+			const { PermissionsBitField } = require('discord.js');
+			const invokingMember = { id: 'user-no-perm' };
+			const discordClient = {
+				channels: {
+					fetch: jest.fn(async () => ({
+						guildId: 'g1',
+						name: 'room',
+						guild: {
+							name: 'Guild',
+							members: {
+								fetch: jest.fn(async () => invokingMember),
+							},
 						},
-					},
-					permissionsFor: jest.fn(() => ({
-						has: (flag) => flag !== PermissionsBitField.Flags.ManageChannels,
+						permissionsFor: jest.fn(() => ({
+							has: (flag) => flag !== PermissionsBitField.Flags.ManageChannels,
+						})),
 					})),
-				})),
-			},
-		};
+				},
+			};
 
-		const { prefetchChatroomChannel } = require('../modules/roll-worker/discord-prefetch');
-		const out = await prefetchChatroomChannel(discordClient, {
-			channelId: 'c1',
-			userid: 'user-no-perm',
+			const { prefetchChatroomChannel } = require('../modules/roll-worker/discord-prefetch');
+			const out = await prefetchChatroomChannel(discordClient, {
+				channelId: 'c1',
+				userid: 'user-no-perm',
+			});
+			expect(out.allowed).toBe(false);
 		});
-		expect(out.allowed).toBe(false);
 	});
 });

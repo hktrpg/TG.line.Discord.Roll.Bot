@@ -82,20 +82,17 @@ describe('Phase 3o needsLocal preserves LevelUp', () => {
 
 describe('Phase 3o forward ownership → needsLocal on worker', () => {
 	it('worker-mode ownership fail maps to needsLocal (contract)', () => {
-		const rollWorkerMode = true;
-		const discordClient = null;
-		const hasPrefetch = true;
-		const isMentioned = false;
-		const isInteractionUser = false;
-		let out = null;
-		if (hasPrefetch && !isMentioned && !isInteractionUser) {
-			if (rollWorkerMode && !discordClient) {
-				out = { needsLocal: true, moduleName: 'forward' };
-			} else {
-				out = { text: 'forward.not_your_button' };
-			}
-		}
-		expect(out).toEqual({ needsLocal: true, moduleName: 'forward' });
+		const {
+			shouldLiveResolveForwardOwnership,
+		} = require('../modules/roll-worker/forward-ownership');
+		const out = shouldLiveResolveForwardOwnership({
+			hasPrefetch: true,
+			isMentioned: false,
+			isInteractionUser: false,
+			discordClient: null,
+			rollWorkerMode: true,
+		});
+		expect(out).toEqual({ action: 'needsLocal' });
 	});
 });
 

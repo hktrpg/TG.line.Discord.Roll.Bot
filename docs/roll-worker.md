@@ -49,7 +49,7 @@ Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job proces
 
 ## Separation status
 
-**Module split is complete (Phase 3 → 3r).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. Worker outages fall back to local analytics on all platforms (opt-out: `allowLocalFallback: false`). Export history prefetch skips GP cooldown / low userrole; chatroom ManageChannels checks the invoking member via `guild.members.fetch`.
+**Module split is complete (Phase 3 → 3t).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. Worker outages fall back to local analytics on all platforms (opt-out: `allowLocalFallback: false`). Export history prefetch skips GP cooldown / low userrole; chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false. Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP.
 
 ## Health
 

@@ -88,6 +88,7 @@ class RollContext {
 		this.csvAttachmentMeta = params.csvAttachmentMeta || null;
 		this.fixShardMeta = params.fixShardMeta || null;
 		this.slashDeployMeta = params.slashDeployMeta || null;
+		this.skipExp = Boolean(params.skipExp);
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
 		this.t = params.t || i18n.createTranslator(this.locale);
 		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
@@ -125,6 +126,7 @@ class RollContext {
 			csvAttachmentMeta: this.csvAttachmentMeta,
 			fixShardMeta: this.fixShardMeta,
 			slashDeployMeta: this.slashDeployMeta,
+			skipExp: this.skipExp,
 			locale: this.locale,
 			t: this.t
 		};
@@ -158,7 +160,7 @@ const parseInput = async (params) => {
 	};
 
 	// EXPUP 功能 + LevelUP 功能
-	if (context.groupid) {
+	if (context.groupid && !context.skipExp) {
 		let tempEXPUP = await EXPUP(
 			context.groupid,
 			context.userid,

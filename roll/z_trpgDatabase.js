@@ -284,7 +284,9 @@ function formatDatabaseList(items, page = 1, pageSize = 20, translate) {
         return t('trpgdb.list_empty') + t('trpgdb.usage_footer');
     }
 
-    const sortedItems = [...items].sort((a, b) => a.serial - b.serial);
+    const sortedItems = [...items].sort(
+        (a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY)
+    );
     const totalPages = Math.ceil(sortedItems.length / pageSize);
     const startIndex = (page - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, sortedItems.length);
@@ -295,11 +297,11 @@ function formatDatabaseList(items, page = 1, pageSize = 20, translate) {
     for (let i = 0; i < currentItems.length; i += 2) {
         const item1 = currentItems[i];
         const item2 = currentItems[i + 1];
-        const padding1 = item1.serial.toString().padStart(2, '0');
+        const padding1 = String(item1.serial ?? '').padStart(2, '0');
         const topic1 = item1.topic.length > 12 ? item1.topic.slice(0, 12) + '...' : item1.topic;
 
         if (item2) {
-            const padding2 = item2.serial.toString().padStart(2, '0');
+            const padding2 = String(item2.serial ?? '').padStart(2, '0');
             const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
             output += t('trpgdb.list_row_pair', {
                 i1: padding1,
@@ -375,8 +377,15 @@ async function ensureGlobalDbSerials(database) {
     }, []) || [];
 
     const { changed } = ensureSerials(items, DB_SERIAL_START);
-    if (changed && database?.[0]) {
-        await records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', database[0]);
+    if (changed && Array.isArray(database)) {
+        for (const doc of database) {
+            if (!doc?.trpgDatabaseAllgroup) continue;
+            try {
+                await records.setTrpgDatabaseAllGroup('trpgDatabaseAllgroup', doc);
+            } catch (error) {
+                console.error('[z_trpgDatabase] Failed to persist global serials:', error);
+            }
+        }
     }
     return items;
 }
@@ -394,7 +403,9 @@ function formatGlobalDatabaseList(items, page = 1, pageSize = 20, translate) {
         return t('trpgdb.list_empty').trimEnd();
     }
 
-    const sortedItems = [...items].sort((a, b) => a.serial - b.serial);
+    const sortedItems = [...items].sort(
+        (a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY)
+    );
     const totalPages = Math.ceil(sortedItems.length / pageSize);
     const startIndex = (page - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, sortedItems.length);
@@ -405,11 +416,11 @@ function formatGlobalDatabaseList(items, page = 1, pageSize = 20, translate) {
     for (let i = 0; i < currentItems.length; i += 2) {
         const item1 = currentItems[i];
         const item2 = currentItems[i + 1];
-        const padding1 = item1.serial.toString().padStart(2, '0');
+        const padding1 = String(item1.serial ?? '').padStart(2, '0');
         const topic1 = item1.topic.length > 12 ? item1.topic.slice(0, 12) + '...' : item1.topic;
 
         if (item2) {
-            const padding2 = item2.serial.toString().padStart(2, '0');
+            const padding2 = String(item2.serial ?? '').padStart(2, '0');
             const topic2 = item2.topic.length > 12 ? item2.topic.slice(0, 12) + '...' : item2.topic;
             output += t('trpgdb.list_row_pair', {
                 i1: padding1,

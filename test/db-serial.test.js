@@ -3,10 +3,7 @@
 const {
     findNextSerial,
     ensureSerials,
-    findBySerial,
-    findIndexBySerial,
-    sortBySerial,
-    hasSerial
+    findBySerial
 } = require('../modules/db/serial.js');
 
 describe('modules/db/serial', () => {
@@ -59,40 +56,12 @@ describe('modules/db/serial', () => {
         });
     });
 
-    describe('findBySerial / findIndexBySerial', () => {
+    describe('findBySerial', () => {
         const items = [{ topic: 'a', serial: 0 }, { topic: 'b', serial: 2 }];
 
         it('finds by serial', () => {
             expect(findBySerial(items, 2).topic).toBe('b');
             expect(findBySerial(items, 1)).toBeUndefined();
-        });
-
-        it('finds index by serial', () => {
-            expect(findIndexBySerial(items, 0)).toBe(0);
-            expect(findIndexBySerial(items, 2)).toBe(1);
-            expect(findIndexBySerial(items, 9)).toBe(-1);
-        });
-
-        it('hasSerial', () => {
-            expect(hasSerial({ serial: 0 })).toBe(true);
-            expect(hasSerial({ serial: '0' })).toBe(false);
-            expect(hasSerial({})).toBe(false);
-        });
-    });
-
-    describe('sortBySerial', () => {
-        it('sorts ascending by serial', () => {
-            const items = [{ serial: 3 }, { serial: 0 }, { serial: 1 }];
-            sortBySerial(items);
-            expect(items.map(i => i.serial)).toEqual([0, 1, 3]);
-        });
-
-        it('puts missing serials last', () => {
-            const items = [{ serial: 2 }, { name: 'x' }, { serial: 0 }];
-            sortBySerial(items);
-            expect(items[0].serial).toBe(0);
-            expect(items[1].serial).toBe(2);
-            expect(items[2].name).toBe('x');
         });
     });
 });

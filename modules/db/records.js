@@ -385,9 +385,9 @@ class Records extends EventEmitter {
 
     async setTrpgDatabaseAllGroup(databaseName, data) {
         try {
-            const query = {};
+            const query = data._id ? { _id: data._id } : {};
             const update = { $set: { trpgDatabaseAllgroup: data.trpgDatabaseAllgroup } };
-            const options = { returnDocument: 'after', upsert: true };
+            const options = { returnDocument: 'after', upsert: !data._id };
 
             return await this.updateRecord(databaseName, query, update, options);
         } catch (error) {

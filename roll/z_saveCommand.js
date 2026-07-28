@@ -9,7 +9,7 @@ const checkTools = require('../modules/chat/check.js');
 const records = require('../modules/db/records.js');
 const VIP = require('../modules/patreon/veryImportantPerson');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
-const { findNextSerial, ensureSerials, findBySerial, findIndexBySerial, sortBySerial } = require('../modules/db/serial.js');
+const { findNextSerial, ensureSerials, findBySerial } = require('../modules/db/serial.js');
 
 const CMD_SERIAL_START = 0;
 
@@ -265,8 +265,8 @@ const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissio
     }
 
     const serial = Number.parseInt(mainMsg[2], 10);
-    const index = findIndexBySerial(entry.trpgCommandfunction, serial);
-    if (index < 0) {
+    const index = entry.trpgCommandfunction.findIndex(cmd => cmd.serial === serial);
+    if (index === -1) {
         response.text = translate('cmd.keyword_not_found');
         return response;
     }
@@ -301,7 +301,9 @@ const handleShowCommands = async (groupid, response, translate) => {
     }
 
     response.text += translate('cmd.list_header');
-    const commands = sortBySerial([...(entry.trpgCommandfunction || [])]);
+    const commands = [...(entry.trpgCommandfunction || [])].sort(
+        (a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY)
+    );
     for (const cmd of commands) {
         response.text += translate('cmd.list_entry', {
             serial: cmd.serial,

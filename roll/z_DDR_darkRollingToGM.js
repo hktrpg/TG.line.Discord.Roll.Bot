@@ -41,7 +41,7 @@ if (!DB_READY) {
         discordCommand
     };
 } else {
-const { findNextSerial, ensureSerials, findBySerial, findIndexBySerial, sortBySerial } = require('../modules/db/serial.js');
+const { findNextSerial, ensureSerials, findBySerial } = require('../modules/db/serial.js');
 const trpgDarkRollingfunction = {};
 
 // Initialize data asynchronously
@@ -233,7 +233,7 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                 }
                 const serial = Number(mainMsg[2]);
                 const gm = findBySerial(groupDarkRolling.trpgDarkRollingfunction, serial);
-                const index = findIndexBySerial(groupDarkRolling.trpgDarkRollingfunction, serial);
+                const index = groupDarkRolling.trpgDarkRollingfunction.findIndex(item => item.serial === serial);
                 if (gm && index !== -1) {
                     groupDarkRolling.trpgDarkRollingfunction.splice(index, 1);
                     try {
@@ -279,7 +279,8 @@ const rollDiceCommand = async function ({ mainMsg, groupid, userid, userrole, bo
                     for (let i = 0; i < trpgDarkRollingfunction.trpgDarkRollingfunction.length; i++) {
                         if (trpgDarkRollingfunction.trpgDarkRollingfunction[i].groupid == groupid) {
                             rply.text += translate('ddr.show_header');
-                            const gmList = sortBySerial([...(trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction || [])]);
+                            const gmList = [...(trpgDarkRollingfunction.trpgDarkRollingfunction[i].trpgDarkRollingfunction || [])]
+                                .sort((a, b) => (a.serial ?? Number.POSITIVE_INFINITY) - (b.serial ?? Number.POSITIVE_INFINITY));
                             for (const entry of gmList) {
                                 temp = 1
                                 rply.text += translate('ddr.show_entry', {

@@ -2,7 +2,7 @@
 
 /**
  * Shared fixed-serial helpers for list-style roll features.
- * startFrom: 0 for .ra/.cmd/.drgm, 1 for .db/.dbp/.myname
+ * startFrom: 0 for .ra/.cmd/.drgm, 1 for .db/.dbp/.myname/.rap/.ras
  */
 
 function hasSerial(item) {
@@ -25,7 +25,6 @@ function findNextSerial(serials, startFrom = 1) {
 
     if (sorted.length === 0) return base;
 
-    // Find first gap starting from base
     let expected = base;
     for (const value of sorted) {
         if (value < base) continue;
@@ -93,36 +92,8 @@ function findBySerial(items, serial) {
     return items.find(item => hasSerial(item) && item.serial === n);
 }
 
-/**
- * @param {object[]} items
- * @param {number} serial
- * @returns {number} index or -1
- */
-function findIndexBySerial(items, serial) {
-    const n = Number(serial);
-    if (!Array.isArray(items) || !Number.isFinite(n)) return -1;
-    return items.findIndex(item => hasSerial(item) && item.serial === n);
-}
-
-/**
- * Sort items by serial ascending (in place). Missing serials go last.
- * @param {object[]} items
- * @returns {object[]}
- */
-function sortBySerial(items) {
-    if (!Array.isArray(items)) return items || [];
-    return items.sort((a, b) => {
-        const sa = hasSerial(a) ? a.serial : Number.POSITIVE_INFINITY;
-        const sb = hasSerial(b) ? b.serial : Number.POSITIVE_INFINITY;
-        return sa - sb;
-    });
-}
-
 module.exports = {
     findNextSerial,
     ensureSerials,
-    findBySerial,
-    findIndexBySerial,
-    sortBySerial,
-    hasSerial
+    findBySerial
 };

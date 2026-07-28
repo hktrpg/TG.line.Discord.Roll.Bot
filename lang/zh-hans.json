@@ -1304,7 +1304,7 @@
           "description": "删除角色",
           "options": {
             "target": {
-              "description": "要删除的角色序号或简称"
+              "description": "要删除的角色编号或简称"
             }
           }
         },
@@ -1312,7 +1312,7 @@
           "description": "删除角色",
           "options": {
             "target": {
-              "description": "要删除的角色序号或简称"
+              "description": "要删除的角色编号或简称"
             }
           }
         }
@@ -3112,7 +3112,7 @@
   },
   "trpgdb": {
     "game_name": "【资料库功能】 .db(p) (add del show 自定关键字)",
-    "help": "【📚资料库功能】\n╭──── 💡功能简介 ────\n│ 资料库可以储存和调用自定义内容\n│ 支援文字、数字、表情符号\n│ 分为个人资料库和全服资料库\n│\n├──── 📝基本指令 ────\n│ • .db add 关键字 内容\n│   新增资料项目\n│ • .db show\n│   显示资料清单\n│ • .db del 标题\n│   删除指定标题\n│ • .db 关键字/index\n│   显示资料内容\n│\n├──── 🌐全服指令 ────\n│ • .dbp add/show\n│   新增/显示全服资料\n│ • .dbp 关键字/编号\n│   显示全服资料内容\n│ • .dbp newType\n│   查看特殊效果范例\n│\n├──── ✨特殊标记 ────\n│ ■ 基础功能:\n│ • {br} - 换行\n│ • {ran:100} - 随机1-100\n│ • {random:5-20} - 随机5-20\n│ • {server.member_count} - 总人数\n│ • {my.name} - 使用者名字\n│\n│ ■ 等级相关(.level):\n│ • {my.level} - 等级\n│ • {my.exp} - 经验值\n│ • {my.title} - 称号\n│ • {my.Ranking} - 排名\n│ • {my.RankingPer} - 排名百分比\n│ • {allgp.name} - 随机成员名\n│ • {allgp.title} - 随机称号\n│\n├──── 📖使用范例 ────\n│ 1. 基本资料储存:\n│ .db add 防具表 皮甲{br}锁甲{br}板甲\n│\n│ 2. 随机回应:\n│ .db add 运气 今天的运气是{ran:100}分\n│\n│ 3. 动态资讯:\n│ .db add 伺服器 目前有{server.member_count}人\n│ {my.name}的等级是{my.level}\n├──── ⚠️注意事项 ────\n│ • 关键字可用中英数+表情\n│ • 未生效时用show重整\n╰──────────────",
+    "help": "【📚资料库功能】\n╭──── 💡功能简介 ────\n│ 资料库可以储存和调用自定义内容\n│ 支援文字、数字、表情符号\n│ 分为个人资料库和全服资料库\n│\n├──── 📝基本指令 ────\n│ • .db add 关键字 内容\n│   新增资料项目\n│ • .db show\n│   显示资料清单\n│ • .db del 标题\n│   删除指定标题\n│ • .db 关键字/编号\n│   显示资料内容\n│\n├──── 🌐全服指令 ────\n│ • .dbp add/show\n│   新增/显示全服资料\n│ • .dbp 关键字/编号\n│   显示全服资料内容\n│ • .dbp newType\n│   查看特殊效果范例\n│\n├──── ✨特殊标记 ────\n│ ■ 基础功能:\n│ • {br} - 换行\n│ • {ran:100} - 随机1-100\n│ • {random:5-20} - 随机5-20\n│ • {server.member_count} - 总人数\n│ • {my.name} - 使用者名字\n│\n│ ■ 等级相关(.level):\n│ • {my.level} - 等级\n│ • {my.exp} - 经验值\n│ • {my.title} - 称号\n│ • {my.Ranking} - 排名\n│ • {my.RankingPer} - 排名百分比\n│ • {allgp.name} - 随机成员名\n│ • {allgp.title} - 随机称号\n│\n├──── 📖使用范例 ────\n│ 1. 基本资料储存:\n│ .db add 防具表 皮甲{br}锁甲{br}板甲\n│\n│ 2. 随机回应:\n│ .db add 运气 今天的运气是{ran:100}分\n│\n│ 3. 动态资讯:\n│ .db add 伺服器 目前有{server.member_count}人\n│ {my.name}的等级是{my.level}\n├──── ⚠️注意事项 ────\n│ • 关键字可用中英数+表情\n│ • 未生效时用show重整\n╰──────────────",
     "not_in_group": "❌ 不在群组中",
     "no_title": "❌ 没有输入标题。\n\n",
     "no_content": "❌ 没有输入内容。\n\n",

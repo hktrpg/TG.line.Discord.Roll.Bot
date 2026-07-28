@@ -37,13 +37,16 @@ Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job proces
 
 ## Discord hybrid routing
 
-- Allowlisted modules include dice, token, forward, openai, export, chatroom, **admin**, **story-teller**.
-- `LOCAL_DISCORD_ONLY` is empty — unknown new modules still stay local on Discord.
-- Safe remote without live client: `.admin help|state|debug|id|mongod`, `.patreon *`, `.root help`, `.st help|list|mylist`.
-- Cluster / attachment / export ops → Worker `needsLocal` → Discord local retry.
-- `token`: Gateway prefetches `avatarUrl` before remote parse.
-- `openai`: Gateway prefetches `attachmentsMeta` / `replyContent`; `.ait` text+files can run on Worker (no channel progress msgs).
-- Cluster / export html|txt / forward create / story import → Worker `needsLocal` → Discord local retry.
+- **Phase 3j denylist**: any matched Discord module remotes by default; `LOCAL_DISCORD_ONLY` is the only hard block (empty).
+- `REMOTE_ALLOWLIST` is documentation of known remote-capable modules.
+- Unmatched Discord chat stays local (`isRemoteAllowed(null)` → false).
+- Modules that need live Discord return `needsLocal` or use Gateway prefetch meta (token/openai/export/story/forward/chatroom/admin).
+- `.st mylist`: Gateway prefetches `storyGroupNamesMeta` for GROUP_ONLY channel/guild display names.
+- Still needsLocal (fallback only): missing prefetch meta for Discord-coupled steps (export history, avatar, attachments, cluster/slash/fixshard meta, etc.).
+
+## Separation status
+
+**Module split is complete (Phase 3 → 3k).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes.
 
 ## Health
 

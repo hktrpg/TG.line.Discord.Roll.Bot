@@ -39,7 +39,7 @@ function logParseMode(logger = console) {
 	if (client.isEnabled()) {
 		const { url, token, timeoutMs } = client.getConfig();
 		info(`[ParseMode] ROLE=gateway | mode=roll-worker-remote | url=${url} | token=${token ? 'set' : 'off'} | timeoutMs=${timeoutMs}`);
-		info('[ParseMode] Discord allowlist → worker (admin/story help remote; cluster ops needsLocal). Other platforms → worker.');
+		info('[ParseMode] Discord matched modules → worker (denylist; needsLocal for live Discord). Other platforms → worker.');
 		return;
 	}
 
@@ -177,6 +177,167 @@ async function enrichParamsForRemote(params, moduleName) {
 			console.warn('[ParseRouter] openai prefetch failed:', error?.message || error);
 			return params;
 		}
+	}
+
+	if (moduleName === 'z-story-teller') {
+		const sub = String(params.inputStr || '').trim().split(/\s+/)[1]?.toLowerCase();
+		if ((sub === 'import' || sub === 'update') && !params.storyAttachmentMeta) {
+			try {
+				const { prefetchStoryAttachment } = require('./discord-prefetch');
+				const storyAttachmentMeta = await prefetchStoryAttachment(
+					params.discordMessage,
+					params.discordClient
+				);
+				if (storyAttachmentMeta) {
+					return { ...params, storyAttachmentMeta };
+				}
+			} catch (error) {
+				console.warn('[ParseRouter] story prefetch failed:', error?.message || error);
+			}
+		}
+		if (sub === 'mylist' && !params.storyGroupNamesMeta && params.discordClient && params.userid) {
+			try {
+				const { prefetchStoryGroupNames } = require('./discord-prefetch');
+				const prefetched = await prefetchStoryGroupNames(params.discordClient, {
+					userid: params.userid,
+				});
+				if (prefetched) {
+					return { ...params, ...prefetched };
+				}
+			} catch (error) {
+				console.warn('[ParseRouter] story group names prefetch failed:', error?.message || error);
+			}
+		}
+		return params;
+	}
+
+	if (moduleName === 'forward') {
+		if (params.forwardSourceMeta) return params;
+		const parts = String(params.inputStr || '').trim().match(/\S+/ig) || [];
+		const messageLink = parts[1];
+		if (/^https:\/\/discord\.com\/channels\/\d+\/\d+\/\d+$/i.test(messageLink || '')) {
+			try {
+				const { prefetchForwardSource } = require('./discord-prefetch');
+				const forwardSourceMeta = await prefetchForwardSource(
+					params.discordMessage,
+					params.discordClient,
+					{
+						messageLink,
+						userid: params.userid,
+						channelid: params.channelid,
+					}
+				);
+				if (forwardSourceMeta) {
+					return { ...params, forwardSourceMeta };
+				}
+			} catch (error) {
+				console.warn('[ParseRouter] forward prefetch failed:', error?.message || error);
+			}
+		}
+		return params;
+	}
+
+	if (moduleName === 'z_multi-server') {
+		if (params.chatroomChannelMeta) return params;
+		const parts = String(params.inputStr || '').trim().match(/\S+/ig) || [];
+		const sub = String(parts[1] || '').toLowerCase();
+		let channelId = null;
+		if (sub === 'create') channelId = parts[2];
+		else if (sub === 'join') channelId = parts[3];
+		else if (sub === 'exit' && parts[2]) channelId = parts[2];
+		if (channelId && params.discordClient) {
+			try {
+				const { prefetchChatroomChannel } = require('./discord-prefetch');
+				const chatroomChannelMeta = await prefetchChatroomChannel(params.discordClient, {
+					channelId,
+					userid: params.userid,
+				});
+				if (chatroomChannelMeta) {
+					return { ...params, chatroomChannelMeta };
+				}
+			} catch (error) {
+				console.warn('[ParseRouter] chatroom prefetch failed:', error?.message || error);
+			}
+		}
+		return params;
+	}
+
+	if (moduleName === 'export') {
+		if (params.exportHistoryMeta?.sum_messages) return params;
+		const parts = String(params.inputStr || '').trim().match(/\S+/ig) || [];
+		const sub = String(parts[1] || '').toLowerCase();
+		if ((sub === 'html' || sub === 'txt') && params.discordClient && params.channelid) {
+			try {
+				const { prefetchExportHistory } = require('./discord-prefetch');
+				const limitMatch = String(params.inputStr || '').match(/--limit\s+(\d+)/);
+				const messageLimit = limitMatch ? Number.parseInt(limitMatch[1], 10) : null;
+				const prefetched = await prefetchExportHistory(params.discordClient, params.discordMessage, {
+					channelid: params.channelid,
+					messageLimit,
+				});
+				if (prefetched) {
+					return { ...params, ...prefetched };
+				}
+			} catch (error) {
+				console.warn('[ParseRouter] export prefetch failed:', error?.message || error);
+			}
+		}
+		return params;
+	}
+
+	if (moduleName === 'z_admin') {
+		const parts = String(params.inputStr || '').trim().match(/\S+/ig) || [];
+		const sub = String(parts[1] || '').toLowerCase();
+		try {
+			const {
+				collectClusterHealthMeta,
+				collectClusterMemMeta,
+				prefetchCsvAttachment,
+				collectFixShardMeta,
+				collectSlashDeployMeta,
+			} = require('./admin-remote');
+			if (sub === 'clusterhealth' && !params.clusterHealthMeta) {
+				const clusterHealthMeta = collectClusterHealthMeta();
+				if (clusterHealthMeta) {
+					return { ...params, clusterHealthMeta };
+				}
+			}
+			if (sub === 'mem' && !params.clusterMemMeta && params.discordClient) {
+				const clusterMemMeta = await collectClusterMemMeta(params.discordClient);
+				if (clusterMemMeta) {
+					return { ...params, clusterMemMeta };
+				}
+			}
+			if (sub === 'importpatreon' && !params.csvAttachmentMeta && params.discordMessage) {
+				const csvAttachmentMeta = prefetchCsvAttachment(params.discordMessage);
+				if (csvAttachmentMeta) {
+					return { ...params, csvAttachmentMeta };
+				}
+			}
+			if (sub === 'fixshard' && !params.fixShardMeta) {
+				const fixShardMeta = await collectFixShardMeta(parts[2]);
+				if (fixShardMeta) {
+					return { ...params, fixShardMeta };
+				}
+			}
+			if (
+				(sub === 'registeredglobal' || sub === 'testregistered' || sub === 'removeslashcommands')
+				&& !params.slashDeployMeta?.text
+			) {
+				const targetId = parts[2] || params.groupid;
+				const slashDeployMeta = await collectSlashDeployMeta({
+					action: sub,
+					targetId,
+					locale: params.locale,
+				});
+				if (slashDeployMeta) {
+					return { ...params, slashDeployMeta };
+				}
+			}
+		} catch (error) {
+			console.warn('[ParseRouter] admin prefetch failed:', error?.message || error);
+		}
+		return params;
 	}
 
 	return params;

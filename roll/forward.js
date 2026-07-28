@@ -68,6 +68,7 @@ const rollDiceCommand = async function ({
     channelid,
     discordClient,
     discordMessage,
+    forwardSourceMeta,
     locale,
     t
 }) {
@@ -151,8 +152,10 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            if (!discordMessage || !discordClient) {
-                // Create path needs live Discord API — Gateway retries locally.
+            const hasPrefetch = Boolean(forwardSourceMeta?.messageContent !== undefined
+                && forwardSourceMeta?.sourceMessageId);
+            if (!hasPrefetch && (!discordMessage || !discordClient)) {
+                // Create path needs live Discord API or Gateway prefetch.
                 if (process.env.ROLL_WORKER_MODE === 'true') {
                     return { needsLocal: true, moduleName: 'forward' };
                 }
@@ -175,9 +178,26 @@ const rollDiceCommand = async function ({
 
             const messageLink = mainMsg[1];
             const matches = messageLink.match(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/);
-            const [, sourceGuildId, sourceChannelId, sourceMessageId] = matches;
+            const [, sourceGuildIdFromLink, sourceChannelIdFromLink, sourceMessageIdFromLink] = matches;
 
-            if (discordMessage.guildId !== sourceGuildId) {
+            let sourceGuildId = sourceGuildIdFromLink;
+            let sourceChannelId = sourceChannelIdFromLink;
+            let sourceMessageId = sourceMessageIdFromLink;
+            let messageContent = '';
+            let isMentioned = false;
+            let isInteractionUser = false;
+            const guildId = forwardSourceMeta?.guildId || discordMessage?.guildId;
+
+            if (hasPrefetch) {
+                sourceGuildId = forwardSourceMeta.sourceGuildId || sourceGuildId;
+                sourceChannelId = forwardSourceMeta.sourceChannelId || sourceChannelId;
+                sourceMessageId = forwardSourceMeta.sourceMessageId || sourceMessageId;
+                messageContent = forwardSourceMeta.messageContent || '';
+                isMentioned = Boolean(forwardSourceMeta.isMentioned);
+                isInteractionUser = Boolean(forwardSourceMeta.isInteractionUser);
+            }
+
+            if (guildId !== sourceGuildId) {
                 rply.text = translate('forward.cross_guild');
                 return rply;
             }
@@ -188,19 +208,40 @@ const rollDiceCommand = async function ({
             }
 
             try {
-                const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
-                if (!sourceChannel) {
-                    rply.text = translate('forward.channel_not_found');
-                    return rply;
+                if (!hasPrefetch) {
+                    const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
+                    if (!sourceChannel) {
+                        rply.text = translate('forward.channel_not_found');
+                        return rply;
+                    }
+
+                    const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
+                    if (!sourceMessage) {
+                        rply.text = translate('forward.message_not_found');
+                        return rply;
+                    }
+
+                    messageContent = sourceMessage.content;
+                    if (sourceMessage.mentions && sourceMessage.mentions.users) {
+                        isMentioned = [...sourceMessage.mentions.users.entries()]
+                            .some(([userId]) => userId === userid);
+                    }
+                    if (sourceMessage.interaction && sourceMessage.interaction.user) {
+                        isInteractionUser = (sourceMessage.interaction.user.id === userid);
+                    }
+                    if (!isMentioned && !isInteractionUser) {
+                        if (sourceMessage.reference?.messageId) {
+                            const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
+                            if (refMessage.author.id === userid) {
+                                isMentioned = true;
+                            }
+                        } else {
+                            rply.text = translate('forward.not_your_button');
+                            return rply;
+                        }
+                    }
                 }
 
-                const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
-                if (!sourceMessage) {
-                    rply.text = translate('forward.message_not_found');
-                    return rply;
-                }
-
-                const messageContent = sourceMessage.content;
                 if (!messageContent || messageContent.trim() === '') {
                     rply.text = translate('forward.no_buttons');
                     return rply;
@@ -213,28 +254,9 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
-                let isMentioned = false;
-                let isInteractionUser = false;
-
-                if (sourceMessage.mentions && sourceMessage.mentions.users) {
-                    isMentioned = [...sourceMessage.mentions.users.entries()]
-                        .some(([userId]) => userId === userid);
-                }
-
-                if (sourceMessage.interaction && sourceMessage.interaction.user) {
-                    isInteractionUser = (sourceMessage.interaction.user.id === userid);
-                }
-
-                if (!isMentioned && !isInteractionUser) {
-                    if (sourceMessage.reference?.messageId) {
-                        const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
-                        if (refMessage.author.id === userid) {
-                            isMentioned = true;
-                        }
-                    } else {
-                        rply.text = translate('forward.not_your_button');
-                        return rply;
-                    }
+                if (hasPrefetch && !isMentioned && !isInteractionUser) {
+                    rply.text = translate('forward.not_your_button');
+                    return rply;
                 }
 
                 let buttonName = '';

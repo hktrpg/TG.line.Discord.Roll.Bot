@@ -94,6 +94,8 @@ const rollDiceCommand = async function ({
     botname,
     userid,
     userrole,
+    exportMeta,
+    exportHistoryMeta,
     locale,
     t
 }) {
@@ -111,7 +113,8 @@ const rollDiceCommand = async function ({
     let newRawDate = [];
     let newValue = "";
     let limit, checkUser, checkGP;
-    let channelName = discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '';
+    let channelName = exportMeta?.channelName
+        || (discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '');
     let date = new Date;
     let seconds = date.getSeconds();
     let minutes = date.getMinutes();
@@ -126,7 +129,9 @@ const rollDiceCommand = async function ({
         // For slash commands, set this flag to true
         discordMessage.isInteraction = true;
     }
-    if (groupid && discordMessage && discordMessage.channel && discordMessage.guild && discordMessage.guild.members && discordMessage.guild.members.me) {
+    if (typeof exportMeta?.hasReadPermission === 'boolean') {
+        hasReadPermission = exportMeta.hasReadPermission;
+    } else if (groupid && discordMessage && discordMessage.channel && discordMessage.guild && discordMessage.guild.members && discordMessage.guild.members.me) {
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
@@ -364,7 +369,7 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !exportHistoryMeta?.sum_messages) {
                 return { needsLocal: true, moduleName: 'export' };
             }
             if (!channelid || !groupid) {
@@ -395,12 +400,14 @@ const rollDiceCommand = async function ({
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
-            try {
-                C = await discordClient.channels.fetch(channelid);
-            } catch (error) {
-                if (error) {
-                    rply.text = translate('export.error', { error });
-                    return rply;
+            if (!exportHistoryMeta?.sum_messages) {
+                try {
+                    C = await discordClient.channels.fetch(channelid);
+                } catch (error) {
+                    if (error) {
+                        rply.text = translate('export.error', { error });
+                        return rply;
+                    }
                 }
             }
             //<0 = DC 未過
@@ -444,9 +451,13 @@ const rollDiceCommand = async function ({
 
 
             await sendDiscordExportWaitNotice(discordMessage, userid, translate);
-            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
-                discordMessage.guild.members.cache.map(member => member) : [];
-            M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
+            if (exportHistoryMeta?.sum_messages) {
+                M = exportHistoryMeta;
+            } else {
+                const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
+                    discordMessage.guild.members.cache.map(member => member) : [];
+                M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
+            }
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = translate('export.read_failed');
                 return rply;
@@ -520,13 +531,13 @@ const rollDiceCommand = async function ({
                 tempB
             ]
             rply.text += translate('export.success_dm', {
-                channel: discordMessage.channel.name,
+                channel: channelName || 'channel',
                 count: totalSize
             });
             return rply;
         }
         case /^txt$/i.test(mainMsg[1]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !exportHistoryMeta?.sum_messages) {
                 return { needsLocal: true, moduleName: 'export' };
             }
             rply.text = checkTools.permissionErrMsg({ locale,
@@ -557,12 +568,14 @@ const rollDiceCommand = async function ({
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
-            try {
-                C = await discordClient.channels.fetch(channelid);
-            } catch (error) {
-                if (error) {
-                    rply.text = translate('export.error', { error });
-                    return rply;
+            if (!exportHistoryMeta?.sum_messages) {
+                try {
+                    C = await discordClient.channels.fetch(channelid);
+                } catch (error) {
+                    if (error) {
+                        rply.text = translate('export.error', { error });
+                        return rply;
+                    }
                 }
             }
             //<0 = DC 未過
@@ -592,9 +605,25 @@ const rollDiceCommand = async function ({
 
             console.log('USE EXPORT TXT')
             await sendDiscordExportWaitNotice(discordMessage, userid, translate);
-            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
-                discordMessage.guild.members.cache.map(member => member) : [];
-            M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
+            if (exportHistoryMeta?.sum_messages) {
+                // Prefetch may use HTML-shaped embeds/attachments; normalize for TXT join().
+                M = {
+                    totalSize: exportHistoryMeta.totalSize || exportHistoryMeta.sum_messages.length,
+                    sum_messages: exportHistoryMeta.sum_messages.map((msg) => ({
+                        ...msg,
+                        embeds: (msg.embeds || []).map((e) => (typeof e === 'string'
+                            ? e
+                            : (e?.description || e?.title || JSON.stringify(e)))),
+                        attachments: (msg.attachments || []).map((a) => (typeof a === 'string'
+                            ? a
+                            : (a?.proxyURL || a?.url || ''))),
+                    })),
+                };
+            } else {
+                const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
+                    discordMessage.guild.members.cache.map(member => member) : [];
+                M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
+            }
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = translate('export.read_failed');
                 return rply;
@@ -670,7 +699,7 @@ const rollDiceCommand = async function ({
 
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += translate('export.success_dm', {
-                channel: discordMessage.channel.name,
+                channel: channelName || 'channel',
                 count: totalSize
             });
             console.log('EXPORT TXT DONE')

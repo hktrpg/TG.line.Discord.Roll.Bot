@@ -61,6 +61,36 @@ describe('roll-worker client', () => {
 		expect(ctx.discordClient).toBeUndefined();
 	});
 
+	it('serializes story/forward/chatroom/export/admin meta fields', () => {
+		const ctx = toSerializableContext({
+			inputStr: '.chatroom create 1',
+			storyAttachmentMeta: { url: 'https://cdn.example/s.json', filename: 's.json' },
+			storyGroupNamesMeta: { '1': 'general' },
+			forwardSourceMeta: { sourceMessageId: '3', messageContent: 'x的角色' },
+			chatroomChannelMeta: { allowed: true, channelId: '1', guildId: 'g' },
+			exportMeta: { hasReadPermission: true, channelName: 'general' },
+			exportHistoryMeta: { sum_messages: [{ contact: 'hi' }], totalSize: 1 },
+			clusterHealthMeta: { healthReport: { clusters: [] } },
+			clusterMemMeta: { rows: [{ clusterId: 0 }] },
+			csvAttachmentMeta: { url: 'https://cdn.example/a.csv', name: 'a.csv' },
+			fixShardMeta: { action: 'check', report: { totalShards: 1 } },
+			slashDeployMeta: { text: 'deployed' },
+			discordClient: {},
+		});
+		expect(ctx.storyAttachmentMeta.filename).toBe('s.json');
+		expect(ctx.storyGroupNamesMeta['1']).toBe('general');
+		expect(ctx.forwardSourceMeta.sourceMessageId).toBe('3');
+		expect(ctx.chatroomChannelMeta.guildId).toBe('g');
+		expect(ctx.exportMeta.channelName).toBe('general');
+		expect(ctx.exportHistoryMeta.totalSize).toBe(1);
+		expect(ctx.clusterHealthMeta.healthReport.clusters).toEqual([]);
+		expect(ctx.clusterMemMeta.rows[0].clusterId).toBe(0);
+		expect(ctx.csvAttachmentMeta.name).toBe('a.csv');
+		expect(ctx.fixShardMeta.action).toBe('check');
+		expect(ctx.slashDeployMeta.text).toBe('deployed');
+		expect(ctx.discordClient).toBeUndefined();
+	});
+
 	it('getConfig uses defaults', () => {
 		delete process.env.ROLL_WORKER_URL;
 		delete process.env.ROLL_WORKER_TOKEN;

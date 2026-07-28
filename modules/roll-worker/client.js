@@ -39,6 +39,17 @@ function toSerializableContext(params = {}) {
 		attachmentsMeta: Array.isArray(params.attachmentsMeta) ? params.attachmentsMeta : null,
 		replyAttachmentsMeta: Array.isArray(params.replyAttachmentsMeta) ? params.replyAttachmentsMeta : null,
 		replyContent: params.replyContent || null,
+		storyAttachmentMeta: params.storyAttachmentMeta || null,
+		storyGroupNamesMeta: params.storyGroupNamesMeta || null,
+		forwardSourceMeta: params.forwardSourceMeta || null,
+		chatroomChannelMeta: params.chatroomChannelMeta || null,
+		exportMeta: params.exportMeta || null,
+		exportHistoryMeta: params.exportHistoryMeta || null,
+		clusterHealthMeta: params.clusterHealthMeta || null,
+		clusterMemMeta: params.clusterMemMeta || null,
+		csvAttachmentMeta: params.csvAttachmentMeta || null,
+		fixShardMeta: params.fixShardMeta || null,
+		slashDeployMeta: params.slashDeployMeta || null,
 	};
 }
 

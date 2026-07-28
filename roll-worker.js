@@ -7,7 +7,24 @@
  */
 process.env.ROLL_WORKER_MODE = 'true';
 
-require('dotenv').config({ override: true, quiet: true });
+(() => {
+	const preserveKeys = [
+		'ROLL_WORKER_URL',
+		'ROLL_WORKER_TOKEN',
+		'ROLL_WORKER_TIMEOUT_MS',
+		'ROLL_WORKER_MODE',
+		'ROLL_WORKER_HOST',
+		'ROLL_WORKER_PORT',
+		// Tests/proof may pin ADMIN_SECRET on the child env; do not let .env wipe it.
+		'ADMIN_SECRET',
+	];
+	const preserved = {};
+	for (const key of preserveKeys) {
+		if (process.env[key] !== undefined) preserved[key] = process.env[key];
+	}
+	require('dotenv').config({ override: true, quiet: true });
+	Object.assign(process.env, preserved);
+})();
 
 const { startRollWorkerServer } = require('./modules/roll-worker/server');
 const { logParseMode } = require('./modules/roll-worker/parse-router');

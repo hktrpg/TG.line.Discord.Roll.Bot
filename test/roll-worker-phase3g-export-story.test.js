@@ -1,16 +1,17 @@
 "use strict";
 
 /**
- * Phase 3c: z_admin / z-story-teller help+safe remote; cluster/import needsLocal.
+ * Phase 3g: export html|txt with Gateway-prefetched history → Worker remote;
+ * story list / update with meta → Worker remote.
  */
-jest.setTimeout(60_000);
+jest.setTimeout(90_000);
 
 const { spawn } = require('node:child_process');
 const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_65;
+const PORT = 39_69;
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,7 +47,21 @@ async function waitHealth(timeoutMs = 25_000) {
 	throw new Error('worker health timeout');
 }
 
-describe('Phase 3c admin/story Worker contract (spawned)', () => {
+const SAMPLE_HISTORY = {
+	sum_messages: [
+		{
+			timestamp: Date.now(),
+			contact: 'phase3g export proof line',
+			userName: 'proof-user',
+			isbot: false,
+			attachments: [],
+			embeds: [],
+		},
+	],
+	totalSize: 1,
+};
+
+describe('Phase 3g export/story Worker remote (spawned)', () => {
 	let child;
 	let client;
 	const prevUrl = process.env.ROLL_WORKER_URL;
@@ -81,40 +96,15 @@ describe('Phase 3c admin/story Worker contract (spawned)', () => {
 		}
 	});
 
-	it('.admin help hits Worker remotely', async () => {
+	it('.discord html without history meta still needsLocal', async () => {
 		const before = await client.health();
 		const result = await client.parse({
-			inputStr: '.admin help',
+			inputStr: '.discord html',
 			botname: 'Discord',
-			locale: 'zh-tw',
-		});
-		const after = await client.health();
-		expect(result.needsLocal).toBeFalsy();
-		expect(result._rollWorker).toBe(true);
-		expect(result._rollWorkerModule).toBe('z_admin');
-		expect(after.parseCount).toBe(before.parseCount + 1);
-	});
-
-	it('.admin state hits Worker remotely (sets state flag)', async () => {
-		const before = await client.health();
-		const result = await client.parse({
-			inputStr: '.admin state',
-			botname: 'Discord',
-			locale: 'zh-tw',
-		});
-		const after = await client.health();
-		expect(result.needsLocal).toBeFalsy();
-		expect(result._rollWorker).toBe(true);
-		expect(after.parseCount).toBe(before.parseCount + 1);
-		expect(String(result.text || '').length).toBeGreaterThan(0);
-	});
-
-	it('.admin clusterhealth without client returns needsLocal', async () => {
-		const before = await client.health();
-		const result = await client.parse({
-			inputStr: '.admin clusterhealth',
-			botname: 'Discord',
-			userid: 'admin-user',
+			groupid: `g-phase3g-nl-${Date.now()}`,
+			channelid: `c-phase3g-nl-${Date.now()}`,
+			userrole: 3,
+			userid: `u-phase3g-nl-${Date.now()}`,
 			locale: 'zh-tw',
 		});
 		const after = await client.health();
@@ -122,11 +112,57 @@ describe('Phase 3c admin/story Worker contract (spawned)', () => {
 		expect(after.parseCount).toBe(before.parseCount);
 	});
 
-	it('.st help hits Worker remotely', async () => {
+	it('.discord html with exportHistoryMeta hits Worker (not needsLocal)', async () => {
+		const stamp = Date.now();
 		const before = await client.health();
 		const result = await client.parse({
-			inputStr: '.st help',
+			inputStr: '.discord html',
 			botname: 'Discord',
+			groupid: `g-phase3g-html-${stamp}`,
+			channelid: `c-phase3g-html-${stamp}`,
+			userrole: 3,
+			userid: `u-phase3g-html-${stamp}`,
+			locale: 'zh-tw',
+			exportMeta: { hasReadPermission: true, channelName: 'proof-channel' },
+			exportHistoryMeta: SAMPLE_HISTORY,
+		});
+		const after = await client.health();
+		expect(result.needsLocal).toBeFalsy();
+		expect(result._rollWorker).toBe(true);
+		expect(result._rollWorkerModule).toBe('export');
+		expect(after.parseCount).toBe(before.parseCount + 1);
+		expect(String(result.text || '').length).toBeGreaterThan(0);
+		expect(result.discordExportHtml).toBeTruthy();
+	});
+
+	it('.discord txt with exportHistoryMeta hits Worker (not needsLocal)', async () => {
+		const stamp = Date.now();
+		const before = await client.health();
+		const result = await client.parse({
+			inputStr: '.discord txt',
+			botname: 'Discord',
+			groupid: `g-phase3g-txt-${stamp}`,
+			channelid: `c-phase3g-txt-${stamp}`,
+			userrole: 3,
+			userid: `u-phase3g-txt-${stamp}`,
+			locale: 'zh-tw',
+			exportMeta: { hasReadPermission: true, channelName: 'proof-txt' },
+			exportHistoryMeta: SAMPLE_HISTORY,
+		});
+		const after = await client.health();
+		expect(result.needsLocal).toBeFalsy();
+		expect(result._rollWorker).toBe(true);
+		expect(result._rollWorkerModule).toBe('export');
+		expect(after.parseCount).toBe(before.parseCount + 1);
+		expect(result.discordExport).toBeTruthy();
+	});
+
+	it('.st list hits Worker remotely (Mongo path, no Discord client)', async () => {
+		const before = await client.health();
+		const result = await client.parse({
+			inputStr: '.st list',
+			botname: 'Discord',
+			userid: 'u-phase3g-st',
 			locale: 'zh-tw',
 		});
 		const after = await client.health();
@@ -134,52 +170,28 @@ describe('Phase 3c admin/story Worker contract (spawned)', () => {
 		expect(result._rollWorker).toBe(true);
 		expect(result._rollWorkerModule).toBe('z-story-teller');
 		expect(after.parseCount).toBe(before.parseCount + 1);
+		expect(String(result.text || '').length).toBeGreaterThan(0);
 	});
 
-	it('.st import without client returns needsLocal', async () => {
+	it('.st update with storyAttachmentMeta hits Worker (not needsLocal)', async () => {
 		const before = await client.health();
 		const result = await client.parse({
-			inputStr: '.st import myalias',
+			inputStr: '.st update remotealias',
 			botname: 'Discord',
-			userid: 'u1',
+			userid: 'u-phase3g-st',
 			locale: 'zh-tw',
+			storyAttachmentMeta: {
+				url: 'https://example.invalid/story-missing.json',
+				filename: 'story-missing.json',
+				size: 10,
+				contentType: 'application/json',
+			},
 		});
 		const after = await client.health();
-		expect(result.needsLocal).toBe(true);
-		expect(after.parseCount).toBe(before.parseCount);
-	});
-});
-
-describe('Phase 3c adminSubNeedsLiveDiscord unit', () => {
-	it('classifies safe vs live Discord admin subs', () => {
-		const { adminSubNeedsLiveDiscord } = require('../modules/roll-worker/admin-remote.js');
-		expect(adminSubNeedsLiveDiscord('.admin', 'help')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'state')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'debug')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'registerchannel')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'account')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'clusterhealth')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.admin', 'clusterhealth', {
-			clusterHealthMeta: { healthReport: { clusters: [] } },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'help')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'schedule')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'decrypt')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'respawn')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'respawnall')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'mem')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.root', 'mem', {
-			clusterMemMeta: { rows: [{ clusterId: 0 }] },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'importpatreon')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.root', 'importpatreon', {
-			csvAttachmentMeta: { url: 'https://example.invalid/a.csv' },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'fixshard')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.root', 'fixshard', {
-			fixShardMeta: { action: 'status' },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'registeredglobal')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.patreon', 'level')).toBe(false);
+		expect(result.needsLocal).toBeFalsy();
+		expect(result._rollWorker).toBe(true);
+		expect(result._rollWorkerModule).toBe('z-story-teller');
+		expect(after.parseCount).toBe(before.parseCount + 1);
+		expect(String(result.text || '').length).toBeGreaterThan(0);
 	});
 });

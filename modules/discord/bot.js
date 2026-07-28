@@ -3662,6 +3662,42 @@ async function handlingResponMessage(message, answer = '') {
 				channelid
 			});
 		}
+		if (rplyVal.clusterIpc && client?.cluster?.send) {
+			try {
+				client.cluster.send(rplyVal.clusterIpc);
+			} catch (error) {
+				console.error('[Discord] clusterIpc send failed:', error?.message || error);
+			}
+		}
+		if (Array.isArray(rplyVal.adminDmChunks) && rplyVal.adminDmChunks.length > 0 && userid) {
+			try {
+				const adminUser = await client.users.fetch(userid);
+				for (const chunk of rplyVal.adminDmChunks) {
+					const pieces = String(chunk || '').match(/[\s\S]{1,1800}/g) || [];
+					for (const piece of pieces) {
+						await adminUser.send(piece);
+					}
+				}
+			} catch (error) {
+				console.error('[Discord] adminDmChunks failed:', error?.message || error);
+			}
+		}
+		if (Array.isArray(rplyVal.adminDmFiles) && rplyVal.adminDmFiles.length > 0 && userid) {
+			try {
+				const adminUser = await client.users.fetch(userid);
+				for (const file of rplyVal.adminDmFiles) {
+					await adminUser.send({
+						content: file.content || '',
+						files: [{
+							attachment: Buffer.from(file.text || '', 'utf8'),
+							name: file.name || 'file.txt',
+						}],
+					});
+				}
+			} catch (error) {
+				console.error('[Discord] adminDmFiles failed:', error?.message || error);
+			}
+		}
 		if (!rplyVal.text && !rplyVal.LevelUp) return;
 		if (process.env.mongoURL)
 			try {

@@ -77,6 +77,17 @@ class RollContext {
 		this.attachmentsMeta = Array.isArray(params.attachmentsMeta) ? params.attachmentsMeta : null;
 		this.replyAttachmentsMeta = Array.isArray(params.replyAttachmentsMeta) ? params.replyAttachmentsMeta : null;
 		this.replyContent = params.replyContent || null;
+		this.storyAttachmentMeta = params.storyAttachmentMeta || null;
+		this.storyGroupNamesMeta = params.storyGroupNamesMeta || null;
+		this.forwardSourceMeta = params.forwardSourceMeta || null;
+		this.chatroomChannelMeta = params.chatroomChannelMeta || null;
+		this.exportMeta = params.exportMeta || null;
+		this.exportHistoryMeta = params.exportHistoryMeta || null;
+		this.clusterHealthMeta = params.clusterHealthMeta || null;
+		this.clusterMemMeta = params.clusterMemMeta || null;
+		this.csvAttachmentMeta = params.csvAttachmentMeta || null;
+		this.fixShardMeta = params.fixShardMeta || null;
+		this.slashDeployMeta = params.slashDeployMeta || null;
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
 		this.t = params.t || i18n.createTranslator(this.locale);
 		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
@@ -103,6 +114,17 @@ class RollContext {
 			attachmentsMeta: this.attachmentsMeta,
 			replyAttachmentsMeta: this.replyAttachmentsMeta,
 			replyContent: this.replyContent,
+			storyAttachmentMeta: this.storyAttachmentMeta,
+			storyGroupNamesMeta: this.storyGroupNamesMeta,
+			forwardSourceMeta: this.forwardSourceMeta,
+			chatroomChannelMeta: this.chatroomChannelMeta,
+			exportMeta: this.exportMeta,
+			exportHistoryMeta: this.exportHistoryMeta,
+			clusterHealthMeta: this.clusterHealthMeta,
+			clusterMemMeta: this.clusterMemMeta,
+			csvAttachmentMeta: this.csvAttachmentMeta,
+			fixShardMeta: this.fixShardMeta,
+			slashDeployMeta: this.slashDeployMeta,
 			locale: this.locale,
 			t: this.t
 		};

@@ -106,12 +106,27 @@ describe('roll-worker parse-router', () => {
 		expect(analytics.parseInput).not.toHaveBeenCalled();
 	});
 
-	it('keeps Discord unknown modules on local path (allowlist miss)', async () => {
+	it('Phase 3j: Discord remotes matched modules even if not on legacy allowlist', async () => {
 		client.isEnabled.mockReturnValue(true);
-		analytics.findRollModuleName.mockReturnValue('not-a-real-module');
+		client.parse.mockResolvedValue({ text: 'remote-ok', type: 'text', _rollWorker: true });
+		analytics.findRollModuleName.mockReturnValue('future-new-module');
 
 		const result = await parseRouter.parseInput({
-			inputStr: '.unknowncmd',
+			inputStr: '.futurecmd',
+			botname: 'Discord',
+			locale: 'zh-tw',
+		}, { keepProof: true });
+
+		expect(client.parse).toHaveBeenCalled();
+		expect(result.text).toBe('remote-ok');
+	});
+
+	it('Phase 3j: Discord unmatched (null module) stays local', async () => {
+		client.isEnabled.mockReturnValue(true);
+		analytics.findRollModuleName.mockReturnValue(null);
+
+		const result = await parseRouter.parseInput({
+			inputStr: 'hello unrelated chat',
 			botname: 'Discord',
 			locale: 'zh-tw',
 		});

@@ -18,10 +18,6 @@ const gameType = function () {
     return 'Demo:Demo:hktrpg'
 }
 const prefixs = function () {
-    //[mainMSG[0]的prefixs,mainMSG[1]的prefixs,   <---這裡是一對  
-    //mainMSG[0]的prefixs,mainMSG[1]的prefixs  ]  <---這裡是一對
-    //如前面是 /^1$/ig, 後面是/^1D100$/ig, 即 prefixs 變成 1 1D100 
-    ///^(?=.*he)(?!.*da).*$/ig
     return [{
         first: /^\.chatroom$/i,
         second: null
@@ -42,6 +38,7 @@ const rollDiceCommand = async function ({
     botname,
     channelid,
     discordClient,
+    chatroomChannelMeta,
     locale,
     t
 }) {
@@ -52,6 +49,9 @@ const rollDiceCommand = async function ({
         type: 'text',
         text: ''
     };
+
+    const needLiveOrMeta = (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !chatroomChannelMeta?.guildId);
+
     switch (true) {
         case /^help$/i.test(mainMsg[1]) || !mainMsg[1]: {
             rply.text = getHelpMessage(i18nParams);
@@ -59,7 +59,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^create$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+            if (needLiveOrMeta) {
                 return { needsLocal: true, moduleName: 'z_multi-server' };
             }
             try {
@@ -67,25 +67,51 @@ const rollDiceCommand = async function ({
                 let lv = await VIP.viplevelCheckUser(userid);
                 let limit = FUNCTION_LIMIT[lv];
                 if (limit <= 0) return;
-                const channel = await discordClient.channels.fetch(mainMsg[2])
-                const member = await channel.fetch(userid)
-                const v = member.members.find(Boolean)
-                const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
-                if (!role) return;
+
+                let guildId;
+                let guildName;
+                let channelName;
+                const targetChannelId = mainMsg[2];
+
+                if (chatroomChannelMeta?.guildId) {
+                    if (!chatroomChannelMeta.allowed) return;
+                    if (String(chatroomChannelMeta.channelId) !== String(targetChannelId)) {
+                        return { needsLocal: true, moduleName: 'z_multi-server' };
+                    }
+                    guildId = chatroomChannelMeta.guildId;
+                    guildName = chatroomChannelMeta.guildName;
+                    channelName = chatroomChannelMeta.channelName;
+                } else {
+                    const channel = await discordClient.channels.fetch(targetChannelId)
+                    const member = await channel.fetch(userid)
+                    const v = member.members.find(Boolean)
+                    const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
+                    if (!role) return;
+                    guildId = channel.guildId;
+                    guildName = channel.guild.name;
+                    channelName = channel.name;
+                }
+
                 const d = new Date();
                 const time = d.getTime();
                 const num = rollbase.Dice(100_000_000);
                 const multiId = `${time}_${num}`
-                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[2], multiId, guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
+                await schema.multiServer.findOneAndUpdate({ guildID: guildId }, {
+                    channelid: targetChannelId,
+                    multiId,
+                    guildID: guildId,
+                    guildName,
+                    channelName,
+                    botname
+                }, { upsert: true }).catch(error => {
                     console.error('[Multi-Server] MongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
                 rply.text = translate('chatroom.create_success', {
-                    guild: channel.guild.name,
-                    channel: channel.name
+                    guild: guildName,
+                    channel: channelName
                 });
-                //，想把其他頻道加入，請輸入\n .chatroom join ${multiId} (其他頻道的ID)
                 return rply;
             } catch {
                 console.error('[Multi-Server] Create error')
@@ -93,7 +119,7 @@ const rollDiceCommand = async function ({
             return
         }
         case /^join$/i.test(mainMsg[1]) && /^\S/.test(mainMsg[2]) && /^\S/.test(mainMsg[3]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+            if (needLiveOrMeta) {
                 return { needsLocal: true, moduleName: 'z_multi-server' };
             }
             try {
@@ -101,27 +127,55 @@ const rollDiceCommand = async function ({
                 let lv = await VIP.viplevelCheckUser(userid);
                 let limit = FUNCTION_LIMIT[lv];
                 if (limit <= 0) return;
-                const channel = await discordClient.channels.fetch(mainMsg[3])
-                const member = await channel.fetch(userid)
-                let v;
-                try {
-                    v = (member.members && member.members.find(Boolean))
-                } catch {
-                    v = member;
+
+                const multiId = mainMsg[2];
+                const targetChannelId = mainMsg[3];
+                let guildId;
+                let guildName;
+                let channelName;
+
+                if (chatroomChannelMeta?.guildId) {
+                    if (!chatroomChannelMeta.allowed) return;
+                    if (String(chatroomChannelMeta.channelId) !== String(targetChannelId)) {
+                        return { needsLocal: true, moduleName: 'z_multi-server' };
+                    }
+                    guildId = chatroomChannelMeta.guildId;
+                    guildName = chatroomChannelMeta.guildName;
+                    channelName = chatroomChannelMeta.channelName;
+                } else {
+                    const channel = await discordClient.channels.fetch(targetChannelId)
+                    const member = await channel.fetch(userid)
+                    let v;
+                    try {
+                        v = (member.members && member.members.find(Boolean))
+                    } catch {
+                        v = member;
+                    }
+                    const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
+                    if (!role) return;
+                    guildId = channel.guildId;
+                    guildName = channel.guild.name;
+                    channelName = channel.name;
                 }
-                const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
-                if (!role) return;
-                let max = await schema.multiServer.find({ multiId: mainMsg[2] })
+
+                let max = await schema.multiServer.find({ multiId })
                 if (max.length >= 2) return;
-                await schema.multiServer.findOneAndUpdate({ guildID: channel.guildId }, { channelid: mainMsg[3], multiId: mainMsg[2], guildID: channel.guildId, guildName: channel.guild.name, channelName: channel.name, botname }, { upsert: true }).catch(error => {
+                await schema.multiServer.findOneAndUpdate({ guildID: guildId }, {
+                    channelid: targetChannelId,
+                    multiId,
+                    guildID: guildId,
+                    guildName,
+                    channelName,
+                    botname
+                }, { upsert: true }).catch(error => {
                     console.error('[Multi-Server] MongoDB error:', error.name, error.reason)
                     return
                 });
                 await multiServer.getRecords();
                 rply.text = translate('chatroom.join_success', {
-                    guild: channel.guild.name,
-                    channel: channel.name,
-                    multiId: mainMsg[2]
+                    guild: guildName,
+                    channel: channelName,
+                    multiId
                 });
                 return rply;
             } catch {
@@ -130,9 +184,6 @@ const rollDiceCommand = async function ({
             return;
         }
         case /^exit$/i.test(mainMsg[1]): {
-            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && mainMsg[2]) {
-                return { needsLocal: true, moduleName: 'z_multi-server' };
-            }
             if (!mainMsg[2] && userrole == 3) {
                 await schema.multiServer.findOneAndDelete({ channelid: channelid }).catch(error => {
                     console.error('multiserver #101 mongoDB error:', error.name, error.reason)
@@ -143,11 +194,21 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             if (mainMsg[2]) {
-                const channel = await discordClient.channels.fetch(mainMsg[2])
-                const member = await channel.fetch(userid)
-                const v = member.members.find(Boolean)
-                const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
-                if (!role) return;
+                if (needLiveOrMeta) {
+                    return { needsLocal: true, moduleName: 'z_multi-server' };
+                }
+                if (chatroomChannelMeta?.guildId) {
+                    if (!chatroomChannelMeta.allowed) return;
+                    if (String(chatroomChannelMeta.channelId) !== String(mainMsg[2])) {
+                        return { needsLocal: true, moduleName: 'z_multi-server' };
+                    }
+                } else {
+                    const channel = await discordClient.channels.fetch(mainMsg[2])
+                    const member = await channel.fetch(userid)
+                    const v = member.members.find(Boolean)
+                    const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
+                    if (!role) return;
+                }
                 await schema.multiServer.findOneAndDelete({ channelid: mainMsg[2] }).catch(error => {
                     console.error('multiserver #112 mongoDB error:', error.name, error.reason)
                     return

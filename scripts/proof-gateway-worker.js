@@ -12,6 +12,8 @@ const http = require('node:http');
 const ROOT = path.join(__dirname, '..');
 const PORT = 39_61;
 const URL = `http://127.0.0.1:${PORT}`;
+const PROOF_ADMIN_ID = 'proof-admin-3h';
+const PROOF_ADMIN_SECRET = [process.env.ADMIN_SECRET, PROOF_ADMIN_ID].filter(Boolean).join(',');
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -73,6 +75,7 @@ async function main() {
 			ROLL_WORKER_PORT: String(PORT),
 			// Do not inherit parent ROLL_WORKER_URL (may point at another port).
 			ROLL_WORKER_URL: '',
+			ADMIN_SECRET: PROOF_ADMIN_SECRET,
 			OPENAI_SWITCH: process.env.OPENAI_SWITCH || 'true',
 			DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
 		},
@@ -268,7 +271,321 @@ async function main() {
 			console.log('[proof] PASS Discord .st help remote');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3d)');
+		// 11) Phase 3e: .st import with storyAttachmentMeta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.st import proofalias',
+				botname: 'Discord',
+				userid: 'u-proof',
+				locale: 'zh-tw',
+				storyAttachmentMeta: {
+					url: 'https://example.invalid/missing.json',
+					filename: 'missing.json',
+					size: 1,
+					contentType: 'application/json',
+				},
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'st import meta not needsLocal', result);
+			assert(result._rollWorker === true, 'st import _rollWorker', result);
+			assert(result._rollWorkerModule === 'z-story-teller', 'st import module', result);
+			assert(after.parseCount === before.parseCount + 1, 'st import parseCount++', { before, after });
+			console.log('[proof] PASS Discord .st import with meta remote');
+		}
+
+		// 12) Phase 3e: .forward with forwardSourceMeta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.forward https://discord.com/channels/1/2/3',
+				botname: 'Discord',
+				groupid: '1',
+				userid: 'u-proof',
+				channelid: '99',
+				locale: 'zh-tw',
+				forwardSourceMeta: {
+					sourceGuildId: '1',
+					sourceChannelId: '2',
+					sourceMessageId: '3',
+					guildId: '1',
+					messageContent: '證明角色的角色',
+					isMentioned: true,
+					isInteractionUser: false,
+				},
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'forward meta not needsLocal', result);
+			assert(result._rollWorker === true, 'forward _rollWorker', result);
+			assert(result._rollWorkerModule === 'forward', 'forward module', result);
+			assert(after.parseCount === before.parseCount + 1, 'forward parseCount++', { before, after });
+			console.log('[proof] PASS Discord .forward with meta remote');
+		}
+
+		// 13) Phase 3f: .chatroom create with chatroomChannelMeta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.chatroom create 123456789012345678',
+				botname: 'Discord',
+				userid: 'u-proof',
+				locale: 'zh-tw',
+				chatroomChannelMeta: {
+					allowed: true,
+					channelId: '123456789012345678',
+					guildId: 'g-proof',
+					guildName: 'ProofGuild',
+					channelName: 'general',
+				},
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'chatroom create meta not needsLocal', result);
+			assert(result._rollWorker === true, 'chatroom _rollWorker', result);
+			assert(result._rollWorkerModule === 'z_multi-server', 'chatroom module', result);
+			assert(after.parseCount === before.parseCount + 1, 'chatroom parseCount++', { before, after });
+			console.log('[proof] PASS Discord .chatroom create with meta remote');
+		}
+
+		// 14) Phase 3f: .admin registerChannel → Worker (expanded)
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.admin registerChannel',
+				botname: 'Discord',
+				userid: 'u-proof',
+				groupid: 'g1',
+				channelid: 'c1',
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'registerChannel not needsLocal', result);
+			assert(result._rollWorker === true, 'registerChannel _rollWorker', result);
+			assert(after.parseCount === before.parseCount + 1, 'registerChannel parseCount++', { before, after });
+			console.log('[proof] PASS Discord .admin registerChannel remote');
+		}
+
+		// 15) Phase 3g: .discord html with exportHistoryMeta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const stamp = Date.now();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.discord html',
+				botname: 'Discord',
+				groupid: `g-proof-export-${stamp}`,
+				channelid: `c-proof-export-${stamp}`,
+				userrole: 3,
+				userid: `u-proof-export-${stamp}`,
+				locale: 'zh-tw',
+				exportMeta: { hasReadPermission: true, channelName: 'proof-channel' },
+				exportHistoryMeta: {
+					sum_messages: [{
+						timestamp: Date.now(),
+						contact: 'proof export line',
+						userName: 'proof',
+						isbot: false,
+						attachments: [],
+						embeds: [],
+					}],
+					totalSize: 1,
+				},
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'export html meta not needsLocal', result);
+			assert(result._rollWorker === true, 'export html _rollWorker', result);
+			assert(result._rollWorkerModule === 'export', 'export html module', result);
+			assert(after.parseCount === before.parseCount + 1, 'export html parseCount++', { before, after });
+			assert(Boolean(result.discordExportHtml), 'export html file id', result);
+			console.log('[proof] PASS Discord .discord html with meta remote');
+		}
+
+		// 16) Phase 3g: .st list → Worker (story run / Mongo path)
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.st list',
+				botname: 'Discord',
+				userid: 'u-proof',
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'st list not needsLocal', result);
+			assert(result._rollWorker === true, 'st list _rollWorker', result);
+			assert(result._rollWorkerModule === 'z-story-teller', 'st list module', result);
+			assert(after.parseCount === before.parseCount + 1, 'st list parseCount++', { before, after });
+			console.log('[proof] PASS Discord .st list remote');
+		}
+
+		// 17) Phase 3h: .admin clusterhealth with meta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.admin clusterhealth',
+				botname: 'Discord',
+				userid: PROOF_ADMIN_ID,
+				locale: 'zh-tw',
+				clusterHealthMeta: {
+					healthReport: {
+						clusters: [{ id: 0, ready: true, alive: true, shards: 1, uptime: 10 }],
+						summary: {
+							totalClusters: 1,
+							activeClusters: 1,
+							readyClusters: 1,
+							deadClusters: 0,
+							totalShards: 1,
+						},
+						processInfo: { pid: 1, uptime: 100, memoryMB: 64 },
+					},
+					dbStatus: {
+						isDegradedMode: false,
+						dbConnectionState: 1,
+						consecutiveFailures: 0,
+						cacheSize: 0,
+						pendingSyncOperations: 0,
+					},
+					clusterProtectionStatus: {
+						unhealthyCount: 0,
+						healthTimeout: 60_000,
+						maxRetries: 3,
+					},
+				},
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'clusterhealth meta not needsLocal', result);
+			assert(result._rollWorker === true, 'clusterhealth _rollWorker', result);
+			assert(after.parseCount === before.parseCount + 1, 'clusterhealth parseCount++', { before, after });
+			assert(String(result.text || '').length > 10, 'clusterhealth text', result.text);
+			console.log('[proof] PASS Discord .admin clusterhealth with meta remote');
+		}
+
+		// 18) Phase 3h: .root respawn → clusterIpc on Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.root respawn 0',
+				botname: 'Discord',
+				userid: PROOF_ADMIN_ID,
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'respawn not needsLocal', result);
+			assert(result._rollWorker === true, 'respawn _rollWorker', result);
+			assert(result.clusterIpc?.respawn === true, 'respawn clusterIpc', result);
+			assert(after.parseCount === before.parseCount + 1, 'respawn parseCount++', { before, after });
+			console.log('[proof] PASS Discord .root respawn clusterIpc remote');
+		}
+
+		// 19) Phase 3h: .token with avatarUrl → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.token ProofHero',
+				botname: 'Discord',
+				locale: 'zh-tw',
+				avatarUrl: 'https://example.invalid/avatar.png',
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'token avatar not needsLocal', result);
+			assert(result._rollWorker === true, 'token avatar _rollWorker', result);
+			assert(result._rollWorkerModule === 'token', 'token module', result);
+			assert(after.parseCount === before.parseCount + 1, 'token avatar parseCount++', { before, after });
+			console.log('[proof] PASS Discord .token with avatarUrl remote');
+		}
+
+		// 20) Phase 3i: .root fixshard check with meta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.root fixshard check',
+				botname: 'Discord',
+				userid: PROOF_ADMIN_ID,
+				locale: 'zh-tw',
+				fixShardMeta: {
+					action: 'check',
+					report: {
+						totalShards: 2,
+						healthyShards: 2,
+						unhealthyShards: 0,
+						unresponsiveShards: [],
+					},
+				},
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'fixshard check meta not needsLocal', result);
+			assert(result._rollWorker === true, 'fixshard _rollWorker', result);
+			assert(after.parseCount === before.parseCount + 1, 'fixshard parseCount++', { before, after });
+			assert(String(result.text || '').length > 10, 'fixshard text', result.text);
+			console.log('[proof] PASS Discord .root fixshard check with meta remote');
+		}
+
+		// 21) Phase 3i: .root registeredGlobal with slashDeployMeta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.root registeredGlobal',
+				botname: 'Discord',
+				userid: PROOF_ADMIN_ID,
+				locale: 'zh-tw',
+				slashDeployMeta: { text: 'PROOF_SLASH_OK' },
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'slash deploy meta not needsLocal', result);
+			assert(result._rollWorker === true, 'slash deploy _rollWorker', result);
+			assert(result.text === 'PROOF_SLASH_OK', 'slash deploy text', result);
+			assert(after.parseCount === before.parseCount + 1, 'slash deploy parseCount++', { before, after });
+			console.log('[proof] PASS Discord .root registeredGlobal with meta remote');
+		}
+
+		// 22) Phase 3j: denylist — any matched module remotes (assert router policy + live .lang)
+		{
+			pinGatewayWorkerUrl();
+			const { isRemoteAllowed } = require('../modules/roll-worker/route-table');
+			assert(isRemoteAllowed('future-new-module', 'Discord') === true, 'denylist remotes future module');
+			assert(isRemoteAllowed(null, 'Discord') === false, 'denylist keeps unmatched local');
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.lang help',
+				botname: 'Discord',
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'lang help not needsLocal', result);
+			assert(result._rollWorker === true, 'lang help _rollWorker', result);
+			assert(result._rollWorkerModule === 'lang', 'lang module', result);
+			assert(after.parseCount === before.parseCount + 1, 'lang parseCount++', { before, after });
+			console.log('[proof] PASS Discord denylist + .lang help remote (Phase 3j)');
+		}
+
+		// 23) Phase 3k: .st mylist with storyGroupNamesMeta → Worker
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.st mylist',
+				botname: 'Discord',
+				userid: `u-proof-mylist-${Date.now()}`,
+				locale: 'zh-tw',
+				storyGroupNamesMeta: { '999888777666555444': 'ProofChannel' },
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'mylist meta not needsLocal', result);
+			assert(result._rollWorker === true, 'mylist _rollWorker', result);
+			assert(result._rollWorkerModule === 'z-story-teller', 'mylist module', result);
+			assert(after.parseCount === before.parseCount + 1, 'mylist parseCount++', { before, after });
+			console.log('[proof] PASS Discord .st mylist with group-names meta remote (Phase 3k)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3k)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

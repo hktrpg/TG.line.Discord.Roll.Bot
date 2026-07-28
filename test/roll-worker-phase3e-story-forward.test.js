@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Phase 3c: z_admin / z-story-teller help+safe remote; cluster/import needsLocal.
+ * Phase 3e: story import + forward create with Gateway-prefetched meta → Worker remote.
  */
 jest.setTimeout(60_000);
 
@@ -10,7 +10,7 @@ const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_65;
+const PORT = 39_67;
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -46,7 +46,7 @@ async function waitHealth(timeoutMs = 25_000) {
 	throw new Error('worker health timeout');
 }
 
-describe('Phase 3c admin/story Worker contract (spawned)', () => {
+describe('Phase 3e story/forward prefetch remote (spawned)', () => {
 	let child;
 	let client;
 	const prevUrl = process.env.ROLL_WORKER_URL;
@@ -81,62 +81,7 @@ describe('Phase 3c admin/story Worker contract (spawned)', () => {
 		}
 	});
 
-	it('.admin help hits Worker remotely', async () => {
-		const before = await client.health();
-		const result = await client.parse({
-			inputStr: '.admin help',
-			botname: 'Discord',
-			locale: 'zh-tw',
-		});
-		const after = await client.health();
-		expect(result.needsLocal).toBeFalsy();
-		expect(result._rollWorker).toBe(true);
-		expect(result._rollWorkerModule).toBe('z_admin');
-		expect(after.parseCount).toBe(before.parseCount + 1);
-	});
-
-	it('.admin state hits Worker remotely (sets state flag)', async () => {
-		const before = await client.health();
-		const result = await client.parse({
-			inputStr: '.admin state',
-			botname: 'Discord',
-			locale: 'zh-tw',
-		});
-		const after = await client.health();
-		expect(result.needsLocal).toBeFalsy();
-		expect(result._rollWorker).toBe(true);
-		expect(after.parseCount).toBe(before.parseCount + 1);
-		expect(String(result.text || '').length).toBeGreaterThan(0);
-	});
-
-	it('.admin clusterhealth without client returns needsLocal', async () => {
-		const before = await client.health();
-		const result = await client.parse({
-			inputStr: '.admin clusterhealth',
-			botname: 'Discord',
-			userid: 'admin-user',
-			locale: 'zh-tw',
-		});
-		const after = await client.health();
-		expect(result.needsLocal).toBe(true);
-		expect(after.parseCount).toBe(before.parseCount);
-	});
-
-	it('.st help hits Worker remotely', async () => {
-		const before = await client.health();
-		const result = await client.parse({
-			inputStr: '.st help',
-			botname: 'Discord',
-			locale: 'zh-tw',
-		});
-		const after = await client.health();
-		expect(result.needsLocal).toBeFalsy();
-		expect(result._rollWorker).toBe(true);
-		expect(result._rollWorkerModule).toBe('z-story-teller');
-		expect(after.parseCount).toBe(before.parseCount + 1);
-	});
-
-	it('.st import without client returns needsLocal', async () => {
+	it('.st import without meta still needsLocal', async () => {
 		const before = await client.health();
 		const result = await client.parse({
 			inputStr: '.st import myalias',
@@ -148,38 +93,70 @@ describe('Phase 3c admin/story Worker contract (spawned)', () => {
 		expect(result.needsLocal).toBe(true);
 		expect(after.parseCount).toBe(before.parseCount);
 	});
-});
 
-describe('Phase 3c adminSubNeedsLiveDiscord unit', () => {
-	it('classifies safe vs live Discord admin subs', () => {
-		const { adminSubNeedsLiveDiscord } = require('../modules/roll-worker/admin-remote.js');
-		expect(adminSubNeedsLiveDiscord('.admin', 'help')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'state')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'debug')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'registerchannel')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'account')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.admin', 'clusterhealth')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.admin', 'clusterhealth', {
-			clusterHealthMeta: { healthReport: { clusters: [] } },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'help')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'schedule')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'decrypt')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'respawn')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'respawnall')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'mem')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.root', 'mem', {
-			clusterMemMeta: { rows: [{ clusterId: 0 }] },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'importpatreon')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.root', 'importpatreon', {
-			csvAttachmentMeta: { url: 'https://example.invalid/a.csv' },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'fixshard')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.root', 'fixshard', {
-			fixShardMeta: { action: 'status' },
-		})).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'registeredglobal')).toBe(true);
-		expect(adminSubNeedsLiveDiscord('.patreon', 'level')).toBe(false);
+	it('.st import with storyAttachmentMeta hits Worker (not needsLocal)', async () => {
+		const before = await client.health();
+		const result = await client.parse({
+			inputStr: '.st import remotealias',
+			botname: 'Discord',
+			userid: 'u1',
+			locale: 'zh-tw',
+			storyAttachmentMeta: {
+				url: 'https://example.invalid/story-missing.json',
+				filename: 'story-missing.json',
+				size: 10,
+				contentType: 'application/json',
+			},
+		});
+		const after = await client.health();
+		// Download will fail → user-facing error text, but path is remote
+		expect(result.needsLocal).toBeFalsy();
+		expect(result._rollWorker).toBe(true);
+		expect(result._rollWorkerModule).toBe('z-story-teller');
+		expect(after.parseCount).toBe(before.parseCount + 1);
+		expect(String(result.text || '').length).toBeGreaterThan(0);
+	});
+
+	it('.forward create without meta needsLocal', async () => {
+		const before = await client.health();
+		const result = await client.parse({
+			inputStr: '.forward https://discord.com/channels/1/2/3',
+			botname: 'Discord',
+			groupid: '1',
+			userid: 'u1',
+			channelid: '99',
+			locale: 'zh-tw',
+		});
+		const after = await client.health();
+		expect(result.needsLocal).toBe(true);
+		expect(after.parseCount).toBe(before.parseCount);
+	});
+
+	it('.forward create with forwardSourceMeta hits Worker', async () => {
+		const before = await client.health();
+		const result = await client.parse({
+			inputStr: '.forward https://discord.com/channels/1/2/3',
+			botname: 'Discord',
+			groupid: '1',
+			userid: 'u1',
+			channelid: '99',
+			locale: 'zh-tw',
+			forwardSourceMeta: {
+				sourceGuildId: '1',
+				sourceChannelId: '2',
+				sourceMessageId: '3',
+				guildId: '1',
+				messageContent: '測試角色的角色',
+				isMentioned: true,
+				isInteractionUser: false,
+			},
+		});
+		const after = await client.health();
+		expect(result.needsLocal).toBeFalsy();
+		expect(result._rollWorker).toBe(true);
+		expect(result._rollWorkerModule).toBe('forward');
+		expect(after.parseCount).toBe(before.parseCount + 1);
+		// May fail Mongo or succeed — either way remote path proven
+		expect(result).toHaveProperty('text');
 	});
 });

@@ -1244,6 +1244,8 @@ const rollDiceCommand = async function ({
     channelid,
     discordClient,
     discordMessage,
+    storyAttachmentMeta,
+    storyGroupNamesMeta,
     locale,
     t
 }) {
@@ -1272,11 +1274,13 @@ const rollDiceCommand = async function ({
             break;
     }
 
-    // Import / run / attachment flows need live Discord on Gateway.
+    // Attachment flows need live Discord or Gateway-prefetched storyAttachmentMeta.
+    // start/pause/goto/list/… are Mongo/state and can run on Roll Worker.
     if (
         process.env.ROLL_WORKER_MODE === 'true'
         && !discordClient
-        && !/^(list|mylist)$/.test(sub)
+        && /^(import|update)$/.test(sub)
+        && !storyAttachmentMeta?.url
     ) {
         return { needsLocal: true, moduleName: 'z-story-teller' };
     }
@@ -1288,11 +1292,17 @@ const rollDiceCommand = async function ({
                 rply.text = translate('storyteller.discord_only');
                 return rply;
             }
-            // .st import <alias> [title] with attachment
+            // .st import <alias> [title] with attachment (live or prefetched)
             const aliasArg = (mainMsg[2] || '').trim();
             const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
-            // Get attachment (Discord only)
-            const att = await getAttachmentInfo(discordMessage, discordClient);
+            const att = storyAttachmentMeta?.url
+                ? {
+                    url: storyAttachmentMeta.url,
+                    size: storyAttachmentMeta.size || 0,
+                    filename: storyAttachmentMeta.filename || storyAttachmentMeta.name || '',
+                    contentType: storyAttachmentMeta.contentType || '',
+                }
+                : await getAttachmentInfo(discordMessage, discordClient);
             if (!att || !att.url) {
                 rply.text = translate('storyteller.no_attachment');
                 return rply;
@@ -1460,8 +1470,15 @@ const rollDiceCommand = async function ({
                 } catch { /* ignore parse errors; allow overwrite if file exists and owner matches unknown */ }
             }
 
-            // Attachment
-            const att = await getAttachmentInfo(discordMessage, discordClient);
+            // Attachment (live or Gateway-prefetched)
+            const att = storyAttachmentMeta?.url
+                ? {
+                    url: storyAttachmentMeta.url,
+                    size: storyAttachmentMeta.size || 0,
+                    filename: storyAttachmentMeta.filename || storyAttachmentMeta.name || '',
+                    contentType: storyAttachmentMeta.contentType || '',
+                }
+                : await getAttachmentInfo(discordMessage, discordClient);
             if (!att || !att.url) { rply.text = translate('storyteller.no_attachment'); return rply; }
             if (att.size > 0 && att.size > MAX_UPLOAD_BYTES) { rply.text = translate('storyteller.file_too_large', { maxKb: Math.round(MAX_UPLOAD_BYTES / 1024) }); return rply; }
             let rawText = '';
@@ -2500,18 +2517,13 @@ const rollDiceCommand = async function ({
                         } else {
                             for (const gid of groups) {
                                 let name = '';
-                                if (String(botname || '').toLowerCase() === 'discord' && discordClient && typeof discordClient.channels?.fetch === 'function') {
-                                    try {
-                                        const ch = await discordClient.channels.fetch(gid);
-                                        if (ch && ch.name) name = ch.name;
-                                    } catch { /* ignore */ }
-                                    if (!name && typeof discordClient.guilds?.fetch === 'function') {
-                                        try {
-                                            const g = await discordClient.guilds.fetch(gid);
-                                            if (g && g.name) name = g.name;
-                                        } catch { /* ignore */ }
-                                    }
-                                }
+                                try {
+                                    const { resolveStoryGroupName } = require('../modules/roll-worker/discord-prefetch');
+                                    name = await resolveStoryGroupName(gid, {
+                                        discordClient: String(botname || '').toLowerCase() === 'discord' ? discordClient : null,
+                                        storyGroupNamesMeta,
+                                    });
+                                } catch { /* ignore */ }
                                 text += translate('storyteller.mylist_group_line', { line: name ? (name + ' - ' + gid) : gid });
                             }
                         }

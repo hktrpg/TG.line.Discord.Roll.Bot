@@ -1,8 +1,11 @@
 "use strict";
 
 /**
- * Modules safe to run on Roll Worker (no live discordClient / discordMessage required).
- * Unknown modules stay local on Discord gateway.
+ * Discord routing (Phase 3j):
+ * - Matched modules remoted by default.
+ * - Modules that need live Discord return `needsLocal` or use Gateway prefetch meta.
+ * - LOCAL_DISCORD_ONLY is the only hard block (empty unless a future module must never leave Gateway).
+ * - REMOTE_ALLOWLIST is retained as documentation of modules known to support remote paths.
  */
 const REMOTE_ALLOWLIST = new Set([
 	'0-advroll',
@@ -46,7 +49,7 @@ const REMOTE_ALLOWLIST = new Set([
 	'z-story-teller',
 ]);
 
-/** Discord-only / needs live client — never remote. Empty after Phase 3c. */
+/** Discord-only / must never remote. Empty after Phase 3 — modules use needsLocal instead. */
 const LOCAL_DISCORD_ONLY = new Set([
 ]);
 
@@ -59,11 +62,12 @@ function isRemoteAllowed(moduleId, botname) {
 	const id = normalizeModuleId(moduleId);
 	if (!id) {
 		// No match yet — non-Discord can still send to worker (worker runs findRollList).
+		// Discord stays local for unmatched chat noise.
 		return botname !== 'Discord';
 	}
 	if (LOCAL_DISCORD_ONLY.has(id)) return false;
-	if (botname !== 'Discord') return true;
-	return REMOTE_ALLOWLIST.has(id);
+	// Phase 3j: any matched module remotes; needsLocal handles live Discord edges.
+	return true;
 }
 
 function isDiscordLocalOnly(moduleId) {

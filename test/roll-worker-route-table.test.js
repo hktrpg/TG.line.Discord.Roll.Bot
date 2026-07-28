@@ -48,8 +48,10 @@ describe('roll-worker route-table', () => {
 		expect(isRemoteAllowed(null, 'WWW')).toBe(true);
 	});
 
-	it('does not allow unknown modules for Discord', () => {
-		expect(isRemoteAllowed('not-a-real-module', 'Discord')).toBe(false);
+	it('Phase 3j: Discord remotes any matched module (denylist model)', () => {
+		expect(isRemoteAllowed('demo', 'Discord')).toBe(true);
+		expect(isRemoteAllowed('not-a-real-module', 'Discord')).toBe(true);
+		expect(isRemoteAllowed('future-new-module', 'Discord')).toBe(true);
 	});
 
 	it('does not allow empty module id for Discord (stay local until matched)', () => {

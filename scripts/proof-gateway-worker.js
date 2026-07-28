@@ -3,7 +3,8 @@
 /**
  * Spawn real `roll-worker.js` child + act as Gateway (parseRouter / client).
  * Exit 0 only if Worker parseCount increases and `_rollWorker` is true.
- * Proves Phase 3 → 3v: Discord remote paths, auth, export no dual-run, WWW gate, OpenAI caps.
+ * Proves Phase 3 → 3w: Discord remote paths, auth, export no dual-run, WWW gate, OpenAI caps,
+ * large export JSON, fail-closed mutating modules, streaming fetch, HMAC display claims.
  */
 const { spawn } = require('node:child_process');
 const path = require('node:path');
@@ -1110,7 +1111,132 @@ async function main() {
 			console.log('[proof] PASS Phase 3v export/WWW/openai caps');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3v)');
+		// 37) Phase 3w: JSON limit, empty-array openai prefetch, fail-closed set, streaming fetch, HMAC display
+		{
+			pinGatewayWorkerUrl();
+			const {
+				DEFAULT_JSON_BODY_LIMIT,
+				getJsonBodyLimit,
+				isLoopbackHost,
+			} = require('../modules/roll-worker/server');
+			assert(DEFAULT_JSON_BODY_LIMIT === '32mb', 'default json limit 32mb');
+			assert(getJsonBodyLimit() === '32mb' || Boolean(process.env.ROLL_WORKER_JSON_LIMIT), 'json limit configured');
+			assert(isLoopbackHost('127.0.0.1') === true, 'loopback true');
+			assert(isLoopbackHost('0.0.0.0') === false, 'non-loopback false');
+
+			const parseRouter = require('../modules/roll-worker/parse-router');
+			assert(parseRouter.hasOpenAiDiscordPrefetch({ attachmentsMeta: [] }) === false, 'empty attachmentsMeta not prefetch');
+			assert(parseRouter.hasOpenAiDiscordPrefetch({
+				attachmentsMeta: [{ url: 'https://cdn.discordapp.com/a.png' }],
+			}) === true, 'non-empty attachmentsMeta is prefetch');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('openai') === true, 'openai fail-closed');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('token') === true, 'token fail-closed');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('0-advroll') === false, 'dice still fallback');
+
+			const { SIGNED_CLAIM_KEYS, attachGatewayAuth, verifyGatewayAuth } = require('../modules/roll-worker/request-auth');
+			assert(SIGNED_CLAIM_KEYS.includes('displayname'), 'displayname signed');
+			assert(SIGNED_CLAIM_KEYS.includes('membercount'), 'membercount signed');
+			const signed = attachGatewayAuth({
+				inputStr: '1d3',
+				userid: 'u-proof-3w',
+				botname: 'Telegram',
+				displayname: 'ProofUser',
+			}, PROOF_TOKEN);
+			assert(verifyGatewayAuth(signed, PROOF_TOKEN).ok === true, 'HMAC displayname ok');
+			signed.displayname = 'Tampered';
+			assert(verifyGatewayAuth(signed, PROOF_TOKEN).ok === false, 'HMAC displayname tamper');
+
+			// Live Worker accepts ~3MB body (above old 2mb) — use dice so we only prove JSON limit.
+			const beforeLarge = await waitForHealth();
+			const chunk = 'z'.repeat(1024);
+			const sum_messages = Array.from({ length: 3200 }, (_, i) => ({
+				contact: `p${i}`,
+				timestamp: i,
+				content: chunk,
+			}));
+			const largeBody = {
+				inputStr: '1d3',
+				botname: 'Telegram',
+				userid: 'u-proof-3w-large',
+				groupid: 'g-proof-3w-large',
+				locale: 'zh-tw',
+				// Attached only to inflate JSON past the old 2mb express limit.
+				exportHistoryMeta: { sum_messages, totalSize: sum_messages.length },
+			};
+			const approxBytes = Buffer.byteLength(JSON.stringify(largeBody));
+			assert(approxBytes > 2 * 1024 * 1024, 'proof payload > 2mb', { approxBytes });
+			const client = require('../modules/roll-worker/client');
+			const largeResult = await client.parse(largeBody);
+			const afterLarge = await waitForHealth();
+			assert(largeResult._rollWorker === true, 'large JSON body _rollWorker', largeResult);
+			assert(
+				afterLarge.parseCount === beforeLarge.parseCount + 1,
+				'large JSON body parseCount++',
+				{ beforeLarge, afterLarge }
+			);
+
+			// Streaming safe-fetch rejects mid-stream.
+			const prevFetch = globalThis.fetch;
+			globalThis.fetch = async () => ({
+				ok: true,
+				headers: { get: () => null },
+				body: {
+					getReader: () => {
+						const parts = [
+							new Uint8Array(40).fill(1),
+							new Uint8Array(40).fill(2),
+						];
+						let i = 0;
+						return {
+							read: async () => {
+								if (i >= parts.length) return { done: true, value: undefined };
+								return { done: false, value: parts[i++] };
+							},
+							cancel: async () => {},
+						};
+					},
+				},
+			});
+			const isImagePath = require.resolve('../utils/is-image-url');
+			const safeFetchPath = require.resolve('../modules/roll-worker/safe-fetch');
+			delete require.cache[isImagePath];
+			delete require.cache[safeFetchPath];
+			require.cache[isImagePath] = {
+				id: isImagePath,
+				filename: isImagePath,
+				loaded: true,
+				exports: { isSafeImageTarget: async () => true },
+			};
+			const { readBodyWithByteLimit, safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
+			let streamTooLarge = false;
+			try {
+				await safeFetchBuffer('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 50 });
+			} catch (error) {
+				streamTooLarge = error?.code === 'FETCH_TOO_LARGE';
+			}
+			assert(streamTooLarge === true, 'streaming safeFetchBuffer enforces maxBytes');
+			let clTooLarge = false;
+			try {
+				await readBodyWithByteLimit({
+					headers: { get: (k) => (k === 'content-length' ? '99999' : null) },
+					body: { cancel: async () => {}, getReader: () => ({ read: async () => ({ done: true }) }) },
+				}, 100);
+			} catch (error) {
+				clTooLarge = error?.code === 'FETCH_TOO_LARGE';
+			}
+			assert(clTooLarge === true, 'Content-Length reject without full buffer');
+			globalThis.fetch = prevFetch;
+			delete require.cache[isImagePath];
+			delete require.cache[safeFetchPath];
+
+			const botSrc = fs.readFileSync(path.join(ROOT, 'modules/discord/bot.js'), 'utf8');
+			assert(/assertArtifactReadable\(rplyVal\.fileLink/.test(botSrc), 'fileLink gated');
+			assert(/assertArtifactReadable\(rplyVal\.dmFileLink/.test(botSrc), 'dmFileLink gated');
+
+			console.log('[proof] PASS Phase 3w json/prefetch/fail-closed/stream/HMAC');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3w)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

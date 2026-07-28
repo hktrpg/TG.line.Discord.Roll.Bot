@@ -2,7 +2,7 @@
 
 const crypto = require('node:crypto');
 
-/** Fields that affect authorization / Discord gates / SSRF surface. */
+/** Fields that affect authorization / Discord gates / SSRF / identity display. */
 const SIGNED_CLAIM_KEYS = [
 	'inputStr',
 	'groupid',
@@ -11,6 +11,11 @@ const SIGNED_CLAIM_KEYS = [
 	'botname',
 	'channelid',
 	'channelType',
+	'displayname',
+	'displaynameDiscord',
+	'membercount',
+	'titleName',
+	'tgDisplayname',
 	'avatarUrl',
 	'attachmentsMeta',
 	'replyAttachmentsMeta',

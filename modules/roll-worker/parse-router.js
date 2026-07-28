@@ -126,8 +126,14 @@ async function parseInput(params = {}, options = {}) {
 					botname: params.botname,
 					moduleName: result.moduleName || moduleName,
 				});
-				const local = await runLocalFallback();
-				// Worker may already have LevelUp; local EXPUP often hits speak cooldown.
+				// Worker already ran EXPUP before returning needsLocal — do not award again.
+				const local = await analytics.parseInput({
+					...remoteParams,
+					discordClient: params.discordClient,
+					discordMessage: params.discordMessage,
+					t: params.t,
+					skipExp: true,
+				});
 				const merged = {
 					...local,
 					LevelUp: local.LevelUp || result.LevelUp || '',
@@ -178,11 +184,32 @@ async function parseInput(params = {}, options = {}) {
 }
 
 /**
- * Modules that mutate shared quota/artifacts on Worker must not silent-re-run locally
- * after a remote timeout or transport error (Worker may already have completed).
+ * Modules that mutate shared quota / artifacts / external APIs / DB on Worker
+ * must not silent-re-run locally after a remote timeout or transport error
+ * (Worker may already have completed).
  */
+const FAIL_CLOSED_ON_WORKER_ERROR = new Set([
+	'export',
+	'openai',
+	'token',
+	'z_admin',
+	'z-story-teller',
+	'forward',
+	'z_multi-server',
+]);
+
 function shouldSkipLocalFallbackOnWorkerError(moduleName) {
-	return moduleName === 'export';
+	return FAIL_CLOSED_ON_WORKER_ERROR.has(moduleName);
+}
+
+/**
+ * True when OpenAI Discord context already carries real prefetch content.
+ * Empty arrays are NOT enough — they are truthy in JS and would skip live prefetch.
+ */
+function hasOpenAiDiscordPrefetch(params = {}) {
+	return (Array.isArray(params.attachmentsMeta) && params.attachmentsMeta.length > 0)
+		|| (Array.isArray(params.replyAttachmentsMeta) && params.replyAttachmentsMeta.length > 0)
+		|| (typeof params.replyContent === 'string' && params.replyContent.length > 0);
 }
 
 function invalidateDarkRollingIfNeeded(moduleName, result) {
@@ -218,7 +245,7 @@ async function enrichParamsForRemote(params, moduleName) {
 	}
 
 	if (moduleName === 'openai') {
-		if (params.attachmentsMeta || params.replyAttachmentsMeta || params.replyContent) {
+		if (hasOpenAiDiscordPrefetch(params)) {
 			return params;
 		}
 		try {
@@ -422,6 +449,8 @@ module.exports = {
 	parseInput,
 	shouldSkipLocalFallbackOnWorkerError,
 	shouldSkipLocalFindRollList,
+	hasOpenAiDiscordPrefetch,
+	FAIL_CLOSED_ON_WORKER_ERROR,
 	logParseMode,
 	getSystemBusyText,
 	SYSTEM_BUSY_KEY,

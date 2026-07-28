@@ -3949,9 +3949,17 @@ const sendBufferImage = async (message, rplyVal, userid) => {
 const sendFiles = async (message, rplyVal, userid) => {
 	let text = rplyVal.fileText || '';
 	let files = [];
+	const resolvedPaths = [];
 	for (let index = 0; index < rplyVal.fileLink.length; index++) {
-		files.push(new AttachmentBuilder(rplyVal.fileLink[index]))
+		const resolved = assertArtifactReadable(rplyVal.fileLink[index]);
+		if (!resolved) {
+			console.warn('[Discord] fileLink artifact missing (shared ROLL_ARTIFACT_ROOT / cwd?):', rplyVal.fileLink[index]);
+			continue;
+		}
+		resolvedPaths.push(resolved);
+		files.push(new AttachmentBuilder(resolved));
 	}
+	if (files.length === 0) return;
 	try {
 		await message.channel.send({
 			content: `<@${userid}>\n${text}`, files
@@ -3959,12 +3967,12 @@ const sendFiles = async (message, rplyVal, userid) => {
 	} catch {
 		console.error;
 	}
-	for (let index = 0; index < rplyVal.fileLink.length; index++) {
+	for (const resolved of resolvedPaths) {
 		try {
-			fs.unlinkSync(rplyVal.fileLink[index]);
+			fs.unlinkSync(resolved);
 		}
 		catch (error) {
-			console.error('[Discord Bot] Error in file handling:', (error?.name, error?.message), rplyVal.fileLink[index]);
+			console.error('[Discord Bot] Error in file handling:', (error?.name, error?.message), resolved);
 		}
 
 	}
@@ -3975,9 +3983,17 @@ const sendFiles = async (message, rplyVal, userid) => {
 const sendDmFiles = async (message, rplyVal) => {
 	try {
 		const files = [];
+		const resolvedPaths = [];
 		for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
-			files.push(new AttachmentBuilder(rplyVal.dmFileLink[i]));
+			const resolved = assertArtifactReadable(rplyVal.dmFileLink[i]);
+			if (!resolved) {
+				console.warn('[Discord] dmFileLink artifact missing (shared ROLL_ARTIFACT_ROOT / cwd?):', rplyVal.dmFileLink[i]);
+				continue;
+			}
+			resolvedPaths.push(resolved);
+			files.push(new AttachmentBuilder(resolved));
 		}
+		if (files.length === 0) return;
 
 		// Prefer direct message to author/user
 		if (message.author && typeof message.author.send === 'function') {
@@ -3987,8 +4003,8 @@ const sendDmFiles = async (message, rplyVal) => {
 		}
 
 		// Cleanup local files
-		for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
-			try { fs.unlinkSync(rplyVal.dmFileLink[i]); } catch { }
+		for (const resolved of resolvedPaths) {
+			try { fs.unlinkSync(resolved); } catch { }
 		}
 	} catch (error) {
 		console.error('sendDmFiles error:', error?.message);

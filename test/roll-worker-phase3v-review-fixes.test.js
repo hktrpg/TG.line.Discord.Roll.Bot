@@ -6,7 +6,7 @@
  */
 
 describe('Phase 3v export workerError must not re-run locally', () => {
-	it('shouldSkipLocalFallbackOnWorkerError only for export', async () => {
+	it('shouldSkipLocalFallbackOnWorkerError for mutating modules', async () => {
 		await jest.isolateModulesAsync(async () => {
 			jest.doMock('../modules/analytics', () => ({
 				parseInput: jest.fn(),
@@ -21,8 +21,8 @@ describe('Phase 3v export workerError must not re-run locally', () => {
 				shouldSkipLocalFallbackOnWorkerError,
 			} = require('../modules/roll-worker/parse-router');
 			expect(shouldSkipLocalFallbackOnWorkerError('export')).toBe(true);
+			expect(shouldSkipLocalFallbackOnWorkerError('openai')).toBe(true);
 			expect(shouldSkipLocalFallbackOnWorkerError('0-advroll')).toBe(false);
-			expect(shouldSkipLocalFallbackOnWorkerError('openai')).toBe(false);
 			expect(shouldSkipLocalFallbackOnWorkerError(null)).toBe(false);
 		});
 	});

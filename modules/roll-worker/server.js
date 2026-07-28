@@ -9,14 +9,23 @@ const {
 	stripGatewayAuth,
 } = require('./request-auth');
 
+/** Default large enough for Discord exportHistoryMeta (channel history in JSON). */
+const DEFAULT_JSON_BODY_LIMIT = '32mb';
+
 function isLoopbackHost(host) {
 	const h = String(host || '').toLowerCase();
 	return h === '127.0.0.1' || h === '::1' || h === 'localhost';
 }
 
+function getJsonBodyLimit() {
+	const fromEnv = (process.env.ROLL_WORKER_JSON_LIMIT || '').trim();
+	return fromEnv || DEFAULT_JSON_BODY_LIMIT;
+}
+
 function createRollWorkerApp(options = {}) {
 	const app = express();
-	app.use(express.json({ limit: '2mb' }));
+	const jsonLimit = options.jsonLimit || getJsonBodyLimit();
+	app.use(express.json({ limit: jsonLimit }));
 
 	const expectedToken = (process.env.ROLL_WORKER_TOKEN || '').trim();
 	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true'
@@ -172,28 +181,31 @@ function startRollWorkerServer() {
 		// eslint-disable-next-line n/no-process-exit
 		process.exit(1);
 	}
-	if (!token && allowNoToken) {
-		console.warn(
-			'[RollWorker] WARNING: ROLL_WORKER_ALLOW_NO_TOKEN=true — /v1/* accepts unauthenticated requests'
-			+ (isLoopbackHost(host) ? ' on this bind host' : '')
-			+ '. Never use in production.'
-		);
-	}
-	if (!token && !allowNoToken && !isLoopbackHost(host)) {
+	// ALLOW_NO_TOKEN is for local tests only — never bind it on a public interface.
+	if (!token && allowNoToken && !isLoopbackHost(host)) {
 		console.error('[RollWorker] Refusing to bind non-loopback without ROLL_WORKER_TOKEN');
 		// eslint-disable-next-line n/no-process-exit
 		process.exit(1);
+	}
+	if (!token && allowNoToken) {
+		console.warn(
+			'[RollWorker] WARNING: ROLL_WORKER_ALLOW_NO_TOKEN=true — /v1/* accepts unauthenticated requests'
+			+ ' on loopback. Never use in production.'
+		);
 	}
 
 	const app = createRollWorkerApp({ host });
 	const server = app.listen(port, host, () => {
 		console.log(`[RollWorker] Listening on http://${host}:${port}`
-			+ (token ? ' (auth + gateway signature required)' : ' (auth off)'));
+			+ (token ? ' (auth + gateway signature required)' : ' (auth off)')
+			+ ` | jsonLimit=${getJsonBodyLimit()}`);
 	});
 	return { app, server };
 }
 
 module.exports = {
+	DEFAULT_JSON_BODY_LIMIT,
+	getJsonBodyLimit,
 	createRollWorkerApp,
 	startRollWorkerServer,
 	isLoopbackHost,

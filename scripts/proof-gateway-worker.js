@@ -798,7 +798,49 @@ async function main() {
 			console.log('[proof] PASS Telegram dead-worker local fallback (Phase 3q)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3q)');
+		// 32) Phase 3r: export gate + chatroom member fetch contract
+		{
+			const { canPrefetchExportHistory, prefetchChatroomChannel } = require('../modules/roll-worker/discord-prefetch');
+			const deniedRole = await canPrefetchExportHistory({ userid: 'u', groupid: 'g', userrole: 1 });
+			assert(deniedRole.allow === false && deniedRole.reason === 'userrole', 'export gate userrole', deniedRole);
+
+			let channelFetchCalled = false;
+			const invoking = { id: 'u-proof-3r' };
+			const { PermissionsBitField } = require('discord.js');
+			const fakeClient = {
+				channels: {
+					fetch: async () => ({
+						guildId: 'g-proof',
+						name: 'ch',
+						guild: {
+							name: 'G',
+							members: {
+								fetch: async (id) => {
+									assert(String(id) === 'u-proof-3r', 'fetch invoking userid', id);
+									return invoking;
+								},
+							},
+						},
+						fetch: async () => {
+							channelFetchCalled = true;
+							throw new Error('must not use channel.fetch(userid)');
+						},
+						permissionsFor: (member) => ({
+							has: (flag) => member === invoking && flag === PermissionsBitField.Flags.ManageChannels,
+						}),
+					}),
+				},
+			};
+			const meta = await prefetchChatroomChannel(fakeClient, {
+				channelId: 'c-proof',
+				userid: 'u-proof-3r',
+			});
+			assert(channelFetchCalled === false, 'no channel.fetch(userid)', { channelFetchCalled });
+			assert(meta?.allowed === true, 'chatroom allowed for invoker', meta);
+			console.log('[proof] PASS export gate + chatroom members.fetch (Phase 3r)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3r)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

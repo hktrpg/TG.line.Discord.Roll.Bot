@@ -83,9 +83,8 @@ const rollDiceCommand = async function ({
                     channelName = chatroomChannelMeta.channelName;
                 } else {
                     const channel = await discordClient.channels.fetch(targetChannelId)
-                    const member = await channel.fetch(userid)
-                    const v = member.members.find(Boolean)
-                    const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
+                    const member = await channel.guild.members.fetch(userid)
+                    const role = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
                     if (!role) return;
                     guildId = channel.guildId;
                     guildName = channel.guild.name;
@@ -144,14 +143,8 @@ const rollDiceCommand = async function ({
                     channelName = chatroomChannelMeta.channelName;
                 } else {
                     const channel = await discordClient.channels.fetch(targetChannelId)
-                    const member = await channel.fetch(userid)
-                    let v;
-                    try {
-                        v = (member.members && member.members.find(Boolean))
-                    } catch {
-                        v = member;
-                    }
-                    const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
+                    const member = await channel.guild.members.fetch(userid)
+                    const role = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
                     if (!role) return;
                     guildId = channel.guildId;
                     guildName = channel.guild.name;
@@ -204,9 +197,8 @@ const rollDiceCommand = async function ({
                     }
                 } else {
                     const channel = await discordClient.channels.fetch(mainMsg[2])
-                    const member = await channel.fetch(userid)
-                    const v = member.members.find(Boolean)
-                    const role = channel.permissionsFor(v).has(PermissionsBitField.Flags.ManageChannels)
+                    const member = await channel.guild.members.fetch(userid)
+                    const role = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
                     if (!role) return;
                 }
                 await schema.multiServer.findOneAndDelete({ channelid: mainMsg[2] }).catch(error => {

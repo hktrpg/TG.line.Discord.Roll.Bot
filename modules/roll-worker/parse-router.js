@@ -299,14 +299,24 @@ async function enrichParamsForRemote(params, moduleName) {
 		const sub = String(parts[1] || '').toLowerCase();
 		if ((sub === 'html' || sub === 'txt') && params.discordClient && params.channelid) {
 			try {
-				const { prefetchExportHistory, resolveExportDemoMode } = require('./discord-prefetch');
+				const {
+					prefetchExportHistory,
+					canPrefetchExportHistory,
+				} = require('./discord-prefetch');
+				const gate = await canPrefetchExportHistory({
+					userid: params.userid,
+					groupid: params.groupid,
+					userrole: params.userrole,
+				});
+				if (!gate.allow) {
+					return params;
+				}
 				const limitMatch = String(params.inputStr || '').match(/--limit\s+(\d+)/);
 				const messageLimit = limitMatch ? Number.parseInt(limitMatch[1], 10) : null;
-				const demoMode = await resolveExportDemoMode(params.userid);
 				const prefetched = await prefetchExportHistory(params.discordClient, params.discordMessage, {
 					channelid: params.channelid,
 					messageLimit,
-					demoMode,
+					demoMode: Boolean(gate.demoMode),
 				});
 				if (prefetched) {
 					return { ...params, ...prefetched };

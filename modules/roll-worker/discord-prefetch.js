@@ -195,6 +195,7 @@ async function prefetchForwardSource(discordMessage, discordClient, {
 
 /**
  * Chatroom (.chatroom create|join|exit): verify ManageChannels + collect channel meta.
+ * Uses guild.members.fetch(userid) — GuildChannel.fetch does not accept a user id.
  * @returns {Promise<{ allowed: boolean, channelId, guildId, guildName, channelName }|null>}
  */
 async function prefetchChatroomChannel(discordClient, { channelId, userid } = {}) {
@@ -205,13 +206,16 @@ async function prefetchChatroomChannel(discordClient, { channelId, userid } = {}
 		if (!channel) {
 			return { allowed: false, channelId, guildId: '', guildName: '', channelName: '' };
 		}
-		const memberBag = await channel.fetch(userid);
-		let member;
-		try {
-			member = (memberBag.members && memberBag.members.find(Boolean)) || memberBag;
-		} catch {
-			member = memberBag;
+		if (!channel.guild?.members?.fetch) {
+			return {
+				allowed: false,
+				channelId: String(channelId),
+				guildId: String(channel.guildId || ''),
+				guildName: channel.guild?.name || '',
+				channelName: channel.name || '',
+			};
 		}
+		const member = await channel.guild.members.fetch(userid);
 		const allowed = Boolean(
 			channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
 		);
@@ -235,27 +239,65 @@ async function prefetchChatroomChannel(discordClient, { channelId, userid } = {}
  * @returns {Promise<boolean>}
  */
 async function resolveExportDemoMode(userid) {
-	if (!userid || !process.env.mongoURL) return false;
+	const gate = await canPrefetchExportHistory({ userid });
+	return Boolean(gate.demoMode);
+}
+
+/**
+ * Gate export history prefetch: skip Discord history pull when the request would
+ * only hit GP cooldown or fail userrole (export.js returns early without reading).
+ * @returns {Promise<{ allow: boolean, demoMode: boolean, reason?: string }>}
+ */
+async function canPrefetchExportHistory({ userid, groupid, userrole } = {}) {
+	if (userrole != null && Number(userrole) < 2) {
+		return { allow: false, demoMode: false, reason: 'userrole' };
+	}
+	if (!userid || !process.env.mongoURL) {
+		return { allow: true, demoMode: false };
+	}
 	try {
 		const VIP = require('../patreon/veryImportantPerson');
 		const schema = require('../db/schema.js');
+		const oneMinuts = (process.env.DEBUG) ? 1 : 60_000;
 		const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60_000;
 		const FUNCTION_LIMIT = (process.env.DEBUG)
 			? [99, 99, 99, 99, 99, 99, 99, 99]
 			: [1, 20, 40, 40, 40, 99, 99, 99];
-		const lv = await VIP.viplevelCheckUser(userid);
-		const limit = FUNCTION_LIMIT[lv] ?? 1;
 		const theTime = Date.now();
-		const checkUser = await schema.exportUser.findOne({ userID: userid });
-		if (!checkUser?.lastActiveAt) return false;
-		const userRemainingTime = theTime - new Date(checkUser.lastActiveAt).getTime() - sevenDay;
-		if (userRemainingTime < 0 && checkUser.times >= limit) {
-			return true;
+		let lv = await VIP.viplevelCheckUser(userid);
+		if (groupid) {
+			try {
+				const gpLv = await VIP.viplevelCheckGroup(groupid);
+				lv = Math.max(gpLv, lv);
+			} catch {
+				// keep user lv
+			}
 		}
+		const limit = FUNCTION_LIMIT[lv] ?? 1;
+		const gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
+		const checkUser = await schema.exportUser.findOne({ userID: userid });
+		let demoMode = false;
+		if (checkUser?.lastActiveAt) {
+			const userRemainingTime = theTime - new Date(checkUser.lastActiveAt).getTime() - sevenDay;
+			if (userRemainingTime < 0 && checkUser.times >= limit) {
+				demoMode = true;
+			}
+		}
+		if (!groupid) {
+			return { allow: true, demoMode };
+		}
+		const checkGP = await schema.exportGp.findOne({ groupID: groupid });
+		const gpRemainingTime = (checkGP?.lastActiveAt)
+			? theTime - new Date(checkGP.lastActiveAt).getTime() - gpLimitTime
+			: 1;
+		if (gpRemainingTime < 0) {
+			return { allow: false, demoMode: false, reason: 'gp_cooldown' };
+		}
+		return { allow: true, demoMode };
 	} catch (error) {
-		console.warn('[Prefetch] resolveExportDemoMode failed:', error?.message || error);
+		console.warn('[Prefetch] canPrefetchExportHistory failed:', error?.message || error);
+		return { allow: true, demoMode: false };
 	}
-	return false;
 }
 
 /**
@@ -536,6 +578,7 @@ module.exports = {
 	prefetchChatroomChannel,
 	prefetchExportHistory,
 	resolveExportDemoMode,
+	canPrefetchExportHistory,
 	replaceExportMentions,
 	serializeExportMessage,
 	prefetchStoryGroupNames,

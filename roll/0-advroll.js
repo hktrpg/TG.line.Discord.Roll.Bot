@@ -23,9 +23,8 @@ const prefixs = function () {
 		second: null
 	},
 	{
-		// second (reroll threshold) optional — default to die faces (e.g. 1u10 → 1u10 10)
 		first: /^(\d+)(u)(\d+)$/i,
-		second: null
+		second: /\d+/
 	},
 	{
 		first: regexxBy,
@@ -99,20 +98,11 @@ const rollDiceCommand = async function ({
 				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname, translate);
 			return rply;
 		}
-		case regexxUy.test(mainMsg[0]): {
+		case regexxUy.test(mainMsg[0]) && mainMsg[1] !== undefined && mainMsg[1] !== '' && Number(mainMsg[1]) <= 10_000: {
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
-			if (!(matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10_000)) {
-				return rply;
+			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10_000) {
+				rply.text = xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3], translate);
 			}
-			// Reroll threshold: optional 2nd arg; default = die faces (1u10 → reroll on 10)
-			const hasRerollArg = mainMsg[1] !== undefined && mainMsg[1] !== '' && !Number.isNaN(Number(mainMsg[1]));
-			if (hasRerollArg && Number(mainMsg[1]) > 10_000) {
-				return rply;
-			}
-			const rerollAt = hasRerollArg ? mainMsg[1] : matchxuy[3];
-			const successAt = hasRerollArg ? mainMsg[2] : undefined;
-			const note = hasRerollArg ? mainMsg[3] : mainMsg[2];
-			rply.text = xUy(matchxuy, rerollAt, successAt, note, translate);
 			return rply;
 		}
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100_000 && mainMsg[2] <= 100_000:

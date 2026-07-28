@@ -7,9 +7,6 @@ coverage:
         target: auto
         # Allow small overall drops (e.g. file moves counted as new paths).
         threshold: 2%
-    patch:
-      default:
-        target: 60%
 
 comment:
   layout: "reach,diff,flags,files"

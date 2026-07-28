@@ -110,6 +110,25 @@ test('Test rollDiceCommand with 5B10', async () => {
     expect(result.text).toMatch(/→\s*\d+(,\s*\d+){4}/);
 });
 
+// Regression: mathjs.evaluate must receive a string when counting B-dice successes
+// (empty temptriggermsg previously became 0 via || 0, passing a number to evaluate)
+test.each([
+    ['1b10>5', ['1b10>5']],
+    ['10b10>9', ['10b10>9']],
+    ['2b10 6', ['2b10', '6']],
+    ['5B10 5', ['5B10', '5']],
+    ['5b10+2>5', ['5b10+2>5']],
+])('Test B-dice success count does not throw: %s', async (inputStr, mainMsg) => {
+    const result = await advroll.rollDiceCommand({
+        inputStr,
+        mainMsg,
+        botname: 'Discord'
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBeTruthy();
+    expect(result.text).toMatch(/成功數\d+/);
+});
+
 test('Test rollDiceCommand with 5U10', async () => {
     const result = await advroll.rollDiceCommand({
         inputStr: '5U10 8',

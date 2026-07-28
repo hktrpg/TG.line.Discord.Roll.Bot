@@ -5,6 +5,7 @@
       "no_response": "指令没有得到回应，请检查内容",
       "no_response_prefix": "{{prefix}}指令没有得到回应，请检查内容",
       "command_error": "处理命令时发生错误，请稍后再试。",
+      "system_busy": "系统忙碌中，请稍后再试。",
       "partial_translation_banner": "ℹ️ 部分指令仍为繁体中文，翻译持续更新中。"
     },
     "zh_only_notice": "（繁中）",

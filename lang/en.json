@@ -5,6 +5,7 @@
       "no_response": "No response from command. Please check your input.",
       "no_response_prefix": "{{prefix}}No response from command. Please check your input.",
       "command_error": "An error occurred while processing the command. Please try again later.",
+      "system_busy": "The system is busy. Please try again later.",
       "partial_translation_banner": "ℹ️ Some commands are still in Traditional Chinese; translation is in progress."
     },
     "zh_only_notice": "(Traditional Chinese)",

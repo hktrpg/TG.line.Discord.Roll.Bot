@@ -1,12 +1,22 @@
 "use strict";
 
 const analytics = require('../analytics');
+const i18n = require('../i18n/i18n.js');
 const client = require('./client');
 const { isRemoteAllowed } = require('./route-table');
 
-const BACKEND_UPDATING_TEXT = '後端更新中，請稍後再試。';
+const SYSTEM_BUSY_KEY = 'common.errors.system_busy';
 
+const FALLBACK_LOG_INTERVAL_MS = 60_000;
 let loggedModeOnce = false;
+let lastFallbackLogAt = 0;
+let fallbackSinceLastLog = 0;
+
+async function getSystemBusyText(locale) {
+	await i18n.init();
+	const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+	return t(SYSTEM_BUSY_KEY);
+}
 
 /**
  * Log parse backend mode once per process (gateway or diagnostics).
@@ -34,6 +44,28 @@ function logParseMode(logger = console) {
 	}
 
 	info('[ParseMode] ROLE=gateway | mode=local-analytics | ROLL_WORKER_URL unset (in-process roll/*)');
+}
+
+/**
+ * Ops-only: rate-limited warning when Discord falls back to in-process analytics.
+ * Never append this to user-facing replies.
+ */
+function logLocalFallback(reason, meta = {}) {
+	fallbackSinceLastLog += 1;
+	const now = Date.now();
+	if (now - lastFallbackLogAt < FALLBACK_LOG_INTERVAL_MS && lastFallbackLogAt !== 0) {
+		return;
+	}
+	const suppressed = fallbackSinceLastLog;
+	lastFallbackLogAt = now;
+	fallbackSinceLastLog = 0;
+	console.warn(
+		`[ParseRouter] OPS fallback→local | reason=${reason}`
+		+ ` | botname=${meta.botname || ''}`
+		+ ` | module=${meta.moduleName || ''}`
+		+ ` | countSinceLastLog=${suppressed}`
+		+ (meta.error ? ` | error=${meta.error}` : '')
+	);
 }
 
 /**
@@ -66,21 +98,30 @@ async function parseInput(params = {}, options = {}) {
 		const result = await client.parse(params);
 		if (result?.needsLocal) {
 			if (allowLocalFallback) {
+				logLocalFallback('needsLocal', {
+					botname: params.botname,
+					moduleName: result.moduleName || moduleName,
+				});
 				return analytics.parseInput(params);
 			}
 			return {
-				text: BACKEND_UPDATING_TEXT,
+				text: await getSystemBusyText(params.locale),
 				type: 'text',
 			};
 		}
 		return result;
 	} catch (error) {
-		console.error('[ParseRouter] Roll worker failed:', error?.message || error);
 		if (allowLocalFallback) {
+			logLocalFallback('workerError', {
+				botname: params.botname,
+				moduleName,
+				error: error?.message || String(error),
+			});
 			return analytics.parseInput(params);
 		}
+		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);
 		return {
-			text: BACKEND_UPDATING_TEXT,
+			text: await getSystemBusyText(params.locale),
 			type: 'text',
 		};
 	}
@@ -100,5 +141,6 @@ module.exports = {
 	parseInput,
 	shouldSkipLocalFindRollList,
 	logParseMode,
-	BACKEND_UPDATING_TEXT,
+	getSystemBusyText,
+	SYSTEM_BUSY_KEY,
 };

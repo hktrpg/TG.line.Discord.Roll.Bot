@@ -146,6 +146,19 @@ async function parseInput(params = {}, options = {}) {
 		invalidateDarkRollingIfNeeded(moduleName, result);
 		return keepProof ? result : stripWorkerProof(result);
 	} catch (error) {
+		// Export writes quota + artifacts on the Worker. Re-running locally after
+		// timeout/error can double-charge and duplicate files — fail closed.
+		if (shouldSkipLocalFallbackOnWorkerError(moduleName)) {
+			logLocalFallback('workerErrorNoFallback', {
+				botname: params.botname,
+				moduleName,
+				error: error?.message || String(error),
+			});
+			return {
+				text: await getSystemBusyText(params.locale),
+				type: 'text',
+			};
+		}
 		if (allowLocalFallback) {
 			logLocalFallback('workerError', {
 				botname: params.botname,
@@ -162,6 +175,14 @@ async function parseInput(params = {}, options = {}) {
 			type: 'text',
 		};
 	}
+}
+
+/**
+ * Modules that mutate shared quota/artifacts on Worker must not silent-re-run locally
+ * after a remote timeout or transport error (Worker may already have completed).
+ */
+function shouldSkipLocalFallbackOnWorkerError(moduleName) {
+	return moduleName === 'export';
 }
 
 function invalidateDarkRollingIfNeeded(moduleName, result) {
@@ -399,6 +420,7 @@ function shouldSkipLocalFindRollList() {
 
 module.exports = {
 	parseInput,
+	shouldSkipLocalFallbackOnWorkerError,
 	shouldSkipLocalFindRollList,
 	logParseMode,
 	getSystemBusyText,

@@ -2453,6 +2453,17 @@ records.on("new_message", async (message) => {
         if (mainMsg && mainMsg[0])
             trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+        // Same findRollList gate as Line/TG/WA/Plurk: chatter must not hit Worker / parse EXP.
+        // Pass a fresh match so findRollList mutation cannot alter mainMsg used below.
+        if (!parseRouter.shouldSkipLocalFindRollList('WWW')) {
+            const target = await exports.analytics.findRollList(
+                message.msg ? message.msg.match(MESSAGE_SPLITOR) : null
+            );
+            if (!target) {
+                return;
+            }
+        }
+
         const locale = i18n.normalizeLocale(message.locale || i18n.DEFAULT_LOCALE);
         const t = i18n.createTranslator(locale);
 

@@ -78,18 +78,55 @@ const fs = require('fs').promises;
 const fs2 = require('fs');
 const { encode } = require('gpt-tokenizer');
 
-async function fetchDiscordAttachment(url) {
-	const { assertSafeDiscordFetchUrl } = require('../modules/roll-worker/safe-fetch');
-	const gate = await assertSafeDiscordFetchUrl(url);
-	if (!gate.ok) {
-		throw new Error(`Unsafe attachment URL: ${gate.error}`);
-	}
-	return fetch(url);
+/** Hard cap aligned with FILE_PROCESSING_LIMITS.MAX_FILE_SIZE.PDF (50MB). */
+const OPENAI_ATTACHMENT_MAX_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Discord CDN fetch with SSRF allowlist + hard byte cap (no unbounded buffering).
+ * Returns a Response-like shim so existing .text()/.buffer()/body.getReader() call sites work.
+ */
+async function fetchDiscordAttachment(url, { maxBytes = OPENAI_ATTACHMENT_MAX_BYTES } = {}) {
+	const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
+	const downloaded = await safeFetchBuffer(url, { maxBytes });
+	const buffer = downloaded.buffer;
+	return {
+		ok: true,
+		status: 200,
+		statusText: 'OK',
+		headers: {
+			get(name) {
+				return String(name).toLowerCase() === 'content-type'
+					? (downloaded.contentType || null)
+					: null;
+			},
+		},
+		async buffer() {
+			return buffer;
+		},
+		async text() {
+			return buffer.toString('utf8');
+		},
+		async arrayBuffer() {
+			return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+		},
+		body: {
+			getReader() {
+				let done = false;
+				return {
+					async read() {
+						if (done) {
+							return { done: true, value: undefined };
+						}
+						done = true;
+						return { done: false, value: new Uint8Array(buffer) };
+					},
+				};
+			},
+		},
+	};
 }
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
-// eslint-disable-next-line n/no-extraneous-require
-const fetch = require('node-fetch');
 const { SlashCommandBuilder } = require('discord.js');
 // File processing libraries
 let pdfParse = null;
@@ -3171,7 +3208,9 @@ module.exports = {
     gameType,
     gameName,
     discordCommand,
-    webCommand
+    webCommand,
+    fetchDiscordAttachment,
+    OPENAI_ATTACHMENT_MAX_BYTES,
 };
 
 /**

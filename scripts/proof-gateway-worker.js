@@ -3,7 +3,7 @@
 /**
  * Spawn real `roll-worker.js` child + act as Gateway (parseRouter / client).
  * Exit 0 only if Worker parseCount increases and `_rollWorker` is true.
- * Proves Phase 3: Discord dice + `.token help` remote; `.token` make needsLocal.
+ * Proves Phase 3 → 3v: Discord remote paths, auth, export no dual-run, WWW gate, OpenAI caps.
  */
 const { spawn } = require('node:child_process');
 const path = require('node:path');
@@ -1002,7 +1002,115 @@ async function main() {
 			console.log('[proof] PASS Phase 3u review fixes (gate/HMAC/SSRF/export/forward)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3u)');
+		// 36) Phase 3v: export no dual-run + WWW gate + OpenAI byte cap
+		{
+			pinGatewayWorkerUrl();
+			const parseRouter = require('../modules/roll-worker/parse-router');
+			assert(
+				parseRouter.shouldSkipLocalFallbackOnWorkerError('export') === true,
+				'export skips local fallback on workerError'
+			);
+			assert(
+				parseRouter.shouldSkipLocalFallbackOnWorkerError('0-advroll') === false,
+				'dice still allows local fallback'
+			);
+
+			// Dead worker + export module → system_busy and ZERO local analytics calls.
+			// Force findRollModuleName: parent proof process may lack mongoURL so export
+			// module is not registered, but the dual-run guard keys off moduleName.
+			const prevUrl = process.env.ROLL_WORKER_URL;
+			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:1';
+			const clientPath = require.resolve('../modules/roll-worker/client');
+			const routerPath = require.resolve('../modules/roll-worker/parse-router');
+			const analyticsPath = require.resolve('../modules/analytics');
+			delete require.cache[clientPath];
+			delete require.cache[routerPath];
+			const analytics = require('../modules/analytics');
+			const prevFind = analytics.findRollModuleName;
+			const prevParse = analytics.parseInput;
+			let localParseCalls = 0;
+			analytics.findRollModuleName = () => 'export';
+			analytics.parseInput = async (...args) => {
+				localParseCalls += 1;
+				return prevParse.apply(analytics, args);
+			};
+			const parseRouterDead = require('../modules/roll-worker/parse-router');
+			const exportResult = await parseRouterDead.parseInput({
+				inputStr: '.discord html',
+				botname: 'Discord',
+				locale: 'zh-tw',
+				userid: 'u-proof-3v-export',
+				groupid: 'g-proof-3v-export',
+				channelid: 'c-proof-3v-export',
+				userrole: 3,
+				exportHistoryMeta: {
+					sum_messages: [{ contact: 'proof', timestamp: Date.now(), content: 'x' }],
+					totalSize: 1,
+				},
+			}, { keepProof: true });
+			analytics.findRollModuleName = prevFind;
+			analytics.parseInput = prevParse;
+			assert(
+				localParseCalls === 0,
+				'export dead-worker must not call local analytics (no dual-run)',
+				{ localParseCalls, exportResult }
+			);
+			assert(
+				/忙碌|busy|system_busy|SYSTEM_BUSY/i.test(String(exportResult.text || '')),
+				'export dead-worker returns busy (no silent re-export)',
+				exportResult
+			);
+			process.env.ROLL_WORKER_URL = prevUrl;
+			delete require.cache[clientPath];
+			delete require.cache[routerPath];
+			delete require.cache[analyticsPath];
+			pinGatewayWorkerUrl();
+			require('../modules/roll-worker/client');
+
+			assert(parseRouter.shouldSkipLocalFindRollList('WWW') === false, 'WWW never skips findRollList');
+			const wwwSrc = fs.readFileSync(path.join(ROOT, 'modules/core-www.js'), 'utf8');
+			assert(/shouldSkipLocalFindRollList\('WWW'\)/.test(wwwSrc), 'WWW chat gates findRollList');
+			const handlerIdx = wwwSrc.indexOf('records.on("new_message"');
+			const gateIdx = wwwSrc.indexOf("shouldSkipLocalFindRollList('WWW')", handlerIdx);
+			const parseIdx = wwwSrc.indexOf('parseRouter.parseInput', gateIdx);
+			assert(gateIdx > handlerIdx && parseIdx > gateIdx, 'WWW gate before parseRouter');
+
+			const openaiSrc = fs.readFileSync(path.join(ROOT, 'roll/openai.js'), 'utf8');
+			assert(/OPENAI_ATTACHMENT_MAX_BYTES\s*=\s*50\s*\*\s*1024\s*\*\s*1024/.test(openaiSrc), '50MB cap');
+			assert(/safeFetchBuffer\(url,\s*\{\s*maxBytes/.test(openaiSrc), 'openai uses safeFetchBuffer');
+
+			const prevFetch = globalThis.fetch;
+			globalThis.fetch = async () => ({
+				ok: true,
+				headers: { get: () => 'application/octet-stream' },
+				arrayBuffer: async () => Buffer.alloc(64, 1),
+			});
+			const isImagePath = require.resolve('../utils/is-image-url');
+			const safeFetchPath = require.resolve('../modules/roll-worker/safe-fetch');
+			delete require.cache[isImagePath];
+			delete require.cache[safeFetchPath];
+			require.cache[isImagePath] = {
+				id: isImagePath,
+				filename: isImagePath,
+				loaded: true,
+				exports: { isSafeImageTarget: async () => true },
+			};
+			const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
+			let tooLarge = false;
+			try {
+				await safeFetchBuffer('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 32 });
+			} catch (error) {
+				tooLarge = error?.code === 'FETCH_TOO_LARGE';
+			}
+			assert(tooLarge === true, 'safeFetchBuffer enforces maxBytes');
+			globalThis.fetch = prevFetch;
+			delete require.cache[isImagePath];
+			delete require.cache[safeFetchPath];
+
+			console.log('[proof] PASS Phase 3v export/WWW/openai caps');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3v)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

@@ -17,6 +17,7 @@ const checkMongodb = require('../db/watchdog.js');
 
 exports.analytics = require('../analytics');
 const parseRouter = require('../roll-worker/parse-router');
+const { assertArtifactReadable } = require('../roll-worker/artifacts');
 parseRouter.logParseMode(console);
 const i18n = require('../i18n/i18n.js');
 const debugMode = !!process.env.DEBUG;
@@ -3669,6 +3670,9 @@ async function handlingResponMessage(message, answer = '') {
 				console.error('[Discord] clusterIpc send failed:', error?.message || error);
 			}
 		}
+		if (rplyVal.gatewayAction?.type === 'fixshard') {
+			applyFixShardGatewayAction(rplyVal, message);
+		}
 		if (Array.isArray(rplyVal.adminDmChunks) && rplyVal.adminDmChunks.length > 0 && userid) {
 			try {
 				const adminUser = await client.users.fetch(userid);
@@ -3761,11 +3765,14 @@ async function handlingResponMessage(message, answer = '') {
 			const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
 			const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
 			const exportContent = t('discord.export.channel_log', { channelName });
-			if (message.author && typeof message.author.send === 'function') {
+			const exportTxtPath = assertArtifactReadable(`export/${rplyVal.discordExport}.txt`);
+			if (!exportTxtPath) {
+				console.warn('[Discord] export txt artifact missing:', rplyVal.discordExport);
+			} else if (message.author && typeof message.author.send === 'function') {
 				message.author.send({
 					content: exportContent,
 					files: [
-						new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
+						new AttachmentBuilder(exportTxtPath)
 					]
 				}).catch(error => console.error('Failed to send DM with exported file:', error));
 			} else if (message.user && message.isInteraction) {
@@ -3778,7 +3785,7 @@ async function handlingResponMessage(message, answer = '') {
 					await message.user.send({
 						content: exportContent,
 						files: [
-							new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
+							new AttachmentBuilder(exportTxtPath)
 						]
 					});
 
@@ -3802,15 +3809,20 @@ async function handlingResponMessage(message, answer = '') {
 				channelName,
 				password: rplyVal.discordExportHtml[1]
 			});
+			const exportHtmlPath = assertArtifactReadable(`export/${rplyVal.discordExportHtml[0]}.html`);
 			if (message.author && typeof message.author.send === 'function') {
 				if (!link || !mongo) {
-					message.author.send(
-						{
-							content: passwordContent,
-							files: [
-								"./export/" + rplyVal.discordExportHtml[0] + '.html'
-							]
-						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
+					if (!exportHtmlPath) {
+						console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
+					} else {
+						message.author.send(
+							{
+								content: passwordContent,
+								files: [
+									exportHtmlPath
+								]
+							}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
+					}
 
 				} else {
 					message.author.send(t('discord.export.channel_log_password_link', {
@@ -3827,12 +3839,16 @@ async function handlingResponMessage(message, answer = '') {
 					}
 
 					if (!link || !mongo) {
-						await message.user.send({
-							content: passwordContent,
-							files: [
-								"./export/" + rplyVal.discordExportHtml[0] + '.html'
-							]
-						});
+						if (!exportHtmlPath) {
+							console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
+						} else {
+							await message.user.send({
+								content: passwordContent,
+								files: [
+									exportHtmlPath
+								]
+							});
+						}
 					} else {
 						await message.user.send(t('discord.export.channel_log_password_link', {
 							channelName,
@@ -3875,14 +3891,60 @@ async function handlingResponMessage(message, answer = '') {
 		Input: ${inputStr}`);
 	}
 }
+/**
+ * Apply deferred .root fixshard start/stop once on Gateway (Worker must not mutate Discord shard state).
+ */
+function applyFixShardGatewayAction(rplyVal, message) {
+	const action = String(rplyVal.gatewayAction?.action || '').toLowerCase();
+	const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+	try {
+		if (action === 'start') {
+			if (typeof globalThis.startShardFix !== 'function') {
+				rplyVal.text = t('admin.fixshard_operation_failed', { message: 'startShardFix unavailable' });
+				return;
+			}
+			const result = globalThis.startShardFix();
+			rplyVal.text = result.inProgress
+				? t('admin.fixshard_start_success', {
+					count: result.unresponsiveShards.length,
+					shards: result.unresponsiveShards.join(', '),
+				})
+				: result.message;
+			return;
+		}
+		if (action === 'stop') {
+			if (typeof globalThis.stopShardFix !== 'function') {
+				rplyVal.text = t('admin.fixshard_operation_failed', { message: 'stopShardFix unavailable' });
+				return;
+			}
+			const result = globalThis.stopShardFix();
+			rplyVal.text = result.message;
+		}
+	} catch (error) {
+		console.error('[Discord] fixshard gatewayAction failed:', error?.message || error);
+		rplyVal.text = t('admin.fixshard_operation_failed', { message: error.message });
+	} finally {
+		delete rplyVal.gatewayAction;
+	}
+}
+
 const sendBufferImage = async (message, rplyVal, userid) => {
+	const resolved = assertArtifactReadable(rplyVal.sendImage);
+	if (!resolved) {
+		console.warn('[Discord] sendImage artifact missing (shared ROLL_ARTIFACT_ROOT / cwd?):', rplyVal.sendImage);
+		return;
+	}
 	const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
 	await message.channel.send({
 		content: `<@${userid}>\n${t('token.success')}`, files: [
-			new AttachmentBuilder(rplyVal.sendImage)
+			new AttachmentBuilder(resolved)
 		]
 	});
-	fs.unlinkSync(rplyVal.sendImage);
+	try {
+		fs.unlinkSync(resolved);
+	} catch (error) {
+		console.error('[Discord] unlink sendImage failed:', error?.message || error);
+	}
 	return;
 }
 const sendFiles = async (message, rplyVal, userid) => {

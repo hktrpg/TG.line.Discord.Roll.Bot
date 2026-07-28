@@ -154,8 +154,13 @@ TGclient.on('message:text', (ctx) => {
         if (rplyVal.myspeck) {
             return await __sendMeMessage({ ctx, rplyVal, userid });
         }
-        if (!rplyVal.text && !rplyVal.LevelUp)
+        if (!rplyVal.text && !rplyVal.LevelUp) {
+            // Remote mode skips local findRollList — still award EXP for non-commands.
+            if (parseRouter.shouldSkipLocalFindRollList('Telegram')) {
+                await nonDice(ctx);
+            }
             return;
+        }
         if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
             // Send welcome message in the same chat instead of trying to DM the user
             // Telegram bots cannot initiate conversations with users, so we send welcome in context

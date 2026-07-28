@@ -14,6 +14,7 @@ const PORT = 39_61;
 const URL = `http://127.0.0.1:${PORT}`;
 const PROOF_ADMIN_ID = 'proof-admin-3h';
 const PROOF_ADMIN_SECRET = [process.env.ADMIN_SECRET, PROOF_ADMIN_ID].filter(Boolean).join(',');
+const PROOF_TOKEN = process.env.ROLL_WORKER_TOKEN || 'proof-roll-worker-token';
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -65,6 +66,7 @@ async function main() {
 	pinGatewayWorkerUrl();
 	process.env.ROLL_WORKER_HOST = '127.0.0.1';
 	process.env.ROLL_WORKER_PORT = String(PORT);
+	process.env.ROLL_WORKER_TOKEN = PROOF_TOKEN;
 
 	const child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
 		cwd: ROOT,
@@ -73,6 +75,7 @@ async function main() {
 			ROLL_WORKER_MODE: 'true',
 			ROLL_WORKER_HOST: '127.0.0.1',
 			ROLL_WORKER_PORT: String(PORT),
+			ROLL_WORKER_TOKEN: PROOF_TOKEN,
 			// Do not inherit parent ROLL_WORKER_URL (may point at another port).
 			ROLL_WORKER_URL: '',
 			ADMIN_SECRET: PROOF_ADMIN_SECRET,
@@ -585,7 +588,70 @@ async function main() {
 			console.log('[proof] PASS Discord .st mylist with group-names meta remote (Phase 3k)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3k)');
+		// 24) Phase 3l: auth rejects unauthenticated parse
+		{
+			pinGatewayWorkerUrl();
+			const unauthorized = await new Promise((resolve, reject) => {
+				const data = JSON.stringify({ inputStr: '1d3', botname: 'Telegram', locale: 'zh-tw' });
+				const req = http.request({
+					hostname: '127.0.0.1',
+					port: PORT,
+					path: '/v1/parse',
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'Content-Length': Buffer.byteLength(data),
+					},
+				}, (res) => {
+					let raw = '';
+					res.on('data', (c) => { raw += c; });
+					res.on('end', () => resolve({ status: res.statusCode, body: raw }));
+				});
+				req.on('error', reject);
+				req.write(data);
+				req.end();
+			});
+			assert(unauthorized.status === 401, 'unauthenticated parse must 401', unauthorized);
+			console.log('[proof] PASS auth rejects unauthenticated /v1/parse (Phase 3l)');
+		}
+
+		// 25) Phase 3l: deferred fixshard returns gatewayAction
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.root fixshard start',
+				botname: 'Discord',
+				userid: PROOF_ADMIN_ID,
+				locale: 'zh-tw',
+				fixShardMeta: { action: 'start', deferred: true },
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'deferred fixshard not needsLocal', result);
+			assert(result._rollWorker === true, 'deferred fixshard _rollWorker', result);
+			assert(result.gatewayAction?.type === 'fixshard', 'gatewayAction type', result);
+			assert(result.gatewayAction?.action === 'start', 'gatewayAction action', result);
+			assert(after.parseCount === before.parseCount + 1, 'deferred fixshard parseCount++', { before, after });
+			console.log('[proof] PASS deferred fixshard gatewayAction (Phase 3l)');
+		}
+
+		// 26) Phase 3l: demo truncate + missing artifact helpers
+		{
+			const {
+				truncateExportHistoryForDemo,
+				assertArtifactReadable,
+				DEMO_EXPORT_MESSAGE_LIMIT,
+			} = require('../modules/roll-worker/artifacts');
+			const truncated = truncateExportHistoryForDemo({
+				totalSize: 900,
+				sum_messages: Array.from({ length: 900 }, (_, i) => ({ contact: String(i) })),
+			}, true);
+			assert(truncated.sum_messages.length === DEMO_EXPORT_MESSAGE_LIMIT, 'demo truncate length', truncated);
+			assert(assertArtifactReadable('temp/proof-missing-3l.bin') === null, 'missing artifact null');
+			console.log('[proof] PASS demo truncate + artifact guard (Phase 3l)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3l)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

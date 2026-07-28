@@ -1687,6 +1687,10 @@ const rollDiceCommand = async function ({
                             break;
                         }
                         case 'start': {
+                            if (fixShardMeta?.deferred && !fixShardMeta?.result) {
+                                rply.gatewayAction = { type: 'fixshard', action: 'start' };
+                                break;
+                            }
                             const result = fixShardMeta?.result || globalThis.startShardFix();
                             rply.text = result.inProgress ?
                                 translate('admin.fixshard_start_success', {
@@ -1697,6 +1701,10 @@ const rollDiceCommand = async function ({
                             break;
                         }
                         case 'stop': {
+                            if (fixShardMeta?.deferred && !fixShardMeta?.result) {
+                                rply.gatewayAction = { type: 'fixshard', action: 'stop' };
+                                break;
+                            }
                             const result = fixShardMeta?.result || globalThis.stopShardFix();
                             rply.text = result.message;
                             break;

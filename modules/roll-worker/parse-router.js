@@ -108,6 +108,14 @@ async function parseInput(params = {}, options = {}) {
 
 	const remoteParams = await enrichParamsForRemote(params, moduleName);
 
+	/** Prefer enriched meta on local fallback so Gateway side-effects (e.g. fixshard) are not re-run. */
+	const runLocalFallback = async () => analytics.parseInput({
+		...remoteParams,
+		discordClient: params.discordClient,
+		discordMessage: params.discordMessage,
+		t: params.t,
+	});
+
 	try {
 		const result = await client.parse(remoteParams);
 		if (result?.needsLocal) {
@@ -116,7 +124,7 @@ async function parseInput(params = {}, options = {}) {
 					botname: params.botname,
 					moduleName: result.moduleName || moduleName,
 				});
-				const local = await analytics.parseInput(params);
+				const local = await runLocalFallback();
 				return keepProof ? { ...local, _rollWorker: false } : local;
 			}
 			return {
@@ -132,7 +140,7 @@ async function parseInput(params = {}, options = {}) {
 				moduleName,
 				error: error?.message || String(error),
 			});
-			const local = await analytics.parseInput(params);
+			const local = await runLocalFallback();
 			return keepProof ? { ...local, _rollWorker: false } : local;
 		}
 		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);

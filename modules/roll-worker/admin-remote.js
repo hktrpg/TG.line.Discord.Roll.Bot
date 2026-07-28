@@ -180,13 +180,10 @@ async function collectFixShardMeta(action) {
 			if (typeof globalThis.getShardFixStatus !== 'function') return null;
 			return { action: 'status', status: globalThis.getShardFixStatus() };
 		}
-		if (act === 'start') {
-			if (typeof globalThis.startShardFix !== 'function') return null;
-			return { action: 'start', result: globalThis.startShardFix() };
-		}
-		if (act === 'stop') {
-			if (typeof globalThis.stopShardFix !== 'function') return null;
-			return { action: 'stop', result: globalThis.stopShardFix() };
+		if (act === 'start' || act === 'stop') {
+			// Do not mutate here — Gateway applies once via gatewayAction after Worker reply,
+			// or local fallback uses this deferred meta without a second start/stop.
+			return { action: act, deferred: true };
 		}
 		return { action: act, invalid: true };
 	} catch (error) {

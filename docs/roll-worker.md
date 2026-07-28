@@ -17,13 +17,16 @@ yarn start:roll-worker
 
 ```env
 ROLL_WORKER_URL=http://127.0.0.1:3950
-ROLL_WORKER_TOKEN=optional-shared-secret
+ROLL_WORKER_TOKEN=change-me-shared-secret
 ```
 
 3. Start gateways as usual (`yarn start` / docker discord vs non-discord).
 
 Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 
+**Auth:** set the same `ROLL_WORKER_TOKEN` on worker and every gateway. Loopback without a token is allowed only as a local fallback (loud warning); non-loopback bind refuses to start without a token.
+
+**Artifacts:** Worker writes `export/` and `temp/` under `ROLL_ARTIFACT_ROOT` (default: process cwd). Gateway and Worker must share that directory (same machine cwd or a mounted volume). Gateway skips attach when the file is missing.
 ## Process tips
 
 | Process | Env focus |
@@ -46,7 +49,7 @@ Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job proces
 
 ## Separation status
 
-**Module split is complete (Phase 3 → 3k).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes.
+**Module split is complete (Phase 3 → 3l).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. Phase 3l hardens auth, export demo limits, shared artifacts, and deferred fixshard.
 
 ## Health
 

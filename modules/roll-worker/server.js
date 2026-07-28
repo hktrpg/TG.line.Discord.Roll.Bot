@@ -5,11 +5,20 @@ const analytics = require('../analytics');
 const { isRemoteAllowed } = require('./route-table');
 const { runCharacterAction } = require('./character-action');
 
-function createRollWorkerApp() {
+function isLoopbackHost(host) {
+	const h = String(host || '').toLowerCase();
+	return h === '127.0.0.1' || h === '::1' || h === 'localhost';
+}
+
+function createRollWorkerApp(options = {}) {
 	const app = express();
 	app.use(express.json({ limit: '2mb' }));
 
 	const expectedToken = (process.env.ROLL_WORKER_TOKEN || '').trim();
+	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true'
+		|| options.allowNoToken === true;
+	const bindHost = options.host || process.env.ROLL_WORKER_HOST || '127.0.0.1';
+
 	const stats = {
 		parseCount: 0,
 		characterActionCount: 0,
@@ -17,9 +26,20 @@ function createRollWorkerApp() {
 	};
 
 	app.use((req, res, next) => {
-		if (!expectedToken) {
+		// Health stays open for probes; mutate endpoints require a shared secret when configured.
+		if (req.path === '/health') {
 			return next();
 		}
+
+		if (!expectedToken) {
+			if (allowNoToken || isLoopbackHost(bindHost)) {
+				return next();
+			}
+			return res.status(401).json({
+				error: 'Unauthorized: ROLL_WORKER_TOKEN required',
+			});
+		}
+
 		const header = req.headers.authorization || '';
 		const token = header.startsWith('Bearer ') ? header.slice(7) : '';
 		if (token !== expectedToken) {
@@ -36,6 +56,7 @@ function createRollWorkerApp() {
 			parseCount: stats.parseCount,
 			characterActionCount: stats.characterActionCount,
 			needsLocalCount: stats.needsLocalCount,
+			auth: expectedToken ? 'required' : (allowNoToken ? 'disabled' : 'loopback-only'),
 		});
 	});
 
@@ -107,15 +128,33 @@ function createRollWorkerApp() {
 	});
 
 	app.locals.stats = stats;
+	app.locals.expectedToken = expectedToken;
 	return app;
 }
 
 function startRollWorkerServer() {
 	const host = process.env.ROLL_WORKER_HOST || '127.0.0.1';
 	const port = Number.parseInt(process.env.ROLL_WORKER_PORT || '3950', 10);
-	const app = createRollWorkerApp();
+	const token = (process.env.ROLL_WORKER_TOKEN || '').trim();
+	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true';
+
+	if (!token && !allowNoToken && !isLoopbackHost(host)) {
+		console.error('[RollWorker] Refusing to bind non-loopback without ROLL_WORKER_TOKEN');
+		// eslint-disable-next-line n/no-process-exit
+		process.exit(1);
+	}
+	if (!token) {
+		console.warn(
+			'[RollWorker] WARNING: ROLL_WORKER_TOKEN unset — /v1/* accepts unauthenticated requests'
+			+ (isLoopbackHost(host) ? ' on loopback only' : '')
+			+ '. Set ROLL_WORKER_TOKEN on worker and all gateways.'
+		);
+	}
+
+	const app = createRollWorkerApp({ host });
 	const server = app.listen(port, host, () => {
-		console.log(`[RollWorker] Listening on http://${host}:${port}`);
+		console.log(`[RollWorker] Listening on http://${host}:${port}`
+			+ (token ? ' (auth required)' : ' (auth off)'));
 	});
 	return { app, server };
 }
@@ -123,4 +162,5 @@ function startRollWorkerServer() {
 module.exports = {
 	createRollWorkerApp,
 	startRollWorkerServer,
+	isLoopbackHost,
 };

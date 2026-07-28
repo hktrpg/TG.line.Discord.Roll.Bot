@@ -209,8 +209,13 @@ let handleEvent = async function (event) {
 	if (rplyVal.myspeck) {
 		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
 	}
-	if (!rplyVal.text && !rplyVal.LevelUp)
+	if (!rplyVal.text && !rplyVal.LevelUp) {
+		// Remote mode skips local findRollList — still award EXP for non-commands.
+		if (parseRouter.shouldSkipLocalFindRollList('Line')) {
+			await nonDice(event);
+		}
 		return;
+	}
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
 		SendToId(userid, await newMessage.firstTimeMessage({
 			userid,

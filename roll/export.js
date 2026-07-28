@@ -28,8 +28,11 @@ const fs = require('fs').promises;
 const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
+const {
+	getExportDir,
+	truncateExportHistoryForDemo,
+} = require('../modules/roll-worker/artifacts');
 const { createWriteStream } = require('fs');
-const path = require('path');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
 const { getPool } = require('../modules/db/pool');
@@ -70,7 +73,7 @@ const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
 // Directory for exported Discord logs (HTML/txt), shared with web server
-const dir = path.join(__dirname, '..', 'export', path.sep);
+const dir = getExportDir();
 const prefixs = function () {
     return [{
         first: /^[.]discord$/i,
@@ -452,7 +455,7 @@ const rollDiceCommand = async function ({
 
             await sendDiscordExportWaitNotice(discordMessage, userid, translate);
             if (exportHistoryMeta?.sum_messages) {
-                M = exportHistoryMeta;
+                M = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
             } else {
                 const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
                     discordMessage.guild.members.cache.map(member => member) : [];
@@ -607,9 +610,10 @@ const rollDiceCommand = async function ({
             await sendDiscordExportWaitNotice(discordMessage, userid, translate);
             if (exportHistoryMeta?.sum_messages) {
                 // Prefetch may use HTML-shaped embeds/attachments; normalize for TXT join().
+                const limited = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
                 M = {
-                    totalSize: exportHistoryMeta.totalSize || exportHistoryMeta.sum_messages.length,
-                    sum_messages: exportHistoryMeta.sum_messages.map((msg) => ({
+                    totalSize: limited.totalSize || limited.sum_messages.length,
+                    sum_messages: limited.sum_messages.map((msg) => ({
                         ...msg,
                         embeds: (msg.embeds || []).map((e) => (typeof e === 'string'
                             ? e

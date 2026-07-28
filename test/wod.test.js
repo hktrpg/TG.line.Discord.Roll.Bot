@@ -34,6 +34,8 @@ describe('World of Darkness Module Tests', () => {
     expect(patterns.length).toBe(1);
     expect(patterns[0].first).toBeInstanceOf(RegExp);
     expect(patterns[0].first.test('.3wd8')).toBe(true);
+    expect(patterns[0].first.test('.5wd8-1+2')).toBe(true);
+    expect(patterns[0].first.test('.15wd10+2')).toBe(true);
     expect(patterns[0].second).toBeNull();
   });
 
@@ -42,8 +44,8 @@ describe('World of Darkness Module Tests', () => {
     expect(helpText).toContain('世界of黑暗擲骰系統');
     expect(helpText).toContain('基本格式');
     expect(helpText).toContain('判定規則');
-    expect(helpText).toContain('參數說明');
-    expect(helpText).toContain('範例指令');
+    expect(helpText).toContain('範例');
+    expect(helpText).toContain('.5wd8-1+2');
   });
 
   test('Test initialize returns empty variables object', () => {
@@ -143,6 +145,26 @@ describe('World of Darkness Module Tests', () => {
       mainMsg: ['.3wod8']
     });
     
+    expect(result.type).toBe('text');
+    expect(result.text).toMatch(/\[[\d, ]+\]/);
+    expect(result.text).toContain('成功');
+  });
+
+  test('Test rollDiceCommand with stacked modifiers (.5wd8-1+2)', async () => {
+    const result = await wodModule.rollDiceCommand({
+      mainMsg: ['.5wd8-1+2']
+    });
+
+    expect(result.type).toBe('text');
+    expect(result.text).toMatch(/\[[\d, ]+\]/);
+    expect(result.text).toContain('成功');
+  });
+
+  test('Test rollDiceCommand with two-digit reroll (.15wd10)', async () => {
+    const result = await wodModule.rollDiceCommand({
+      mainMsg: ['.15wd10']
+    });
+
     expect(result.type).toBe('text');
     expect(result.text).toMatch(/\[[\d, ]+\]/);
     expect(result.text).toContain('成功');

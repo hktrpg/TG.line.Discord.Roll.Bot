@@ -66,7 +66,7 @@ async function buildWordPreview(templateWord, { groupid, userid, membercount, tg
     const username = tgDisplayname || displaynameDiscord || displayname || translate('level.unnamed');
     const userlevel = docMember[myselfIndex].Level;
     const userexp = docMember[myselfIndex].EXP;
-    const usermember_count = Math.max(membercount, docMember.length);
+    const usermember_count = Math.max(Number(membercount) || 0, docMember.length, 1);
     const userRanking = myselfIndex + 1;
     const userRankingPer = Math.ceil(userRanking / usermember_count * 10_000) / 100 + '%';
     const userTitle = await checkTitle(userlevel, doc?.Title || [], locale);

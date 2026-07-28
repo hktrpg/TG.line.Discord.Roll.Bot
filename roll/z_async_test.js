@@ -186,8 +186,9 @@ async function searchImage(inputStr, mainMsg, safe, translate) {
 	})
 		.then(async images => {
 			if (images[0] && images[0].image) {
-				//let resultnum = Math.floor((Math.random() * (images.length)) + 0)
-				let resultnum = rollbase.Dice(images.length) - 1;
+				// Prefer top results (usually more relevant); pick among top 5
+				const topN = Math.min(5, images.length);
+				const resultnum = rollbase.Dice(topN) - 1;
 				return images[resultnum].image;
 			} else {
 				return t('wikitools.image_no_results')

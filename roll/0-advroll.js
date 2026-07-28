@@ -23,8 +23,9 @@ const prefixs = function () {
 		second: null
 	},
 	{
+		// second (reroll threshold) optional — default to die faces (e.g. 1u10 → 1u10 10)
 		first: /^(\d+)(u)(\d+)$/i,
-		second: /\d+/
+		second: null
 	},
 	{
 		first: regexxBy,
@@ -98,12 +99,22 @@ const rollDiceCommand = async function ({
 				rply.text = xBy(mainMsg[0].replace(/S/i, ""), mainMsg[1], mainMsg[2], sortMode, botname, translate);
 			return rply;
 		}
-		case regexxUy.test(mainMsg[0]) && mainMsg[1] <= 10_000:
+		case regexxUy.test(mainMsg[0]): {
 			matchxuy = regexxUy.exec(mainMsg[0]); //判斷式  ['5U10',  '5', 'U', '10']
-			if (matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10_000) {
-				rply.text = xUy(matchxuy, mainMsg[1], mainMsg[2], mainMsg[3], translate);
+			if (!(matchxuy && matchxuy[1] > 0 && matchxuy[1] <= 600 && matchxuy[3] > 0 && matchxuy[3] <= 10_000)) {
+				return rply;
 			}
+			// Reroll threshold: optional 2nd arg; default = die faces (1u10 → reroll on 10)
+			const hasRerollArg = mainMsg[1] !== undefined && mainMsg[1] !== '' && !Number.isNaN(Number(mainMsg[1]));
+			if (hasRerollArg && Number(mainMsg[1]) > 10_000) {
+				return rply;
+			}
+			const rerollAt = hasRerollArg ? mainMsg[1] : matchxuy[3];
+			const successAt = hasRerollArg ? mainMsg[2] : undefined;
+			const note = hasRerollArg ? mainMsg[3] : mainMsg[2];
+			rply.text = xUy(matchxuy, rerollAt, successAt, note, translate);
 			return rply;
+		}
 		case /^[.][i][n][t]$/i.test(mainMsg[0]) && mainMsg[1] <= 100_000 && mainMsg[2] <= 100_000:
 			rply.text = translate('advroll.int_result', {
 				min: mainMsg[1],
@@ -393,14 +404,15 @@ function xBy(triggermsg, text01, text02, sortMode, botname, translate) {
  * @param {*} text03
  * xUy
  * (5U10[8]) → 17[10,7],4,5,7,4 → 17/37(最大/合計)
- * (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1 
+ * (5U10[8]>8) → count each face ≥8 in the cascade as one success
  */
 
 function xUy(triggermsg, text01, text02, text03, translate) {
 	const t = translate || getT({});
 
 	let match = triggermsg //判斷式  5u19,5,u,19, 
-	let returnStr = '(' + triggermsg + '[' + text01 + ']';
+	const cmdLabel = Array.isArray(match) ? match[0] : match;
+	let returnStr = '(' + cmdLabel + '[' + text01 + ']';
 	if (Number(text02) <= Number(match[3]) && text02 != undefined) {
 		returnStr += '>' + text02 + ') → ';
 		if (text03 != undefined) returnStr += text03 + ' → ';
@@ -438,9 +450,13 @@ function xUy(triggermsg, text01, text02, text03, translate) {
 	if (Number(text02) <= Number(match[3])) {
 		let suc = 0;
 
-		// (5U10[8]>8) → 1,30[9,8,8,5],1,3,4 → 成功數1
-		for (let i = 0; i < varcou.length; i++) {
-			if (Number(varcou[i]) >= Number(text02)) suc++;
+		// Count each face in the cascade that meets the threshold (not the sum).
+		// e.g. 1U10 10 10 with rolls 10,10,5 → 2 successes
+		for (let i = 0; i < varcouloop.length; i++) {
+			const faces = String(varcouloop[i]).split(',').map(s => Number(s.trim()));
+			for (const face of faces) {
+				if (face >= Number(text02)) suc++;
+			}
 		}
 		returnStr += t('advroll.xuy_success', { count: suc });
 	} else

@@ -9,6 +9,9 @@ const checkTools = require('../modules/chat/check.js');
 const records = require('../modules/db/records.js');
 const VIP = require('../modules/patreon/veryImportantPerson');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const { findNextSerial, ensureSerials, findBySerial, findIndexBySerial, sortBySerial } = require('../modules/db/serial.js');
+
+const CMD_SERIAL_START = 0;
 
 let trpgCommandData = {};
 
@@ -74,14 +77,34 @@ const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole, locale, t
             return await handleDeleteSpecificCommand(mainMsg, groupid, response, permissionError, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
-            return handleShowCommands(groupid, response, translate);
+            return await handleShowCommands(groupid, response, translate);
 
         case /^\.cmd$/i.test(mainMsg[0]) && /\S/i.test(mainMsg[1]) && !/^(add|edit|del|show)$/i.test(mainMsg[1]):
-            return handleExecuteCommand(mainMsg, groupid, response, translate);
+            return await handleExecuteCommand(mainMsg, groupid, response, translate);
 
         default:
             return response;
     }
+}
+
+/**
+ * Ensure serials on group commands; persist if changed.
+ * @returns {object|null} group entry or null
+ */
+const ensureGroupCommands = async (groupid) => {
+    const entry = trpgCommandData.commands.find(e => e.groupid === groupid);
+    if (!entry || !Array.isArray(entry.trpgCommandfunction)) return entry || null;
+
+    const { changed } = ensureSerials(entry.trpgCommandfunction, CMD_SERIAL_START);
+    if (changed) {
+        try {
+            await records.setTrpgCommandFunction('trpgCommand', entry);
+            await updateCommandData();
+        } catch (error) {
+            console.error('[z_saveCommand] Failed to backfill serials:', error);
+        }
+    }
+    return trpgCommandData.commands.find(e => e.groupid === groupid) || entry;
 }
 
 const handleAddCommand = async (inputStr, mainMsg, groupid, response, permissionError, limit, translate) => {
@@ -102,11 +125,18 @@ const handleAddCommand = async (inputStr, mainMsg, groupid, response, permission
         return response;
     }
 
+    const entry = await ensureGroupCommands(groupid);
+    const existingSerials = (entry?.trpgCommandfunction || [])
+        .filter(cmd => typeof cmd.serial === 'number')
+        .map(cmd => cmd.serial);
+    const serial = findNextSerial(existingSerials, CMD_SERIAL_START);
+
     const newCommand = {
         groupid: groupid,
         trpgCommandfunction: [{
             topic: mainMsg[2],
-            contact: inputStr.replace(/\.cmd\s+add\s+/i, '').replace(mainMsg[2], '').trim()
+            contact: inputStr.replace(/\.cmd\s+add\s+/i, '').replace(mainMsg[2], '').trim(),
+            serial
         }]
     };
 
@@ -121,7 +151,8 @@ const handleAddCommand = async (inputStr, mainMsg, groupid, response, permission
 
     response.text = translate('cmd.add_success', {
         keyword: mainMsg[2],
-        command: newCommand.trpgCommandfunction[0].contact
+        command: newCommand.trpgCommandfunction[0].contact,
+        serial
     });
     return response;
 }
@@ -136,6 +167,7 @@ const handleEditCommand = async (mainMsg, groupid, response, permissionError, li
     }
 
     const newContact = mainMsg.slice(3).join(' ').trim();
+    await ensureGroupCommands(groupid);
     const existingCommand = findCommandByTopic(mainMsg[2], groupid);
 
     if (!existingCommand && isExceedingLimit(groupid, limit)) {
@@ -143,27 +175,55 @@ const handleEditCommand = async (mainMsg, groupid, response, permissionError, li
         return response;
     }
 
+    if (existingCommand) {
+        const updatedCommand = {
+            groupid: groupid,
+            trpgCommandfunction: [{
+                topic: mainMsg[2],
+                contact: newContact
+            }]
+        };
+        try {
+            await records.editsetTrpgCommandFunction('trpgCommand', updatedCommand);
+            response.text = translate('cmd.edit_success', {
+                keyword: mainMsg[2],
+                command: newContact,
+                serial: existingCommand.serial
+            });
+            await updateCommandData();
+        } catch (error) {
+            console.error('[z_saveCommand] Failed to edit command:', error);
+            response.text = translate('cmd.operation_failed');
+        }
+        return response;
+    }
+
+    const entry = await ensureGroupCommands(groupid);
+    const existingSerials = (entry?.trpgCommandfunction || [])
+        .filter(cmd => typeof cmd.serial === 'number')
+        .map(cmd => cmd.serial);
+    const serial = findNextSerial(existingSerials, CMD_SERIAL_START);
+
     const updatedCommand = {
         groupid: groupid,
         trpgCommandfunction: [{
             topic: mainMsg[2],
-            contact: newContact
+            contact: newContact,
+            serial
         }]
     };
 
     try {
-    if (existingCommand) {
-            await records.editsetTrpgCommandFunction('trpgCommand', updatedCommand);
-        response.text = translate('cmd.edit_success', { keyword: mainMsg[2], command: newContact });
-    } else {
-            await records.pushTrpgCommandFunction('trpgCommand', updatedCommand);
-        response.text = translate('cmd.add_via_edit_success', { keyword: mainMsg[2], command: newContact });
-        }
+        await records.pushTrpgCommandFunction('trpgCommand', updatedCommand);
+        response.text = translate('cmd.add_via_edit_success', {
+            keyword: mainMsg[2],
+            command: newContact,
+            serial
+        });
         await updateCommandData();
     } catch (error) {
-        console.error('[z_saveCommand] Failed to edit/push command:', error);
+        console.error('[z_saveCommand] Failed to push command via edit:', error);
         response.text = translate('cmd.operation_failed');
-        return response;
     }
 
     return response;
@@ -198,82 +258,88 @@ const handleDeleteSpecificCommand = async (mainMsg, groupid, response, permissio
         return response;
     }
 
-    for (const entry of trpgCommandData.commands) {
-        if (entry.groupid === groupid) {
-            const index = Number.parseInt(mainMsg[2]);
-            if (index >= 0 && index < entry.trpgCommandfunction.length) {
-                const target = entry.trpgCommandfunction[index]; // get target before deletion
-                entry.trpgCommandfunction.splice(index, 1);
-                try {
-                    await records.setTrpgCommandFunction('trpgCommand', entry);
-                    await updateCommandData();
-                response.text = translate('cmd.delete_success', {
-                    index: mainMsg[2],
-                    topic: target.topic,
-                    command: target.contact
-                });
-                } catch (error) {
-                    console.error('[z_saveCommand] Failed to delete command:', error);
-                    response.text = translate('cmd.delete_failed');
-                }
-            } else {
-                response.text = translate('cmd.keyword_not_found');
-            }
-        }
+    const entry = await ensureGroupCommands(groupid);
+    if (!entry) {
+        response.text = translate('cmd.keyword_not_found');
+        return response;
+    }
+
+    const serial = Number.parseInt(mainMsg[2], 10);
+    const index = findIndexBySerial(entry.trpgCommandfunction, serial);
+    if (index < 0) {
+        response.text = translate('cmd.keyword_not_found');
+        return response;
+    }
+
+    const target = entry.trpgCommandfunction[index];
+    entry.trpgCommandfunction.splice(index, 1);
+    try {
+        await records.setTrpgCommandFunction('trpgCommand', entry);
+        await updateCommandData();
+        response.text = translate('cmd.delete_success', {
+            index: target.serial,
+            topic: target.topic,
+            command: target.contact
+        });
+    } catch (error) {
+        console.error('[z_saveCommand] Failed to delete command:', error);
+        response.text = translate('cmd.delete_failed');
     }
     return response;
 }
 
-const handleShowCommands = (groupid, response, translate) => {
+const handleShowCommands = async (groupid, response, translate) => {
     if (!groupid) {
         response.text = translate('cmd.group_only');
         return response;
     }
 
-    let found = false;
-    for (const entry of trpgCommandData.commands) {
-        if (entry.groupid === groupid) {
-            response.text += translate('cmd.list_header');
-            for (const [index, cmd] of entry.trpgCommandfunction.entries()) {
-                found = true;
-                response.text += translate('cmd.list_entry', {
-                    index,
-                    topic: cmd.topic,
-                    command: cmd.contact
-                });
-            }
-        }
+    const entry = await ensureGroupCommands(groupid);
+    if (!entry || !entry.trpgCommandfunction || entry.trpgCommandfunction.length === 0) {
+        response.text = translate('cmd.no_keywords');
+        return response;
     }
 
-    if (!found) response.text = translate('cmd.no_keywords');
+    response.text += translate('cmd.list_header');
+    const commands = sortBySerial([...(entry.trpgCommandfunction || [])]);
+    for (const cmd of commands) {
+        response.text += translate('cmd.list_entry', {
+            serial: cmd.serial,
+            name: cmd.topic,
+            command: cmd.contact
+        });
+    }
     return response;
 }
 
-const handleExecuteCommand = (mainMsg, groupid, response, translate) => {
+const handleExecuteCommand = async (mainMsg, groupid, response, translate) => {
     if (!groupid) {
         response.text = translate('cmd.group_only_dot');
         return response;
     }
 
-    let found = false;
-    for (const entry of trpgCommandData.commands) {
-        if (entry.groupid === groupid) {
-            for (const cmd of entry.trpgCommandfunction) {
-                if (cmd.topic.toLowerCase() === mainMsg[1].toLowerCase()) {
-                    response.text = cmd.contact;
-                    response.cmd = true;
-                    found = true;
-                }
-            }
+    const entry = await ensureGroupCommands(groupid);
+    if (!entry) {
+        response.text = translate('cmd.execute_not_found');
+        return response;
+    }
 
-            if (!found && !Number.isNaN(mainMsg[1])) {
-                const index = Number.parseInt(mainMsg[1]);
-                if (index >= 0 && index < entry.trpgCommandfunction.length) {
-                    response.text = entry.trpgCommandfunction[index].contact;
-                    response.cmd = true;
-                    found = true;
-                }
-            }
+    let found = false;
+    for (const cmd of entry.trpgCommandfunction) {
+        if (cmd.topic.toLowerCase() === mainMsg[1].toLowerCase()) {
+            response.text = cmd.contact;
+            response.cmd = true;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found && /^\d+$/.test(mainMsg[1])) {
+        const bySerial = findBySerial(entry.trpgCommandfunction, Number.parseInt(mainMsg[1], 10));
+        if (bySerial) {
+            response.text = bySerial.contact;
+            response.cmd = true;
+            found = true;
         }
     }
 

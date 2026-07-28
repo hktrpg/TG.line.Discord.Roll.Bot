@@ -10,13 +10,10 @@ const schema = require('../modules/db/schema.js');
 const checkTools = require('../modules/chat/check.js');
 const VIP = require('../modules/patreon/veryImportantPerson');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const { findNextSerial, ensureSerials, findBySerial, sortBySerial } = require('../modules/db/serial.js');
 const rollbase = require('./rollbase.js');
 exports.z_Level_system = require('./z_Level_system');
 const wheelAnimator = require('./wheel-animator.js');
-const opt = {
-    upsert: true,
-    runValidators: true
-}
 
 const FUNCTION_LIMIT = [30, 200, 200, 500, 500, 500, 500, 500];
 const FUNCTION_LIMIT_PERSONAL = [2, 200, 200, 500, 500, 500, 500, 500];
@@ -26,6 +23,50 @@ const gameName = function (params = {}) {
 const gameType = function () {
     return 'funny:randomAns:hktrpg'
 }
+
+function normalizeRaEntry(entry) {
+    if (!entry) return null;
+    if (Array.isArray(entry)) {
+        return { answers: entry };
+    }
+    if (entry && typeof entry === 'object' && Array.isArray(entry.answers)) {
+        return entry;
+    }
+    return null;
+}
+
+function raTitle(entry) {
+    const n = normalizeRaEntry(entry);
+    return n?.answers?.[0];
+}
+
+function raOptions(entry) {
+    const n = normalizeRaEntry(entry);
+    return n?.answers?.slice(1) || [];
+}
+
+function findRaEntry(entries, target) {
+    const titleMatch = entries.find(entry => raTitle(entry)?.toLowerCase() === target.toLowerCase());
+    return titleMatch || (/^\d+$/.test(target) ? findBySerial(entries, target) : undefined);
+}
+
+async function loadNormalizedRa(groupid) {
+    const document = await schema.randomAns.findOne({ groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+    if (!document) return null;
+
+    const source = document.randomAnsfunction || [];
+    const hadRawArrays = source.some(Array.isArray);
+    const entries = source.map(normalizeRaEntry).filter(Boolean);
+    const { changed } = ensureSerials(entries, 0);
+    sortBySerial(entries);
+    document.randomAnsfunction = entries;
+    if (changed || hadRawArrays) {
+        document.markModified('randomAnsfunction');
+        await document.save();
+    }
+    return document;
+}
+
 const prefixs = function () {
     return [{
         first: /(^[.](r|)ra(\d+|p|p\d+|s|s\d+|a|a\d+|)$)/ig,
@@ -89,24 +130,21 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            getData = await schema.randomAns.findOne({ groupid: groupid }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await loadNormalizedRa(groupid);
             if (!getData) {
                 rply.text = translate('random_ans.no_data');
                 return rply;
             }
 
             // Find the dice
-            temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[1].toLowerCase());
-            if (!temp && /^\d+$/.test(mainMsg[1])) {
-                temp = getData.randomAnsfunction[mainMsg[1]];
-            }
+            temp = findRaEntry(getData.randomAnsfunction, mainMsg[1]);
             if (!temp) {
                 rply.text = translate('random_ans.dice_not_found', { name: mainMsg[1] });
                 return rply;
             }
 
             // Get options (skip first element which is the dice name)
-            const options = temp.slice(1);
+            const options = raOptions(temp);
             if (options.length === 0) {
                 rply.text = translate('random_ans.no_options');
                 return rply;
@@ -127,7 +165,7 @@ const rollDiceCommand = async function ({
             const MAX_OPTIONS_FOR_ANIMATION = 12;
             if (processedOptions.length > MAX_OPTIONS_FOR_ANIMATION) {
                 rply.text = translate('random_ans.result_text', {
-                    name: temp[0],
+                    name: raTitle(temp),
                     value: selectedValue,
                     count: processedOptions.length
                 });
@@ -139,7 +177,7 @@ const rollDiceCommand = async function ({
             );
             if (hasTooLongOption) {
                 rply.text = translate('random_ans.result_text_long', {
-                    name: temp[0],
+                    name: raTitle(temp),
                     value: selectedValue
                 });
                 return rply;
@@ -158,7 +196,7 @@ const rollDiceCommand = async function ({
                     rply.fileLink = [];
                 }
                 rply.fileLink.push(gifPath);
-                rply.fileText = translate('random_ans.wheel_file_caption', { name: temp[0] });
+                rply.fileText = translate('random_ans.wheel_file_caption', { name: raTitle(temp) });
 
                 return rply;
             } catch (error) {
@@ -166,7 +204,7 @@ const rollDiceCommand = async function ({
                 // Fallback to text-only result if animation fails
                 rply.text = translate('random_ans.anim_failed', {
                     error: error.message,
-                    name: temp[0],
+                    name: raTitle(temp),
                     value: selectedValue
                 });
                 return rply;
@@ -195,42 +233,52 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
-                getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                getData = await loadNormalizedRa(groupid);
                 let update = false;
-                let findIndex = getData && getData.randomAnsfunction.findIndex((e) => {
-                    return e && e[0] && e[0].toLowerCase() == mainMsg[2].toLowerCase()
-                })
+                let findIndex = getData && getData.randomAnsfunction.findIndex(entry =>
+                    raTitle(entry)?.toLowerCase() === mainMsg[2].toLowerCase()
+                );
                 if (findIndex >= 0 && findIndex != null) {
-                    let tempCheck = getData.randomAnsfunction[findIndex].join('') + mainMsg.slice(3).join('')
+                    const existingEntry = getData.randomAnsfunction[findIndex];
+                    let tempCheck = existingEntry.answers.join('') + mainMsg.slice(3).join('')
                     if (tempCheck.length > 3000) {
                         rply.text = translate('random_ans.update_too_long');
                         return rply;
                     } else {
                         update = true;
-                        getData.randomAnsfunction.set(findIndex, [...getData.randomAnsfunction[findIndex], ...mainMsg.slice(3)])
+                        existingEntry.answers.push(...mainMsg.slice(3));
+                        getData.markModified('randomAnsfunction');
                     }
                 }
                 if (update) {
                     await getData.save();
-                    rply.text = translate('random_ans.update_success', { name: mainMsg[2] });
+                    rply.text = translate('random_ans.update_success', {
+                        name: mainMsg[2],
+                        serial: getData.randomAnsfunction[findIndex].serial
+                    });
                     return rply;
                 }
                 if (getData && getData.randomAnsfunction.length >= limit) {
                     rply.text = translate('random_ans.group_limit', { limit });
                     return rply;
                 }
-                temp = {
-                    randomAnsfunction: mainMsg.slice(2)
+                let newSerial = 0;
+                if (getData) {
+                    newSerial = findNextSerial(getData.randomAnsfunction.map(entry => entry.serial), 0);
+                    getData.randomAnsfunction.push({ serial: newSerial, answers: mainMsg.slice(2) });
+                    getData.markModified('randomAnsfunction');
+                    check = await getData.save();
+                } else {
+                    check = await new schema.randomAns({
+                        groupid,
+                        randomAnsfunction: [{ serial: 0, answers: mainMsg.slice(2) }]
+                    }).save();
                 }
-                check = await schema.randomAns.updateOne({
-                    groupid: groupid
-                }, {
-                    $push: temp
-                }, opt).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
-                if (check.modifiedCount || check.upsertedCount) {
+                if (check) {
                     rply.text = translate('random_ans.add_success', {
                         name: mainMsg[2],
-                        count: mainMsg.slice(3).length
+                        count: mainMsg.slice(3).length,
+                        serial: newSerial
                     });
                 } else rply.text = translate('random_ans.add_failed');
 
@@ -241,7 +289,7 @@ const rollDiceCommand = async function ({
             }
             break;
         }
-        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
+        case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]): {
             // Delete custom keywords
             if (!mainMsg[2]) {
                 rply.text = translate('random_ans.delete_no_name');
@@ -260,38 +308,43 @@ const rollDiceCommand = async function ({
             filter = {
                 groupid: groupid,
             };
-            getData = await schema.randomAns.findOne(filter).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await loadNormalizedRa(filter.groupid);
             if (!getData) {
                 rply.text = translate('random_ans.no_data');
                 return rply;
             }
 
-            temp = getData.randomAnsfunction.filter(e => e[0].toLowerCase() === mainMsg[2].toLowerCase());
-            if (temp.length === 0) {
+            let deleteIndex = getData.randomAnsfunction.findIndex(entry =>
+                raTitle(entry)?.toLowerCase() === mainMsg[2].toLowerCase()
+            );
+            if (deleteIndex < 0) {
                 rply.text = translate('random_ans.delete_not_found', { name: mainMsg[2] });
                 return rply;
             }
 
-            for (const f of temp) getData.randomAnsfunction.splice(getData.randomAnsfunction.findIndex(e => e[0] === f[0]), 1);
+            temp = getData.randomAnsfunction.splice(deleteIndex, 1)[0];
+            getData.markModified('randomAnsfunction');
             check = await getData.save();
 
             if (check) {
-                const deletedOptions = temp[0].slice(1);
+                const deletedOptions = raOptions(temp);
                 rply.text = translate('random_ans.delete_success', {
-                    name: temp[0][0],
+                    name: raTitle(temp),
+                    serial: temp.serial,
                     count: deletedOptions.length
                 });
             } else {
                 rply.text = translate('random_ans.delete_failed');
             }
             return rply;
+        }
         case /(^[.](r|)ra(\d+|)$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
             if (!groupid) {
                 rply.text = translate('random_ans.group_only');
                 return rply;
             }
             rply.quotes = true;
-            getData = await schema.randomAns.findOne({ groupid: groupid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await loadNormalizedRa(groupid);
             if (!getData || getData.randomAnsfunction.length === 0) {
                 rply.text = translate('random_ans.no_dice_configured', {
                     version_note: translate('random_ans.version_note')
@@ -299,27 +352,29 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             if (mainMsg[2]) {
-                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[2].toLowerCase());
+                temp = findRaEntry(getData.randomAnsfunction, mainMsg[2]);
                 if (!temp) {
                     rply.text = translate('random_ans.dice_not_found', { name: mainMsg[2] });
                     rply.text += translate('random_ans.multi_hint');
                     return rply;
                 }
                 rply.text = translate('random_ans.show_header', {
-                    name: temp[0],
-                    count: temp.length - 1
+                    name: raTitle(temp),
+                    count: raOptions(temp).length
                 });
-                for (let i = 1; i < temp.length; i++) {
-                    rply.text += translate('random_ans.show_option', { i, value: temp[i] });
+                for (const [index, option] of raOptions(temp).entries()) {
+                    rply.text += translate('random_ans.show_option', { i: index + 1, value: option });
                 }
                 return rply;
             }
 
             rply.text = translate('random_ans.list_header');
-            for (let a in getData.randomAnsfunction) {
+            for (const entry of getData.randomAnsfunction) {
                 rply.text += translate('random_ans.list_entry', {
-                    a,
-                    name: getData.randomAnsfunction[a][0]
+                    serial: entry.serial,
+                    a: entry.serial,
+                    i: entry.serial,
+                    name: raTitle(entry)
                 });
             }
             rply.text += translate('random_ans.list_footer');
@@ -338,7 +393,7 @@ const rollDiceCommand = async function ({
             }
             if (times < 1) times = 1;
 
-            getData = await schema.randomAns.findOne({ groupid: groupid }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await loadNormalizedRa(groupid);
             if (!getData) {
                 rply.text = translate('random_ans.no_data');
                 return rply;
@@ -348,17 +403,14 @@ const rollDiceCommand = async function ({
             let notFoundDices = [];
             for (let i in mainMsg) {
                 if (i == 0) continue;
-                temp = getData.randomAnsfunction.find(e => e[0].toLowerCase() == mainMsg[i].toLowerCase())
-                if (!temp && /^\d+$/.test(mainMsg[i])) {
-                    temp = getData.randomAnsfunction[mainMsg[i]]
-                }
+                temp = findRaEntry(getData.randomAnsfunction, mainMsg[i]);
                 if (!temp) {
                     notFoundDices.push(mainMsg[i]);
                     continue;
                 }
 
                 let rollResult = {
-                    name: temp[0],
+                    name: raTitle(temp),
                     results: [],
                     mode: check ? translate('random_ans.roll_mode_repeat') : translate('random_ans.roll_mode_unique')
                 };
@@ -366,15 +418,15 @@ const rollDiceCommand = async function ({
                 if (check) {
                     // repeat mode
                     for (let num = 0; num < times; num++) {
-                        let randomNumber = rollbase.Dice(temp.length - 1) - 1 + 1;
+                        let randomNumber = rollbase.Dice(raOptions(temp).length) - 1;
                         rollResult.results.push({
                             index: num + 1,
-                            value: temp[randomNumber]
+                            value: raOptions(temp)[randomNumber]
                         });
                     }
                 } else {
                     // not repeat mode
-                    let tempItems = [...temp].slice(1);
+                    let tempItems = raOptions(temp);
                     if (tempItems.length === 0) continue;
 
                     // 如果要抽取的次數大於選項數，提供警告
@@ -455,7 +507,10 @@ const rollDiceCommand = async function ({
                     rply.text = translate('random_ans.add_failed_prefix') + rply.text;
                     return rply;
                 }
-                getData = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                getData = await schema.randomAnsPersonal.findOne({
+                    "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") },
+                    "userid": String(userid)
+                }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
                 const rest = mainMsg.slice(3);
                 const answerLength = getData && getData.answer ? getData.answer.join('').length : 0;
 
@@ -468,29 +523,31 @@ const rollDiceCommand = async function ({
                     let result = await getData.save();
                     rply.text = translate('random_ans.personal_update_success', {
                         serial: result.serial,
-                        title: result.title,
-                        content: result.answer
+                        name: result.title,
+                        count: (result.answer || []).length
                     });
                     return rply;
                 }
 
-                let list = await schema.randomAnsPersonal.find({ userid: userid }, 'serial').catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
-                if (list && list.length >= limit) {
+                let list = await schema.randomAnsPersonal.find({ userid: String(userid) }, 'serial')
+                    .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason)) || [];
+                if (list.length >= limit) {
                     rply.text = translate('random_ans.personal_limit', { limit });
                     return rply;
                 }
+                const serial = findNextSerial(list.map(item => item.serial), 1);
                 let newAnswer = new schema.randomAnsPersonal({
                     title: mainMsg[2],
                     answer: rest,
-                    userid: userid,
-                    serial: findTheNextSerial(list)
+                    userid: String(userid),
+                    serial
                 })
                 try {
                     let checkResult = await newAnswer.save();
                     rply.text = translate('random_ans.personal_add_success', {
                         serial: checkResult.serial,
-                        title: checkResult.title,
-                        content: checkResult.answer
+                        name: checkResult.title,
+                        count: (checkResult.answer || []).length
                     });
                 } catch (error) {
                     rply.text = translate('random_ans.personal_add_failed');
@@ -504,7 +561,10 @@ const rollDiceCommand = async function ({
             //
             rply.quotes = true;
             if (mainMsg[2]) {
-                temp = await schema.randomAnsPersonal.findOne({ "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") }, "userid": userid }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                temp = await schema.randomAnsPersonal.findOne({
+                    "title": { $regex: new RegExp('^' + escapeRegExp(mainMsg[2]) + '$', "i") },
+                    "userid": String(userid)
+                }).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
                 if (!temp) {
                     rply.text = translate('random_ans.personal_not_found');
                     return rply;
@@ -517,29 +577,53 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsPersonal.find({ "userid": userid }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await schema.randomAnsPersonal.find({ userid: String(userid) })
+                .sort({ serial: 1 })
+                .lean()
+                .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData || getData.length === 0) {
                 rply.text = translate('random_ans.personal_empty', {
                     version_note: translate('random_ans.version_note')
                 });
                 return rply
             }
+            sortBySerial(getData);
             rply.text += translate('random_ans.personal_list_header');
-            for (let a in getData) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + ": " + getData[a].title : "     " + '#' + getData[a].serial + ": " + getData[a].title;
+            for (const entry of getData) {
+                rply.text += translate('random_ans.personal_list_entry', {
+                    serial: entry.serial,
+                    name: entry.title
+                });
             }
-            //顯示自定義關鍵字
-            rply.text = rply.text.replaceAll(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replaceAll(/,/gm, ', ')
             rply.text += translate('random_ans.personal_list_footer');
             return rply
 
         case /(^[.]rap$)/i.test(mainMsg[0]) && /^del$/i.test(mainMsg[1]):
             {
+                if (!mainMsg[2]) {
+                    rply.text = translate('random_ans.personal_delete_usage');
+                    return rply;
+                }
                 const target = escapeRegExp(mainMsg).slice(2);
-                let dataList = await schema.randomAnsPersonal.deleteMany(
-                    { "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") }, "userid": userid }
-                ).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
-                rply.text = translate('random_ans.personal_deleted', { count: dataList.n });
+                const titleFilter = {
+                    "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") },
+                    "userid": String(userid)
+                };
+                const matched = await schema.randomAnsPersonal.find(titleFilter).lean()
+                    .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                if (!matched || matched.length === 0) {
+                    rply.text = translate('random_ans.personal_delete_not_found', {
+                        name: mainMsg.slice(2).join(' ')
+                    });
+                    return rply;
+                }
+                await schema.randomAnsPersonal.deleteMany(titleFilter)
+                    .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                rply.text = matched.map(doc => translate('random_ans.personal_delete_success', {
+                    name: doc.title,
+                    serial: doc.serial,
+                    count: (doc.answer || []).length
+                })).join('\n');
                 return rply
             }
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
@@ -553,7 +637,7 @@ const rollDiceCommand = async function ({
             const [, ...target] = escapeRegExp(mainMsg);
             getData = await schema.randomAnsPersonal.find(
                 {
-                    userid: userid,
+                    userid: String(userid),
                     $or: [
                         { "title": { $regex: new RegExp(`^(${target.join('|')})$`, "i") } },
                         { "serial": isNumber(target) }]
@@ -625,22 +709,22 @@ const rollDiceCommand = async function ({
                 }
 
                 const rest = mainMsg.slice(3);
-                let list = await schema.randomAnsServer.find({}, 'serial');
-                let newAnswer = new schema.randomAnsServer({
-                    title: mainMsg[2],
-                    answer: rest,
-                    serial: findTheNextSerial(list)
-                })
-                if (list && list.length >= 100) {
+                let list = await schema.randomAnsServer.find({}, 'serial').catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason)) || [];
+                if (list.length >= 100) {
                     rply.text = translate('random_ans.server_limit', { limit });
                     return rply;
                 }
+                let newAnswer = new schema.randomAnsServer({
+                    title: mainMsg[2],
+                    answer: rest,
+                    serial: findNextSerial(list.map(item => item.serial), 1)
+                })
                 try {
                     let checkResult = await newAnswer.save();
                     rply.text = translate('random_ans.server_add_success', {
                         serial: checkResult.serial,
-                        title: checkResult.title,
-                        content: checkResult.answer
+                        name: checkResult.title,
+                        count: (checkResult.answer || []).length
                     });
                 } catch (error) {
                     rply.text = translate('random_ans.server_add_failed');
@@ -667,19 +751,21 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            getData = await schema.randomAnsServer.find({}).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+            getData = await schema.randomAnsServer.find({}).sort({ serial: 1 }).lean().catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
             if (!getData || getData.length === 0) {
                 rply.text = translate('random_ans.server_empty', {
                     version_note: translate('random_ans.version_note')
                 });
                 return rply
             }
+            sortBySerial(getData);
             rply.text += translate('random_ans.server_list_header');
-            for (let a in getData) {
-                rply.text += ((a % 2 && a != 1) || a == 0) ? ("\n") + '#' + getData[a].serial + ": " + getData[a].title : "     " + '#' + getData[a].serial + ": " + getData[a].title;
+            for (const entry of getData) {
+                rply.text += translate('random_ans.server_list_entry', {
+                    serial: entry.serial,
+                    name: entry.title
+                });
             }
-            //顯示自定義關鍵字
-            rply.text = rply.text.replaceAll(/^([^(,)\1]*?)\s*(,)\s*/mg, '$1: ').replaceAll(/,/gm, ', ')
             rply.text += translate('random_ans.server_list_footer');
             return rply
         case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /^(change)$/i.test(mainMsg[1]):
@@ -700,19 +786,35 @@ const rollDiceCommand = async function ({
                 if (toInsert.length > 0) {
                     await schema.randomAnsServer.insertMany(toInsert).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
                 }
-                rply.text = translate('random_ans.admin_done', { count: dataList.length });
+                rply.text = translate('random_ans.server_migrate_done', { count: dataList.length });
                 return rply
             }
-        case /(^[.]ras$)/i.test(mainMsg[0]) && /^(delete)$/i.test(mainMsg[1]):
+        case /(^[.]ras$)/i.test(mainMsg[0]) && /^(del|delete)$/i.test(mainMsg[1]):
             {
                 if (!isAdminUser(userid)) return rply;
-                const target = mainMsg.slice(2);
-                let dataList = await schema.randomAnsServer.deleteMany(
-                    {
-                        "serial": isNumber(target)
-                    }
-                ).catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
-                rply.text = translate('random_ans.admin_done', { count: dataList.n });
+                if (!mainMsg[2]) {
+                    rply.text = translate('random_ans.server_delete_usage');
+                    return rply;
+                }
+                const target = escapeRegExp(mainMsg).slice(2);
+                const titleFilter = {
+                    "title": { $regex: new RegExp('^(' + target.join('|') + ')$', "i") }
+                };
+                const matched = await schema.randomAnsServer.find(titleFilter).lean()
+                    .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                if (!matched || matched.length === 0) {
+                    rply.text = translate('random_ans.server_delete_not_found', {
+                        name: mainMsg.slice(2).join(' ')
+                    });
+                    return rply;
+                }
+                await schema.randomAnsServer.deleteMany(titleFilter)
+                    .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason));
+                rply.text = matched.map(doc => translate('random_ans.server_delete_success', {
+                    name: doc.title,
+                    serial: doc.serial,
+                    count: (doc.answer || []).length
+                })).join('\n');
                 return rply
             }
         case /(^[.](r|)ras(\d+|)$)/i.test(mainMsg[0]) && /\S/i.test(mainMsg[0]) && /^(?!(add|del|show)$)/ig.test(mainMsg[1]): {
@@ -937,23 +1039,6 @@ async function replaceAsync(str, regex, asyncFn) {
 }
 
 
-function findTheNextSerial(list) {
-    if (list.length === 0) return 1;
-    let serialList = []
-    for (let index = 0; index < list.length; index++) {
-        serialList.push(list[index].serial);
-    }
-    serialList.sort(function (a, b) {
-        return a - b;
-    });
-    //[1,2,4,5]
-    for (let index = 0; index < serialList.length - 1; index++) {
-        if (serialList[index] !== (index + 1)) {
-            return index + 1
-        }
-    }
-    return serialList[list.length - 1] + 1;
-}
 
 function isNumber(list) {
     let numberlist = [];
@@ -1152,8 +1237,8 @@ const discordCommand = [
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('del')
-                    .setDescription('管理員專用：按序號刪除全服務器骰子')
-                    .addStringOption(option => option.setName('serials').setDescription('序號，可填多個並以空格分隔').setRequired(true))),
+                    .setDescription('管理員專用：按標題刪除全服務器骰子')
+                    .addStringOption(option => option.setName('name').setDescription('骰子名稱，可填多個並以空格分隔').setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             
@@ -1181,8 +1266,8 @@ const discordCommand = [
                     return `.ras change`;
                 }
                 case 'del': {
-                    const serials = interaction.options.getString('serials');
-                    return `.ras delete ${serials}`;
+                    const delName = interaction.options.getString('name');
+                    return `.ras del ${delName}`;
                 }
             }
         }

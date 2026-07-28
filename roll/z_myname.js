@@ -6,9 +6,11 @@ const { SlashCommandBuilder } = require('discord.js');
 const VIP = require('../modules/patreon/veryImportantPerson');
 const limitAtArr = [10, 20, 50, 200, 200, 200, 200, 200];
 const schema = require('../modules/db/schema.js');
+const { findNextSerial, ensureSerials, findBySerial } = require('../modules/db/serial.js');
 const { getT, resolveHelp, resolveGameName, DEFAULT_LOCALE } = require('../modules/i18n/roll-i18n.js');
 const i18n = require('../modules/i18n/i18n.js');
 const MAX_HISTORY_RECORDS = 20;
+const MYNAME_SERIAL_START = 1;
 const opt = {
     upsert: true,
     runValidators: true,
@@ -90,7 +92,8 @@ const rollDiceCommand = async function ({
             rply.text = checkBotname(botname, translate);
             if (rply.text) return rply;
 
-            let myNames = await schema.myName.find({ userID: userid }).lean();
+            let myNames = await ensureMyNameSerials(userid);
+            sortMyNamesBySerial(myNames);
             if (groupid) {
                 let result = showNames(myNames, translate);
                 if (typeof result == 'string') rply.text = result;
@@ -100,19 +103,30 @@ const rollDiceCommand = async function ({
             }
             return rply;
         }
-        case /^\.myname+$/i.test(mainMsg[0]) && /^delete$/i.test(mainMsg[1]): {
+        case /^\.myname+$/i.test(mainMsg[0]) && /^(del|delete)$/i.test(mainMsg[1]): {
             rply.text = checkBotname(botname, translate);
             if (rply.text) return rply;
-            if (!mainMsg[2] || !/\d+/i.test(mainMsg[2])) {
+            if (!mainMsg[2]) {
                 rply.text = translate('myname.delete_usage');
                 return rply
             }
-            if (/\d+/.test(mainMsg[2])) {
+            if (/^\d+$/.test(mainMsg[2])) {
                 try {
-                    let myNames = await schema.myName.find({ userID: userid })
-                    let result = await myNames[mainMsg[2] - 1].deleteOne();
-                    if (result) {
-                        rply.text = translate('myname.delete_success', { name: result.name })
+                    const myNames = await ensureMyNameSerials(userid);
+                    const myName = findBySerial(myNames, mainMsg[2]);
+                    if (!myName) {
+                        rply.text = translate('myname.delete_error');
+                        return rply;
+                    }
+                    const result = await schema.myName.deleteOne({ _id: myName._id });
+                    if (result.deletedCount) {
+                        rply.text = translate('myname.delete_success', {
+                            name: myName.name,
+                            serial: myName.serial,
+                            shortNameLine: myName.shortName
+                                ? translate('myname.delete_success_alias', { shortName: myName.shortName })
+                                : ''
+                        })
                         return rply
                     } else {
                         rply.text = translate('myname.delete_error');
@@ -128,7 +142,13 @@ const rollDiceCommand = async function ({
             try {
                 let myNames = await schema.myName.findOneAndDelete({ userID: userid, shortName: mainMsg[2] })
                 if (myNames) {
-                    rply.text = translate('myname.delete_success', { name: myNames })
+                    rply.text = translate('myname.delete_success', {
+                        name: myNames.name,
+                        serial: myNames.serial,
+                        shortNameLine: myNames.shortName
+                            ? translate('myname.delete_success_alias', { shortName: myNames.shortName })
+                            : ''
+                    })
                     rply.quotes = true;
                     return rply
                 } else {
@@ -152,14 +172,6 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-            let lv = await VIP.viplevelCheckUser(userid);
-            let limit = limitAtArr[lv];
-            let myNamesLength = await schema.myName.countDocuments({ userID: userid });
-            if (myNamesLength >= limit) {
-                rply.text = translate('myname.limit_reached', { limit });
-                rply.quotes = true;
-                return rply;
-            }
             let checkName = checkMyName(inputStr);
             if (!checkName || !checkName.name || !checkName.imageLink) {
                 rply.text = translate('myname.input_error');
@@ -173,17 +185,44 @@ const rollDiceCommand = async function ({
             }
             let myName = {};
             try {
+                const existingMyName = await schema.myName.findOne({ userID: userid, name: checkName.name }).lean();
+                if (!existingMyName) {
+                    const lv = await VIP.viplevelCheckUser(userid);
+                    const limit = limitAtArr[lv];
+                    const myNamesLength = await schema.myName.countDocuments({ userID: userid });
+                    if (myNamesLength >= limit) {
+                        rply.text = translate('myname.limit_reached', { limit });
+                        rply.quotes = true;
+                        return rply;
+                    }
+                }
+                const myNames = await ensureMyNameSerials(userid);
+                const serial = findNextSerial(myNames.map(name => name.serial), MYNAME_SERIAL_START);
                 myName = await schema.myName.findOneAndUpdate(
                     { userID: userid, name: checkName.name },
-                    { imageLink: checkName.imageLink, shortName: checkName.shortName },
+                    {
+                        $set: { imageLink: checkName.imageLink, shortName: checkName.shortName },
+                        $setOnInsert: { serial }
+                    },
                     opt
                 );
             } catch {
                 rply.text = translate('myname.add_error');
                 return rply;
             }
-            rply.text = translate('myname.add_success', { name: myName.name });
-            let myNames = await schema.myName.find({ userID: userid }).lean();
+            const useHint = myName.shortName
+                ? `.me${myName.serial} / .me${myName.shortName}`
+                : `.me${myName.serial}`;
+            rply.text = translate('myname.add_success', {
+                name: myName.name,
+                serial: myName.serial,
+                shortNameLine: myName.shortName
+                    ? translate('myname.add_success_alias', { shortName: myName.shortName })
+                    : '',
+                hint: useHint
+            });
+            let myNames = await ensureMyNameSerials(userid);
+            sortMyNamesBySerial(myNames);
             let nameResult = showName(myNames, myName.name, translate);
             if (groupid) {
                 rply.myNames = [nameResult];
@@ -255,10 +294,8 @@ const rollDiceCommand = async function ({
                 let checkName = checkMeName(mainMsg[0]);
                 let myName;
                 if (typeof checkName == 'number') {
-                    let myNameFind = await schema.myName.find({ userID: userid }).skip(((checkName - 1) < 0 ? 1 : (checkName - 1))).limit(1).lean();
-                    if (myNameFind && myNameFind.length > 0) {
-                        myName = myNameFind[0];
-                    }
+                    await ensureMyNameSerials(userid);
+                    myName = await schema.myName.findOne({ userID: userid, serial: checkName }).lean();
                 }
                 if (!myName) {
                     try {
@@ -385,6 +422,24 @@ function checkMeName(inputStr) {
     return name;
 }
 
+async function ensureMyNameSerials(userID) {
+    const myNames = await schema.myName.find({ userID }).lean();
+    const missingSerials = myNames.filter(name =>
+        typeof name.serial !== 'number' || !Number.isFinite(name.serial)
+    );
+    const { changed } = ensureSerials(myNames, MYNAME_SERIAL_START);
+    if (changed) {
+        await Promise.all(missingSerials.map(name =>
+            schema.myName.updateOne({ _id: name._id }, { $set: { serial: name.serial } })
+        ));
+    }
+    return myNames;
+}
+
+function sortMyNamesBySerial(names) {
+    names.sort((a, b) => a.serial - b.serial);
+}
+
 function showNames(names, translate) {
     let reply = [];
     if (names && names.length > 0) {
@@ -392,8 +447,8 @@ function showNames(names, translate) {
             let name = names[index];
             reply[index] = {
                 content: name.shortName
-                    ? translate('myname.show_embed_alias', { index: index + 1, shortName: name.shortName })
-                    : translate('myname.show_embed_name', { index: index + 1, name: name.name }),
+                    ? translate('myname.show_embed_alias', { index: name.serial, shortName: name.shortName })
+                    : translate('myname.show_embed_name', { index: name.serial, name: name.name }),
                 username: name.name,
                 avatarURL: name.imageLink
             }
@@ -409,13 +464,13 @@ function showNamesInText(names, translate) {
             let name = names[index];
             reply += name.shortName
                 ? translate('myname.show_text_alias', {
-                    index: index + 1,
+                    index: name.serial,
                     name: name.name,
                     shortName: name.shortName,
                     image: name.imageLink
                 })
                 : translate('myname.show_text_name', {
-                    index: index + 1,
+                    index: name.serial,
                     name: name.name,
                     image: name.imageLink
                 });
@@ -433,8 +488,8 @@ function showName(names, targetName, translate) {
             if (names[index].name == targetName)
                 reply = {
                     content: name.shortName
-                        ? translate('myname.show_one_alias', { index: index + 1, shortName: name.shortName })
-                        : translate('myname.show_one_name', { index: index + 1, name: name.name }),
+                        ? translate('myname.show_one_alias', { index: name.serial, shortName: name.shortName })
+                        : translate('myname.show_one_name', { index: name.serial, name: name.name }),
                     username: name.name,
                     avatarURL: name.imageLink
                 }
@@ -564,6 +619,14 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('target')
                             .setDescription('要刪除的角色序號或簡稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('del')
+                    .setDescription('刪除角色')
+                    .addStringOption(option =>
+                        option.setName('target')
+                            .setDescription('要刪除的角色序號或簡稱')
                             .setRequired(true))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
@@ -580,9 +643,9 @@ const discordCommand = [
                 return `.myname show`;
             }
             
-            if (subcommand === 'delete') {
+            if (subcommand === 'delete' || subcommand === 'del') {
                 const target = interaction.options.getString('target');
-                return `.myname delete ${target}`;
+                return `.myname del ${target}`;
             }
         }
     },

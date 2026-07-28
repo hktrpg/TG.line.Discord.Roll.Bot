@@ -11,6 +11,7 @@ const SIX_MINUTES = 360_000;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
 Plurk_Client.request('Users/me')
     .then(profile => {
         console.log(`[Plurk] Plurk 名稱: ${profile.full_name}`);
@@ -116,7 +117,10 @@ Plurk_Client.on('new_plurk', async response => {
         message = response.content_raw,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
-    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    let target = true;
+    if (!parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+        target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    }
 
     if (!target) {
         await nonDice(groupid, userid, displayname, response.plurk_id)
@@ -135,7 +139,7 @@ Plurk_Client.on('new_plurk', async response => {
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
     const t = i18n.createTranslator(locale);
-    let rplyVal = await exports.analytics.parseInput({
+    let rplyVal = await parseRouter.parseInput({
         inputStr: message.replace(/^\s*@hktrpg\s+/i, ''),
         groupid: groupid,
         userid: userid,
@@ -173,7 +177,10 @@ Plurk_Client.on('new_response', async response => {
         userrole = (response.plurk.owner_id == response.response.user_id) ? 3 : 1,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
-    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    let target = true;
+    if (!parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+        target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    }
 
     if (!target) {
         await nonDice(groupid, userid, displayname, response.plurk_id)
@@ -194,7 +201,7 @@ Plurk_Client.on('new_response', async response => {
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
     const t = i18n.createTranslator(locale);
-    let rplyVal = await exports.analytics.parseInput({
+    let rplyVal = await parseRouter.parseInput({
         inputStr: inputStr,
         groupid: groupid,
         userid: userid,

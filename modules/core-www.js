@@ -218,6 +218,7 @@ const records = require('./db/records.js');
 const port = process.env.WWWPORT || 20_721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
 
 // ============= Web Server Creation =============
 function createWebServer(options = {}, www) {
@@ -363,7 +364,7 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        rplyVal = await exports.analytics.parseInput({
+        rplyVal = await parseRouter.parseInput({
             inputStr: mainMsg.join(' '),
             botname: "Api",
             locale,
@@ -371,7 +372,7 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
         });
     } else {
         if (channelKeyword == '') {
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "Api",
                 locale,
@@ -472,7 +473,7 @@ www.get('/api/local', async (req, res) => {
         if (mainMsg && mainMsg.length > 0) {
             const processedInput = mainMsg.join(' ');
             const locale = resolveWwwLocale(req);
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: processedInput,
                 botname: "Local",
                 locale,
@@ -2052,7 +2053,7 @@ if (io) {
             let rplyVal = {}
             let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
             if (result && result.characterReRoll) {
-                rplyVal = await exports.analytics.parseInput({
+                rplyVal = await parseRouter.parseInput({
                     inputStr: result.characterReRollItem,
                     botname: "WWW",
                     locale: socket._hktrpgLocale,
@@ -2072,7 +2073,7 @@ if (io) {
             let rplyVal = {}
             let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
             if (result && result.characterReRoll) {
-                rplyVal = await exports.analytics.parseInput({
+                rplyVal = await parseRouter.parseInput({
                     inputStr: result.characterReRollItem,
                     botname: "WWW",
                     locale: socket._hktrpgLocale,
@@ -2451,7 +2452,7 @@ records.on("new_message", async (message) => {
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "WWW",
                 locale,
@@ -2460,7 +2461,7 @@ records.on("new_message", async (message) => {
 
         } else {
             if (channelKeyword == '') {
-                rplyVal = await exports.analytics.parseInput({
+                rplyVal = await parseRouter.parseInput({
                     inputStr: mainMsg.join(' '),
                     botname: "WWW",
                     locale,

@@ -10,19 +10,20 @@ const line = require('@line/bot-sdk');
 const candle = require('../modules/misc/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
+const agenda = require('../modules/runtime/schedule');
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
+const darkRolling = require('./roll-worker/dark-rolling');
 const EXPUP = require('./chat/level').EXPUP || function () {};
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const agenda = require('../modules/runtime/schedule');
 const rollText = require('./chat/getRoll').rollText;
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
-const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const courtMessage = require('./chat/logs').courtMessage || function () {};
 // create LINE SDK client (CommonJS format for v10.x)
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
@@ -143,8 +144,10 @@ let handleEvent = async function (event) {
 		await nonDice(event);
 		return null;
 	}
-	let target = '';
-	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+	let target = true;
+	if (inputStr && !parseRouter.shouldSkipLocalFindRollList('Line')) {
+		target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+	}
 	if (!target) {
 		await nonDice(event);
 		return null;
@@ -174,7 +177,7 @@ let handleEvent = async function (event) {
 	let rplyVal = {};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
-		rplyVal = await exports.analytics.parseInput({
+		rplyVal = await parseRouter.parseInput({
 			inputStr: inputStr,
 			groupid: roomorgroupid,
 			userid: userid,
@@ -187,7 +190,7 @@ let handleEvent = async function (event) {
 		})
 	} else {
 		if (channelKeyword == '') {
-			rplyVal = await exports.analytics.parseInput({
+			rplyVal = await parseRouter.parseInput({
 				inputStr: inputStr,
 				groupid: roomorgroupid,
 				userid: userid,
@@ -225,7 +228,7 @@ let handleEvent = async function (event) {
 	if (!rplyVal.text) {
 		return;
 	}
-	if (privatemsg > 1 && TargetGM) {
+	if (privatemsg > 1 && process.env.mongoURL) {
 		let groupInfo = await privateMsgFinder(roomorgroupid) || [];
 		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
@@ -543,11 +546,7 @@ function SendToId(targetid, Reply) {
 	});
 }
 async function privateMsgFinder(channelid) {
-	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-		data.groupid == channelid
-	)
-	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
+	return darkRolling.getGroupGms(channelid);
 }
 async function nonDice(event) {
 	try {

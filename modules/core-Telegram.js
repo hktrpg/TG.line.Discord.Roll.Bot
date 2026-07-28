@@ -8,6 +8,8 @@ const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
 const rollText = require('./chat/getRoll').rollText;
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
+const darkRolling = require('./roll-worker/dark-rolling');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./chat/message');
@@ -18,7 +20,6 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 let robotName = ""
 
 
-let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./chat/level').EXPUP || function () { };
 const courtMessage = require('./chat/logs').courtMessage || function () { };
 
@@ -73,10 +74,13 @@ TGclient.on('message:text', (ctx) => {
             }
         })();
 
-        let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
-        if (!target) {
-            await nonDice(ctx);
-            return;
+        let target = true;
+        if (!parseRouter.shouldSkipLocalFindRollList('Telegram')) {
+            target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+            if (!target) {
+                await nonDice(ctx);
+                return;
+            }
         }
 
         let displayname = '',
@@ -112,7 +116,7 @@ TGclient.on('message:text', (ctx) => {
         // If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
         if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
             mainMsg.shift();
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: inputStr,
                 groupid: groupid,
                 userid: userid,
@@ -128,7 +132,7 @@ TGclient.on('message:text', (ctx) => {
             })
         } else {
             if (channelKeyword == '') {
-                rplyVal = await exports.analytics.parseInput({
+                rplyVal = await parseRouter.parseInput({
                     inputStr: inputStr,
                     groupid: groupid,
                     userid: userid,
@@ -201,7 +205,7 @@ TGclient.on('message:text', (ctx) => {
             return;
         }
         //TGcountroll++;
-        if (privatemsg > 1 && TargetGM) {
+        if (privatemsg > 1 && process.env.mongoURL) {
             let groupInfo = await privateMsgFinder(groupid) || [];
             for (const item of groupInfo) {
                 TargetGMTempID.push(item.userid);
@@ -405,11 +409,7 @@ TGclient.on('channel_post', async (ctx) => {
 })
 
 async function privateMsgFinder(groupid) {
-    if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-    let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-        data.groupid == groupid
-    )
-    return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
+    return darkRolling.getGroupGms(groupid);
 }
 
 if (agenda && agenda.agenda) {

@@ -271,6 +271,11 @@ async function loadModules(moduleManager) {
         await Promise.all(modulePromises);
         const loaded = [...moduleManager.loadedModules];
         logger.info(`Loaded modules (${loaded.length}): ${loaded.join(', ')}`);
+        try {
+            require('./modules/roll-worker/parse-router').logParseMode(logger);
+        } catch (error) {
+            logger.warn(`ParseMode log skipped: ${error.message}`);
+        }
     } catch (error) {
         errorHandler(error, 'Reading modules directory');
         throw error;

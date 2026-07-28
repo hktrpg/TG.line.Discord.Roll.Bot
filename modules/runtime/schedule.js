@@ -142,6 +142,12 @@ if (process.env.mongoURL) {
                 }
             }
 
+            // Roll Worker must not process Agenda jobs (platform Send handlers live on gateways).
+            if (process.env.ROLL_WORKER_MODE === 'true') {
+                console.log('[Schedule] ROLL_WORKER_MODE: Agenda processor not started (schedule API only)');
+                return;
+            }
+
             await agenda.start();
             // Opt-in only: cancel legacy hardcoded daily job, then sync from DB if enabled.
             await syncDiscordMaintenanceSchedule();

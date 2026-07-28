@@ -16,6 +16,8 @@ const dbConnector = require('../db/connector.js');
 const checkMongodb = require('../db/watchdog.js');
 
 exports.analytics = require('../analytics');
+const parseRouter = require('../roll-worker/parse-router');
+parseRouter.logParseMode(console);
 const i18n = require('../i18n/i18n.js');
 const debugMode = !!process.env.DEBUG;
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
@@ -3588,7 +3590,7 @@ async function handlingResponMessage(message, answer = '') {
 		// After message arrives, automatically jump to analytics.js for dice group analysis
 		// If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
 
-		rplyVal = await exports.analytics.parseInput({
+		rplyVal = await parseRouter.parseInput({
 			inputStr: inputStr,
 			groupid: groupid,
 			userid: userid,
@@ -3601,6 +3603,7 @@ async function handlingResponMessage(message, answer = '') {
 			discordClient: client,
 			discordMessage: message,
 			titleName: titleName,
+			channelType: message?.channel?.type,
 			locale: message?._hktrpgLocale,
 			t: message?._hktrpgT
 		});
@@ -4369,7 +4372,7 @@ async function tallyStPoll(messageId, fallbackData) {
 							return (run && run.starterID) ? String(run.starterID) : '';
 						} catch { return ''; }
 					})();
-					const rplyVal = await exports.analytics.parseInput({
+					const rplyVal = await parseRouter.parseInput({
 						inputStr: '.st pause',
 						groupid: data.groupid,
 						userid: starterId || '0',
@@ -4468,7 +4471,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return (run && run.starterID) ? String(run.starterID) : '';
 					} catch { return ''; }
 				})();
-				const rplyVal = await exports.analytics.parseInput({
+				const rplyVal = await parseRouter.parseInput({
 					inputStr: nextCmd,
 					groupid: data.groupid,
 					userid: starterId || '0',

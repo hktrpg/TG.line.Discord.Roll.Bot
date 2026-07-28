@@ -70,6 +70,7 @@ class RollContext {
 		this.membercount = params.membercount || 0;
 		this.discordClient = params.discordClient || null;
 		this.discordMessage = params.discordMessage || null;
+		this.channelType = params.channelType ?? params.discordMessage?.channel?.type ?? null;
 		this.titleName = params.titleName || '';
 		this.tgDisplayname = params.tgDisplayname || '';
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
@@ -91,6 +92,7 @@ class RollContext {
 			membercount: this.membercount,
 			discordClient: this.discordClient,
 			discordMessage: this.discordMessage,
+			channelType: this.channelType,
 			titleName: this.titleName,
 			tgDisplayname: this.tgDisplayname,
 			locale: this.locale,
@@ -107,7 +109,7 @@ const parseInput = async (params) => {
 	await i18n.init();
 
 	if (!params.locale) {
-		const channelType = params.discordMessage?.channel?.type;
+		const channelType = params.channelType ?? params.discordMessage?.channel?.type;
 		context.locale = await i18n.resolveLocale({
 			groupid: context.groupid,
 			userid: context.userid,
@@ -149,6 +151,9 @@ const parseInput = async (params) => {
 	// rolldice 擲骰功能
 	try {
 		let rollDiceResult = await rolldice(context);
+		if (rollDiceResult?.needsLocal) {
+			return rollDiceResult;
+		}
 		if (rollDiceResult) {
 			result = { ...result, ...rollDiceResult };
 		}
@@ -167,6 +172,9 @@ const parseInput = async (params) => {
 			...context.toParams(),
 			result
 		});
+		if (cmdFunctionResult?.needsLocal) {
+			return cmdFunctionResult;
+		}
 		if (cmdFunctionResult) {
 			result = { ...result, ...cmdFunctionResult };
 		}
@@ -178,6 +186,9 @@ const parseInput = async (params) => {
 			...context.toParams(),
 			result
 		});
+		if (characterReRoll?.needsLocal) {
+			return characterReRoll;
+		}
 		const t = context.t;
 		if (result.text && characterReRoll.text) {
 			result.text = t('character.reroll_combined', {
@@ -208,8 +219,26 @@ const rolldice = async (context) => {
 	if (!context.groupid) {
 		context.groupid = '';
 	}
-	let target = findRollList(context.mainMsg);
+	const moduleName = findRollModuleName(context.mainMsg);
+	let target = moduleName ? getRollModule(moduleName) : null;
 	if (!target) return null;
+
+	// On Roll Worker, Discord-coupled modules cannot run without a live client.
+	if (
+		process.env.ROLL_WORKER_MODE === 'true'
+		&& context.botname === 'Discord'
+		&& !context.discordClient
+	) {
+		try {
+			const { isRemoteAllowed } = require('./roll-worker/route-table');
+			if (!isRemoteAllowed(moduleName, 'Discord')) {
+				return { needsLocal: true, moduleName };
+			}
+		} catch {
+			return { needsLocal: true, moduleName };
+		}
+	}
+
 	(debugMode) ? console.log('[analytics]            trigger:', context.inputStr) : '';
 
 	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
@@ -245,47 +274,54 @@ const rolldice = async (context) => {
 	return tempsave || {};
 }
 
-function findRollList(mainMsg) {
-	// Return early if mainMsg is null/undefined or empty
-	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return;
+function findRollModuleName(mainMsg) {
+	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return null;
 
-	// Check if first element matches pattern and shift if true
-	if (mainMsg[0] && /^\.(\d{1,2})$/.test(mainMsg[0])) {
-		mainMsg.shift();
+	const msg = [...mainMsg];
+	if (msg[0] && /^\.(\d{1,2})$/.test(msg[0])) {
+		msg.shift();
+	}
+	if (!msg[1]) msg[1] = '';
+
+	if (msg[0] && (msg[0].toLowerCase() === '.me' || msg[0].toLowerCase() === '.mee')) {
+		return 'z_myname';
 	}
 
-	// Set default empty string for mainMsg[1] if undefined
-	if (!mainMsg[1]) mainMsg[1] = '';
-
-	// Special handling for .me and .mee commands - make sure they go to z_myname
-	if (mainMsg[0] && (mainMsg[0].toLowerCase() === '.me' || mainMsg[0].toLowerCase() === '.mee')) {
-		const zMyname = getRollModule('z_myname');
-		if (zMyname) return zMyname;
-	}
-
-	// Iterate through available modules
-	for (const [moduleName] of rollModules) {
-		const module = getRollModule(moduleName);
+	for (const [moduleKey] of rollModules) {
+		const module = getRollModule(moduleKey);
 		if (!module || !module.prefixs || typeof module.prefixs !== 'function') continue;
 
 		const prefixList = module.prefixs();
 		if (!Array.isArray(prefixList)) continue;
 
 		const match = prefixList.some(prefix => {
-			// Check if mainMsg[0] exists and matches first prefix
-			if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
-			const firstMatch = mainMsg[0].match(prefix.first);
+			if (!msg[0] || !prefix || !prefix.first) return false;
+			const firstMatch = msg[0].match(prefix.first);
 			if (!firstMatch) return false;
-
-			// Check second prefix if it exists
 			if (prefix.second === null) return true;
-			return mainMsg[1] && mainMsg[1].match(prefix.second);
+			return msg[1] && msg[1].match(prefix.second);
 		});
 
-		if (match) return module;
+		if (match) {
+			const info = rollModules.get(moduleKey);
+			return info?.name || moduleKey;
+		}
 	}
 
 	return null;
+}
+
+function findRollList(mainMsg) {
+	const moduleName = findRollModuleName(mainMsg);
+	if (!moduleName) return null;
+
+	// Keep legacy mutation: strip .N repeat prefix from caller's mainMsg
+	if (mainMsg[0] && /^\.(\d{1,2})$/.test(mainMsg[0])) {
+		mainMsg.shift();
+	}
+	if (!mainMsg[1]) mainMsg[1] = '';
+
+	return getRollModule(moduleName);
 }
 
 /** HK calendar month bounds (UTC+8). `month` is 1–12. */
@@ -766,3 +802,4 @@ function z_stop(mainMsg, groupid) {
 module.exports.debugMode = debugMode;
 module.exports.parseInput = parseInput;
 module.exports.findRollList = findRollList;
+module.exports.findRollModuleName = findRollModuleName;

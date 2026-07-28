@@ -10,6 +10,11 @@
   "main": "index.js",
   "scripts": {
     "start": "node --max-old-space-size=3072 index.js",
+    "start:roll-worker": "node roll-worker.js",
+    "start:discord": "node --max-old-space-size=3072 index.js",
+    "start:www": "node --max-old-space-size=2048 index.js",
+    "start:platforms": "node --max-old-space-size=2048 index.js",
+    "start:whatsapp": "node --max-old-space-size=2048 index.js",
     "test": "jest",
     "test:lang": "jest test/i18n.test.js test/lang-keys.test.js",
     "test:unit": "jest --testPathIgnorePatterns=integration",

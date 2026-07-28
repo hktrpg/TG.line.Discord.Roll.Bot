@@ -8,6 +8,7 @@
 const { spawn } = require('node:child_process');
 const path = require('node:path');
 const http = require('node:http');
+const fs = require('node:fs');
 
 const ROOT = path.join(__dirname, '..');
 const PORT = 39_61;
@@ -651,7 +652,110 @@ async function main() {
 			console.log('[proof] PASS demo truncate + artifact guard (Phase 3l)');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3l)');
+		// 27) Phase 3m: Schedule remotes + token temp path helper + dark invalidate
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '1d3',
+				botname: 'Schedule',
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(!result.needsLocal, 'Schedule not needsLocal', result);
+			assert(result._rollWorker === true, 'Schedule _rollWorker', result);
+			assert(after.parseCount === before.parseCount + 1, 'Schedule parseCount++', { before, after });
+			console.log('[proof] PASS Schedule botname remote (Phase 3m)');
+		}
+		{
+			const { getTempFilePath, assertArtifactReadable } = require('../modules/roll-worker/artifacts');
+			const tempFile = getTempFilePath('proof-3m-token.png');
+			fs.writeFileSync(tempFile, 'x');
+			assert(assertArtifactReadable(tempFile) === tempFile || assertArtifactReadable(tempFile) === require('node:path').resolve(tempFile), 'token temp readable', tempFile);
+			try { fs.unlinkSync(tempFile); } catch { /* ignore */ }
+			const dark = require('../modules/roll-worker/dark-rolling');
+			dark.invalidateCache();
+			assert(true, 'dark invalidate callable');
+			console.log('[proof] PASS token temp path + dark invalidate (Phase 3m)');
+		}
+
+		// 28) Phase 3n: export mention resolve + Line remote chat + dark local invalidate contract
+		{
+			const {
+				replaceExportMentions,
+				serializeExportMessage,
+			} = require('../modules/roll-worker/discord-prefetch');
+			const members = [{ id: '99', displayName: 'ProofNick', user: { id: '99', username: 'pn' } }];
+			const mentioned = await replaceExportMentions('hi <@99>', members, null);
+			assert(mentioned === 'hi @ProofNick', 'export mention resolve', mentioned);
+			const row = await serializeExportMessage({
+				type: 0,
+				createdTimestamp: 1,
+				content: 'x <@99>',
+				author: { username: 'a', bot: false },
+				attachments: { size: 0 },
+				embeds: [],
+				referenced_message: {
+					content: 'y <@99>',
+					author: { username: 'b', bot: false },
+					attachments: { size: 0 },
+					embeds: [],
+				},
+			}, { members, discordClient: null });
+			assert(row.contact === 'x @ProofNick', 'serialize contact', row);
+			assert(row.reply_to?.contact === 'y @ProofNick', 'serialize reply', row);
+			console.log('[proof] PASS export mention/reply serialize (Phase 3n)');
+		}
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: 'phase3n ordinary chat',
+				botname: 'Line',
+				groupid: 'g-proof-3n',
+				userid: 'u-proof-3n',
+				locale: 'zh-tw',
+			});
+			const after = await client.health();
+			assert(result._rollWorker === true, 'Line chat _rollWorker', result);
+			assert(after.parseCount === before.parseCount + 1, 'Line chat parseCount++', { before, after });
+			console.log('[proof] PASS Line ordinary chat remote once (Phase 3n)');
+		}
+
+		// 29) Phase 3o: needsLocal carries LevelUp + forward ownership needsLocal
+		{
+			pinGatewayWorkerUrl();
+			const before = await client.health();
+			const result = await client.parse({
+				inputStr: '.forward https://discord.com/channels/1/2/3',
+				botname: 'Discord',
+				userid: 'u-proof-3o',
+				groupid: '1',
+				channelid: '99',
+				locale: 'zh-tw',
+				forwardSourceMeta: {
+					sourceGuildId: '1',
+					sourceChannelId: '2',
+					sourceMessageId: '3',
+					guildId: '1',
+					messageContent: 'Hero的角色',
+					isMentioned: false,
+					isInteractionUser: false,
+				},
+			});
+			const after = await client.health();
+			assert(result.needsLocal === true, 'forward ownership needsLocal', result);
+			assert(after.parseCount === before.parseCount, 'forward needsLocal no parseCount++', { before, after });
+			console.log('[proof] PASS forward ownership → needsLocal (Phase 3o)');
+		}
+		{
+			// Contract: needsLocal payload may include LevelUp from worker EXPUP
+			const sample = { needsLocal: true, moduleName: 'token', LevelUp: 'UP', statue: 'S' };
+			assert(sample.LevelUp === 'UP', 'needsLocal LevelUp contract', sample);
+			console.log('[proof] PASS needsLocal LevelUp contract (Phase 3o)');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3o)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

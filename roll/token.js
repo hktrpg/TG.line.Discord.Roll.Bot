@@ -20,6 +20,7 @@ const { imgbox } = require("imgbox");
 const { getPool } = require('../modules/db/pool');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const imagePool = getPool('image');
+const { getTempFilePath } = require('../modules/roll-worker/artifacts');
 
 const gameName = function (params = {}) {
     return resolveGameName(params, 'token.game_name', '【製作Token】.token .token2 .token3 .tokenupload');
@@ -173,7 +174,7 @@ const circleTokernMaker = async (discordMessage, inputStr, mainMsg, discordClien
             rply.text = failWithHelp(translate, i18nParams)
             return rply;
         }
-        rply.sendImage = `./temp/finally_${name}`;
+        rply.sendImage = getTempFilePath(`finally_${name}`);
         return rply;
     } catch (error) {
         console.error('error', error)
@@ -220,7 +221,7 @@ const circleTokernMaker3 = async (discordMessage, inputStr, mainMsg, discordClie
             rply.text = failWithHelp(translate, i18nParams)
             return rply;
         }
-        rply.sendImage = `./temp/finally_${name}`;
+        rply.sendImage = getTempFilePath(`finally_${name}`);
         return rply;
     } catch (error) {
         console.error('error', error)
@@ -266,7 +267,7 @@ const polaroidTokernMaker = async (discordMessage, inputStr, mainMsg, discordCli
             rply.text = failWithHelp(translate, i18nParams);
             return rply;
         }
-        rply.sendImage = `./temp/finally_${name}`;
+        rply.sendImage = getTempFilePath(`finally_${name}`);
         return rply;
     } catch (error) {
         console.error('error', error)
@@ -385,8 +386,8 @@ const tokernMaker = async (imageLocation, name) => {
     try {
 
         let image = await imagePool.run(() => sharp(imageLocation).resize({ height: 387, width: 375, fit: 'outside' }))
-        await imagePool.run(() => image.toFile(`./temp/new_${name}`))
-        let newImage = await sharp((`./temp/new_${name}`))
+        await imagePool.run(() => image.toFile(getTempFilePath(`new_${name}`)))
+        let newImage = await sharp((getTempFilePath(`new_${name}`)))
         let metadata = await imagePool.run(() => newImage.metadata());
         const width = Math.min(metadata.width, 375);
         const height = Math.min(metadata.height, 387);
@@ -399,7 +400,7 @@ const tokernMaker = async (imageLocation, name) => {
                 ]
             )
             .toBuffer())
-        fs.unlinkSync(`./temp/new_${name}`);
+        fs.unlinkSync(getTempFilePath(`new_${name}`));
         return newImage;
     } catch (error) {
         console.error('#token 142 error', error)
@@ -411,8 +412,8 @@ const tokernMaker2 = async (imageLocation, name) => {
     try {
 
         let image = await imagePool.run(() => sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' }))
-        await imagePool.run(() => image.toFile(`./temp/new_${name}`))
-        let newImage = await sharp((`./temp/new_${name}`))
+        await imagePool.run(() => image.toFile(getTempFilePath(`new_${name}`)))
+        let newImage = await sharp((getTempFilePath(`new_${name}`)))
         let metadata = await imagePool.run(() => newImage.metadata());
         const width = Math.min(metadata.width, 520);
         const height = Math.min(metadata.height, 520);
@@ -425,7 +426,7 @@ const tokernMaker2 = async (imageLocation, name) => {
                 ]
             )
             .toBuffer())
-        fs.unlinkSync(`./temp/new_${name}`);
+        fs.unlinkSync(getTempFilePath(`new_${name}`));
         return newImage;
     } catch (error) {
         console.error('#token 142 error', error)
@@ -436,8 +437,8 @@ const tokernMaker3 = async (imageLocation, name) => {
     try {
 
         let image = await imagePool.run(() => sharp(imageLocation).resize({ height: 520, width: 520, fit: 'outside' }))
-        await imagePool.run(() => image.toFile(`./temp/new_${name}`))
-        let newImage = await sharp((`./temp/new_${name}`))
+        await imagePool.run(() => image.toFile(getTempFilePath(`new_${name}`)))
+        let newImage = await sharp((getTempFilePath(`new_${name}`)))
         let metadata = await imagePool.run(() => newImage.metadata());
         const width = Math.min(metadata.width, 520);
         const height = Math.min(metadata.height, 520);
@@ -450,7 +451,7 @@ const tokernMaker3 = async (imageLocation, name) => {
                     { input: newImage, blend: 'saturate', top: 0, left: 0 },
                 ])
             .toBuffer())
-        fs.unlinkSync(`./temp/new_${name}`);
+        fs.unlinkSync(getTempFilePath(`new_${name}`));
         return newImage;
     } catch (error) {
         console.error('#token 142 error', error)
@@ -468,7 +469,7 @@ async function addTextOnImage(token, text = '', text2 = '', name) {
                     left: 0,
                 },
             ])
-        await imagePool.run(() => image.toFile(`./temp/finally_${name}`))
+        await imagePool.run(() => image.toFile(getTempFilePath(`finally_${name}`)))
         return true;
     } catch {
         return null;
@@ -486,7 +487,7 @@ async function addTextOnImage2(token, text = ' ', text2 = ' ', name) {
                     left: 0,
                 },
             ])
-        await imagePool.run(() => image.toFile(`./temp/finally_${name}`))
+        await imagePool.run(() => image.toFile(getTempFilePath(`finally_${name}`)))
         return true;
     } catch {
         return null;

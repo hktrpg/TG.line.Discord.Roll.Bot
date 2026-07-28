@@ -229,6 +229,159 @@ async function prefetchChatroomChannel(discordClient, { channelId, userid } = {}
 }
 
 /**
+ * Mirror export.js demoMode: limited users over weekly quota get demo (500 msgs).
+ * Used so Gateway prefetch does not pull full history for those users.
+ * @param {string} userid
+ * @returns {Promise<boolean>}
+ */
+async function resolveExportDemoMode(userid) {
+	if (!userid || !process.env.mongoURL) return false;
+	try {
+		const VIP = require('../patreon/veryImportantPerson');
+		const schema = require('../db/schema.js');
+		const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60_000;
+		const FUNCTION_LIMIT = (process.env.DEBUG)
+			? [99, 99, 99, 99, 99, 99, 99, 99]
+			: [1, 20, 40, 40, 40, 99, 99, 99];
+		const lv = await VIP.viplevelCheckUser(userid);
+		const limit = FUNCTION_LIMIT[lv] ?? 1;
+		const theTime = Date.now();
+		const checkUser = await schema.exportUser.findOne({ userID: userid });
+		if (!checkUser?.lastActiveAt) return false;
+		const userRemainingTime = theTime - new Date(checkUser.lastActiveAt).getTime() - sevenDay;
+		if (userRemainingTime < 0 && checkUser.times >= limit) {
+			return true;
+		}
+	} catch (error) {
+		console.warn('[Prefetch] resolveExportDemoMode failed:', error?.message || error);
+	}
+	return false;
+}
+
+/**
+ * Resolve <@id> mentions using guild member cache / user fetch.
+ */
+async function replaceExportMentions(content, members, discordClient) {
+	if (!content) return content || '';
+	const mentionRegex = /<@!?(\d+)>/g;
+	const matches = [...content.matchAll(mentionRegex)];
+	if (matches.length === 0) return content;
+
+	let replaced = content;
+	for (const match of matches) {
+		const full = match[0];
+		const userId = match[1];
+		let name = '';
+		try {
+			const member = (members || []).find((m) => m.id === userId || m.user?.id === userId);
+			if (member) {
+				name = member.nickname || member.displayName || member.user?.username || '';
+			}
+			if (!name && discordClient?.users?.fetch) {
+				const user = await discordClient.users.fetch(userId).catch(() => null);
+				name = user?.username || '';
+			}
+		} catch {
+			// keep original
+		}
+		if (name) {
+			replaced = replaced.replaceAll(full, `@${name}`);
+		}
+	}
+	return replaced;
+}
+
+function serializeExportAttachments(element) {
+	if (!(element.attachments && element.attachments.size > 0)) return [];
+	return element.attachments.map((a) => (typeof a.toJSON === 'function' ? a.toJSON() : { url: a.url, name: a.name }));
+}
+
+function serializeExportEmbeds(element) {
+	if (!(element.embeds && element.embeds.length > 0)) return [];
+	return element.embeds.map((e) => (typeof e.toJSON === 'function' ? e.toJSON() : e));
+}
+
+/**
+ * Build one export history row (mentions, reply, interaction, system) — mirrors export.js getters.
+ */
+async function serializeExportMessage(element, { members, discordClient }) {
+	const attachments = serializeExportAttachments(element);
+	const embeds = serializeExportEmbeds(element);
+	const content = await replaceExportMentions(element.content || '', members, discordClient);
+
+	let replyData = null;
+	if (element.referenced_message) {
+		const reply = element.referenced_message;
+		replyData = {
+			contact: await replaceExportMentions(reply.content || '', members, discordClient),
+			userName: reply.author?.username || 'unknown',
+			isbot: Boolean(reply.author?.bot),
+			attachments: serializeExportAttachments(reply),
+			embeds: serializeExportEmbeds(reply),
+		};
+	} else if (element.reference?.messageId && element.channel?.messages?.fetch) {
+		try {
+			const reply = await element.channel.messages.fetch(element.reference.messageId);
+			if (reply) {
+				replyData = {
+					contact: await replaceExportMentions(reply.content || '', members, discordClient),
+					userName: reply.author?.username || 'unknown',
+					isbot: Boolean(reply.author?.bot),
+					attachments: serializeExportAttachments(reply),
+					embeds: serializeExportEmbeds(reply),
+				};
+			}
+		} catch {
+			// ignore missing reply
+		}
+	}
+
+	const type = element.type;
+	if (
+		type == null
+		|| type === 0
+		|| type === 19
+		|| type === 'DEFAULT'
+		|| type === 'REPLY'
+	) {
+		return {
+			timestamp: element.createdTimestamp,
+			contact: content,
+			userName: element.author?.username || 'unknown',
+			isbot: Boolean(element.author?.bot),
+			attachments,
+			embeds,
+			reply_to: replyData,
+		};
+	}
+	if (element.interaction?.commandName) {
+		const user = element.interaction.nickname
+			|| element.interaction.user?.username
+			|| 'user';
+		return {
+			timestamp: element.createdTimestamp,
+			contact: `${user} used /${element.interaction.commandName}`,
+			userName: 'System',
+			isbot: true,
+			attachments,
+			embeds,
+			reply_to: replyData,
+		};
+	}
+	return {
+		timestamp: element.createdTimestamp,
+		contact: element.system
+			? (content || `[system type ${type}]`)
+			: (content || `[message type ${type}]`),
+		userName: element.author?.username || 'System',
+		isbot: true,
+		attachments: [],
+		embeds: [],
+		reply_to: replyData,
+	};
+}
+
+/**
  * Export (.discord html|txt): prefetch channel permission + serialized history.
  * Gateway still talks to Discord API; Worker generates HTML/TXT from the payload.
  */
@@ -239,6 +392,7 @@ async function prefetchExportHistory(discordClient, discordMessage, {
 } = {}) {
 	if (!discordClient || !channelid) return null;
 	try {
+		const { DEMO_EXPORT_MESSAGE_LIMIT } = require('./artifacts');
 		const { PermissionFlagsBits } = require('discord.js');
 		let hasReadPermission = false;
 		if (discordMessage?.channel?.permissionsFor && discordMessage?.guild?.members?.me) {
@@ -255,6 +409,10 @@ async function prefetchExportHistory(discordClient, discordMessage, {
 			};
 		}
 
+		const members = discordMessage?.guild?.members?.cache
+			? [...discordMessage.guild.members.cache.values()]
+			: [];
+
 		const sum_messages = [];
 		let last_id;
 		let totalSize = 0;
@@ -264,27 +422,17 @@ async function prefetchExportHistory(discordClient, discordMessage, {
 			const messages = await channel.messages.fetch(options);
 			totalSize += Math.max(messages.size, 0);
 			for (const element of messages.values()) {
-				const attachments = (element.attachments && element.attachments.size > 0)
-					? element.attachments.map((a) => (typeof a.toJSON === 'function' ? a.toJSON() : { url: a.url, name: a.name }))
-					: [];
-				const embeds = (element.embeds && element.embeds.length > 0)
-					? element.embeds.map((e) => (typeof e.toJSON === 'function' ? e.toJSON() : e))
-					: [];
-				sum_messages.push({
-					timestamp: element.createdTimestamp,
-					contact: element.content || '',
-					userName: element.author?.username || 'unknown',
-					isbot: Boolean(element.author?.bot),
-					attachments,
-					embeds,
-					reply_to: null,
-				});
+				// Ensure channel is available for reply fetch fallback
+				if (!element.channel && channel) {
+					element.channel = channel;
+				}
+				sum_messages.push(await serializeExportMessage(element, { members, discordClient }));
 			}
 			const lastMessage = messages.last();
 			if (!lastMessage) break;
 			last_id = lastMessage.id;
 			if (messages.size !== 100) break;
-			if (demoMode && totalSize >= 500) break;
+			if (demoMode && totalSize >= DEMO_EXPORT_MESSAGE_LIMIT) break;
 			if (messageLimit && totalSize >= messageLimit) break;
 		}
 
@@ -387,6 +535,9 @@ module.exports = {
 	prefetchForwardSource,
 	prefetchChatroomChannel,
 	prefetchExportHistory,
+	resolveExportDemoMode,
+	replaceExportMentions,
+	serializeExportMessage,
 	prefetchStoryGroupNames,
 	resolveStoryGroupName,
 };

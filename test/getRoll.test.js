@@ -20,7 +20,7 @@ describe('getRoll.rollText via parseRouter', () => {
 			inputStr: '1d100',
 			botname: 'Telegram',
 			locale: 'zh-tw',
-		}));
+		}), { allowLocalFallback: true });
 	});
 
 	it('keeps original segment when parse returns empty', async () => {

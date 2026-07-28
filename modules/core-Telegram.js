@@ -111,6 +111,7 @@ TGclient.on('message:text', (ctx) => {
         const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
         const t = i18n.createTranslator(locale);
         let rplyVal = {};
+        let didParse = false;
 
         // After message arrives, automatically jump to analytics.js for dice group analysis
         // If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
@@ -129,7 +130,8 @@ TGclient.on('message:text', (ctx) => {
                 tgDisplayname: tgDisplayname,
                 locale,
                 t
-            })
+            });
+            didParse = true;
         } else {
             if (channelKeyword == '') {
                 rplyVal = await parseRouter.parseInput({
@@ -145,7 +147,8 @@ TGclient.on('message:text', (ctx) => {
                     tgDisplayname: tgDisplayname,
                     locale,
                     t
-                })
+                });
+                didParse = true;
             }
         }
 
@@ -155,8 +158,8 @@ TGclient.on('message:text', (ctx) => {
             return await __sendMeMessage({ ctx, rplyVal, userid });
         }
         if (!rplyVal.text && !rplyVal.LevelUp) {
-            // Remote mode skips local findRollList — still award EXP for non-commands.
-            if (parseRouter.shouldSkipLocalFindRollList('Telegram')) {
+            // parseInput already runs EXPUP — only nonDice when keyword gate skipped parse.
+            if (!didParse) {
                 await nonDice(ctx);
             }
             return;

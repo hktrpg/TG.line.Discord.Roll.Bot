@@ -182,7 +182,11 @@ const parseInput = async (params) => {
 	try {
 		let rollDiceResult = await rolldice(context);
 		if (rollDiceResult?.needsLocal) {
-			return rollDiceResult;
+			return {
+				...rollDiceResult,
+				LevelUp: result.LevelUp,
+				statue: result.statue,
+			};
 		}
 		if (rollDiceResult) {
 			result = { ...result, ...rollDiceResult };
@@ -203,7 +207,11 @@ const parseInput = async (params) => {
 			result
 		});
 		if (cmdFunctionResult?.needsLocal) {
-			return cmdFunctionResult;
+			return {
+				...cmdFunctionResult,
+				LevelUp: result.LevelUp,
+				statue: result.statue,
+			};
 		}
 		if (cmdFunctionResult) {
 			result = { ...result, ...cmdFunctionResult };
@@ -217,7 +225,11 @@ const parseInput = async (params) => {
 			result
 		});
 		if (characterReRoll?.needsLocal) {
-			return characterReRoll;
+			return {
+				...characterReRoll,
+				LevelUp: result.LevelUp,
+				statue: result.statue,
+			};
 		}
 		const t = context.t;
 		if (result.text && characterReRoll.text) {
@@ -285,12 +297,18 @@ const rolldice = async (context) => {
 	for (let index = 0; index < rollTimes; index++) {
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
 			let result = await target.rollDiceCommand(context.toParams());
+			if (result?.needsLocal) {
+				return result;
+			}
 			if (result && result.text) {
 				retext += `#${index + 1}： ${result.text.replaceAll('\n', '')}\n`;
 				tempsave = result;
 			}
 		} else {
 			let result = await target.rollDiceCommand(context.toParams());
+			if (result?.needsLocal) {
+				return result;
+			}
 			if (result) {
 				tempsave = result;
 			}

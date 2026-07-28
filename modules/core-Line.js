@@ -175,6 +175,7 @@ let handleEvent = async function (event) {
 	const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
 	const t = i18n.createTranslator(locale);
 	let rplyVal = {};
+	let didParse = false;
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
 		rplyVal = await parseRouter.parseInput({
@@ -187,7 +188,8 @@ let handleEvent = async function (event) {
 			titleName: titleName,
 			locale,
 			t
-		})
+		});
+		didParse = true;
 	} else {
 		if (channelKeyword == '') {
 			rplyVal = await parseRouter.parseInput({
@@ -201,6 +203,7 @@ let handleEvent = async function (event) {
 				locale,
 				t
 			});
+			didParse = true;
 		}
 	}
 
@@ -210,8 +213,8 @@ let handleEvent = async function (event) {
 		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp) {
-		// Remote mode skips local findRollList — still award EXP for non-commands.
-		if (parseRouter.shouldSkipLocalFindRollList('Line')) {
+		// parseInput already runs EXPUP — only nonDice when keyword gate skipped parse.
+		if (!didParse) {
 			await nonDice(event);
 		}
 		return;

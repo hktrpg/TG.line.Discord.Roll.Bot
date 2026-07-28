@@ -3768,6 +3768,8 @@ async function handlingResponMessage(message, answer = '') {
 			const exportTxtPath = assertArtifactReadable(`export/${rplyVal.discordExport}.txt`);
 			if (!exportTxtPath) {
 				console.warn('[Discord] export txt artifact missing:', rplyVal.discordExport);
+				// Skip attach only — keep worker reply text so the user is not left silent.
+				delete rplyVal.discordExport;
 			} else if (message.author && typeof message.author.send === 'function') {
 				message.author.send({
 					content: exportContent,
@@ -3810,19 +3812,20 @@ async function handlingResponMessage(message, answer = '') {
 				password: rplyVal.discordExportHtml[1]
 			});
 			const exportHtmlPath = assertArtifactReadable(`export/${rplyVal.discordExportHtml[0]}.html`);
-			if (message.author && typeof message.author.send === 'function') {
+			const needsLocalHtmlFile = !link || !mongo;
+			if (needsLocalHtmlFile && !exportHtmlPath) {
+				console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
+				// Skip attach only — keep worker reply text.
+				delete rplyVal.discordExportHtml;
+			} else if (message.author && typeof message.author.send === 'function') {
 				if (!link || !mongo) {
-					if (!exportHtmlPath) {
-						console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
-					} else {
-						message.author.send(
-							{
-								content: passwordContent,
-								files: [
-									exportHtmlPath
-								]
-							}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
-					}
+					message.author.send(
+						{
+							content: passwordContent,
+							files: [
+								exportHtmlPath
+							]
+						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
 
 				} else {
 					message.author.send(t('discord.export.channel_log_password_link', {
@@ -3839,16 +3842,12 @@ async function handlingResponMessage(message, answer = '') {
 					}
 
 					if (!link || !mongo) {
-						if (!exportHtmlPath) {
-							console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
-						} else {
-							await message.user.send({
-								content: passwordContent,
-								files: [
-									exportHtmlPath
-								]
-							});
-						}
+						await message.user.send({
+							content: passwordContent,
+							files: [
+								exportHtmlPath
+							]
+						});
 					} else {
 						await message.user.send(t('discord.export.channel_log_password_link', {
 							channelName,

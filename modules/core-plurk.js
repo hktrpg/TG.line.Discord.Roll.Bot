@@ -130,10 +130,21 @@ Plurk_Client.on('new_plurk', async response => {
     if (!message) return;
     let mainMsg = message.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg.length > 1) {
-        if (!/@HKTRPG/i.test(mainMsg[0])) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) {
+            // Worker mode skips findRollList — still award EXP for non-mention chatter.
+            if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+                await nonDice(groupid, userid, displayname, response.plurk_id);
+            }
+            return;
+        }
         mainMsg.shift();
     }
-    else return;
+    else {
+        if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+            await nonDice(groupid, userid, displayname, response.plurk_id);
+        }
+        return;
+    }
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
@@ -191,10 +202,20 @@ Plurk_Client.on('new_response', async response => {
 
 
     if (mainMsg && mainMsg.length > 1) {
-        if (!/@HKTRPG/i.test(mainMsg[0])) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) {
+            if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+                await nonDice(groupid, userid, displayname, response.plurk.plurk_id);
+            }
+            return;
+        }
         mainMsg.shift();
     }
-    else return;
+    else {
+        if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+            await nonDice(groupid, userid, displayname, response.plurk.plurk_id);
+        }
+        return;
+    }
 
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析

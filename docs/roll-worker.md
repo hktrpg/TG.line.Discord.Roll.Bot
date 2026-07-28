@@ -49,7 +49,7 @@ Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job proces
 
 ## Separation status
 
-**Module split is complete (Phase 3 → 3l).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. Phase 3l hardens auth, export demo limits, shared artifacts, and deferred fixshard.
+**Module split is complete (Phase 3 → 3o).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes.
 
 ## Health
 

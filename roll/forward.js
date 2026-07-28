@@ -255,6 +255,10 @@ const rollDiceCommand = async function ({
                 }
 
                 if (hasPrefetch && !isMentioned && !isInteractionUser) {
+                    // Prefetch may fail reply-reference ownership check — Gateway retries with live Discord.
+                    if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                        return { needsLocal: true, moduleName: 'forward' };
+                    }
                     rply.text = translate('forward.not_your_button');
                     return rply;
                 }

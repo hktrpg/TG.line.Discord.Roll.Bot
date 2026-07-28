@@ -92,6 +92,22 @@ describe('roll-worker parse-router', () => {
 		expect(result.text).not.toContain('SYSTEM_BUSY');
 	});
 
+	it('Phase 3m: Schedule falls back to local on worker error (no system_busy)', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+		analytics.findRollModuleName.mockReturnValue('0-advroll');
+
+		const result = await parseRouter.parseInput({
+			inputStr: '1d3',
+			botname: 'Schedule',
+			locale: 'zh-tw',
+		});
+
+		expect(analytics.parseInput).toHaveBeenCalled();
+		expect(result.text).toBe('local-ok');
+		expect(result.text).not.toContain('SYSTEM_BUSY');
+	});
+
 	it('returns i18n busy text for non-Discord when worker errors', async () => {
 		client.isEnabled.mockReturnValue(true);
 		client.parse.mockRejectedValue(new Error('ECONNREFUSED'));

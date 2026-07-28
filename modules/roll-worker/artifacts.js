@@ -60,6 +60,22 @@ function getTempDir() {
 	return path.join(getArtifactRoot(), 'temp') + path.sep;
 }
 
+/** Ensure temp/ exists under artifact root; return absolute dir path. */
+function ensureTempDir() {
+	const dir = getTempDir();
+	fs.mkdirSync(dir, { recursive: true });
+	return dir;
+}
+
+/**
+ * Absolute path for a file under artifact temp/.
+ * @param {string} filename
+ */
+function getTempFilePath(filename) {
+	ensureTempDir();
+	return path.join(getTempDir(), filename);
+}
+
 /**
  * Truncate prefetched export history for limited (demo) users.
  * Matches lots_of_messages_getter_* demo break at 500 messages.
@@ -83,5 +99,7 @@ module.exports = {
 	assertArtifactReadable,
 	getExportDir,
 	getTempDir,
+	ensureTempDir,
+	getTempFilePath,
 	truncateExportHistoryForDemo,
 };

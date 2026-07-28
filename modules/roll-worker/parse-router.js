@@ -85,13 +85,9 @@ function stripWorkerProof(result) {
  */
 async function parseInput(params = {}, options = {}) {
 	const allowLocalFallback = options.allowLocalFallback === true
-		|| params.botname === 'Discord';
+		|| params.botname === 'Discord'
+		|| params.botname === 'Schedule';
 	const keepProof = options.keepProof === true;
-
-	if (!client.isEnabled()) {
-		const local = await analytics.parseInput(params);
-		return keepProof ? { ...local, _rollWorker: false } : local;
-	}
 
 	const mainMsg = typeof params.inputStr === 'string'
 		? params.inputStr.replaceAll(/^\s/g, '').match(/\S+/ig)
@@ -100,9 +96,16 @@ async function parseInput(params = {}, options = {}) {
 		? analytics.findRollModuleName(mainMsg)
 		: null;
 
+	if (!client.isEnabled()) {
+		const local = await analytics.parseInput(params);
+		invalidateDarkRollingIfNeeded(moduleName, local);
+		return keepProof ? { ...local, _rollWorker: false } : local;
+	}
+
 	const useRemote = isRemoteAllowed(moduleName, params.botname);
 	if (!useRemote) {
 		const local = await analytics.parseInput(params);
+		invalidateDarkRollingIfNeeded(moduleName, local);
 		return keepProof ? { ...local, _rollWorker: false, _rollWorkerModule: moduleName } : local;
 	}
 
@@ -125,13 +128,23 @@ async function parseInput(params = {}, options = {}) {
 					moduleName: result.moduleName || moduleName,
 				});
 				const local = await runLocalFallback();
-				return keepProof ? { ...local, _rollWorker: false } : local;
+				// Worker may already have LevelUp; local EXPUP often hits speak cooldown.
+				const merged = {
+					...local,
+					LevelUp: local.LevelUp || result.LevelUp || '',
+					statue: local.statue || result.statue || '',
+				};
+				invalidateDarkRollingIfNeeded(moduleName, merged);
+				return keepProof ? { ...merged, _rollWorker: false } : merged;
 			}
 			return {
 				text: await getSystemBusyText(params.locale),
 				type: 'text',
+				LevelUp: result.LevelUp || '',
+				statue: result.statue || '',
 			};
 		}
+		invalidateDarkRollingIfNeeded(moduleName, result);
 		return keepProof ? result : stripWorkerProof(result);
 	} catch (error) {
 		if (allowLocalFallback) {
@@ -141,6 +154,7 @@ async function parseInput(params = {}, options = {}) {
 				error: error?.message || String(error),
 			});
 			const local = await runLocalFallback();
+			invalidateDarkRollingIfNeeded(moduleName, local);
 			return keepProof ? { ...local, _rollWorker: false } : local;
 		}
 		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);
@@ -148,6 +162,16 @@ async function parseInput(params = {}, options = {}) {
 			text: await getSystemBusyText(params.locale),
 			type: 'text',
 		};
+	}
+}
+
+function invalidateDarkRollingIfNeeded(moduleName, result) {
+	const name = moduleName || result?._rollWorkerModule;
+	if (name !== 'z_DDR_darkRollingToGM') return;
+	try {
+		require('./dark-rolling').invalidateCache();
+	} catch (error) {
+		console.warn('[ParseRouter] dark-rolling invalidate failed:', error?.message || error);
 	}
 }
 
@@ -276,12 +300,14 @@ async function enrichParamsForRemote(params, moduleName) {
 		const sub = String(parts[1] || '').toLowerCase();
 		if ((sub === 'html' || sub === 'txt') && params.discordClient && params.channelid) {
 			try {
-				const { prefetchExportHistory } = require('./discord-prefetch');
+				const { prefetchExportHistory, resolveExportDemoMode } = require('./discord-prefetch');
 				const limitMatch = String(params.inputStr || '').match(/--limit\s+(\d+)/);
 				const messageLimit = limitMatch ? Number.parseInt(limitMatch[1], 10) : null;
+				const demoMode = await resolveExportDemoMode(params.userid);
 				const prefetched = await prefetchExportHistory(params.discordClient, params.discordMessage, {
 					channelid: params.channelid,
 					messageLimit,
+					demoMode,
 				});
 				if (prefetched) {
 					return { ...params, ...prefetched };

@@ -23,6 +23,12 @@ describe('modules/db/serial', () => {
             expect(findNextSerial([1, 2, 4], 1)).toBe(3);
             expect(findNextSerial([1, 2, 3], 1)).toBe(4);
         });
+
+        it('fills leading and mid gaps (role legacy cases)', () => {
+            expect(findNextSerial([1, 3], 1)).toBe(2);
+            expect(findNextSerial([2], 1)).toBe(1);
+            expect(findNextSerial([1, 2, 4], 1)).toBe(3);
+        });
     });
 
     describe('ensureSerials', () => {
@@ -53,6 +59,14 @@ describe('modules/db/serial', () => {
             const items = [{ serial: 0 }, { serial: 2 }];
             const { changed } = ensureSerials(items, 0);
             expect(changed).toBe(false);
+        });
+
+        it('treats non-integer serial as missing', () => {
+            const items = [{ topic: 'a', serial: 1.5 }, { topic: 'b', serial: 2 }];
+            const { changed } = ensureSerials(items, 1);
+            expect(changed).toBe(true);
+            expect(Number.isSafeInteger(items[0].serial)).toBe(true);
+            expect(items[1].serial).toBe(2);
         });
     });
 

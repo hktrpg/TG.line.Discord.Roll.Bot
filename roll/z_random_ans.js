@@ -17,6 +17,7 @@ const wheelAnimator = require('./wheel-animator.js');
 
 const FUNCTION_LIMIT = [30, 200, 200, 500, 500, 500, 500, 500];
 const FUNCTION_LIMIT_PERSONAL = [2, 200, 200, 500, 500, 500, 500, 500];
+const SERVER_DICE_LIMIT = 100;
 const RA_SERIAL_START = 0;
 const RAP_RAS_SERIAL_START = 1;
 const gameName = function (params = {}) {
@@ -744,8 +745,8 @@ const rollDiceCommand = async function ({
                 let list = await schema.randomAnsServer.find({})
                     .catch(error => console.error('[Random Ans] MongoDB error:', error.name, error.reason)) || [];
                 await backfillDocSerials(list, RAP_RAS_SERIAL_START);
-                if (list.length >= 100) {
-                    rply.text = translate('random_ans.server_limit', { limit });
+                if (list.length >= SERVER_DICE_LIMIT) {
+                    rply.text = translate('random_ans.server_limit', { limit: SERVER_DICE_LIMIT });
                     return rply;
                 }
                 let newAnswer = new schema.randomAnsServer({

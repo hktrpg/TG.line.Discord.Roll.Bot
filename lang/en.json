@@ -998,7 +998,7 @@
           "description": "Remove GM",
           "options": {
             "target": {
-              "description": "GM index to remove, or all to clear"
+              "description": "GM ID to remove, or all to clear"
             }
           }
         }
@@ -1329,7 +1329,7 @@
       "description": "Roleplay — speak as character",
       "options": {
         "character": {
-          "description": "Character index or short name"
+          "description": "Character ID or short name"
         },
         "message": {
           "description": "Message to send"
@@ -2606,7 +2606,7 @@
     "del_failed": "Delete failed. Please try again later.",
     "del_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}",
     "del_no_gm": "No dark-roll GM registered.",
-    "del_no_index": "No GM registered or invalid index.",
+    "del_no_index": "No GM registered or invalid ID.",
     "show_header": "📑 Dark-roll GM list\n",
     "show_entry": "#{{serial}}: {{name}}\n",
     "not_in_group": "Not in a group channel.",
@@ -2967,10 +2967,10 @@
   },
   "myname": {
     "game_name": "【Your Names】.myname / .me .me1 .me alias",
-    "help": "【👥 Roleplay Names】(Discord only)\n╭──── 📝 Overview ────\n│ • Set persona display name and avatar\n│ • Quickly switch personas while chatting\n│ • Embed roll commands in messages\n│\n├──── ⚙️ Manage personas ────\n│ ■ Add:\n│ • .myname \"Name\" image_url alias\n│   Example:\n.myname \"Izumi Zoushi\"\nhttps://imgur.com/xxx.jpg zo\n│   *Quote names that contain spaces\n│\n│ ■ Manage:\n│ • .myname show\n│   List personas\n│ • .myname del/delete index|alias\n│   Delete a persona\n│\n├──── 🎭 Speak ────\n│ ■ Plain:\n│ • .me message\n│   Speak without a persona\n│\n│ ■ By index:\n│ • .meN message\n│   e.g. .me1 \"Good morning!\"\n│\n│ ■ By alias:\n│ • .meAlias message\n│   e.g. .mezo \"Let's play\"\n│\n│ ■ History:\n│ • .mehistory\n│   Last 20 .me lines in this channel\n│\n│ ■ Inline rolls:\n│ • Use [[command]] inside the message\n│   Example:\n.mezo \"I'll try!\"\n[[CC 80]] [[立FLAG]]\n│\n├──── ⚠️ Notes ────\n│ • Needs Webhook and message permissions\n│ • Discord or Imgur image URLs\n│ • Invalid images fall back to default avatar\n╰──────────────",
+    "help": "【👥 Roleplay Names】(Discord only)\n╭──── 📝 Overview ────\n│ • Set persona display name and avatar\n│ • Quickly switch personas while chatting\n│ • Embed roll commands in messages\n│\n├──── ⚙️ Manage personas ────\n│ ■ Add:\n│ • .myname \"Name\" image_url alias\n│   Example:\n.myname \"Izumi Zoushi\"\nhttps://imgur.com/xxx.jpg zo\n│   *Quote names that contain spaces\n│\n│ ■ Manage:\n│ • .myname show\n│   List personas\n│ • .myname del/delete ID|alias\n│   Delete a persona\n│\n├──── 🎭 Speak ────\n│ ■ Plain:\n│ • .me message\n│   Speak without a persona\n│\n│ ■ By ID:\n│ • .meN message\n│   e.g. .me1 \"Good morning!\"\n│\n│ ■ By alias:\n│ • .meAlias message\n│   e.g. .mezo \"Let's play\"\n│\n│ ■ History:\n│ • .mehistory\n│   Last 20 .me lines in this channel\n│\n│ ■ Inline rolls:\n│ • Use [[command]] inside the message\n│   Example:\n.mezo \"I'll try!\"\n[[CC 80]] [[立FLAG]]\n│\n├──── ⚠️ Notes ────\n│ • Needs Webhook and message permissions\n│ • Discord or Imgur image URLs\n│ • Invalid images fall back to default avatar\n╰──────────────",
     "channel_only": "{{command}} is only available in a channel.",
     "history_error": "Error processing speech history.",
-    "delete_usage": "Delete: .myname del/delete [ID or short name]\ne.g. .myname del 0",
+    "delete_usage": "Delete: .myname del/delete [ID or short name]\ne.g. .myname del 1",
     "delete_success": "✅ Deleted\n📝 Name: {{name}}\n🆔 ID: {{serial}}{{shortNameLine}}",
     "delete_success_alias": "\n🏷️ Alias: {{shortName}}",
     "delete_error": "Delete failed.\nUse .myname del/delete [ID or short name]\nSee .myname show for IDs.",
@@ -3116,14 +3116,15 @@
     "no_title": "❌ Missing title.\n\n",
     "no_content": "❌ Missing content.\n\n",
     "limit_reached": "⚠️ Keyword limit reached ({{limit}}).\n💎 Support: https://www.patreon.com/HKTRPG\n\n",
-    "usage_footer": "💡 Usage:\n• By index: .db index\n• By title: .db title\n• List: .db show [page]\n• Add: .db add title content\n• Delete: .db del title",
+    "usage_footer": "💡 Usage:\n• By ID: .db ID\n• By title: .db title\n• List: .db show [page]\n• Add: .db add title content\n• Delete: .db del title",
     "duplicate_title": "❌ Failed: duplicate title.\n\n",
     "add_success": "✅ Added\n📝 Title: {{title}}\n🆔 ID: {{serial}}\n\nUse .db {{serial}} or .db {{title}}",
     "delete_specify": "❌ Specify title to delete.\n\n",
     "not_found_title": "❌ Not found: \"{{title}}\"\n\n",
     "deleted": "✅ Deleted\n📝 Title: {{title}}\n🆔 ID: {{serial}}\n\n",
+    "delete_failed": "❌ Delete failed. Try again later.",
     "not_found_keyword": "No matching keyword.",
-    "not_found_index": "No keyword at that index.",
+    "not_found_index": "No keyword at that ID.",
     "not_in_group_short": "Not in a group.",
     "global_no_topic": "❌ Failed: missing keyword.",
     "global_no_content": "❌ Failed: missing content.",
@@ -3138,11 +3139,11 @@
     "global_list_header": "🌐 Global DB (page {{page}}/{{total}})\n╭──────────────────────────────────────\n",
     "list_next_page": "\n\n💡 .db show {{page}} for next page",
     "list_special_tags": "💡 Tags:\n• {br} - newline\n• {ran:100} - random 1-100\n• {random:5-20} - random 5-20\n• {my.name} - your name\n• {my.level} - your level\n• {my.exp} - your EXP\n• {my.title} - your title\n• {my.Ranking} - your rank\n• {server.member_count} - member count",
-    "add_success_view": "💡 View:\n• By index: .db {{index}}\n• By title: .db {{title}}\n\n💡 More:\n• List: .db show [page]\n• Delete: .db del {{title}}",
+    "add_success_view": "💡 View:\n• By ID: .db {{index}}\n• By title: .db {{title}}\n\n💡 More:\n• List: .db show [page]\n• Delete: .db del {{title}}",
     "delete_del_hint": "💡 Usage:\n• Delete: .db del title\n• List: .db show\n• Add: .db add title content",
     "delete_after_hint": "💡 .db show — list\n💡 .db add title content — add",
-    "global_add_hints": "💡 View:\n• By index: .dbp {{index}}\n• By title: .dbp {{title}}",
-    "global_usage_footer": "💡 Usage:\n• By index: .dbp index\n• By title: .dbp title\n• List: .dbp show [page]\n• Add: .dbp add title content",
+    "global_add_hints": "💡 View:\n• By ID: .dbp {{index}}\n• By title: .dbp {{title}}",
+    "global_usage_footer": "💡 Usage:\n• By ID: .dbp ID\n• By title: .dbp title\n• List: .dbp show [page]\n• Add: .dbp add title content",
     "global_list_next_page": "\n\n💡 .dbp show {{page}} for next page",
     "unnamed": "Unnamed"
   },

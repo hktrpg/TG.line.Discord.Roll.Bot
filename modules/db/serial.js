@@ -6,7 +6,7 @@
  */
 
 function hasSerial(item) {
-    return item && typeof item.serial === 'number' && Number.isFinite(item.serial);
+    return item && Number.isSafeInteger(item.serial);
 }
 
 /**
@@ -20,7 +20,7 @@ function findNextSerial(serials, startFrom = 1) {
     if (!serials || serials.length === 0) return base;
 
     const sorted = [...serials]
-        .filter(n => typeof n === 'number' && Number.isFinite(n))
+        .filter(n => Number.isSafeInteger(n))
         .sort((a, b) => a - b);
 
     if (sorted.length === 0) return base;

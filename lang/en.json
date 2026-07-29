@@ -3457,7 +3457,8 @@
     "help": "【Synced Chat】.chatroom\n    .chatroom create [channelId]\n    .chatroom join [multiId] [channelId]\n    .chatroom exit\n",
     "create_success": "Added {{guild}} - {{channel}} to synced chat room.",
     "join_success": "Added {{guild}} - {{channel}} to synced chat room. To add another channel: .join {{multiId}} (other channel ID)",
-    "exit_success": "Removed from synced chat room."
+    "exit_success": "Removed from synced chat room.",
+    "permission_denied": "You need Manage Channel permission to use synced chat commands."
   },
   "edit": {
     "game_name": "【Edit Old Messages】(Discord only)",
@@ -3680,6 +3681,7 @@
     "mylist_groups_header": "    【Allowed groups】:\n",
     "mylist_groups_empty": "      (not set)\n",
     "mylist_group_line": "      {{line}}\n",
+    "mylist_group_unknown": "(unnamed channel) - {{id}}",
     "mylist_completed": "  - Completed: {{count}}\n",
     "mylist_endings_header": "  - Endings:\n",
     "mylist_ending_line": "    • {{id}}: {{count}}\n",

@@ -22,9 +22,14 @@ function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function httpGetJson(urlPath) {
+function httpGetJson(urlPath, { auth = false } = {}) {
 	return new Promise((resolve, reject) => {
-		http.get(`${URL}${urlPath}`, (res) => {
+		const headers = {};
+		// L6: /health counters require Bearer when ROLL_WORKER_TOKEN is set.
+		if (auth && PROOF_TOKEN) {
+			headers.Authorization = `Bearer ${PROOF_TOKEN}`;
+		}
+		http.get(`${URL}${urlPath}`, { headers }, (res) => {
 			let raw = '';
 			res.on('data', (c) => { raw += c; });
 			res.on('end', () => {
@@ -42,7 +47,8 @@ async function waitForHealth(timeoutMs = 20_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {
-			const res = await httpGetJson('/health');
+			// Prefer authenticated health so parseCount/uptime are present (L6).
+			const res = await httpGetJson('/health', { auth: true });
 			if (res.status === 200 && res.body.ok) return res.body;
 		} catch {
 			// retry
@@ -1390,7 +1396,116 @@ async function main() {
 			console.log('[proof] PASS Phase 3x Pass9 live+contracts');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3x / Pass 9)');
+		// 39) Phase 3y / Pass 11: rate-limit, WWW Api gate, LevelUp displayName, env docs
+		{
+			pinGatewayWorkerUrl();
+			const {
+				DEFAULT_RATE_LIMIT_POINTS,
+				DEFAULT_RATE_LIMIT_DURATION,
+				getRateLimitConfig,
+			} = require('../modules/roll-worker/server');
+			assert(DEFAULT_RATE_LIMIT_POINTS === 300, 'rate limit points 300');
+			assert(DEFAULT_RATE_LIMIT_DURATION === 60, 'rate limit duration 60');
+			assert(getRateLimitConfig().points > 0, 'rate limit config ok');
+
+			const health = await waitForHealth();
+			assert(typeof health.rateLimitedCount === 'number', 'health exposes rateLimitedCount', health);
+
+			const wwwSrc11 = fs.readFileSync(path.join(ROOT, 'modules/core-www.js'), 'utf8');
+			assert(/shouldSkipLocalFindRollList\('Api'\)/.test(wwwSrc11), 'Api findRollList gate');
+			assert(/shouldSkipLocalFindRollList\('Local'\)/.test(wwwSrc11), 'Local findRollList gate');
+			const botSrc11 = fs.readFileSync(path.join(ROOT, 'modules/discord/bot.js'), 'utf8');
+			assert(/member\?\.displayName/.test(botSrc11), 'Discord displaynameDiscord from displayName');
+			const levelSrc = fs.readFileSync(path.join(ROOT, 'modules/chat/level.js'), 'utf8');
+			assert(/resolveLevelUpDisplayName/.test(levelSrc), 'LevelUp displayName helper');
+			assert(/displaynameDiscord/.test(levelSrc), 'LevelUp uses signed displaynameDiscord');
+			const envCopy = fs.readFileSync(path.join(ROOT, '.env.copy'), 'utf8');
+			assert(/ROLL_WORKER_HOST/.test(envCopy), 'env HOST');
+			assert(/ROLL_WORKER_JSON_LIMIT/.test(envCopy), 'env JSON_LIMIT');
+			assert(/ROLL_WORKER_RATE_LIMIT_POINTS/.test(envCopy), 'env RATE_LIMIT');
+
+			console.log('[proof] PASS Phase 3y Pass11 rate-limit/Api-gate/displayName');
+		}
+
+		// 40) Phase 3z / Pass 12: remaining Low fixes
+		{
+			pinGatewayWorkerUrl();
+			const {
+				attachGatewayAuth,
+				verifyGatewayAuth,
+				DEFAULT_CLOCK_SKEW_MS,
+			} = require('../modules/roll-worker/request-auth');
+			assert(DEFAULT_CLOCK_SKEW_MS === 5_000, 'clock skew 5s');
+			const now = Date.now();
+			const future = attachGatewayAuth({
+				inputStr: '1d3', userid: 'u', botname: 'Telegram',
+			}, PROOF_TOKEN, now + 60_000);
+			assert(verifyGatewayAuth(future, PROOF_TOKEN, { now }).ok === false, 'future ts rejected');
+
+			const { isDiscordCdnHost } = require('../modules/roll-worker/safe-fetch');
+			assert(isDiscordCdnHost('cdn.discord.com') === true, 'discord.com CDN allowlisted');
+
+			// Unauthenticated /health: ok only (no counters). Authenticated: counters.
+			const anonHealth = await httpGetJson('/health');
+			assert(anonHealth.status === 200 && anonHealth.body.ok === true, 'anon health ok');
+			assert(anonHealth.body.parseCount === undefined, 'anon health hides parseCount', anonHealth.body);
+			const client = require('../modules/roll-worker/client');
+			const authedHealth = await client.health();
+			assert(typeof authedHealth.parseCount === 'number', 'authed health has parseCount', authedHealth);
+
+			const artSrc = fs.readFileSync(path.join(ROOT, 'modules/roll-worker/artifacts.js'), 'utf8');
+			assert(/realpathSync/.test(artSrc), 'artifact realpath jail');
+			const multiSrc = fs.readFileSync(path.join(ROOT, 'roll/z_multi-server.js'), 'utf8');
+			assert(/chatroom\.permission_denied/.test(multiSrc), 'chatroom permission text');
+			const stSrc = fs.readFileSync(path.join(ROOT, 'roll/z-story-teller.js'), 'utf8');
+			assert(/mylist_group_unknown/.test(stSrc), 'mylist unknown group label');
+			const routerSrc = fs.readFileSync(path.join(ROOT, 'modules/roll-worker/parse-router.js'), 'utf8');
+			assert(/sendDiscordExportWaitNotice/.test(routerSrc), 'export wait notice on Gateway');
+			assert(/exportWaitNoticeSent/.test(routerSrc), 'exportWaitNoticeSent flag');
+
+			console.log('[proof] PASS Phase 3z Pass12 low-fixes');
+		}
+
+		// 41) Phase 3aa / Pass 13: sign-all HMAC, courtMessage skipExp, env denylist
+		{
+			pinGatewayWorkerUrl();
+			const {
+				attachGatewayAuth,
+				verifyGatewayAuth,
+				pickClaims,
+			} = require('../modules/roll-worker/request-auth');
+			const signedAll = attachGatewayAuth({
+				inputStr: '1d3',
+				userid: 'u-aa',
+				botname: 'Telegram',
+				futureField: 'v1',
+			}, PROOF_TOKEN);
+			assert(pickClaims(signedAll).futureField === 'v1', 'sign-all includes futureField');
+			assert(verifyGatewayAuth(signedAll, PROOF_TOKEN).ok === true, 'sign-all verify ok');
+			signedAll.futureField = 'tampered';
+			assert(verifyGatewayAuth(signedAll, PROOF_TOKEN).ok === false, 'sign-all tamper fails');
+
+			const analyticsSrc = fs.readFileSync(path.join(ROOT, 'modules/analytics.js'), 'utf8');
+			assert(/!context\.skipExp[\s\S]*courtMessage/.test(analyticsSrc), 'courtMessage gated by skipExp');
+
+			const prevDeny = process.env.ROLL_WORKER_DISCORD_DENYLIST;
+			process.env.ROLL_WORKER_DISCORD_DENYLIST = 'openai';
+			delete require.cache[require.resolve('../modules/roll-worker/route-table')];
+			const routeTable = require('../modules/roll-worker/route-table');
+			assert(routeTable.isRemoteAllowed('openai', 'Discord') === false, 'env denylist blocks openai');
+			assert(routeTable.isRemoteAllowed('0-advroll', 'Discord') === true, 'denylist leaves dice remote');
+			if (prevDeny === undefined) delete process.env.ROLL_WORKER_DISCORD_DENYLIST;
+			else process.env.ROLL_WORKER_DISCORD_DENYLIST = prevDeny;
+			delete require.cache[require.resolve('../modules/roll-worker/route-table')];
+			require('../modules/roll-worker/route-table');
+
+			const envCopy = fs.readFileSync(path.join(ROOT, '.env.copy'), 'utf8');
+			assert(/ROLL_WORKER_DISCORD_DENYLIST/.test(envCopy), 'env documents denylist');
+
+			console.log('[proof] PASS Phase 3aa Pass13 sign-all/court/denylist');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3aa / Pass 13)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

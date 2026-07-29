@@ -2,7 +2,11 @@
 
 const crypto = require('node:crypto');
 
-/** Fields that affect authorization / Discord gates / SSRF / identity display. */
+/**
+ * Documented security-critical claim keys (identity / Discord gates / SSRF / mutators).
+ * Pass 13 (L8): HMAC now covers ALL body keys except UNSIGNED_KEYS so future fields
+ * cannot be integrity-blind. This list remains for audits / tests.
+ */
 const SIGNED_CLAIM_KEYS = [
 	'inputStr',
 	'groupid',
@@ -37,7 +41,12 @@ const SIGNED_CLAIM_KEYS = [
 	'locale',
 ];
 
+/** Never included in HMAC payload. */
+const UNSIGNED_KEYS = new Set(['_gatewayAuth']);
+
 const DEFAULT_MAX_AGE_MS = 120_000;
+/** Allow small clock skew; reject far-future ts so replay window cannot be extended (L3). */
+const DEFAULT_CLOCK_SKEW_MS = 5_000;
 
 function stableStringify(value) {
 	if (value === null || typeof value !== 'object') {
@@ -50,10 +59,15 @@ function stableStringify(value) {
 	return `{${keys.map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
 }
 
+/**
+ * Pick every enumerable own key except UNSIGNED_KEYS (L8: no future unsigned fields).
+ * @param {object} params
+ */
 function pickClaims(params = {}) {
 	const claims = {};
-	for (const key of SIGNED_CLAIM_KEYS) {
-		if (Object.hasOwn(params, key) && params[key] !== undefined) {
+	for (const key of Object.keys(params)) {
+		if (UNSIGNED_KEYS.has(key)) continue;
+		if (params[key] !== undefined) {
 			claims[key] = params[key];
 		}
 	}
@@ -96,7 +110,11 @@ function verifyGatewayAuth(params, token, {
 	if (!Number.isFinite(ts) || !sig) {
 		return { ok: false, error: 'invalid gateway auth' };
 	}
-	if (Math.abs(now - ts) > maxAgeMs) {
+	// Reject future timestamps beyond skew — Math.abs previously let future ts extend replay.
+	if (ts > now + DEFAULT_CLOCK_SKEW_MS) {
+		return { ok: false, error: 'gateway auth from future' };
+	}
+	if (now - ts > maxAgeMs) {
 		return { ok: false, error: 'gateway auth expired' };
 	}
 
@@ -118,7 +136,9 @@ function stripGatewayAuth(params = {}) {
 
 module.exports = {
 	SIGNED_CLAIM_KEYS,
+	UNSIGNED_KEYS,
 	DEFAULT_MAX_AGE_MS,
+	DEFAULT_CLOCK_SKEW_MS,
 	stableStringify,
 	pickClaims,
 	signClaims,

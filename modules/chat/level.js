@@ -188,11 +188,14 @@ async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercou
 
     if (gpInfo.HiddenV2 === false || !levelUP) return reply;
 
-    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage, locale);
+    reply.text = await returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage, locale, {
+        displaynameDiscord,
+        displayname,
+    });
     return reply;
 }
 
-async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage, locale = i18n.DEFAULT_LOCALE) {
+async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discordMessage, locale = i18n.DEFAULT_LOCALE, displayNames = {}) {
     const t = i18n.createTranslator(locale);
     let username = userInfo.name;
     let userlevel = userInfo.Level;
@@ -220,7 +223,12 @@ async function returnTheLevelWord(gpInfo, userInfo, membercount, groupid, discor
 
     let tempUPWord = gpInfo.LevelUpWord || t('level.default_level_up_word');
     if (/{user.displayName}/ig.test(tempUPWord)) {
-        let userDisplayName = getDisplayName(discordMessage) || username || t('level.unnamed');
+        const userDisplayName = resolveLevelUpDisplayName(
+            discordMessage,
+            displayNames,
+            username,
+            t('level.unnamed')
+        );
         tempUPWord = tempUPWord.replaceAll(/{user.displayName}/ig, userDisplayName);
     }
 
@@ -256,6 +264,18 @@ function getDisplayName(message) {
     if (!message) return;
     if (message.member?.displayName) return message.member.displayName;
     return message.author?.username;
+}
+
+/**
+ * Resolve `{user.displayName}` for LevelUp.
+ * Live Discord uses discordMessage; remoted Worker falls back to signed displaynameDiscord.
+ */
+function resolveLevelUpDisplayName(discordMessage, displayNames = {}, username, unnamed = '') {
+    return getDisplayName(discordMessage)
+        || displayNames.displaynameDiscord
+        || displayNames.displayname
+        || username
+        || unnamed;
 }
 
 function buildTitleArray(locale = i18n.DEFAULT_LOCALE) {
@@ -302,5 +322,6 @@ module.exports = {
     tempSwitchV2,
     getGroupLevelConfig,
     invalidateGroupConfig,
-    checkTitle
+    checkTitle,
+    resolveLevelUpDisplayName,
 };

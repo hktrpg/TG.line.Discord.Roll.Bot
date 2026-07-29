@@ -3458,7 +3458,8 @@
     "help": "【同步聊天】.chatroom\n    .chatroom create\n    .chatroom join\n",
     "create_success": "已把{{guild}} - {{channel}}新增到聊天室",
     "join_success": "已把{{guild}} - {{channel}}新增到聊天室，想把其他频道加入，请输入 .join {{multiId}} (其他频道的ID)",
-    "exit_success": "已移除聊天室"
+    "exit_success": "已移除聊天室",
+    "permission_denied": "你没有管理此频道的权限，无法使用同步聊天指令。"
   },
   "edit": {
     "game_name": "【旧信息修改功能】Discord限定",
@@ -3681,6 +3682,7 @@
     "mylist_groups_header": "    【指定群组】：\n",
     "mylist_groups_empty": "      （未设定）\n",
     "mylist_group_line": "      {{line}}\n",
+    "mylist_group_unknown": "(未命名频道) - {{id}}",
     "mylist_completed": "  - 完成次数：{{count}}\n",
     "mylist_endings_header": "  - 结局统计：\n",
     "mylist_ending_line": "    • {{id}}：{{count}}\n",

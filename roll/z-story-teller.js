@@ -2523,7 +2523,11 @@ const rollDiceCommand = async function ({
                                         storyGroupNamesMeta,
                                     });
                                 } catch { /* ignore */ }
-                                text += translate('storyteller.mylist_group_line', { line: name ? (name + ' - ' + gid) : gid });
+                                text += translate('storyteller.mylist_group_line', {
+                                    line: name
+                                        ? (name + ' - ' + gid)
+                                        : translate('storyteller.mylist_group_unknown', { id: gid }),
+                                });
                             }
                         }
                     }

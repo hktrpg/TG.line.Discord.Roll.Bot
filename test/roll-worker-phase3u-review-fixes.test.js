@@ -308,6 +308,7 @@ describe('Phase 3u SSRF allowlist', () => {
 	it('blocks metadata / private hosts and non-Discord hosts', async () => {
 		expect(isDiscordCdnHost('cdn.discordapp.com')).toBe(true);
 		expect(isDiscordCdnHost('media.discordapp.net')).toBe(true);
+		expect(isDiscordCdnHost('cdn.discord.com')).toBe(true);
 		expect(isDiscordCdnHost('evil.example')).toBe(false);
 
 		expect((await assertSafeDiscordFetchUrl('http://cdn.discordapp.com/a.png')).ok).toBe(false);

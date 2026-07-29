@@ -53,6 +53,19 @@ const REMOTE_ALLOWLIST = new Set([
 const LOCAL_DISCORD_ONLY = new Set([
 ]);
 
+/**
+ * Effective Discord denylist = built-in LOCAL_DISCORD_ONLY
+ * + comma-separated ROLL_WORKER_DISCORD_DENYLIST (ops override; M4).
+ */
+function getLocalDiscordOnly() {
+	const fromEnv = String(process.env.ROLL_WORKER_DISCORD_DENYLIST || '')
+		.split(',')
+		.map((s) => s.trim())
+		.filter(Boolean);
+	if (fromEnv.length === 0) return LOCAL_DISCORD_ONLY;
+	return new Set([...LOCAL_DISCORD_ONLY, ...fromEnv]);
+}
+
 function normalizeModuleId(moduleId) {
 	if (!moduleId || typeof moduleId !== 'string') return '';
 	return moduleId.trim();
@@ -65,18 +78,20 @@ function isRemoteAllowed(moduleId, botname) {
 		// Discord stays local for unmatched chat noise.
 		return botname !== 'Discord';
 	}
-	if (LOCAL_DISCORD_ONLY.has(id)) return false;
+	// Denylist is Discord-only (Telegram/Line/etc. keep remoting).
+	if (botname === 'Discord' && getLocalDiscordOnly().has(id)) return false;
 	// Phase 3j: any matched module remotes; needsLocal handles live Discord edges.
 	return true;
 }
 
 function isDiscordLocalOnly(moduleId) {
-	return LOCAL_DISCORD_ONLY.has(normalizeModuleId(moduleId));
+	return getLocalDiscordOnly().has(normalizeModuleId(moduleId));
 }
 
 module.exports = {
 	REMOTE_ALLOWLIST,
 	LOCAL_DISCORD_ONLY,
+	getLocalDiscordOnly,
 	isRemoteAllowed,
 	isDiscordLocalOnly,
 	normalizeModuleId,

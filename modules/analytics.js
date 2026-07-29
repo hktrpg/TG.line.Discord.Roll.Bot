@@ -269,8 +269,11 @@ const parseInput = async (params) => {
 		result.text = await stateText(context.locale);
 	}
 
-	// courtMessage + saveLog
-	await courtMessage({ result, botname: context.botname, inputStr: context.inputStr });
+	// courtMessage + saveLog — skip on skipExp (workerError/needsLocal fallback / schedule)
+	// so fall-open dual-exec does not inflate platform roll metrics (L10).
+	if (!context.skipExp) {
+		await courtMessage({ result, botname: context.botname, inputStr: context.inputStr });
+	}
 	return result;
 }
 

@@ -3568,7 +3568,12 @@ async function handlingResponMessage(message, answer = '') {
 
 		const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
 		const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
-		const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';
+		// Prefer guild displayName for remoted LevelUp `{user.displayName}` (Worker has no discordMessage).
+		const displaynameDiscord = message.member?.displayName
+			|| message.user?.displayName
+			|| message.member?.user?.username
+			|| message.author?.username
+			|| '';
 		const membercount = (message.guild) ? message.guild.memberCount : 0;
 		const titleName = ((message.guild && message.guild.name) ? message.guild.name + ' ' : '') + ((message.channel && message.channel.name) ? message.channel.name : '');
 		const channelid = (message.channelId) ? message.channelId : '';

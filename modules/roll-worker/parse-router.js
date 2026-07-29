@@ -425,39 +425,52 @@ async function enrichParamsForRemote(params, moduleName) {
 	}
 
 	if (moduleName === 'export') {
-		const { hasExportHistoryMessages } = require('./export-history');
-		if (hasExportHistoryMessages(params.exportHistoryMeta)) return params;
 		const parts = String(params.inputStr || '').trim().match(/\S+/ig) || [];
 		const sub = String(parts[1] || '').toLowerCase();
-		if ((sub === 'html' || sub === 'txt') && params.discordClient && params.channelid) {
+		// L13: send processing notice on Gateway before remoted export (Worker has no discordMessage).
+		let withNotice = params;
+		if ((sub === 'html' || sub === 'txt') && params.discordMessage && !params.exportWaitNoticeSent) {
+			try {
+				const { sendDiscordExportWaitNotice } = require('../../roll/export');
+				if (typeof sendDiscordExportWaitNotice === 'function') {
+					await sendDiscordExportWaitNotice(params.discordMessage, params.userid, params.t);
+					withNotice = { ...params, exportWaitNoticeSent: true };
+				}
+			} catch (error) {
+				console.warn('[ParseRouter] export wait notice failed:', error?.message || error);
+			}
+		}
+		const { hasExportHistoryMessages } = require('./export-history');
+		if (hasExportHistoryMessages(withNotice.exportHistoryMeta)) return withNotice;
+		if ((sub === 'html' || sub === 'txt') && withNotice.discordClient && withNotice.channelid) {
 			try {
 				const {
 					prefetchExportHistory,
 					canPrefetchExportHistory,
 				} = require('./discord-prefetch');
 				const gate = await canPrefetchExportHistory({
-					userid: params.userid,
-					groupid: params.groupid,
-					userrole: params.userrole,
+					userid: withNotice.userid,
+					groupid: withNotice.groupid,
+					userrole: withNotice.userrole,
 				});
 				if (!gate.allow) {
-					return params;
+					return withNotice;
 				}
-				const limitMatch = String(params.inputStr || '').match(/--limit\s+(\d+)/);
+				const limitMatch = String(withNotice.inputStr || '').match(/--limit\s+(\d+)/);
 				const messageLimit = limitMatch ? Number.parseInt(limitMatch[1], 10) : null;
-				const prefetched = await prefetchExportHistory(params.discordClient, params.discordMessage, {
-					channelid: params.channelid,
+				const prefetched = await prefetchExportHistory(withNotice.discordClient, withNotice.discordMessage, {
+					channelid: withNotice.channelid,
 					messageLimit,
 					demoMode: Boolean(gate.demoMode),
 				});
 				if (prefetched) {
-					return { ...params, ...prefetched };
+					return { ...withNotice, ...prefetched };
 				}
 			} catch (error) {
 				console.warn('[ParseRouter] export prefetch failed:', error?.message || error);
 			}
 		}
-		return params;
+		return withNotice;
 	}
 
 	if (moduleName === 'z_admin') {

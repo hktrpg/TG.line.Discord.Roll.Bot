@@ -376,6 +376,18 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
     if (mainMsg && mainMsg[0])
         trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+    // Same findRollList gate as WWW socket / Line/TG: chatter must not hit Worker / parse EXP.
+    if (!parseRouter.shouldSkipLocalFindRollList('Api')) {
+        const target = await exports.analytics.findRollList(
+            req.query.msg ? req.query.msg.match(MESSAGE_SPLITOR) : null
+        );
+        if (!target) {
+            res.writeHead(200, { 'Content-type': 'application/json' });
+            res.end(String.raw`{"message":""}`);
+            return;
+        }
+    }
+
     const locale = resolveWwwLocale(req);
     const t = i18n.createTranslator(locale);
 
@@ -489,6 +501,17 @@ www.get('/api/local', async (req, res) => {
         const mainMsg = q.match(MESSAGE_SPLITOR);
         let rplyVal = {};
         if (mainMsg && mainMsg.length > 0) {
+            // Same findRollList gate as /api + WWW socket — skip Worker/EXP for non-commands.
+            if (!parseRouter.shouldSkipLocalFindRollList('Local')) {
+                const target = await exports.analytics.findRollList(
+                    q.match(MESSAGE_SPLITOR)
+                );
+                if (!target) {
+                    res.writeHead(200, { 'Content-type': 'application/json' });
+                    res.end(String.raw`{"message":""}`);
+                    return;
+                }
+            }
             const processedInput = mainMsg.join(' ');
             const locale = resolveWwwLocale(req);
             rplyVal = await parseRouter.parseInput({

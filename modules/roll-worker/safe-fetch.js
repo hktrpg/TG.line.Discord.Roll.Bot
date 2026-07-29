@@ -4,8 +4,8 @@ const http = require('node:http');
 const https = require('node:https');
 const { isSafeImageTarget, resolvePublicFetchTarget } = require('../../utils/is-image-url');
 
-/** Discord CDN / media hosts used for avatars and attachments. */
-const DISCORD_HOST_RE = /^(?:[\w-]+\.)?(?:discordapp\.com|discordapp\.net)$/i;
+/** Discord CDN / media hosts used for avatars and attachments (nested subdomains + discord.com). */
+const DISCORD_HOST_RE = /^(?:[\w-]+\.)*(?:discordapp\.com|discordapp\.net|discord\.com)$/i;
 
 function isDiscordCdnHost(hostname) {
 	return DISCORD_HOST_RE.test(String(hostname || '').toLowerCase());

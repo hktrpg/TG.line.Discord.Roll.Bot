@@ -74,7 +74,10 @@ const rollDiceCommand = async function ({
                 const targetChannelId = mainMsg[2];
 
                 if (chatroomChannelMeta?.guildId) {
-                    if (!chatroomChannelMeta.allowed) return;
+                    if (!chatroomChannelMeta.allowed) {
+                        rply.text = translate('chatroom.permission_denied');
+                        return rply;
+                    }
                     if (String(chatroomChannelMeta.channelId) !== String(targetChannelId)) {
                         return { needsLocal: true, moduleName: 'z_multi-server' };
                     }
@@ -85,7 +88,10 @@ const rollDiceCommand = async function ({
                     const channel = await discordClient.channels.fetch(targetChannelId)
                     const member = await channel.guild.members.fetch(userid)
                     const role = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
-                    if (!role) return;
+                    if (!role) {
+                        rply.text = translate('chatroom.permission_denied');
+                        return rply;
+                    }
                     guildId = channel.guildId;
                     guildName = channel.guild.name;
                     channelName = channel.name;
@@ -134,7 +140,10 @@ const rollDiceCommand = async function ({
                 let channelName;
 
                 if (chatroomChannelMeta?.guildId) {
-                    if (!chatroomChannelMeta.allowed) return;
+                    if (!chatroomChannelMeta.allowed) {
+                        rply.text = translate('chatroom.permission_denied');
+                        return rply;
+                    }
                     if (String(chatroomChannelMeta.channelId) !== String(targetChannelId)) {
                         return { needsLocal: true, moduleName: 'z_multi-server' };
                     }
@@ -145,7 +154,10 @@ const rollDiceCommand = async function ({
                     const channel = await discordClient.channels.fetch(targetChannelId)
                     const member = await channel.guild.members.fetch(userid)
                     const role = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
-                    if (!role) return;
+                    if (!role) {
+                        rply.text = translate('chatroom.permission_denied');
+                        return rply;
+                    }
                     guildId = channel.guildId;
                     guildName = channel.guild.name;
                     channelName = channel.name;
@@ -191,7 +203,10 @@ const rollDiceCommand = async function ({
                     return { needsLocal: true, moduleName: 'z_multi-server' };
                 }
                 if (chatroomChannelMeta?.guildId) {
-                    if (!chatroomChannelMeta.allowed) return;
+                    if (!chatroomChannelMeta.allowed) {
+                        rply.text = translate('chatroom.permission_denied');
+                        return rply;
+                    }
                     if (String(chatroomChannelMeta.channelId) !== String(mainMsg[2])) {
                         return { needsLocal: true, moduleName: 'z_multi-server' };
                     }
@@ -199,7 +214,10 @@ const rollDiceCommand = async function ({
                     const channel = await discordClient.channels.fetch(mainMsg[2])
                     const member = await channel.guild.members.fetch(userid)
                     const role = channel.permissionsFor(member)?.has(PermissionsBitField.Flags.ManageChannels)
-                    if (!role) return;
+                    if (!role) {
+                        rply.text = translate('chatroom.permission_denied');
+                        return rply;
+                    }
                 }
                 await schema.multiServer.findOneAndDelete({ channelid: mainMsg[2] }).catch(error => {
                     console.error('multiserver #112 mongoDB error:', error.name, error.reason)

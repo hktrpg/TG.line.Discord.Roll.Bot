@@ -43,6 +43,9 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | `ROLL_WORKER_TIMEOUT_MS` | Gateway | `120000` |
 | `ROLL_WORKER_HOST` / `PORT` | Worker | `127.0.0.1` / `3950` |
 | `ROLL_WORKER_JSON_LIMIT` | Worker | `32mb` |
+| `ROLL_WORKER_RATE_LIMIT_POINTS` / `DURATION` | Worker | `300` / `60` (per IP on `/v1/*`) |
+| `ROLL_WORKER_RATE_LIMIT_DISABLED` | Worker | tests only |
+| `ROLL_WORKER_DISCORD_DENYLIST` | Both | comma module ids forced local on Discord |
 | `ROLL_ARTIFACT_ROOT` | Both | cwd; must match across processes |
 | `ROLL_WORKER_ALLOW_NO_TOKEN` | Worker | tests only; loopback only |
 | `ROLL_WORKER_MODE` | Worker (set by `roll-worker.js`) | skips Agenda processor |
@@ -88,33 +91,39 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 
 | Field | Value |
 |-------|-------|
-| Code tip (fixes) | working tree Pass 9 + Pass 10 proof |
+| Code tip (fixes) | working tree Pass 13 |
 | Prior code tip | `e0565b7c` Harden roll-worker fallbacks and fetch limits |
 | Base | `master` (`793d1058`) |
 | Pass 8 | 2026-07-29 — Bugbot + findings list |
 | Pass 9 | 2026-07-29 — **fix all** open High/Medium (+ key Lows) |
 | Pass 10 | 2026-07-29 — **strict proof**: Phase 3x Jest + live Worker+Gateway |
+| Pass 11 | 2026-07-29 — **fix remaining** L2/L9/L15/I11 + Phase 3y proof |
+| Pass 12 | 2026-07-29 — **fix remaining Lows** L3–L7/L12/L13 + Phase 3z proof |
+| Pass 13 | 2026-07-29 — **fix L8/L10/M4** + M6 design contract + Phase 3aa proof |
 
 ### Verdict
 
-**Pass 9 fixed the production blockers** from Pass 8; **Pass 10 proved them** with `yarn test:roll-worker` (212 passed) and `yarn proof:roll-worker` (Phase 3 → 3x live). Gateway/Worker remoting is safe to rely on behind `ROLL_WORKER_URL` for normal ops. Remaining items mostly Low/Info (rate-limit, health auth, denylist dead code, WWW Api ungated chatter, LevelUp displayName degradation).
+**Pass 9–13 closed all actionable review findings.** Gateway/Worker remoting is safe behind `ROLL_WORKER_URL`. Only M6 (timeout cannot cancel in-flight Worker parse) remains as accepted design — mutators stay fail-closed.
 
-**Fixed in Pass 9:** H1–H4, M1–M3, M5, M7–M15, L1, L10 (already corrected), L11, L14. Intentionally deferred / accepted: M4 (empty denylist by design), M6 (timeout race design), L2–L9/L12–L13/L15, I*.
+**Fixed in Pass 9:** H1–H4, M1–M3, M5, M7–M15, L1, L11, L14.
 
-**Pass 10 proof commands (exit 0):**
+**Fixed in Pass 11:** L2 (rate-limit `/v1/*`), L9 (`.env.copy` HOST/PORT/JSON/RATE), I11 (Api + `/api/local` `findRollList` gate), L15 (LevelUp `{user.displayName}` via signed `displaynameDiscord`).
+
+**Fixed in Pass 12:** L3 (reject future HMAC `ts`), L4 (`discord.com` + nested CDN hosts), L5 (realpath artifact jail), L6 (`/health` counters require Bearer), L7 (chatroom permission text), L12 (mylist unknown group label), L13 (Gateway export wait notice before remote).
+
+**Fixed in Pass 13:** L8 (HMAC signs all body keys), L10 (`courtMessage` skipped when `skipExp`), M4 (`ROLL_WORKER_DISCORD_DENYLIST` ops override; default still empty).
+
+**Proof commands (exit 0):**
 
 ```bash
-yarn test:roll-worker   # 33 suites / 212 tests incl. phase3x-pass9-proof
+yarn test:roll-worker   # Phase 3 → 3aa Jest
 yarn proof:roll-worker  # spawns roll-worker.js + Gateway parseRouter/client
 ```
 
 **Still optional / ops:**
 
-1. Rate-limit `/v1/parse` + trim huge signed bodies (L2)
-2. Discord denylist for modules without remote contract (M4) — currently empty by design
-3. WWW Api/`/api/local` local `findRollList` gate (I11)
-4. Discord LevelUp `{user.displayName}` on Worker (L15 — degraded UX)
-5. Ops: shared `ROLL_WORKER_TOKEN` + `ROLL_ARTIFACT_ROOT`; bind Worker loopback/private
+1. M6 design: Axios abort does not cancel Worker parse (fail-closed mutators mitigate)
+2. Ops: shared `ROLL_WORKER_TOKEN` + `ROLL_ARTIFACT_ROOT`; bind Worker loopback/private
 
 ### Architecture overview
 
@@ -208,26 +217,26 @@ flowchart LR
 | L1 | Bearer compared with `timingSafeEqual` |
 | L11 | VIP `invalidateCache` after remoted `z_admin` |
 | L14 | `result.statue = tempEXPUP?.status` |
+| L2 | `/v1/*` RateLimiterMemory (default 300/60s per IP; env override / disable) |
+| L9 | `.env.copy` documents HOST/PORT/JSON_LIMIT/RATE_LIMIT* |
+| I11 | WWW `handleApiRequest` + `/api/local` local `findRollList` gate |
+| L15 | `resolveLevelUpDisplayName` + Discord `displaynameDiscord` from `member.displayName` |
+| L3 | Reject future HMAC `ts` beyond 5s skew |
+| L4 | Allow `discord.com` + nested CDN subdomains |
+| L5 | `assertArtifactReadable` uses `realpathSync` jail |
+| L6 | `/health` counters/uptime require Bearer when token set (probes get `{ok,role}`) |
+| L7 | `.chatroom` permission deny returns `chatroom.permission_denied` |
+| L12 | `.st mylist` uses `mylist_group_unknown` when names meta missing |
+| L13 | Gateway sends export wait notice before remoted export (`exportWaitNoticeSent`) |
+| L8 | HMAC `pickClaims` signs all body keys (not allowlist-only) |
+| L10 | `courtMessage` skipped when `skipExp` (no dual-exec metric inflate) |
+| M4 | `ROLL_WORKER_DISCORD_DENYLIST` ops override; built-in set still empty |
 
 #### Remaining Low / Info
 
 | ID | Location | Finding |
 |----|----------|---------|
-| L2 | `server.js` JSON + HMAC | Authenticated DoS: default `32mb` JSON; no request rate limit. |
-| L3 | `request-auth.js` | Future `ts` within window slightly extends replay. |
-| L4 | `safe-fetch.js` | Host allowlist one subdomain deep. |
-| L5 | `artifacts.js` | Symlink under root can escape path jail (low practical risk). |
-| L6 | `server.js` `/health` | Unauthenticated uptime + counters. |
-| L7 | `z_multi-server.js` | Permission deny still silent return (legacy UX). |
-| L8 | `request-auth.js` | Future unsigned field integrity-blind (current keys covered). |
-| L9 | `.env.copy` | Omits HOST/PORT/JSON_LIMIT (TIMEOUT now documents 120000). |
-| L10 | courtMessage | Only fall-open dual-exec inflated metrics; fail-closed + skipExp now cover mutators. |
-| L12 | `.st mylist` | Raw guild IDs when names meta missing (degraded UX). |
-| L13 | `export.js` wait notice | Remoted export skips “processing” notice. |
-| L15 | `level.js` displayName | Remoted Discord LevelUp `{user.displayName}` falls back to stored name. |
-| M4 | `route-table.js` | Discord live-client guard still dead (`LOCAL_DISCORD_ONLY` empty) — by design. |
-| M6 | Timeout race | Axios abort does not cancel Worker parse (design). |
-| I11 | WWW Api / `/api/local` | Still no local `findRollList` gate (socket gated). |
+| M6 | Timeout race | Axios abort does not cancel Worker parse (accepted design; mutators fail-closed). |
 
 ### Pass triage
 
@@ -235,23 +244,25 @@ flowchart LR
 |------|------------|
 | 1–8 | Architecture + findings H1–H4 / M1–M15 / L* |
 | 9 | **Fixed** H1–H4, M1–M3, M5, M7–M15, L1, L11, L14 |
-| 10 | **Proved** via `test/roll-worker-phase3x-pass9-proof.test.js` + `scripts/proof-gateway-worker.js` (live Worker) |
+| 10 | **Proved** Pass 9 via Phase 3x Jest + live Worker proof |
+| 11 | **Fixed+proved** L2/L9/L15/I11 via Phase 3y Jest + live Worker proof |
+| 12 | **Fixed+proved** L3–L7/L12/L13 via Phase 3z Jest + live Worker proof |
+| 13 | **Fixed+proved** L8/L10/M4 + M6 contract via Phase 3aa Jest + live Worker proof |
 
 ### Test coverage
 
-**Well covered:** routing, client serialization, HMAC tamper, SSRF host allowlist, byte limits, **redirect refuse + IP pin (M2)**, needsLocal+skipExp, **workerError skipExp (H1)**, fail-closed openai/export **+ DB mutators (H2)**, artifacts escape + **getTempFilePath writers (M9–M11)**, prefetch helpers, live spawn+token, fixshard deferred, schedule skipExp, multi-platform fallback, empty-array prefetch guards, loopback allow-no-token, 32mb JSON body, **bare Discord `.ai` needsLocal + `.ai help` remote (M3)**, **WWW character-action fail-closed (M1)**, **nested needsLocal (M13)**, **level sticky invalidate (H4)**, **Discord getGroupGms (H3)**, **`.bk`/`.cmd` reload (M7/M12)**, **slashDeploy defer (M14)**, **schedule save errors (M15)**, **statue←status (L14)**, default 120s timeout (M5).
+**Well covered:** routing, client serialization, HMAC tamper, SSRF host allowlist, byte limits, **redirect refuse + IP pin (M2)**, needsLocal+skipExp, **workerError skipExp (H1)**, fail-closed openai/export **+ DB mutators (H2)**, artifacts escape + **getTempFilePath writers (M9–M11)**, prefetch helpers, live spawn+token, fixshard deferred, schedule skipExp, multi-platform fallback, empty-array prefetch guards, loopback allow-no-token, 32mb JSON body, **bare Discord `.ai` needsLocal + `.ai help` remote (M3)**, **WWW character-action fail-closed (M1)**, **nested needsLocal (M13)**, **level sticky invalidate (H4)**, **Discord getGroupGms (H3)**, **`.bk`/`.cmd` reload (M7/M12)**, **slashDeploy defer (M14)**, **schedule save errors (M15)**, **statue←status (L14)**, default 120s timeout (M5), **/v1 rate-limit 429 (L2)**, **Api+/api/local findRollList (I11)**, **LevelUp displayName signed fallback (L15)**.
 
 **Remaining gaps (optional):**
 
-1. No load/DoS stress test for 32mb signed bodies (L2 ops).
-2. `discord/bot.js` full integration (artifact attach / `clusterIpc` live) — proof covers source + key remotes.
-3. Timeout vs long OpenAI call end-to-end (M5/M6 design).
-4. Multi-gateway concurrent fallback races on Mongo.
-5. Live `.drgm` → `ddr` GM DM with Mongo (H3 unit covers Discord `getGroupGms` wiring).
+1. `discord/bot.js` full integration (artifact attach / `clusterIpc` live) — proof covers source + key remotes.
+2. Timeout vs long OpenAI call end-to-end (M5/M6 design).
+3. Multi-gateway concurrent fallback races on Mongo.
+4. Live `.drgm` → `ddr` GM DM with Mongo (H3 unit covers Discord `getGroupGms` wiring).
 
 ### Recommended fixes (shortest path)
 
-**Pass 9 + Pass 10 closed the priority fix + proof path.** Remaining optional work: rate-limit (L2), denylist tuning (M4), Api `findRollList` (I11), LevelUp displayName (L15).
+**Pass 9–13 closed the priority fix + proof path.** Remaining accepted design: M6 (no Worker cancel on Gateway timeout).
 
 ### Focus-area checklist (Pass 9)
 
@@ -287,7 +298,7 @@ flowchart LR
 | Artifacts | Shared `ROLL_ARTIFACT_ROOT` jail; Gateway attach gated by `assertArtifactReadable` |
 | Safety | Discord CDN allowlist fetch + byte caps; empty-array prefetch guards; loopback-only allow-no-token |
 | Platforms | TG/Line/WA/Plurk/WWW + Discord bot + schedule `[[dice]]` `skipExp` |
-| Tests | Phase 3 → 3x Jest suites (incl. Pass 9 proof) + `scripts/proof-gateway-worker.js` |
+| Tests | Phase 3 → 3y Jest suites (Pass 9–11 proof) + `scripts/proof-gateway-worker.js` |
 
 ### Commits in scope (`master..Distributed-`)
 

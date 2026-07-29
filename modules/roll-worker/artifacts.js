@@ -46,10 +46,20 @@ function assertArtifactReadable(filePath) {
 		if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile()) {
 			return null;
 		}
+		// Re-check after realpath so a symlink under root cannot escape the jail (L5).
+		const rootReal = fs.realpathSync(getArtifactRoot());
+		const real = fs.realpathSync(resolved);
+		const relative = path.relative(rootReal, real);
+		if (relative.startsWith('..') || path.isAbsolute(relative)) {
+			return null;
+		}
+		if (!fs.statSync(real).isFile()) {
+			return null;
+		}
+		return real;
 	} catch {
 		return null;
 	}
-	return resolved;
 }
 
 function getExportDir() {

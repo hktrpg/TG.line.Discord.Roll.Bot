@@ -100,6 +100,7 @@ const rollDiceCommand = async function ({
     userrole,
     exportMeta,
     exportHistoryMeta,
+    exportWaitNoticeSent,
     locale,
     t
 }) {
@@ -454,7 +455,10 @@ const rollDiceCommand = async function ({
             }
 
 
-            await sendDiscordExportWaitNotice(discordMessage, userid, translate);
+            // Gateway may already have sent wait notice before remoting (L13).
+            if (!exportWaitNoticeSent) {
+                await sendDiscordExportWaitNotice(discordMessage, userid, translate);
+            }
             if (hasExportHistoryMessages(exportHistoryMeta)) {
                 M = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
             } else {
@@ -608,7 +612,9 @@ const rollDiceCommand = async function ({
             }
 
             console.log('USE EXPORT TXT')
-            await sendDiscordExportWaitNotice(discordMessage, userid, translate);
+            if (!exportWaitNoticeSent) {
+                await sendDiscordExportWaitNotice(discordMessage, userid, translate);
+            }
             if (hasExportHistoryMessages(exportHistoryMeta)) {
                 // Prefetch may use HTML-shaped embeds/attachments; normalize for TXT join().
                 const limited = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
@@ -845,5 +851,6 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
-    discordCommand
+    discordCommand,
+    sendDiscordExportWaitNotice,
 };

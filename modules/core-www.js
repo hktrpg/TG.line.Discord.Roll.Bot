@@ -73,6 +73,10 @@ async function resolveCharacterAction({ doc, item, locale, botname = 'WWW', repl
                 if (deferred) return deferred;
             }
             console.error('[Web Server] character-action worker failed (no local retry):', error?.message || error);
+            // Defer-busy on: never surface system_busy (silent if not queued).
+            if (deferQueue.isDeferBusyActive()) {
+                return { characterResult: null, rplyVal: { text: '', type: 'text' } };
+            }
             const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
             return {
                 characterResult: null,
@@ -87,6 +91,9 @@ async function resolveCharacterAction({ doc, item, locale, botname = 'WWW', repl
         });
         if (deferred) return deferred;
         console.error('[Web Server] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL for character-action');
+        if (deferQueue.isDeferBusyActive()) {
+            return { characterResult: null, rplyVal: { text: '', type: 'text' } };
+        }
         const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
         return {
             characterResult: null,

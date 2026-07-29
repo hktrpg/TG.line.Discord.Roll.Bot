@@ -60,6 +60,11 @@ describe('Discord defer full-finalize wiring', () => {
 		expect(src).toMatch(/handlingSendMessage\(sendResult\)/);
 		expect(src).toMatch(/message,\s*privatemsg: checkPrivateMsg\.privatemsg/);
 		expect(src).toMatch(/displaynameDiscord,/);
+		// Empty finalize must clear slash thinking; /mee webhook fail must deleteReply.
+		expect(src).toMatch(/if \(!sendResult\)[\s\S]*clearDeferredDiscordInteraction/);
+		expect(src).toMatch(/interactionHandled[\s\S]*deleteReply/);
+		// Channel .meN must not fall through to plain text after webhook.
+		expect(src).toMatch(/Channel \.meN: webhook is the reply/);
 	});
 
 	it('documents side-effects covered by finalize (audit)', () => {

@@ -96,6 +96,7 @@ function cloneReplyTarget(replyTarget, userid) {
 		messageId: replyTarget.messageId || null,
 		guildId: replyTarget.guildId || null,
 		chatId: replyTarget.chatId || null,
+		plurkId: replyTarget.plurkId || null,
 		targetId: replyTarget.targetId || null,
 		userid: replyTarget.userid || userid,
 		kind: replyTarget.kind || null,
@@ -125,6 +126,24 @@ function isTransportSafeError(error) {
 		|| hay.includes('socket hang up')
 		|| hay.includes('network error')
 		|| /\btimeout\b/.test(hay)
+	);
+}
+
+/**
+ * Connect failed before Worker could run (safe to defer even for fail-closed mutators).
+ * Timeouts are NOT included — Worker may already have mutated.
+ */
+function isPreFlightConnectError(error) {
+	const msg = String(error?.message || error || '');
+	const code = error?.code || error?.errno || '';
+	const hay = `${code} ${msg}`.toLowerCase();
+	return (
+		hay.includes('econnrefused')
+		|| hay.includes('enotfound')
+		|| hay.includes('econnreset')
+		|| hay.includes('eai_again')
+		|| hay.includes('socket hang up')
+		|| hay.includes('network error')
 	);
 }
 
@@ -342,6 +361,7 @@ module.exports = {
 	INTERACTION_TTL_CAP_MS,
 	isDeferBusyActive,
 	isTransportSafeError,
+	isPreFlightConnectError,
 	isDeferrableReason,
 	leanParseParams,
 	enqueue,

@@ -63,7 +63,7 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | WWW + LINE | `CREATEWEB`, LINE secrets, `ROLL_WORKER_URL` |
 | WhatsApp alone | `WHATSAPP_SWITCH`, session volume, `ROLL_WORKER_URL` |
 
-Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job processor (platforms keep `scheduleAtMessage*` handlers).
+Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job processor (platforms keep `scheduleAtMessage*` handlers). Worker still awaits Agenda Mongo ready so `.at` / `.cron` can `schedule()` / `save()` (API only).
 
 Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 
@@ -79,7 +79,7 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 
 ## Separation status
 
-**Module split is complete (Phase 3 → 3ab).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. **Hybrid:** Worker outages fall back to local analytics (except `FAIL_CLOSED_ON_WORKER_ERROR` mutators). **`ROLL_WORKER_REMOTE_ONLY`:** no local analytics; safe busy paths use in-memory defer-busy (Discord/TG/LINE/WA/WWW socket) instead of showing system_busy; mutator timeouts still immediate busy. HTTP `/api` and `/api/local` stay immediate busy (no push channel). Both `needsLocal` and `workerError` hybrid fallbacks use `skipExp`. Export history prefetch skips GP cooldown / low userrole; empty `sum_messages` does not count as prefetch. Chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false (deleted reply-refs fail closed). Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP. Non-Discord platforms (including WWW chat) keep local `findRollList` as the command gate so chatter does not hit Worker / award EXP via parse. OpenAI Discord attachment downloads use `safeFetchBuffer` with a 50MB hard cap. `fileLink` / `dmFileLink` attach only paths under `ROLL_ARTIFACT_ROOT`.
+**Module split is complete (Phase 3 → 3ab).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. **Hybrid:** Worker outages fall back to local analytics (except `FAIL_CLOSED_ON_WORKER_ERROR` mutators). **`ROLL_WORKER_REMOTE_ONLY`:** no local analytics; defer-busy queues safe failures (Discord/TG/LINE/WA/WWW/Plurk) and **never shows system_busy** while defer is on (timeout/mutator mid-flight → silent empty, not replayed). HTTP `/api` and `/api/local` have no push channel → silent empty under defer (opt-out `DEFER_BUSY=false` restores system_busy text). Both `needsLocal` and `workerError` hybrid fallbacks use `skipExp`. Export history prefetch skips GP cooldown / low userrole; empty `sum_messages` does not count as prefetch. Chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false (deleted reply-refs fail closed). Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP. Non-Discord platforms (including WWW chat) keep local `findRollList` as the command gate so chatter does not hit Worker / award EXP via parse. OpenAI Discord attachment downloads use `safeFetchBuffer` with a 50MB hard cap. `fileLink` / `dmFileLink` attach only paths under `ROLL_ARTIFACT_ROOT`.
 
 ## Health
 
@@ -128,7 +128,7 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 | Link status | Gateway `[RollWorkerLink] CONNECTED/DISCONNECTED`; Worker peer CONNECTED + 90s idle DISCONNECTED |
 | ParseMode | One-liner: `GATEWAY → REMOTE WORKER \| local=ON\|OFF \| defer=on\|off` |
 | `REMOTE_ONLY` | No in-process analytics; errors/needsLocal/denylist → busy (or defer) |
-| Defer-busy | **Only when `REMOTE_ONLY`**: silent memory queue (max 10000 / 20 per user / TTL 10m); deliver on CONNECTED + 5s drain; transport drain never local-fallback (needsLocal drain may); mutator fail-closed **not** auto-replayed |
+| Defer-busy | **Only when `REMOTE_ONLY`**: silent memory queue (max 10000 / 20 per user / TTL 10m); deliver on CONNECTED + 5s drain; **never show `system_busy`** while defer is on (queue or silent empty); mutator **timeout** not replayed (silent); mutator **pre-flight** connect may defer |
 
 **Proof commands (exit 0):**
 
@@ -321,7 +321,7 @@ flowchart LR
 | safe-fetch | Host allowlist + IP pin + redirect refuse + byte cap |
 | Env / scripts | Cheat sheet aligned; auto-token; REMOTE_ONLY + DEFER_*; proof clears REMOTE_ONLY for hybrid phases |
 | courtMessage / metrics | skipExp skips courtMessage (L10); needsLocal does not dual-count |
-| Defer-busy | REMOTE_ONLY only; Discord/TG/LINE/WA/WWW; Discord drain uses full `finalizeDiscordParseResult` (quotes/buttons/files/me); mutator no-replay |
+| Defer-busy | REMOTE_ONLY only; Discord/TG/LINE/WA/WWW/Plurk; never surface system_busy while defer on; Discord drain full finalize; mutator timeout silent no-replay; pre-flight connect may defer |
 
 ### Delivered on this branch (through Pass 3ab)
 

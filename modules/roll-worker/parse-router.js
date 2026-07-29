@@ -75,6 +75,22 @@ async function getSystemBusyText(locale) {
 }
 
 /**
+ * REMOTE_ONLY fail result after defer was attempted (or is unsafe to enqueue).
+ * With defer-busy on: never show system_busy — silent empty (plan: user never sees busy).
+ * With defer off / hybrid opt-out: classic system_busy text.
+ */
+async function remoteOnlyFailResult(locale, extras = {}) {
+	if (deferQueue.isDeferBusyActive()) {
+		return { text: '', type: 'text', ...extras };
+	}
+	return {
+		text: await getSystemBusyText(locale),
+		type: 'text',
+		...extras,
+	};
+}
+
+/**
  * Log parse backend mode once per process (gateway or diagnostics).
  */
 function logParseMode(logger = console) {
@@ -213,10 +229,7 @@ async function parseInput(params = {}, options = {}) {
 				alreadyQueued: deferredReplay,
 			});
 			if (deferred) return deferred;
-			return {
-				text: await getSystemBusyText(params.locale),
-				type: 'text',
-			};
+			return remoteOnlyFailResult(params.locale);
 		}
 		const local = await analytics.parseInput(params);
 		invalidateCachesAfterRemote(moduleName, local, params);
@@ -249,10 +262,7 @@ async function parseInput(params = {}, options = {}) {
 				alreadyQueued: deferredReplay,
 			});
 			if (deferred) return deferred;
-			return {
-				text: await getSystemBusyText(params.locale),
-				type: 'text',
-			};
+			return remoteOnlyFailResult(params.locale);
 		}
 		const local = await analytics.parseInput(params);
 		invalidateCachesAfterRemote(moduleName, local, params);
@@ -301,29 +311,41 @@ async function parseInput(params = {}, options = {}) {
 				alreadyQueued: deferredReplay,
 			});
 			if (deferred) return deferred;
-			return {
-				text: await getSystemBusyText(params.locale),
-				type: 'text',
+			return remoteOnlyFailResult(params.locale, {
 				LevelUp: result.LevelUp || '',
 				statue: result.statue || '',
-			};
+			});
 		}
 		invalidateCachesAfterRemote(moduleName, result, remoteParams);
 		return keepProof ? result : stripWorkerProof(result);
 	} catch (error) {
-		// Export writes quota + artifacts on the Worker. Re-running locally after
-		// timeout/error can double-charge and duplicate files — fail closed.
+		// Mutators (export / schedule / DB…): never local-fallback after Worker error.
+		// Pre-flight connect → defer. Timeout / mid-flight → no replay (double-write risk);
+		// under defer-busy still never show system_busy (silent).
 		if (shouldSkipLocalFallbackOnWorkerError(moduleName)) {
-			logLocalFallback('workerErrorNoFallback', {
-				botname: params.botname,
-				moduleName,
-				error: error?.message || String(error),
-			});
-			// Mutator mid-flight: never auto-defer/replay (double-charge risk).
-			return {
-				text: await getSystemBusyText(params.locale),
-				type: 'text',
-			};
+			if (deferQueue.isPreFlightConnectError(error)) {
+				const deferred = await tryDeferBusy({
+					reason: 'transport',
+					params: remoteParams,
+					replyTarget,
+					moduleName,
+					alreadyQueued: deferredReplay,
+				});
+				logRemoteFailNoLocal({
+					botname: params.botname,
+					moduleName,
+					deferred: Boolean(deferred),
+					error: error?.message || String(error),
+				});
+				if (deferred) return deferred;
+			} else {
+				logLocalFallback('workerErrorNoFallback', {
+					botname: params.botname,
+					moduleName,
+					error: error?.message || String(error),
+				});
+			}
+			return remoteOnlyFailResult(params.locale);
 		}
 		if (allowLocalFallback) {
 			logLocalFallback('workerError', {
@@ -350,10 +372,7 @@ async function parseInput(params = {}, options = {}) {
 			error: error?.message || String(error),
 		});
 		if (deferred) return deferred;
-		return {
-			text: await getSystemBusyText(params.locale),
-			type: 'text',
-		};
+		return remoteOnlyFailResult(params.locale);
 	}
 }
 
@@ -728,6 +747,7 @@ module.exports = {
 	logRemoteFailNoLocal,
 	resetOpsLogCounters,
 	getSystemBusyText,
+	remoteOnlyFailResult,
 	SYSTEM_BUSY_KEY,
 	tryDeferBusy,
 };

@@ -228,7 +228,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		expect(hit).toBe(1);
 	});
 
-	it('export mutator timeout never enqueues', async () => {
+	it('export mutator timeout never enqueues and never shows system_busy', async () => {
 		analytics.findRollModuleName.mockReturnValue('export');
 		client.parse.mockRejectedValue(new Error('timeout of 120000ms exceeded'));
 		const result = await parseRouter.parseInput({
@@ -240,8 +240,25 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 			replyTarget: { botname: 'Discord', channelId: 'c-ex', userid: 'u-export' },
 		});
 		expect(result.deferred).toBeUndefined();
-		expect(result.text).toBe('SYSTEM_BUSY_I18N');
+		expect(result.text).toBe('');
+		expect(result.text).not.toBe('SYSTEM_BUSY_I18N');
 		expect(deferQueue.size()).toBe(0);
+	});
+
+	it('z_schedule pre-flight ECONNREFUSED enqueues under REMOTE_ONLY', async () => {
+		analytics.findRollModuleName.mockReturnValue('z_schedule');
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));
+		const result = await parseRouter.parseInput({
+			inputStr: '.at 1mins [[1d100]]',
+			botname: 'Discord',
+			userid: 'u-at',
+			locale: 'zh-tw',
+		}, {
+			replyTarget: { botname: 'Discord', channelId: 'c-at', userid: 'u-at' },
+		});
+		expect(result.deferred).toBe(true);
+		expect(result.text).toBe('');
+		expect(deferQueue.size()).toBe(1);
 	});
 
 	it('ParseMode line documents defer=on when remote-only', () => {

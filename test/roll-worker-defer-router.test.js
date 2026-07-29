@@ -85,7 +85,7 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 		expect(deferQueue.size()).toBe(1);
 	});
 
-	it('mutator fail-closed still returns busy (no defer)', async () => {
+	it('mutator timeout never enqueues and never shows system_busy', async () => {
 		analytics.findRollModuleName.mockReturnValue('export');
 		client.parse.mockRejectedValue(new Error('timeout of 120000ms exceeded'));
 		const result = await parseRouter.parseInput({
@@ -95,8 +95,51 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 			locale: 'zh-tw',
 		}, { replyTarget: { botname: 'Discord', channelId: 'c', userid: 'u8' } });
 		expect(result.deferred).toBeUndefined();
-		expect(result.text).toBe('SYSTEM_BUSY_I18N');
+		expect(result.text).toBe('');
+		expect(result.text).not.toBe('SYSTEM_BUSY_I18N');
 		expect(deferQueue.size()).toBe(0);
+	});
+
+	it('defer-on paths never return system_busy text', async () => {
+		const target = { botname: 'Discord', channelId: 'c', userid: 'u-nobusy' };
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:1'));
+		const transport = await parseRouter.parseInput({
+			inputStr: '1d100', botname: 'Discord', userid: 'u-nobusy', locale: 'zh-tw',
+		}, { replyTarget: target });
+		expect(transport.text).not.toBe('SYSTEM_BUSY_I18N');
+
+		deferQueue.resetDeferQueue();
+		analytics.findRollModuleName.mockReturnValue('export');
+		client.parse.mockRejectedValue(new Error('timeout of 120000ms exceeded'));
+		const mutatorTimeout = await parseRouter.parseInput({
+			inputStr: '.discord html', botname: 'Discord', userid: 'u-nobusy', locale: 'zh-tw',
+		}, { replyTarget: target });
+		expect(mutatorTimeout.deferred).toBeUndefined();
+		expect(mutatorTimeout.text).toBe('');
+		expect(mutatorTimeout.text).not.toBe('SYSTEM_BUSY_I18N');
+
+		deferQueue.resetDeferQueue();
+		analytics.findRollModuleName.mockReturnValue('0-advroll');
+		client.parse.mockResolvedValue({ needsLocal: true, text: '', type: 'text' });
+		const needsLocal = await parseRouter.parseInput({
+			inputStr: '1d100', botname: 'Discord', userid: 'u-nobusy', locale: 'zh-tw',
+		}, { replyTarget: target });
+		expect(needsLocal.text).not.toBe('SYSTEM_BUSY_I18N');
+	});
+
+	it('mutator pre-flight ECONNREFUSED defers under REMOTE_ONLY', async () => {
+		analytics.findRollModuleName.mockReturnValue('z_schedule');
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));
+		const result = await parseRouter.parseInput({
+			inputStr: '.at 1mins [[1d100]]',
+			botname: 'Discord',
+			userid: 'u-sched',
+			locale: 'zh-tw',
+		}, { replyTarget: { botname: 'Discord', channelId: 'c', userid: 'u-sched' } });
+		expect(result.deferred).toBe(true);
+		expect(result.text).toBe('');
+		expect(analytics.parseInput).not.toHaveBeenCalled();
+		expect(deferQueue.size()).toBe(1);
 	});
 
 	it('remote-fail log is rate-limited (not per message)', async () => {

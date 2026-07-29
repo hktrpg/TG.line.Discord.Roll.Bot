@@ -51,7 +51,11 @@ deferQueue.registerDeliverer('Discord', async (job, result) => {
 				|| job.params?.displaynameDiscord
 				|| '',
 		});
-		if (!sendResult) return;
+		// Side-effect-only / empty text: still clear slash "thinking…" ephemeral.
+		if (!sendResult) {
+			if (message.isInteraction) await clearDeferredDiscordInteraction(message);
+			return;
+		}
 		if (message.isInteraction || sendResult.webhookOnly || sendResult.interactionHandled) {
 			await replilyMessage(message, sendResult);
 			return;
@@ -1091,15 +1095,15 @@ async function replilyMessage(message, result) {
 	// Busy-queue: leave Discord "thinking…" until drain editReply.
 	if (result?.deferred) return;
 	if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
-		if (result.webhookOnly) {
-			try {
-				if (message.deferred || message.replied) {
-					await message.deleteReply();
-				}
-			} catch (error) {
-				if (!isDiscordUnknownInteraction(error)) {
-					console.error('replilyMessage deleteReply (webhookOnly):', error.message);
-				}
+		// webhookOnly: /me /mee sent via webhook. interactionHandled: webhook failed but
+		// interaction was acknowledged — always drop the deferred ephemeral.
+		try {
+			if (message.deferred || message.replied) {
+				await message.deleteReply();
+			}
+		} catch (error) {
+			if (!isDiscordUnknownInteraction(error)) {
+				console.error('replilyMessage deleteReply (webhook/me):', error.message);
 			}
 		}
 		return;
@@ -3763,6 +3767,8 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 			if (webhookSent) return { webhookOnly: true };
 			return { interactionHandled: true };
 		}
+		// Channel .meN: webhook is the reply; do not fall through to plain text send.
+		return undefined;
 	}
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
@@ -4620,8 +4626,15 @@ async function tallyStPoll(messageId, fallbackData) {
 						discordClient: client,
 						discordMessage: null,
 						titleName: ''
+					}, {
+						replyTarget: {
+							botname: 'Discord',
+							channelId: data.channelid,
+							guildId: data.groupid || null,
+							userid: starterId || '0',
+						},
 					});
-					if (rplyVal && rplyVal.text) {
+					if (!rplyVal?.deferred && rplyVal?.text) {
 						await client.cluster.broadcastEval(
 							async (c, { channelId, content }) => {
 								try {
@@ -4719,8 +4732,15 @@ async function tallyStPoll(messageId, fallbackData) {
 					discordClient: client,
 					discordMessage: null,
 					titleName: ''
+				}, {
+					replyTarget: {
+						botname: 'Discord',
+						channelId: data.channelid,
+						guildId: data.groupid || null,
+						userid: starterId || '0',
+					},
 				});
-				if (rplyVal && rplyVal.text) {
+				if (!rplyVal?.deferred && rplyVal?.text) {
 					if (rplyVal.discordCreatePoll) {
 						await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: rplyVal.text, payload: rplyVal.discordCreatePoll });
 					} else {

@@ -224,6 +224,9 @@ const rollDiceCommand = async function ({
             const serial = await getNextSerial(callBotname, groupid);
             const atData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, serial };
             try {
+                if (typeof agenda.ensureAgendaReady === 'function') {
+                    await agenda.ensureAgendaReady();
+                }
                 await agenda.agenda.schedule(date, callBotname, atData);
             } catch (error) {
                 console.error('agenda error:', error.name, error.reason ?? error.message);
@@ -389,10 +392,12 @@ const rollDiceCommand = async function ({
             let callBotname = differentPeformCron(botname);
             const serial = await getNextSerial(callBotname, groupid);
             const cronData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, createAt: new Date(Date.now()), serial };
-            const job = agenda.agenda.create(callBotname, cronData);
-            job.repeatEvery(date);
-
             try {
+                if (typeof agenda.ensureAgendaReady === 'function') {
+                    await agenda.ensureAgendaReady();
+                }
+                const job = agenda.agenda.create(callBotname, cronData);
+                job.repeatEvery(date);
                 await job.save();
             } catch (error) {
                 console.error('schedule #301 Error saving job to collection', error?.message || error);

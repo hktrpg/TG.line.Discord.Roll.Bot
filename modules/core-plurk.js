@@ -12,6 +12,20 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./analytics');
 const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
+
+deferQueue.registerDeliverer('Plurk', async (job, result) => {
+	const plurkId = job.replyTarget?.plurkId || job.replyTarget?.chatId;
+	if (!plurkId) return;
+	let rplyText = '';
+	const display = job.params?.displayname || '';
+	if (display) rplyText += `${display}\n`;
+	if (result?.text) rplyText += `${result.text}\n`;
+	if (result?.LevelUp) rplyText += `${result.LevelUp}`;
+	if (!rplyText.trim()) return;
+	await sendMessage(plurkId, rplyText);
+});
+
 Plurk_Client.request('Users/me')
     .then(profile => {
         console.log(`[Plurk] Plurk 名稱: ${profile.full_name}`);
@@ -150,6 +164,12 @@ Plurk_Client.on('new_plurk', async response => {
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
     const t = i18n.createTranslator(locale);
+    const plurkReplyTarget = {
+        botname: 'Plurk',
+        plurkId: response.plurk_id,
+        chatId: response.plurk_id,
+        userid,
+    };
     let rplyVal = await parseRouter.parseInput({
         inputStr: message.replace(/^\s*@hktrpg\s+/i, ''),
         groupid: groupid,
@@ -160,7 +180,8 @@ Plurk_Client.on('new_plurk', async response => {
         channelid: channelid,
         locale,
         t
-    });
+    }, { replyTarget: plurkReplyTarget });
+    if (rplyVal?.deferred) return;
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
     }
@@ -222,6 +243,12 @@ Plurk_Client.on('new_response', async response => {
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
     const t = i18n.createTranslator(locale);
+    const plurkReplyTarget = {
+        botname: 'Plurk',
+        plurkId: response.plurk.plurk_id,
+        chatId: response.plurk.plurk_id,
+        userid,
+    };
     let rplyVal = await parseRouter.parseInput({
         inputStr: inputStr,
         groupid: groupid,
@@ -232,7 +259,8 @@ Plurk_Client.on('new_response', async response => {
         channelid: channelid,
         locale,
         t
-    });
+    }, { replyTarget: plurkReplyTarget });
+    if (rplyVal?.deferred) return;
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
     }

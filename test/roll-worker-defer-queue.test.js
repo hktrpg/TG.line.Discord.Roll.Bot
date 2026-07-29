@@ -104,4 +104,12 @@ describe('roll-worker defer-queue', () => {
 		expect(deferQueue.isTransportSafeError(new Error('timeout of 120000ms exceeded'))).toBe(true);
 		expect(deferQueue.isTransportSafeError(new Error('Unauthorized'))).toBe(false);
 	});
+
+	it('isPreFlightConnectError excludes timeouts', () => {
+		expect(deferQueue.isPreFlightConnectError(new Error('connect ECONNREFUSED 127.0.0.1:3950'))).toBe(true);
+		expect(deferQueue.isPreFlightConnectError(new Error('getaddrinfo ENOTFOUND host'))).toBe(true);
+		expect(deferQueue.isPreFlightConnectError(new Error('timeout of 120000ms exceeded'))).toBe(false);
+		expect(deferQueue.isPreFlightConnectError(new Error('ETIMEDOUT'))).toBe(false);
+		expect(deferQueue.isPreFlightConnectError(new Error('Unauthorized'))).toBe(false);
+	});
 });

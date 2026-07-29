@@ -39,6 +39,7 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | Variable | Where | Default / notes |
 |----------|--------|-----------------|
 | `ROLL_WORKER_URL` | Gateway | unset = local analytics |
+| `ROLL_GATEWAY_NAME` | Gateway | optional Worker CONNECTED label; default auto `Discord+Telegram+…` |
 | `ROLL_WORKER_TOKEN` | Both | auto-generated into `.env` if unset (unless allow-no-token) |
 | `ROLL_WORKER_TIMEOUT_MS` | Gateway | `120000` |
 | `ROLL_WORKER_REMOTE_ONLY` | Gateway | `true` = never local analytics (busy on error/needsLocal/denylist) |
@@ -320,7 +321,7 @@ flowchart LR
 | safe-fetch | Host allowlist + IP pin + redirect refuse + byte cap |
 | Env / scripts | Cheat sheet aligned; auto-token; REMOTE_ONLY + DEFER_*; proof clears REMOTE_ONLY for hybrid phases |
 | courtMessage / metrics | skipExp skips courtMessage (L10); needsLocal does not dual-count |
-| Defer-busy | REMOTE_ONLY only; Discord/TG/LINE/WA/WWW; mutator no-replay; proved 3ab |
+| Defer-busy | REMOTE_ONLY only; Discord/TG/LINE/WA/WWW; Discord drain uses full `finalizeDiscordParseResult` (quotes/buttons/files/me); mutator no-replay |
 
 ### Delivered on this branch (through Pass 3ab)
 

@@ -21,7 +21,7 @@ function listen(app) {
 	});
 }
 
-function httpJson(port, method, path, body) {
+function httpJson(port, method, path, body, extraHeaders = {}) {
 	return new Promise((resolve, reject) => {
 		const data = body ? JSON.stringify(body) : null;
 		const req = request.request({
@@ -32,6 +32,7 @@ function httpJson(port, method, path, body) {
 			headers: {
 				'Content-Type': 'application/json',
 				...(data ? { 'Content-Length': Buffer.byteLength(data) } : {}),
+				...extraHeaders,
 			},
 		}, (res) => {
 			let raw = '';
@@ -70,6 +71,33 @@ describe('roll-worker HTTP server', () => {
 		expect(res.body.ok).toBe(true);
 		expect(res.body.role).toBe('roll-worker');
 		expect(typeof res.body.parseCount).toBe('number');
+	});
+
+	it('CONNECTED log includes gateway label; health echoes gateway', async () => {
+		const lines = [];
+		const spy = jest.spyOn(console, 'info').mockImplementation((m) => lines.push(String(m)));
+		const res = await httpJson(port, 'GET', '/health', null, {
+			'X-Roll-Gateway': 'Discord+Telegram',
+		});
+		spy.mockRestore();
+		expect(res.status).toBe(200);
+		expect(res.body.gateway).toBe('Discord+Telegram');
+		expect(res.body.peers['Discord+Telegram']).toBe('up');
+		expect(lines.some((l) => /CONNECTED/.test(l) && /gateway=Discord\+Telegram/.test(l))).toBe(true);
+
+		// Same gateway: no second CONNECTED edge
+		const lines2 = [];
+		const spy2 = jest.spyOn(console, 'info').mockImplementation((m) => lines2.push(String(m)));
+		await httpJson(port, 'GET', '/health', null, { 'X-Roll-Gateway': 'Discord+Telegram' });
+		spy2.mockRestore();
+		expect(lines2.some((l) => /CONNECTED/.test(l))).toBe(false);
+
+		// Different gateway process label logs separately
+		const lines3 = [];
+		const spy3 = jest.spyOn(console, 'info').mockImplementation((m) => lines3.push(String(m)));
+		await httpJson(port, 'GET', '/health', null, { 'X-Roll-Gateway': 'Whatsapp' });
+		spy3.mockRestore();
+		expect(lines3.some((l) => /CONNECTED/.test(l) && /gateway=Whatsapp/.test(l))).toBe(true);
 	});
 
 	it('POST /v1/parse returns analytics result with proof marker', async () => {

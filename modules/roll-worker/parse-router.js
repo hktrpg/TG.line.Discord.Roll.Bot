@@ -12,6 +12,8 @@ const FALLBACK_LOG_INTERVAL_MS = 60_000;
 let loggedModeOnce = false;
 let lastFallbackLogAt = 0;
 let fallbackSinceLastLog = 0;
+let lastRemoteFailLogAt = 0;
+let remoteFailSinceLastLog = 0;
 let replayHookInstalled = false;
 
 /**
@@ -133,6 +135,36 @@ function logLocalFallback(reason, meta = {}) {
 		+ ` | countSinceLastLog=${suppressed}`
 		+ (meta.error ? ` | error=${meta.error}` : '')
 	);
+}
+
+/**
+ * Rate-limited: REMOTE_ONLY / no-local path when Worker is down (avoid per-message spam).
+ */
+function logRemoteFailNoLocal(meta = {}) {
+	remoteFailSinceLastLog += 1;
+	const now = Date.now();
+	if (now - lastRemoteFailLogAt < FALLBACK_LOG_INTERVAL_MS && lastRemoteFailLogAt !== 0) {
+		return;
+	}
+	const suppressed = remoteFailSinceLastLog;
+	lastRemoteFailLogAt = now;
+	remoteFailSinceLastLog = 0;
+	console.warn(
+		`[ParseRouter] OPS remote-fail (no local)`
+		+ ` | deferred=${meta.deferred ? 'yes' : 'busy'}`
+		+ ` | botname=${meta.botname || ''}`
+		+ ` | module=${meta.moduleName || ''}`
+		+ ` | countSinceLastLog=${suppressed}`
+		+ (meta.error ? ` | error=${meta.error}` : '')
+	);
+}
+
+/** Test/reset helper for rate-limit counters. */
+function resetOpsLogCounters() {
+	lastFallbackLogAt = 0;
+	fallbackSinceLastLog = 0;
+	lastRemoteFailLogAt = 0;
+	remoteFailSinceLastLog = 0;
 }
 
 function stripWorkerProof(result) {
@@ -303,7 +335,6 @@ async function parseInput(params = {}, options = {}) {
 			invalidateCachesAfterRemote(moduleName, local, remoteParams);
 			return keepProof ? { ...local, _rollWorker: false } : local;
 		}
-		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);
 		const deferReason = deferQueue.isTransportSafeError(error) ? 'transport' : 'workerError';
 		const deferred = await tryDeferBusy({
 			reason: deferReason,
@@ -311,6 +342,12 @@ async function parseInput(params = {}, options = {}) {
 			replyTarget,
 			moduleName,
 			alreadyQueued: deferredReplay,
+		});
+		logRemoteFailNoLocal({
+			botname: params.botname,
+			moduleName,
+			deferred: Boolean(deferred),
+			error: error?.message || String(error),
 		});
 		if (deferred) return deferred;
 		return {
@@ -686,7 +723,10 @@ module.exports = {
 	shouldSkipLocalFindRollList,
 	hasOpenAiDiscordPrefetch,
 	FAIL_CLOSED_ON_WORKER_ERROR,
+	FALLBACK_LOG_INTERVAL_MS,
 	logParseMode,
+	logRemoteFailNoLocal,
+	resetOpsLogCounters,
 	getSystemBusyText,
 	SYSTEM_BUSY_KEY,
 	tryDeferBusy,

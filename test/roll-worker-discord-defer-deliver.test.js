@@ -136,6 +136,50 @@ describe('deliverDiscordDeferred', () => {
 		expect(hooks.sendToReplyChannel).toHaveBeenCalledTimes(2);
 		expect(hooks.sendToReplyChannel.mock.calls[0][0].replyText).toContain('LV UP');
 		expect(hooks.sendToReplyChannel.mock.calls[1][0].replyText).toBe('cc 50');
+		expect(hooks.sendToReplyChannel.mock.calls[1][0].quotes).toBe(false);
+	});
+
+	it('ccrt quotes=true sends channel reply with quotes (embed path)', async () => {
+		const hooks = makeHooks({
+			formatDisplayPrefix: (_job, body) => `<@u1>\n${body}`,
+		});
+		const out = await deliverDiscordDeferred({
+			replyTarget: { channelId: 'ch1', guildId: 'g1', userid: 'u1' },
+			userid: 'u1',
+		}, {
+			text: '7) Flee in Panic: ...',
+			quotes: true,
+			type: 'text',
+		}, hooks);
+
+		expect(out.mode).toBe('channel-text');
+		expect(hooks.sendToReplyChannel).toHaveBeenCalledWith({
+			replyText: '<@u1>\n7) Flee in Panic: ...',
+			channelid: 'ch1',
+			groupid: 'g1',
+			quotes: true,
+		});
+	});
+
+	it('interaction with quotes uses replyInteraction hook (not plain content)', async () => {
+		const interaction = makeInteraction();
+		const hooks = makeHooks({
+			replyInteraction: jest.fn(async () => {}),
+		});
+		await deliverDiscordDeferred({
+			replyTarget: {
+				isInteraction: true,
+				interaction,
+				channelId: 'ch1',
+				userid: 'u1',
+			},
+		}, { text: 'ccrt result', quotes: true }, hooks);
+
+		expect(hooks.replyInteraction).toHaveBeenCalledWith(interaction, {
+			text: 'ccrt result',
+			quotes: true,
+		});
+		expect(interaction.editReply).not.toHaveBeenCalled();
 	});
 
 	it('myNames without interaction fetches channel', async () => {

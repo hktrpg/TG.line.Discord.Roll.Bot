@@ -11,6 +11,7 @@ const {
 	stripGatewayAuth,
 } = require('./request-auth');
 const { ensureRollWorkerToken } = require('./ensure-token');
+const { readGatewayFromRequest } = require('./gateway-label');
 
 function timingSafeTokenEqual(provided, expected) {
 	const a = Buffer.from(String(provided || ''), 'utf8');
@@ -86,28 +87,47 @@ function createRollWorkerApp(options = {}) {
 		}
 	}
 
-	/** Worker-side peer link (edge-triggered CONNECTED / DISCONNECTED). */
-	let peerState = 'waiting';
-	let lastPeerAt = 0;
+	/** Worker-side peer link per Gateway label (edge-triggered CONNECTED / DISCONNECTED). */
+	/** @type {Map<string, { state: string, lastAt: number }>} */
+	const peers = new Map();
 	const PEER_IDLE_MS = 90_000;
 	const peerIdleTimer = setInterval(() => {
-		if (peerState === 'up' && lastPeerAt > 0 && (Date.now() - lastPeerAt) > PEER_IDLE_MS) {
-			peerState = 'down';
-			console.warn(`[RollWorker] DISCONNECTED | idle>${Math.round(PEER_IDLE_MS / 1000)}s`);
+		const now = Date.now();
+		for (const [gateway, entry] of peers) {
+			if (entry.state === 'up' && entry.lastAt > 0 && (now - entry.lastAt) > PEER_IDLE_MS) {
+				entry.state = 'down';
+				console.warn(
+					`[RollWorker] DISCONNECTED | gateway=${gateway}`
+					+ ` | idle>${Math.round(PEER_IDLE_MS / 1000)}s`
+				);
+			}
 		}
 	}, 15_000);
 	if (typeof peerIdleTimer.unref === 'function') {
 		peerIdleTimer.unref();
 	}
 	app.locals.peerIdleTimer = peerIdleTimer;
+	app.locals.peers = peers;
 
-	function noteGatewayPeer(req, via) {
+	function noteGatewayPeer(req, via, extra = {}) {
 		const from = req.ip || req.socket?.remoteAddress || 'unknown';
-		lastPeerAt = Date.now();
-		if (peerState === 'up') return;
-		const prev = peerState;
-		peerState = 'up';
-		console.info(`[RollWorker] CONNECTED | peer=${from} | via=${via} | was=${prev}`);
+		const ids = readGatewayFromRequest(req);
+		const gateway = ids.gateway;
+		const bot = String(extra.botname || ids.botname || '').trim();
+		const entry = peers.get(gateway) || { state: 'waiting', lastAt: 0 };
+		entry.lastAt = Date.now();
+		if (entry.state === 'up') {
+			peers.set(gateway, entry);
+			return;
+		}
+		const prev = entry.state;
+		entry.state = 'up';
+		peers.set(gateway, entry);
+		console.info(
+			`[RollWorker] CONNECTED | gateway=${gateway}`
+			+ (bot ? ` | bot=${bot}` : '')
+			+ ` | peer=${from} | via=${via} | was=${prev}`
+		);
 	}
 
 	app.use((req, res, next) => {
@@ -148,6 +168,11 @@ function createRollWorkerApp(options = {}) {
 		}
 		// Authenticated (or auth-off) health probe from Gateway monitor.
 		noteGatewayPeer(req, 'GET /health');
+		const { gateway } = readGatewayFromRequest(req);
+		const peerStates = {};
+		for (const [name, entry] of peers) {
+			peerStates[name] = entry.state;
+		}
 		return res.json({
 			...base,
 			uptime: process.uptime(),
@@ -155,7 +180,9 @@ function createRollWorkerApp(options = {}) {
 			characterActionCount: stats.characterActionCount,
 			needsLocalCount: stats.needsLocalCount,
 			rateLimitedCount: stats.rateLimitedCount,
-			peer: peerState,
+			gateway,
+			peer: peerStates[gateway] || 'waiting',
+			peers: peerStates,
 		});
 	});
 
@@ -169,8 +196,8 @@ function createRollWorkerApp(options = {}) {
 			if (!auth.ok) {
 				return res.status(401).json({ error: `Unauthorized: ${auth.error}` });
 			}
-			noteGatewayPeer(req, 'POST /v1/parse');
 			const params = stripGatewayAuth(rawParams);
+			noteGatewayPeer(req, 'POST /v1/parse', { botname: params.botname });
 			const mainMsg = typeof params.inputStr === 'string'
 				? params.inputStr.replaceAll(/^\s/g, '').match(/\S+/ig)
 				: null;
@@ -229,8 +256,10 @@ function createRollWorkerApp(options = {}) {
 			if (!auth.ok) {
 				return res.status(401).json({ error: `Unauthorized: ${auth.error}` });
 			}
-			noteGatewayPeer(req, 'POST /v1/character-action');
 			const body = stripGatewayAuth(rawBody);
+			noteGatewayPeer(req, 'POST /v1/character-action', {
+				botname: body.botname || 'WWW',
+			});
 			const payload = await runCharacterAction({
 				doc: body.doc,
 				item: body.item,

@@ -79,9 +79,11 @@ async function probeWorkerLink(deps) {
 	try {
 		const data = await deps.healthFn();
 		const auth = data?.auth || (data?.ok ? 'ok' : 'unknown');
+		const gateway = data?.gateway || '';
 		markWorkerUp({
 			url,
-			detail: `health ok | auth=${auth}`,
+			detail: `health ok | auth=${auth}`
+				+ (gateway ? ` | gateway=${gateway}` : ''),
 			logger: deps.logger,
 		});
 	} catch (error) {

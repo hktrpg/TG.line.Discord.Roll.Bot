@@ -98,4 +98,26 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 		expect(result.text).toBe('SYSTEM_BUSY_I18N');
 		expect(deferQueue.size()).toBe(0);
 	});
+
+	it('remote-fail log is rate-limited (not per message)', async () => {
+		parseRouter.resetOpsLogCounters();
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));
+		const warns = [];
+		const spy = jest.spyOn(console, 'warn').mockImplementation((m) => warns.push(String(m)));
+		const target = { botname: 'Discord', channelId: 'c', userid: 'u-spam' };
+		for (let i = 0; i < 5; i++) {
+			await parseRouter.parseInput({
+				inputStr: '1d100',
+				botname: 'Discord',
+				userid: `u-spam-${i}`,
+				locale: 'zh-tw',
+			}, { replyTarget: { ...target, userid: `u-spam-${i}` } });
+		}
+		spy.mockRestore();
+		const remoteFailLogs = warns.filter((w) => w.includes('OPS remote-fail'));
+		// First event logs once; remaining 4 in the 60s window are suppressed.
+		expect(remoteFailLogs).toHaveLength(1);
+		expect(remoteFailLogs[0]).toMatch(/deferred=yes/);
+		expect(remoteFailLogs[0]).toMatch(/ECONNREFUSED/);
+	});
 });

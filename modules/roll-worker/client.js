@@ -14,6 +14,10 @@ const {
 	onWorkerUp,
 } = require('./connection-status');
 const deferQueue = require('./defer-queue');
+const {
+	getGatewayLabel,
+	gatewayRequestHeaders,
+} = require('./gateway-label');
 
 let deferConnectedHooked = false;
 function ensureDeferConnectedHook() {
@@ -28,7 +32,7 @@ const DEFAULT_TIMEOUT_MS = 120_000;
 
 function noteTransportOk() {
 	const { url } = getConfig();
-	markWorkerUp({ url, detail: 'request ok' });
+	markWorkerUp({ url, detail: `request ok | gateway=${getGatewayLabel()}` });
 }
 
 function noteTransportDown(error) {
@@ -96,7 +100,10 @@ function toSerializableContext(params = {}) {
 
 async function parse(params) {
 	const { url, token, timeoutMs } = getConfig();
-	const headers = { 'Content-Type': 'application/json' };
+	const headers = {
+		'Content-Type': 'application/json',
+		...gatewayRequestHeaders({ botname: params?.botname }),
+	};
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
 	}
@@ -141,7 +148,10 @@ async function parse(params) {
 
 async function characterAction({ doc, item, locale, botname = 'WWW' } = {}) {
 	const { url, token, timeoutMs } = getConfig();
-	const headers = { 'Content-Type': 'application/json' };
+	const headers = {
+		'Content-Type': 'application/json',
+		...gatewayRequestHeaders({ botname }),
+	};
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
 	}
@@ -173,7 +183,7 @@ async function characterAction({ doc, item, locale, botname = 'WWW' } = {}) {
 
 async function health() {
 	const { url, token, timeoutMs } = getConfig();
-	const headers = {};
+	const headers = { ...gatewayRequestHeaders() };
 	if (token) {
 		headers.Authorization = `Bearer ${token}`;
 	}
@@ -217,4 +227,5 @@ module.exports = {
 	checkLinkOnce,
 	getLinkState,
 	resetConnectionStatus,
+	getGatewayLabel,
 };

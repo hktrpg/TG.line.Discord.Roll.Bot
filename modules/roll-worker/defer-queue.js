@@ -102,8 +102,12 @@ function cloneReplyTarget(replyTarget, userid) {
 		eventName: replyTarget.eventName || null,
 		includeCandle: Boolean(replyTarget.includeCandle),
 		wwwMessage: replyTarget.wwwMessage || null,
+		privatemsg: replyTarget.privatemsg || 0,
+		displaynameDiscord: replyTarget.displaynameDiscord || null,
 		isInteraction,
+		// Live refs — same Gateway process only (lost on restart).
 		interaction: isInteraction ? replyTarget.interaction : null,
+		message: replyTarget.message || null,
 		socket: replyTarget.socket || null,
 	};
 }

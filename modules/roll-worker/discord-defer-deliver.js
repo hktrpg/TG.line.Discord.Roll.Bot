@@ -2,7 +2,7 @@
 
 /**
  * Discord defer-busy drain delivery (injected deps — unit-testable).
- * /mee → myNames webhook; /me → myspeck; else editReply / channel text.
+ * /mee → myNames webhook; /me → myspeck; else editReply / channel (honors result.quotes).
  *
  * @param {object} job
  * @param {object} result
@@ -12,6 +12,8 @@
  *   sendToReplyChannel: Function,
  *   clearInteraction: Function,
  *   fetchChannel: Function,
+ *   replyInteraction?: Function,
+ *   formatDisplayPrefix?: Function,
  * }} hooks
  */
 async function deliverDiscordDeferred(job, result, hooks) {
@@ -21,13 +23,20 @@ async function deliverDiscordDeferred(job, result, hooks) {
 		sendToReplyChannel,
 		clearInteraction,
 		fetchChannel,
+		replyInteraction,
+		formatDisplayPrefix,
 	} = hooks;
 
-	const text = result?.text || '';
+	const rawText = result?.text || '';
 	const levelUp = result?.LevelUp || '';
+	const quotes = Boolean(result?.quotes);
 	const target = job.replyTarget || {};
 	const interaction = target.interaction;
 	const groupid = target.guildId || '';
+	const uid = target.userid || job.userid;
+	const text = (typeof formatDisplayPrefix === 'function' && rawText)
+		? formatDisplayPrefix(job, rawText)
+		: rawText;
 
 	if (result?.myNames?.length) {
 		let messageLike = interaction;
@@ -61,7 +70,9 @@ async function deliverDiscordDeferred(job, result, hooks) {
 
 	if (interaction && target.isInteraction) {
 		try {
-			if (interaction.deferred && !interaction.replied) {
+			if (typeof replyInteraction === 'function') {
+				await replyInteraction(interaction, { text: text || '\u200b', quotes });
+			} else if (interaction.deferred && !interaction.replied) {
 				await interaction.editReply({ content: text || '\u200b' });
 			} else if (!interaction.replied) {
 				await interaction.reply({ content: text || '\u200b' });
@@ -71,13 +82,17 @@ async function deliverDiscordDeferred(job, result, hooks) {
 		} catch (error) {
 			const channelId = target.channelId || interaction.channelId;
 			if (channelId && text) {
-				await sendToReplyChannel({ replyText: text, channelid: channelId, groupid });
+				await sendToReplyChannel({
+					replyText: text,
+					channelid: channelId,
+					groupid,
+					quotes,
+				});
 			} else {
 				throw error;
 			}
 		}
 		if (levelUp && target.channelId) {
-			const uid = target.userid || job.userid;
 			await sendToReplyChannel({
 				replyText: uid ? `<@${uid}>\n${levelUp}` : levelUp,
 				channelid: target.channelId,
@@ -89,7 +104,6 @@ async function deliverDiscordDeferred(job, result, hooks) {
 
 	if (target.channelId && (text || levelUp)) {
 		if (levelUp) {
-			const uid = target.userid || job.userid;
 			await sendToReplyChannel({
 				replyText: uid ? `<@${uid}>\n${levelUp}` : levelUp,
 				channelid: target.channelId,
@@ -101,6 +115,7 @@ async function deliverDiscordDeferred(job, result, hooks) {
 				replyText: text,
 				channelid: target.channelId,
 				groupid,
+				quotes,
 			});
 		}
 		return { mode: 'channel-text' };

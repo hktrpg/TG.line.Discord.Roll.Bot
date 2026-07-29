@@ -31,6 +31,12 @@ process.env.ROLL_WORKER_MODE = 'true';
 const { startRollWorkerServer } = require('./modules/roll-worker/server');
 const { logParseMode } = require('./modules/roll-worker/parse-router');
 
+// Eager Agenda Mongo connect (API only, no job processor) so .at/.cron work
+// without waiting for the first z_schedule lazy-load.
+if (process.env.mongoURL) {
+	require('./modules/runtime/schedule');
+}
+
 startRollWorkerServer();
 logParseMode(console);
 

@@ -1313,7 +1313,10 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		}
 	}
 
-	if (!channel) return;
+	if (!channel) {
+		console.warn(`[Schedule] SendToReplychannel: channel not found | channelid=${channelid} | groupid=${groupid || ''}`);
+		return;
+	}
 
 	// If we have button components, send each set separately
 	if (buttonCreate && Array.isArray(buttonCreate) && buttonCreate.length > 0) {
@@ -2536,18 +2539,24 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
+		console.log(`[Schedule] fire scheduleAtMessageDiscord | serial=${data?.serial ?? '?'} | channel=${data?.channelid || ''} | pid=${process.pid}`);
 		let text = await rollText(data.replyText, {
 			botname: 'Discord',
 			groupid: data.groupid,
 			channelid: data.channelid,
 		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
-		if (!data.imageLink && !data.roleName)
-			SendToReplychannel(
-				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
-			)
-		else {
-			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
+		try {
+			if (!data.imageLink && !data.roleName) {
+				await SendToReplychannel(
+					{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
+				);
+			} else {
+				await sendCronWebhook({ channelid: data.channelid, replyText: text, data });
+			}
+		} catch (error) {
+			console.error('[Schedule] scheduleAtMessageDiscord send failed:', error?.message || error);
+			throw error;
 		}
 		try {
 			await job.remove();
@@ -2568,19 +2577,24 @@ function respawnCluster2(meta = {}) {
 			channelid: data.channelid,
 		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
-		if (!data.imageLink && !data.roleName)
-			SendToReplychannel(
-				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
-			)
-		else {
-			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
+		try {
+			if (!data.imageLink && !data.roleName) {
+				await SendToReplychannel(
+					{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
+				);
+			} else {
+				await sendCronWebhook({ channelid: data.channelid, replyText: text, data });
+			}
+		} catch (error) {
+			console.error('[Schedule] scheduleCronMessageDiscord send failed:', error?.message || error);
+			throw error;
 		}
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Discord' });
 				const cronT = i18n.createTranslator(cronLocale);
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: cronT('discord.schedule.six_month_remove'), channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)
 			}

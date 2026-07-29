@@ -155,6 +155,10 @@ if (process.env.mongoURL) {
             }
 
             await agenda.start();
+            const defined = agenda._definitions ? Object.keys(agenda._definitions) : [];
+            console.log(`[Schedule] Agenda processor started | jobs=${defined.length || 0}`
+                + (defined.length ? ` [${defined.slice(0, 8).join(', ')}${defined.length > 8 ? ', …' : ''}]` : '')
+                + ` | pid=${process.pid}`);
             // Opt-in only: cancel legacy hardcoded daily job, then sync from DB if enabled.
             await syncDiscordMaintenanceSchedule();
         } catch (error) {

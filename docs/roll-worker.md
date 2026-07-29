@@ -52,7 +52,7 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | `ROLL_WORKER_DISCORD_DENYLIST` | Both | comma module ids forced local on Discord |
 | `ROLL_ARTIFACT_ROOT` | Both | cwd; must match across processes |
 | `ROLL_WORKER_ALLOW_NO_TOKEN` | Worker | tests only; loopback only |
-| `ROLL_WORKER_MODE` | Worker (set by `roll-worker.js`) | skips Agenda processor |
+| `ROLL_WORKER_MODE` | Worker (set by `roll-worker.js`) | Agenda **DB connect** at boot (API only); skips job processor |
 
 ## Process tips
 
@@ -63,7 +63,7 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | WWW + LINE | `CREATEWEB`, LINE secrets, `ROLL_WORKER_URL` |
 | WhatsApp alone | `WHATSAPP_SWITCH`, session volume, `ROLL_WORKER_URL` |
 
-Worker sets `ROLL_WORKER_MODE=true` and **does not** start the Agenda job processor (platforms keep `scheduleAtMessage*` handlers). Worker still awaits Agenda Mongo ready so `.at` / `.cron` can `schedule()` / `save()` (API only).
+Worker sets `ROLL_WORKER_MODE=true`, **eagerly** loads Agenda at boot (`await _ready`, API only), and **does not** start the Agenda job processor (platforms keep `scheduleAtMessage*` handlers).
 
 Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 

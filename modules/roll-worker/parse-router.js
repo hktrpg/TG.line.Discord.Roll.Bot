@@ -97,25 +97,27 @@ async function parseInput(params = {}, options = {}) {
 
 	if (!client.isEnabled()) {
 		const local = await analytics.parseInput(params);
-		invalidateDarkRollingIfNeeded(moduleName, local);
+		invalidateCachesAfterRemote(moduleName, local, params);
 		return keepProof ? { ...local, _rollWorker: false } : local;
 	}
 
 	const useRemote = isRemoteAllowed(moduleName, params.botname);
 	if (!useRemote) {
 		const local = await analytics.parseInput(params);
-		invalidateDarkRollingIfNeeded(moduleName, local);
+		invalidateCachesAfterRemote(moduleName, local, params);
 		return keepProof ? { ...local, _rollWorker: false, _rollWorkerModule: moduleName } : local;
 	}
 
 	const remoteParams = await enrichParamsForRemote(params, moduleName);
 
 	/** Prefer enriched meta on local fallback so Gateway side-effects (e.g. fixshard) are not re-run. */
-	const runLocalFallback = async () => analytics.parseInput({
+	const runLocalFallback = async ({ skipExp = false } = {}) => analytics.parseInput({
 		...remoteParams,
 		discordClient: params.discordClient,
 		discordMessage: params.discordMessage,
 		t: params.t,
+		// Worker may already have awarded EXP / mutated; never double-award on fallback.
+		skipExp: skipExp || Boolean(remoteParams.skipExp) || Boolean(params.skipExp),
 	});
 
 	try {
@@ -126,20 +128,18 @@ async function parseInput(params = {}, options = {}) {
 					botname: params.botname,
 					moduleName: result.moduleName || moduleName,
 				});
-				// Worker already ran EXPUP before returning needsLocal — do not award again.
+				// Nested characterReRoll/cmd already mutated parent on Worker — only re-run nested input.
+				const nestedOnly = result.nestedNeedsLocal && result.nestedInputStr;
 				const local = await analytics.parseInput({
 					...remoteParams,
+					...(nestedOnly ? { inputStr: result.nestedInputStr } : {}),
 					discordClient: params.discordClient,
 					discordMessage: params.discordMessage,
 					t: params.t,
 					skipExp: true,
 				});
-				const merged = {
-					...local,
-					LevelUp: local.LevelUp || result.LevelUp || '',
-					statue: local.statue || result.statue || '',
-				};
-				invalidateDarkRollingIfNeeded(moduleName, merged);
+				const merged = mergeNeedsLocalResult(local, result, nestedOnly);
+				invalidateCachesAfterRemote(moduleName, merged, remoteParams);
 				return keepProof ? { ...merged, _rollWorker: false } : merged;
 			}
 			return {
@@ -149,7 +149,7 @@ async function parseInput(params = {}, options = {}) {
 				statue: result.statue || '',
 			};
 		}
-		invalidateDarkRollingIfNeeded(moduleName, result);
+		invalidateCachesAfterRemote(moduleName, result, remoteParams);
 		return keepProof ? result : stripWorkerProof(result);
 	} catch (error) {
 		// Export writes quota + artifacts on the Worker. Re-running locally after
@@ -171,8 +171,8 @@ async function parseInput(params = {}, options = {}) {
 				moduleName,
 				error: error?.message || String(error),
 			});
-			const local = await runLocalFallback();
-			invalidateDarkRollingIfNeeded(moduleName, local);
+			const local = await runLocalFallback({ skipExp: true });
+			invalidateCachesAfterRemote(moduleName, local, remoteParams);
 			return keepProof ? { ...local, _rollWorker: false } : local;
 		}
 		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);
@@ -196,6 +196,16 @@ const FAIL_CLOSED_ON_WORKER_ERROR = new Set([
 	'z-story-teller',
 	'forward',
 	'z_multi-server',
+	// DB / Agenda mutators — Worker may already have committed before timeout.
+	'z_schedule',
+	'z_character',
+	'z_saveCommand',
+	'z_random_ans',
+	'z_trpgDatabase',
+	'z_event',
+	'z_Level_system',
+	'z_stop',
+	'z_DDR_darkRollingToGM',
 ]);
 
 function shouldSkipLocalFallbackOnWorkerError(moduleName) {
@@ -212,13 +222,86 @@ function hasOpenAiDiscordPrefetch(params = {}) {
 		|| (typeof params.replyContent === 'string' && params.replyContent.length > 0);
 }
 
-function invalidateDarkRollingIfNeeded(moduleName, result) {
+/**
+ * Merge Worker needsLocal payload with Gateway local nested/full parse.
+ * When nestedNeedsLocal, parent already mutated on Worker — keep parent text combine rules.
+ */
+function mergeNeedsLocalResult(local, workerResult, nestedOnly) {
+	const merged = {
+		...local,
+		LevelUp: local.LevelUp || workerResult.LevelUp || '',
+		statue: local.statue || workerResult.statue || '',
+	};
+	if (!nestedOnly) return merged;
+
+	const parent = workerResult.parentResult || {};
+	if (parent.characterReRoll && parent.text && local.text) {
+		try {
+			const t = i18n.createTranslator(workerResult.locale || i18n.DEFAULT_LOCALE);
+			merged.text = t('character.reroll_combined', {
+				name: parent.characterName || '',
+				rollName: parent.characterReRollName || '',
+				roll: local.text,
+				original: parent.text,
+			});
+		} catch {
+			merged.text = `${parent.text}\n======\n${local.text}`;
+		}
+	} else if (parent.cmd && local.text) {
+		merged.text = local.text;
+	} else if (parent.text && !local.text) {
+		merged.text = parent.text;
+	}
+	return merged;
+}
+
+function invalidateCachesAfterRemote(moduleName, result, params = {}) {
 	const name = moduleName || result?._rollWorkerModule;
-	if (name !== 'z_DDR_darkRollingToGM') return;
-	try {
-		require('./dark-rolling').invalidateCache();
-	} catch (error) {
-		console.warn('[ParseRouter] dark-rolling invalidate failed:', error?.message || error);
+	if (name === 'z_DDR_darkRollingToGM') {
+		try {
+			require('./dark-rolling').invalidateCache();
+		} catch (error) {
+			console.warn('[ParseRouter] dark-rolling invalidate failed:', error?.message || error);
+		}
+	}
+	if (name === 'z_Level_system' && params.groupid) {
+		try {
+			require('../chat/level').invalidateGroupConfig(params.groupid);
+		} catch (error) {
+			console.warn('[ParseRouter] level invalidate failed:', error?.message || error);
+		}
+	}
+	if (name === 'z_stop') {
+		try {
+			const zStop = require('../../roll/z_stop');
+			if (typeof zStop.reloadFromDb === 'function') {
+				Promise.resolve(zStop.reloadFromDb()).catch((error) => {
+					console.warn('[ParseRouter] z_stop reload failed:', error?.message || error);
+				});
+			}
+		} catch (error) {
+			console.warn('[ParseRouter] z_stop reload failed:', error?.message || error);
+		}
+	}
+	if (name === 'z_saveCommand') {
+		try {
+			const cmd = require('../../roll/z_saveCommand');
+			if (typeof cmd.reloadFromDb === 'function') {
+				Promise.resolve(cmd.reloadFromDb()).catch((error) => {
+					console.warn('[ParseRouter] z_saveCommand reload failed:', error?.message || error);
+				});
+			}
+		} catch (error) {
+			console.warn('[ParseRouter] z_saveCommand reload failed:', error?.message || error);
+		}
+	}
+	if (name === 'z_admin') {
+		try {
+			const vip = require('../patreon/veryImportantPerson');
+			if (typeof vip.invalidateCache === 'function') vip.invalidateCache();
+		} catch (error) {
+			console.warn('[ParseRouter] VIP invalidate failed:', error?.message || error);
+		}
 	}
 }
 
@@ -414,6 +497,7 @@ async function enrichParamsForRemote(params, moduleName) {
 			}
 			if (
 				(sub === 'registeredglobal' || sub === 'testregistered' || sub === 'removeslashcommands')
+				&& !params.slashDeployMeta?.deferred
 				&& !params.slashDeployMeta?.text
 			) {
 				const targetId = parts[2] || params.groupid;

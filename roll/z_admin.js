@@ -978,6 +978,16 @@ const rollDiceCommand = async function ({
                     rply.text = slashDeployMeta.text;
                     return rply;
                 }
+                if (slashDeployMeta?.deferred) {
+                    // Gateway applies deploy once via gatewayAction (like fixshard).
+                    rply.gatewayAction = {
+                        type: 'slashDeploy',
+                        action: 'registeredglobal',
+                        locale,
+                    };
+                    rply.text = '…';
+                    return rply;
+                }
                 rply.text = await deploy.registeredGlobalSlashCommands(locale);
                 return rply;
             case /^testRegistered$/i.test(mainMsg[1]): {
@@ -988,6 +998,16 @@ const rollDiceCommand = async function ({
                 const targetId = mainMsg[2] || groupid;
                 if (!targetId) {
                     rply.text = translate('admin.error_missing_target_id');
+                    return rply;
+                }
+                if (slashDeployMeta?.deferred) {
+                    rply.gatewayAction = {
+                        type: 'slashDeploy',
+                        action: 'testregistered',
+                        targetId,
+                        locale,
+                    };
+                    rply.text = '…';
                     return rply;
                 }
                 rply.text = await deploy.testRegisteredSlashCommands(targetId, locale);
@@ -1007,6 +1027,16 @@ const rollDiceCommand = async function ({
                 });
                 if (!targetId) {
                     rply.text = translate('admin.error_missing_target_id');
+                    return rply;
+                }
+                if (slashDeployMeta?.deferred) {
+                    rply.gatewayAction = {
+                        type: 'slashDeploy',
+                        action: 'removeslashcommands',
+                        targetId,
+                        locale,
+                    };
+                    rply.text = '…';
                     return rply;
                 }
                 try {

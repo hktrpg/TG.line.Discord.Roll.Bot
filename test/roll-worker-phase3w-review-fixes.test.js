@@ -271,6 +271,9 @@ describe('Phase 3w expanded fail-closed on workerError', () => {
 			for (const name of [
 				'export', 'openai', 'token', 'z_admin',
 				'z-story-teller', 'forward', 'z_multi-server',
+				'z_schedule', 'z_character', 'z_saveCommand',
+				'z_random_ans', 'z_trpgDatabase', 'z_event',
+				'z_Level_system', 'z_stop', 'z_DDR_darkRollingToGM',
 			]) {
 				expect(FAIL_CLOSED_ON_WORKER_ERROR.has(name)).toBe(true);
 				expect(shouldSkipLocalFallbackOnWorkerError(name)).toBe(true);
@@ -319,6 +322,49 @@ describe('Phase 3w expanded fail-closed on workerError', () => {
 
 			expect(parseInput).not.toHaveBeenCalled();
 			expect(result.text).toBe('BUSY_NO_OPENAI_RERUN');
+		});
+	});
+});
+
+describe('Phase 3w workerError skipExp', () => {
+	it('workerError local fallback passes skipExp: true', async () => {
+		await jest.isolateModulesAsync(async () => {
+			const parseInput = jest.fn(async () => ({ text: 'local-after-error', type: 'text' }));
+			jest.doMock('../modules/roll-worker/client', () => ({
+				isEnabled: () => true,
+				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				parse: jest.fn(async () => {
+					throw new Error('timeout of 30000ms exceeded');
+				}),
+			}));
+			jest.doMock('../modules/analytics', () => ({
+				parseInput,
+				findRollModuleName: jest.fn(() => '0-advroll'),
+			}));
+			jest.doMock('../modules/roll-worker/route-table', () => ({
+				isRemoteAllowed: () => true,
+			}));
+			jest.doMock('../modules/roll-worker/dark-rolling', () => ({
+				invalidateCache: jest.fn(),
+			}));
+			jest.doMock('../modules/i18n/i18n.js', () => ({
+				DEFAULT_LOCALE: 'zh-tw',
+				init: jest.fn(async () => {}),
+				createTranslator: () => (k) => k,
+			}));
+
+			const parseRouter = require('../modules/roll-worker/parse-router');
+			const result = await parseRouter.parseInput({
+				inputStr: '1d100',
+				botname: 'Telegram',
+				userid: 'u',
+				groupid: 'g',
+			}, { keepProof: true });
+
+			expect(parseInput).toHaveBeenCalledWith(expect.objectContaining({
+				skipExp: true,
+			}));
+			expect(result.text).toBe('local-after-error');
 		});
 	});
 });
@@ -433,29 +479,36 @@ describe('Phase 3w streaming safe-fetch byte limit', () => {
 		});
 	});
 
-	it('safeFetchBuffer uses streaming path and returns under-limit body', async () => {
-		const prevFetch = globalThis.fetch;
+	it('safeFetchBuffer uses IP-pinned path and returns under-limit body', async () => {
 		await jest.isolateModulesAsync(async () => {
+			const { EventEmitter } = require('node:events');
+			const payload = Buffer.from('stream-ok');
 			jest.doMock('../utils/is-image-url', () => ({
 				isSafeImageTarget: jest.fn(async () => true),
+				resolvePublicFetchTarget: jest.fn(async () => ({
+					address: '1.2.3.4',
+					protocol: 'https:',
+					port: 443,
+					path: '/attachments/1/2/x.bin',
+					headers: { Host: 'cdn.discordapp.com', 'User-Agent': 't', Accept: '*/*' },
+				})),
 			}));
-			const payload = Buffer.from('stream-ok');
-			globalThis.fetch = jest.fn(async () => ({
-				ok: true,
-				status: 200,
-				headers: { get: (k) => (k === 'content-type' ? 'application/octet-stream' : null) },
-				body: {
-					getReader: () => {
-						let done = false;
-						return {
-							read: async () => {
-								if (done) return { done: true, value: undefined };
-								done = true;
-								return { done: false, value: new Uint8Array(payload) };
-							},
-							cancel: async () => {},
-						};
-					},
+			jest.doMock('node:https', () => ({
+				request: (_opts, cb) => {
+					const res = new EventEmitter();
+					res.statusCode = 200;
+					res.headers = { 'content-type': 'application/octet-stream' };
+					res.resume = () => {};
+					const req = {
+						on() { return req; },
+						end() {
+							cb(res);
+							res.emit('data', payload);
+							res.emit('end');
+						},
+						destroy() {},
+					};
+					return req;
 				},
 			}));
 			const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
@@ -466,7 +519,6 @@ describe('Phase 3w streaming safe-fetch byte limit', () => {
 			expect(out.bytes).toBe(payload.length);
 			expect(Buffer.compare(out.buffer, payload)).toBe(0);
 		});
-		globalThis.fetch = prevFetch;
 	});
 });
 

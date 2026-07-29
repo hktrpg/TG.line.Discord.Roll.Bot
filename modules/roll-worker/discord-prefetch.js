@@ -17,7 +17,7 @@ function serializeAttachment(attachment) {
 }
 
 function serializeAttachmentCollection(collection) {
-	if (!collection || !collection.size) return [];
+	if (!collection || collection.size === 0) return [];
 	return [...collection.values()]
 		.map((item) => serializeAttachment(item))
 		.filter(Boolean);
@@ -443,6 +443,13 @@ async function prefetchExportHistory(discordClient, discordMessage, {
 				|| discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
 		}
 		const channelName = discordMessage?.channel?.name || '';
+		// Skip history fetch when bot cannot read — Worker rejects with bot_no_permission anyway.
+		if (!hasReadPermission) {
+			return {
+				exportMeta: { hasReadPermission: false, channelName },
+				exportHistoryMeta: { sum_messages: [], totalSize: 0 },
+			};
+		}
 		const channel = await discordClient.channels.fetch(channelid);
 		if (!channel?.messages?.fetch) {
 			return {

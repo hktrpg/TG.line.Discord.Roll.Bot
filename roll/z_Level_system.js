@@ -457,10 +457,7 @@ const rollDiceCommand = async function ({
                     doc.HiddenV2 = false;
                     await doc.save();
                     tempSwitchV2.invalidateGroupConfig(groupid);
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
-                        return group.groupid == groupid;
-                    });
-                    if (temp) temp.SwitchV2 = false;
+                    tempSwitchV2.tempSwitchV2.push({ groupid, SwitchV2: false });
                     break;
                 }
                 case '01': {
@@ -468,10 +465,7 @@ const rollDiceCommand = async function ({
                     doc.HiddenV2 = true;
                     await doc.save();
                     tempSwitchV2.invalidateGroupConfig(groupid);
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
-                        return group.groupid == groupid;
-                    });
-                    if (temp) temp.SwitchV2 = false;
+                    tempSwitchV2.tempSwitchV2.push({ groupid, SwitchV2: false });
                     break;
                 }
                 case '11': {
@@ -479,10 +473,7 @@ const rollDiceCommand = async function ({
                     doc.HiddenV2 = true;
                     await doc.save();
                     tempSwitchV2.invalidateGroupConfig(groupid);
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
-                        return group.groupid == groupid;
-                    });
-                    if (temp) temp.SwitchV2 = true;
+                    tempSwitchV2.tempSwitchV2.push({ groupid, SwitchV2: true });
                     break;
                 }
                 case '10': {
@@ -490,10 +481,7 @@ const rollDiceCommand = async function ({
                     doc.HiddenV2 = false;
                     await doc.save();
                     tempSwitchV2.invalidateGroupConfig(groupid);
-                    let temp = tempSwitchV2.tempSwitchV2.find(function (group) {
-                        return group.groupid == groupid;
-                    });
-                    if (temp) temp.SwitchV2 = true;
+                    tempSwitchV2.tempSwitchV2.push({ groupid, SwitchV2: true });
                 }
                     break;
                 default:

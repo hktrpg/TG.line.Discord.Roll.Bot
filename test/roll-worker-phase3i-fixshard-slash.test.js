@@ -227,6 +227,9 @@ describe('Phase 3i admin-remote fixshard/slash unit', () => {
 		expect(adminSubNeedsLiveDiscord('.root', 'registeredglobal', {
 			slashDeployMeta: { text: 'ok' },
 		})).toBe(false);
+		expect(adminSubNeedsLiveDiscord('.root', 'registeredglobal', {
+			slashDeployMeta: { deferred: true, action: 'registeredglobal' },
+		})).toBe(false);
 		expect(adminSubNeedsLiveDiscord('.root', 'removeslashcommands')).toBe(true);
 		expect(adminSubNeedsLiveDiscord('.root', 'testregistered', {
 			slashDeployMeta: { text: 'ok' },

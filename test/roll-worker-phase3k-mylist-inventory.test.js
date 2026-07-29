@@ -142,6 +142,7 @@ describe('Phase 3k separation inventory lock', () => {
 			'forward.js',
 			'z_admin.js',
 			'token.js',
+			'openai.js',
 		]);
 		const offenders = [];
 		for (const file of fs.readdirSync(rollDir)) {

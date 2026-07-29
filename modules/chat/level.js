@@ -48,10 +48,18 @@ async function getGroupLevelConfig(groupid) {
 
 /**
  * Clear cached level config for a group (call after .level config / LevelUpWord / RankWord / TitleWord save).
+ * Also drops sticky tempSwitchV2 so Gateway re-reads Mongo after remoted config changes.
+ * Mutates the array in place (exports.tempSwitchV2 must keep the same reference).
  * @param {string} groupid
  */
 function invalidateGroupConfig(groupid) {
+    if (!groupid) return;
     gpInfoCache.delete(groupid);
+    for (let i = tempSwitchV2.length - 1; i >= 0; i--) {
+        if (tempSwitchV2[i].groupid == groupid) {
+            tempSwitchV2.splice(i, 1);
+        }
+    }
 }
 
 async function EXPUP(groupid, userid, displayname, displaynameDiscord, membercount, tgDisplayname, discordMessage, locale = i18n.DEFAULT_LOCALE) {

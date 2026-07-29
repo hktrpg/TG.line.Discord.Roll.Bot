@@ -2030,10 +2030,9 @@ const rollDiceCommand = async function ({
             if (story.ownerId && String(story.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_export'); return rply; }
             const txt = exportStoryToRunDesign(story);
             try {
+                const { getTempFilePath } = require('../modules/roll-worker/artifacts');
                 const safeAlias = String(alias).replaceAll(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50) || 'story';
-                const outDir = path.join(process.cwd(), 'temp');
-                fs.mkdirSync(outDir, { recursive: true });
-                const outFile = path.join(outDir, safeAlias + '_RUN_DESIGN.txt');
+                const outFile = getTempFilePath(safeAlias + '_RUN_DESIGN.txt');
                 fs.writeFileSync(outFile, txt, 'utf8');
                 rply.text = translate('storyteller.export_success', { alias });
                 rply.dmFileText = translate('storyteller.export_dm_filename', { alias });

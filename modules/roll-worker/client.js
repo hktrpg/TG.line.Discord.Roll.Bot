@@ -4,7 +4,8 @@ const axios = require('axios');
 const { attachGatewayAuth } = require('./request-auth');
 
 const DEFAULT_URL = 'http://127.0.0.1:3950';
-const DEFAULT_TIMEOUT_MS = 30_000;
+// OpenAI / heavy export often exceed 30s; env still overrides.
+const DEFAULT_TIMEOUT_MS = 120_000;
 
 function getConfig() {
 	const url = (process.env.ROLL_WORKER_URL || '').trim() || DEFAULT_URL;
@@ -76,6 +77,9 @@ async function parse(params) {
 			// Preserve worker EXPUP side-effects for gateway merge / fallback.
 			LevelUp: response.data.LevelUp || '',
 			statue: response.data.statue || '',
+			nestedNeedsLocal: Boolean(response.data.nestedNeedsLocal),
+			nestedInputStr: response.data.nestedInputStr || undefined,
+			parentResult: response.data.parentResult || undefined,
 		};
 	}
 	if (response.status < 200 || response.status >= 300) {
@@ -123,6 +127,7 @@ async function health() {
 }
 
 module.exports = {
+	DEFAULT_TIMEOUT_MS,
 	isEnabled,
 	getConfig,
 	toSerializableContext,

@@ -522,7 +522,7 @@ loginWithErrorHandling();
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const mongo = process.env.mongoURL;
-let TargetGM = (process.env.mongoURL) ? require('../../roll/z_DDR_darkRollingToGM').initialize() : '';
+const darkRolling = process.env.mongoURL ? require('../roll-worker/dark-rolling') : null;
 const EXPUP = require('../chat/level').EXPUP || function () { };
 const courtMessage = require('../chat/logs').courtMessage || function () { };
 
@@ -1159,13 +1159,8 @@ async function convQuotes(text = "") {
 }
 
 async function privateMsgFinder(channelid) {
-	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-		data.groupid == channelid
-	)
-	if (groupInfo && groupInfo.trpgDarkRollingfunction)
-		return groupInfo.trpgDarkRollingfunction
-	else return [];
+	if (!darkRolling || typeof darkRolling.getGroupGms !== 'function') return [];
+	return darkRolling.getGroupGms(channelid);
 }
 async function sendMessage({ target, replyText, quotes = false, components = null }) {
 	if (!target) return;
@@ -3673,6 +3668,9 @@ async function handlingResponMessage(message, answer = '') {
 		if (rplyVal.gatewayAction?.type === 'fixshard') {
 			applyFixShardGatewayAction(rplyVal, message);
 		}
+		if (rplyVal.gatewayAction?.type === 'slashDeploy') {
+			await applySlashDeployGatewayAction(rplyVal, message);
+		}
 		if (Array.isArray(rplyVal.adminDmChunks) && rplyVal.adminDmChunks.length > 0 && userid) {
 			try {
 				const adminUser = await client.users.fetch(userid);
@@ -3891,6 +3889,24 @@ async function handlingResponMessage(message, answer = '') {
 	}
 }
 /**
+ * Apply deferred .root slash deploy once on Gateway (Worker must not mutate Discord during prefetch).
+ */
+async function applySlashDeployGatewayAction(rplyVal, message) {
+	const action = String(rplyVal.gatewayAction?.action || '').toLowerCase();
+	const targetId = rplyVal.gatewayAction?.targetId;
+	const locale = rplyVal.gatewayAction?.locale || message?._hktrpgLocale;
+	try {
+		const { applySlashDeployMeta } = require('../roll-worker/admin-remote');
+		const text = await applySlashDeployMeta({ action, targetId, locale });
+		if (text) rplyVal.text = text;
+	} catch (error) {
+		console.error('[Discord] slashDeploy gatewayAction failed:', error?.message || error);
+	} finally {
+		delete rplyVal.gatewayAction;
+	}
+}
+
+/**
  * Apply deferred .root fixshard start/stop once on Gateway (Worker must not mutate Discord shard state).
  */
 function applyFixShardGatewayAction(rplyVal, message) {
@@ -4027,7 +4043,7 @@ async function handlingSendMessage(input) {
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
-	if (privatemsg > 1 && TargetGM) {
+	if (privatemsg > 1 && darkRolling) {
 		let groupInfo = await privateMsgFinder(channelid) || [];
 		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);

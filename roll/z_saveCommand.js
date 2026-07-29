@@ -389,6 +389,9 @@ const updateCommandData = async () => {
     }
 }
 
+/** Gateway reload after remoted .cmd mutate (alias of updateCommandData). */
+const reloadFromDb = updateCommandData;
+
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
@@ -506,5 +509,7 @@ module.exports = {
     prefixs,
     gameType,
     gameName,
-    discordCommand
+    discordCommand,
+    reloadFromDb,
+    updateCommandData,
 };

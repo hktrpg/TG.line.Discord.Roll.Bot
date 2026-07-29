@@ -1,10 +1,10 @@
 "use strict";
 
 const fs = require('fs');
-const path = require('path');
 const sharp = require('sharp');
 const GifEncoder = require('gif-encoder');
 const { getPool } = require('../modules/db/pool');
+const { getTempFilePath } = require('../modules/roll-worker/artifacts');
 const imagePool = getPool('image');
 
 // Color palette for wheel segments
@@ -276,13 +276,8 @@ async function generateWheelGif(options, settings = {}, selectedIndex = null) {
     const minRotations = 3 * Math.PI * 2; 
     const totalRotation = minRotations + targetRotation;
 
-    // Create temp directory
-    const tempDir = path.join(__dirname, '../temp');
-    if (!fs.existsSync(tempDir)) {
-        fs.mkdirSync(tempDir, { recursive: true });
-    }
     const filename = `wheel_${Date.now()}_${Math.random().toString(36).slice(7)}.gif`;
-    const filepath = path.join(tempDir, filename);
+    const filepath = getTempFilePath(filename);
 
     // Generate frames
     const durationMs = finalSettings.duration * 1000;

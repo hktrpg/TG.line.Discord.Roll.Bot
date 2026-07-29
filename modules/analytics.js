@@ -172,7 +172,8 @@ const parseInput = async (params) => {
 			context.locale
 		);
 		result.LevelUp = tempEXPUP?.text || '';
-		result.statue = tempEXPUP?.statue || '';
+		// EXPUP fills `status`; platforms read `statue` (legacy key).
+		result.statue = tempEXPUP?.status || '';
 	}
 
 	// 檢查是不是要停止 z_stop 功能
@@ -213,6 +214,12 @@ const parseInput = async (params) => {
 				...cmdFunctionResult,
 				LevelUp: result.LevelUp,
 				statue: result.statue,
+				nestedNeedsLocal: true,
+				nestedInputStr: result.text,
+				parentResult: {
+					cmd: true,
+					text: result.text,
+				},
 			};
 		}
 		if (cmdFunctionResult) {
@@ -231,6 +238,14 @@ const parseInput = async (params) => {
 				...characterReRoll,
 				LevelUp: result.LevelUp,
 				statue: result.statue,
+				nestedNeedsLocal: true,
+				nestedInputStr: result.characterReRollItem || result.text,
+				parentResult: {
+					characterReRoll: true,
+					text: result.text,
+					characterName: result.characterName,
+					characterReRollName: result.characterReRollName,
+				},
 			};
 		}
 		const t = context.t;

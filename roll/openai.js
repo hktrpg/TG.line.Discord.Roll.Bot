@@ -2322,11 +2322,13 @@ class TranslateAi extends OpenAI {
     }
     async createFile(data) {
         try {
+            const { getTempFilePath } = require('../modules/roll-worker/artifacts');
             const d = new Date();
             let time = d.getTime();
-            let name = `translated_${time}.txt`
-            await fs.writeFile(`./temp/${name}`, data, { encoding: 'utf8' });
-            return `./temp/${name}`;
+            let name = `translated_${time}.txt`;
+            const filepath = getTempFilePath(name);
+            await fs.writeFile(filepath, data, { encoding: 'utf8' });
+            return filepath;
         } catch (error) {
             console.error(error);
         }
@@ -2913,7 +2915,18 @@ class CommandHandler {
 
         if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
-        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !hasAttachments && !hasReplyAttachments)) {
+        } else if (mainMsg[1] === 'help') {
+            return { text: getHelpMessage(i18nParams), quotes: true };
+        } else if (!hasArg && !hasReply && !hasAttachments && !hasReplyAttachments) {
+            // Bare Discord .ai* (no help/arg/reply/attachments) on Worker → Gateway live context.
+            if (
+                botname === 'Discord'
+                && !discordMessage
+                && !discordClient
+                && process.env.ROLL_WORKER_MODE === 'true'
+            ) {
+                return { needsLocal: true, moduleName: 'openai' };
+            }
             return { text: getHelpMessage(i18nParams), quotes: true };
         }
 

@@ -1,5 +1,6 @@
 "use strict";
 
+const crypto = require('node:crypto');
 const express = require('express');
 const analytics = require('../analytics');
 const { isRemoteAllowed } = require('./route-table');
@@ -8,6 +9,13 @@ const {
 	verifyGatewayAuth,
 	stripGatewayAuth,
 } = require('./request-auth');
+
+function timingSafeTokenEqual(provided, expected) {
+	const a = Buffer.from(String(provided || ''), 'utf8');
+	const b = Buffer.from(String(expected || ''), 'utf8');
+	if (a.length !== b.length) return false;
+	return crypto.timingSafeEqual(a, b);
+}
 
 /** Default large enough for Discord exportHistoryMeta (channel history in JSON). */
 const DEFAULT_JSON_BODY_LIMIT = '32mb';
@@ -55,7 +63,7 @@ function createRollWorkerApp(options = {}) {
 
 		const header = req.headers.authorization || '';
 		const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-		if (token !== expectedToken) {
+		if (!timingSafeTokenEqual(token, expectedToken)) {
 			return res.status(401).json({ error: 'Unauthorized' });
 		}
 		return next();
@@ -111,6 +119,9 @@ function createRollWorkerApp(options = {}) {
 					// EXPUP may already have run on the worker before needsLocal.
 					LevelUp: result.LevelUp || '',
 					statue: result.statue || '',
+					nestedNeedsLocal: Boolean(result.nestedNeedsLocal),
+					nestedInputStr: result.nestedInputStr || undefined,
+					parentResult: result.parentResult || undefined,
 				});
 			}
 

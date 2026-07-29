@@ -42,7 +42,10 @@ async function resolveCharacterAction({ doc, item, locale, botname = 'WWW' }) {
         try {
             return await rollWorkerClient.characterAction({ doc, item, locale, botname });
         } catch (error) {
-            console.error('[Web Server] character-action worker failed, using local:', error?.message || error);
+            // Fail closed: Worker may already have nested-parse / mutated before timeout.
+            console.error('[Web Server] character-action worker failed (no local retry):', error?.message || error);
+            const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+            return { text: t('common.errors.system_busy'), type: 'text' };
         }
     }
     return runCharacterAction({ doc, item, locale, botname });

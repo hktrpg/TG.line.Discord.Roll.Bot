@@ -1,6 +1,8 @@
 "use strict";
 
-const { isSafeImageTarget } = require('../../utils/is-image-url');
+const http = require('node:http');
+const https = require('node:https');
+const { isSafeImageTarget, resolvePublicFetchTarget } = require('../../utils/is-image-url');
 
 /** Discord CDN / media hosts used for avatars and attachments. */
 const DISCORD_HOST_RE = /^(?:[\w-]+\.)?(?:discordapp\.com|discordapp\.net)$/i;
@@ -91,6 +93,83 @@ async function readBodyWithByteLimit(response, maxBytes) {
 }
 
 /**
+ * IP-pinned HTTPS GET (no redirect follow) for Discord CDN downloads.
+ * @param {URL} parsed
+ * @param {number} maxBytes
+ * @returns {Promise<{ buffer: Buffer, contentType: string, status: number }>}
+ */
+async function pinnedFetchBuffer(parsed, maxBytes) {
+	const target = await resolvePublicFetchTarget(parsed);
+	if (!target) {
+		const error = new Error('ssrf check failed');
+		error.code = 'UNSAFE_FETCH_URL';
+		throw error;
+	}
+
+	return new Promise((resolve, reject) => {
+		const lib = target.protocol === 'https:' ? https : http;
+		const req = lib.request({
+			host: target.address,
+			port: target.port,
+			path: target.path,
+			method: 'GET',
+			headers: {
+				...target.headers,
+				Accept: '*/*',
+			},
+			timeout: 30_000,
+			servername: target.headers.Host.split(':')[0],
+			// Node does not follow redirects for http.request by default.
+		}, (res) => {
+			const status = res.statusCode || 0;
+			// Refuse redirects — Location could point off allowlist / private IP.
+			if (status >= 300 && status < 400) {
+				res.resume();
+				reject(Object.assign(new Error(`redirect not allowed (${status})`), { code: 'FETCH_REDIRECT' }));
+				return;
+			}
+			if (status < 200 || status >= 300) {
+				res.resume();
+				reject(new Error(`HTTP ${status}`));
+				return;
+			}
+
+			const contentLength = Number(res.headers['content-length']);
+			if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+				res.resume();
+				reject(tooLargeError(maxBytes));
+				return;
+			}
+
+			const chunks = [];
+			let total = 0;
+			res.on('data', (chunk) => {
+				total += chunk.length;
+				if (total > maxBytes) {
+					req.destroy();
+					reject(tooLargeError(maxBytes));
+					return;
+				}
+				chunks.push(chunk);
+			});
+			res.on('end', () => {
+				resolve({
+					buffer: chunks.length === 0 ? Buffer.alloc(0) : Buffer.concat(chunks, total),
+					contentType: res.headers['content-type'] || '',
+					status,
+				});
+			});
+			res.on('error', reject);
+		});
+		req.on('timeout', () => {
+			req.destroy(new Error('timeout'));
+		});
+		req.on('error', reject);
+		req.end();
+	});
+}
+
+/**
  * Fetch text with Discord CDN + SSRF checks and a hard byte limit.
  * @param {string} url
  * @param {{ maxBytes?: number }} [options]
@@ -102,15 +181,11 @@ async function safeFetchText(url, { maxBytes = 5 * 1024 * 1024 } = {}) {
 		error.code = 'UNSAFE_FETCH_URL';
 		throw error;
 	}
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error(`HTTP ${response.status}`);
-	}
-	const buffer = await readBodyWithByteLimit(response, maxBytes);
+	const { buffer, contentType } = await pinnedFetchBuffer(gate.parsed, maxBytes);
 	return {
 		text: buffer.toString('utf8'),
 		bytes: buffer.length,
-		contentType: response.headers.get('content-type') || '',
+		contentType,
 	};
 }
 
@@ -126,15 +201,11 @@ async function safeFetchBuffer(url, { maxBytes = 8 * 1024 * 1024 } = {}) {
 		error.code = 'UNSAFE_FETCH_URL';
 		throw error;
 	}
-	const response = await fetch(url);
-	if (!response.ok) {
-		throw new Error(`HTTP ${response.status}`);
-	}
-	const buffer = await readBodyWithByteLimit(response, maxBytes);
+	const { buffer, contentType } = await pinnedFetchBuffer(gate.parsed, maxBytes);
 	return {
 		buffer,
 		bytes: buffer.length,
-		contentType: response.headers.get('content-type') || '',
+		contentType,
 	};
 }
 
@@ -143,6 +214,7 @@ module.exports = {
 	isDiscordCdnHost,
 	assertSafeDiscordFetchUrl,
 	readBodyWithByteLimit,
+	pinnedFetchBuffer,
 	safeFetchText,
 	safeFetchBuffer,
 };

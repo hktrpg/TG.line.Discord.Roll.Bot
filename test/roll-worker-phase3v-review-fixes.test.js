@@ -216,16 +216,42 @@ describe('Phase 3v OpenAI attachment byte cap', () => {
 	});
 
 	it('safeFetchBuffer rejects downloads over maxBytes', async () => {
-		const prevFetch = globalThis.fetch;
 		await jest.isolateModulesAsync(async () => {
+			const { EventEmitter } = require('node:events');
+			const payload = Buffer.alloc(64, 1);
 			jest.doMock('../utils/is-image-url', () => ({
 				isSafeImageTarget: jest.fn(async () => true),
+				resolvePublicFetchTarget: jest.fn(async () => ({
+					address: '1.2.3.4',
+					protocol: 'https:',
+					port: 443,
+					path: '/attachments/1/2/x.bin',
+					headers: { Host: 'cdn.discordapp.com', 'User-Agent': 't', Accept: '*/*' },
+				})),
 			}));
-			globalThis.fetch = jest.fn(async () => ({
-				ok: true,
-				status: 200,
-				headers: { get: () => 'application/octet-stream' },
-				arrayBuffer: async () => Buffer.alloc(64, 1),
+			jest.doMock('node:https', () => ({
+				request: (_opts, cb) => {
+					const res = new EventEmitter();
+					res.statusCode = 200;
+					res.headers = {
+						'content-type': 'application/octet-stream',
+						'content-length': String(payload.length),
+					};
+					res.resume = () => {};
+					const req = {
+						on() { return req; },
+						end() {
+							cb(res);
+							// When content-length > maxBytes, pinnedFetch rejects before data.
+							if (Number(res.headers['content-length']) <= 128) {
+								res.emit('data', payload);
+								res.emit('end');
+							}
+						},
+						destroy() {},
+					};
+					return req;
+				},
 			}));
 
 			const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
@@ -237,7 +263,6 @@ describe('Phase 3v OpenAI attachment byte cap', () => {
 				safeFetchBuffer('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 128 })
 			).resolves.toMatchObject({ bytes: 64 });
 		});
-		globalThis.fetch = prevFetch;
 	});
 
 	it('fetchDiscordAttachment contract: capped download returns Response-like shim', async () => {

@@ -1080,33 +1080,57 @@ async function main() {
 			assert(/OPENAI_ATTACHMENT_MAX_BYTES\s*=\s*50\s*\*\s*1024\s*\*\s*1024/.test(openaiSrc), '50MB cap');
 			assert(/safeFetchBuffer\(url,\s*\{\s*maxBytes/.test(openaiSrc), 'openai uses safeFetchBuffer');
 
-			const prevFetch = globalThis.fetch;
-			globalThis.fetch = async () => ({
-				ok: true,
-				headers: { get: () => 'application/octet-stream' },
-				arrayBuffer: async () => Buffer.alloc(64, 1),
-			});
+			// IP-pinned safe-fetch: monkey-patch https.request (built-in cache swap is unreliable).
+			const { EventEmitter } = require('node:events');
+			const https = require('node:https');
 			const isImagePath = require.resolve('../utils/is-image-url');
 			const safeFetchPath = require.resolve('../modules/roll-worker/safe-fetch');
+			const origHttpsRequest = https.request;
+			const origIsImage = require.cache[isImagePath];
 			delete require.cache[isImagePath];
 			delete require.cache[safeFetchPath];
 			require.cache[isImagePath] = {
 				id: isImagePath,
 				filename: isImagePath,
 				loaded: true,
-				exports: { isSafeImageTarget: async () => true },
+				exports: {
+					isSafeImageTarget: async () => true,
+					resolvePublicFetchTarget: async () => ({
+						address: '1.2.3.4',
+						protocol: 'https:',
+						port: 443,
+						path: '/attachments/1/2/x.bin',
+						headers: { Host: 'cdn.discordapp.com', 'User-Agent': 't', Accept: '*/*' },
+					}),
+				},
 			};
-			const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
+			https.request = (_opts, cb) => {
+				const res = new EventEmitter();
+				res.statusCode = 200;
+				res.headers = {
+					'content-type': 'application/octet-stream',
+					'content-length': '64',
+				};
+				res.resume = () => {};
+				const req = {
+					on() { return req; },
+					end() { cb(res); },
+					destroy() {},
+				};
+				return req;
+			};
+			const { safeFetchBuffer: safeFetchBuffer3v } = require('../modules/roll-worker/safe-fetch');
 			let tooLarge = false;
 			try {
-				await safeFetchBuffer('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 32 });
+				await safeFetchBuffer3v('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 32 });
 			} catch (error) {
 				tooLarge = error?.code === 'FETCH_TOO_LARGE';
 			}
+			https.request = origHttpsRequest;
 			assert(tooLarge === true, 'safeFetchBuffer enforces maxBytes');
-			globalThis.fetch = prevFetch;
-			delete require.cache[isImagePath];
 			delete require.cache[safeFetchPath];
+			if (origIsImage) require.cache[isImagePath] = origIsImage;
+			else delete require.cache[isImagePath];
 
 			console.log('[proof] PASS Phase 3v export/WWW/openai caps');
 		}
@@ -1175,37 +1199,59 @@ async function main() {
 				{ beforeLarge, afterLarge }
 			);
 
-			// Streaming safe-fetch rejects mid-stream.
-			const prevFetch = globalThis.fetch;
-			globalThis.fetch = async () => ({
-				ok: true,
-				headers: { get: () => null },
-				body: {
-					getReader: () => {
-						const parts = [
-							new Uint8Array(40).fill(1),
-							new Uint8Array(40).fill(2),
-						];
-						let i = 0;
-						return {
-							read: async () => {
-								if (i >= parts.length) return { done: true, value: undefined };
-								return { done: false, value: parts[i++] };
-							},
-							cancel: async () => {},
-						};
-					},
-				},
-			});
+			// Streaming / Content-Length byte limits + redirect refuse (IP-pinned path).
+			const { EventEmitter: EE3w } = require('node:events');
+			const https3w = require('node:https');
 			const isImagePath = require.resolve('../utils/is-image-url');
 			const safeFetchPath = require.resolve('../modules/roll-worker/safe-fetch');
+			const origHttpsRequest3w = https3w.request;
+			const origIsImage3w = require.cache[isImagePath];
 			delete require.cache[isImagePath];
 			delete require.cache[safeFetchPath];
 			require.cache[isImagePath] = {
 				id: isImagePath,
 				filename: isImagePath,
 				loaded: true,
-				exports: { isSafeImageTarget: async () => true },
+				exports: {
+					isSafeImageTarget: async () => true,
+					resolvePublicFetchTarget: async () => ({
+						address: '1.2.3.4',
+						protocol: 'https:',
+						port: 443,
+						path: '/attachments/1/2/x.bin',
+						headers: { Host: 'cdn.discordapp.com', 'User-Agent': 't', Accept: '*/*' },
+					}),
+				},
+			};
+			let httpsMode = 'stream';
+			https3w.request = (_opts, cb) => {
+				const res = new EE3w();
+				res.resume = () => {};
+				const req = {
+					on() { return req; },
+					destroy() {},
+					end() {
+						if (httpsMode === 'redirect') {
+							res.statusCode = 302;
+							res.headers = { location: 'https://evil.example/x' };
+							cb(res);
+							return;
+						}
+						if (httpsMode === 'cl') {
+							res.statusCode = 200;
+							res.headers = { 'content-length': '99999', 'content-type': 'application/octet-stream' };
+							cb(res);
+							return;
+						}
+						res.statusCode = 200;
+						res.headers = { 'content-type': 'application/octet-stream' };
+						cb(res);
+						res.emit('data', Buffer.alloc(40, 1));
+						res.emit('data', Buffer.alloc(40, 2));
+						res.emit('end');
+					},
+				};
+				return req;
 			};
 			const { readBodyWithByteLimit, safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
 			let streamTooLarge = false;
@@ -1215,19 +1261,36 @@ async function main() {
 				streamTooLarge = error?.code === 'FETCH_TOO_LARGE';
 			}
 			assert(streamTooLarge === true, 'streaming safeFetchBuffer enforces maxBytes');
+			httpsMode = 'cl';
 			let clTooLarge = false;
+			try {
+				await safeFetchBuffer('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 100 });
+			} catch (error) {
+				clTooLarge = error?.code === 'FETCH_TOO_LARGE';
+			}
+			assert(clTooLarge === true, 'Content-Length reject without full buffer');
+			let clHelper = false;
 			try {
 				await readBodyWithByteLimit({
 					headers: { get: (k) => (k === 'content-length' ? '99999' : null) },
 					body: { cancel: async () => {}, getReader: () => ({ read: async () => ({ done: true }) }) },
 				}, 100);
 			} catch (error) {
-				clTooLarge = error?.code === 'FETCH_TOO_LARGE';
+				clHelper = error?.code === 'FETCH_TOO_LARGE';
 			}
-			assert(clTooLarge === true, 'Content-Length reject without full buffer');
-			globalThis.fetch = prevFetch;
-			delete require.cache[isImagePath];
+			assert(clHelper === true, 'readBodyWithByteLimit Content-Length reject');
+			httpsMode = 'redirect';
+			let redirected = false;
+			try {
+				await safeFetchBuffer('https://cdn.discordapp.com/attachments/1/2/x.bin', { maxBytes: 100 });
+			} catch (error) {
+				redirected = error?.code === 'FETCH_REDIRECT';
+			}
+			https3w.request = origHttpsRequest3w;
+			assert(redirected === true, 'safeFetchBuffer refuses redirects');
 			delete require.cache[safeFetchPath];
+			if (origIsImage3w) require.cache[isImagePath] = origIsImage3w;
+			else delete require.cache[isImagePath];
 
 			const botSrc = fs.readFileSync(path.join(ROOT, 'modules/discord/bot.js'), 'utf8');
 			assert(/assertArtifactReadable\(rplyVal\.fileLink/.test(botSrc), 'fileLink gated');
@@ -1236,7 +1299,98 @@ async function main() {
 			console.log('[proof] PASS Phase 3w json/prefetch/fail-closed/stream/HMAC');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3w)');
+		// 38) Phase 3x / Pass 9: live Worker proofs for remotes + fail-closed contracts
+		{
+			pinGatewayWorkerUrl();
+			const client = require('../modules/roll-worker/client');
+			const parseRouter = require('../modules/roll-worker/parse-router');
+
+			assert(client.DEFAULT_TIMEOUT_MS === 120_000, 'DEFAULT_TIMEOUT_MS 120s');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('z_schedule') === true, 'z_schedule fail-closed');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('z_character') === true, 'z_character fail-closed');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('z_Level_system') === true, 'level fail-closed');
+			assert(parseRouter.shouldSkipLocalFallbackOnWorkerError('z_DDR_darkRollingToGM') === true, 'dark-roll fail-closed');
+
+			// Live: bare Discord .ai → needsLocal; .ai help → remote help
+			const bareAi = await client.parse({
+				inputStr: '.ai',
+				botname: 'Discord',
+				userid: 'u-proof-ai',
+				groupid: 'g-proof-ai',
+				locale: 'zh-tw',
+			});
+			assert(bareAi.needsLocal === true, 'bare Discord .ai needsLocal', bareAi);
+			assert(bareAi.moduleName === 'openai', 'bare .ai module openai', bareAi);
+
+			const beforeHelp = await client.health();
+			const aiHelp = await client.parse({
+				inputStr: '.ai help',
+				botname: 'Discord',
+				userid: 'u-proof-ai-help',
+				groupid: 'g-proof-ai-help',
+				locale: 'zh-tw',
+			});
+			const afterHelp = await client.health();
+			assert(!aiHelp.needsLocal, '.ai help not needsLocal', aiHelp);
+			assert(aiHelp._rollWorker === true, '.ai help _rollWorker', aiHelp);
+			assert(String(aiHelp.text || '').length > 20, '.ai help text', aiHelp.text);
+			assert(afterHelp.parseCount === beforeHelp.parseCount + 1, '.ai help parseCount++', { beforeHelp, afterHelp });
+
+			// Source contracts for Pass 9 writers / Discord wiring
+			const wwwSrc = fs.readFileSync(path.join(ROOT, 'modules/core-www.js'), 'utf8');
+			assert(/no local retry/.test(wwwSrc), 'WWW character-action fail-closed');
+			const analyticsSrc = fs.readFileSync(path.join(ROOT, 'modules/analytics.js'), 'utf8');
+			assert(/result\.statue\s*=\s*tempEXPUP\?\.status/.test(analyticsSrc), 'statue←status');
+			const botSrc9 = fs.readFileSync(path.join(ROOT, 'modules/discord/bot.js'), 'utf8');
+			assert(/darkRolling\.getGroupGms\(channelid\)/.test(botSrc9), 'Discord getGroupGms');
+			const wheelSrc = fs.readFileSync(path.join(ROOT, 'roll/wheel-animator.js'), 'utf8');
+			assert(/getTempFilePath\(filename\)/.test(wheelSrc), 'wheel getTempFilePath');
+			const schedSrc = fs.readFileSync(path.join(ROOT, 'roll/z_schedule.js'), 'utf8');
+			assert(/at_save_error/.test(schedSrc) && /cron_save_error/.test(schedSrc), 'schedule save errors');
+			const adminSrc = fs.readFileSync(path.join(ROOT, 'roll/z_admin.js'), 'utf8');
+			assert(/type:\s*'slashDeploy'/.test(adminSrc), 'slashDeploy deferred');
+
+			// Gateway workerError skipExp for fall-open dice
+			{
+				const analyticsPath = require.resolve('../modules/analytics');
+				const clientPath = require.resolve('../modules/roll-worker/client');
+				const routerPath = require.resolve('../modules/roll-worker/parse-router');
+				const analytics = require('../modules/analytics');
+				const prevParse = analytics.parseInput;
+				const prevFind = analytics.findRollModuleName;
+				let sawSkipExp = false;
+				analytics.findRollModuleName = () => '0-advroll';
+				analytics.parseInput = async (params) => {
+					sawSkipExp = params.skipExp === true;
+					return { text: 'local-skipExp', type: 'text' };
+				};
+				const prevUrl = process.env.ROLL_WORKER_URL;
+				process.env.ROLL_WORKER_URL = 'http://127.0.0.1:1';
+				delete require.cache[clientPath];
+				delete require.cache[routerPath];
+				const deadRouter = require('../modules/roll-worker/parse-router');
+				const fb = await deadRouter.parseInput({
+					inputStr: '1d3',
+					botname: 'Telegram',
+					userid: 'u-skipexp',
+					groupid: 'g-skipexp',
+					locale: 'zh-tw',
+				}, { keepProof: true });
+				analytics.parseInput = prevParse;
+				analytics.findRollModuleName = prevFind;
+				process.env.ROLL_WORKER_URL = prevUrl;
+				delete require.cache[clientPath];
+				delete require.cache[routerPath];
+				delete require.cache[analyticsPath];
+				pinGatewayWorkerUrl();
+				require('../modules/roll-worker/client');
+				assert(sawSkipExp === true, 'workerError local fallback skipExp', { fb, sawSkipExp });
+			}
+
+			console.log('[proof] PASS Phase 3x Pass9 live+contracts');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3x / Pass 9)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

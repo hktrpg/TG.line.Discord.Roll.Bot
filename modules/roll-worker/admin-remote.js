@@ -59,7 +59,8 @@ function adminSubNeedsLiveDiscord(mainMsg0, mainMsg1, meta = {}) {
 			return !meta.fixShardMeta?.action;
 		}
 		if (sub === 'registeredglobal' || sub === 'testregistered' || sub === 'removeslashcommands') {
-			return !meta.slashDeployMeta?.text;
+			// Prefetch may be deferred (Gateway applies via gatewayAction) or already have text.
+			return !(meta.slashDeployMeta?.text || meta.slashDeployMeta?.deferred);
 		}
 		// respawn / respawnall → Worker returns clusterIpc; Gateway applies.
 		if (sub === 'respawn' || sub === 'respawnall') {
@@ -193,13 +194,32 @@ async function collectFixShardMeta(action) {
 }
 
 /**
- * Run slash deploy on Discord Gateway (needs DISCORD_CHANNEL_SECRET), return text for Worker.
+ * Defer slash deploy to Gateway (like fixshard) — do not mutate Discord during prefetch.
  * @param {{ action: string, targetId?: string, locale?: string }} opts
  * @returns {Promise<object|null>}
  */
 async function collectSlashDeployMeta({ action, targetId, locale } = {}) {
 	const act = String(action || '').toLowerCase();
 	if (!act) return null;
+	if (act === 'registeredglobal') {
+		return { action: act, deferred: true, locale };
+	}
+	if (act === 'testregistered' || act === 'removeslashcommands') {
+		if (!targetId) return null;
+		return { action: act, targetId: String(targetId), deferred: true, locale };
+	}
+	return null;
+}
+
+/**
+ * Apply deferred slash deploy once on Discord Gateway.
+ * @param {{ action: string, targetId?: string, locale?: string }} meta
+ * @returns {Promise<string|null>}
+ */
+async function applySlashDeployMeta(meta = {}) {
+	const act = String(meta.action || '').toLowerCase();
+	const locale = meta.locale;
+	const targetId = meta.targetId;
 	try {
 		const deploy = require('../discord/deploy-commands.js');
 		if (!deploy || typeof deploy.registeredGlobalSlashCommands !== 'function') {
@@ -207,21 +227,21 @@ async function collectSlashDeployMeta({ action, targetId, locale } = {}) {
 		}
 		if (act === 'registeredglobal') {
 			const text = await deploy.registeredGlobalSlashCommands(locale);
-			return text ? { text: String(text) } : null;
+			return text ? String(text) : null;
 		}
 		if (act === 'testregistered') {
 			if (!targetId || typeof deploy.testRegisteredSlashCommands !== 'function') return null;
 			const text = await deploy.testRegisteredSlashCommands(targetId, locale);
-			return text ? { text: String(text) } : null;
+			return text ? String(text) : null;
 		}
 		if (act === 'removeslashcommands') {
 			if (!targetId || typeof deploy.removeSlashCommands !== 'function') return null;
 			const text = await deploy.removeSlashCommands(targetId, locale);
-			return text ? { text: String(text) } : null;
+			return text ? String(text) : null;
 		}
 		return null;
 	} catch (error) {
-		console.warn('[AdminRemote] collectSlashDeployMeta failed:', error?.message || error);
+		console.warn('[AdminRemote] applySlashDeployMeta failed:', error?.message || error);
 		return null;
 	}
 }
@@ -235,4 +255,5 @@ module.exports = {
 	prefetchCsvAttachment,
 	collectFixShardMeta,
 	collectSlashDeployMeta,
+	applySlashDeployMeta,
 };

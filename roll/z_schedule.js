@@ -223,7 +223,13 @@ const rollDiceCommand = async function ({
             let callBotname = differentPeformAt(botname);
             const serial = await getNextSerial(callBotname, groupid);
             const atData = { imageLink: roleName.imageLink, roleName: roleName.roleName, replyText: text, channelid: channelid, quotes: true, groupid: groupid, botname: botname, userid: userid, serial };
-            await agenda.agenda.schedule(date, callBotname, atData).catch(error => console.error('agenda error:', error.name, error.reason))
+            try {
+                await agenda.agenda.schedule(date, callBotname, atData);
+            } catch (error) {
+                console.error('agenda error:', error.name, error.reason ?? error.message);
+                rply.text = translate('schedule.at_save_error');
+                return rply;
+            }
             rply.text = translate('schedule.at_added', {
                 time: moment(date).format('YYYY-MM-DD HH:mm'),
                 serial,
@@ -388,8 +394,10 @@ const rollDiceCommand = async function ({
 
             try {
                 await job.save();
-            } catch {
-                console.error("schedule #301 Error saving job to collection");
+            } catch (error) {
+                console.error('schedule #301 Error saving job to collection', error?.message || error);
+                rply.text = translate('schedule.cron_save_error');
+                return rply;
             }
 
             const scheduleText = buildCronScheduleText(checkTime, translate);

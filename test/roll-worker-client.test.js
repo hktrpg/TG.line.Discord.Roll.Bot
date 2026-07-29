@@ -97,6 +97,6 @@ describe('roll-worker client', () => {
 		delete process.env.ROLL_WORKER_TIMEOUT_MS;
 		const cfg = getConfig();
 		expect(cfg.url).toContain('127.0.0.1:3950');
-		expect(cfg.timeoutMs).toBe(30_000);
+		expect(cfg.timeoutMs).toBe(120_000);
 	});
 });

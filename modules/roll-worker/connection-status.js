@@ -7,8 +7,14 @@ let state = 'unknown';
 /** @type {ReturnType<typeof setInterval> | null} */
 let monitorTimer = null;
 let probeInFlight = false;
+/** @type {Array<() => void>} */
+const upListeners = [];
 
 const DEFAULT_MONITOR_MS = 30_000;
+
+function onWorkerUp(listener) {
+	if (typeof listener === 'function') upListeners.push(listener);
+}
 
 function getState() {
 	return state;
@@ -36,6 +42,9 @@ function markWorkerUp(meta = {}) {
 		+ (meta.detail ? ` | ${meta.detail}` : '')
 		+ ` | was=${prev}`
 	);
+	for (const listener of upListeners) {
+		try { listener(); } catch { /* ignore */ }
+	}
 	return true;
 }
 
@@ -124,4 +133,5 @@ module.exports = {
 	probeWorkerLink,
 	startConnectionMonitor,
 	stopConnectionMonitor,
+	onWorkerUp,
 };

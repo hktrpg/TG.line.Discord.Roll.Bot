@@ -11,7 +11,16 @@ const {
 	probeWorkerLink,
 	getState: getLinkState,
 	resetConnectionStatus,
+	onWorkerUp,
 } = require('./connection-status');
+const deferQueue = require('./defer-queue');
+
+let deferConnectedHooked = false;
+function ensureDeferConnectedHook() {
+	if (deferConnectedHooked) return;
+	deferConnectedHooked = true;
+	onWorkerUp(() => deferQueue.onWorkerConnected());
+}
 
 const DEFAULT_URL = 'http://127.0.0.1:3950';
 // OpenAI / heavy export often exceed 30s; env still overrides.
@@ -174,6 +183,7 @@ async function health() {
 
 function beginLinkMonitor(options = {}) {
 	if (!isEnabled()) return;
+	ensureDeferConnectedHook();
 	startConnectionMonitor({
 		healthFn: health,
 		getUrl: () => getConfig().url,

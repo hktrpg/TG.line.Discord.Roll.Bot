@@ -75,6 +75,10 @@ async function main() {
 	process.env.ROLL_WORKER_HOST = '127.0.0.1';
 	process.env.ROLL_WORKER_PORT = String(PORT);
 	process.env.ROLL_WORKER_TOKEN = PROOF_TOKEN;
+	// Hybrid fallback proofs (e.g. Phase 3q) require remote-only OFF until Phase 3ab.
+	// Use explicit 'false' — delete alone is undone when roll/openai dotenv override reloads .env.
+	process.env.ROLL_WORKER_REMOTE_ONLY = 'false';
+	process.env.ROLL_WORKER_DEFER_BUSY = 'false';
 
 	const child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
 		cwd: ROOT,
@@ -782,7 +786,9 @@ async function main() {
 		// 31) Phase 3q: Telegram local fallback when worker URL is dead (no system_busy)
 		{
 			const prevUrl = process.env.ROLL_WORKER_URL;
+			const prevRemoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY;
 			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:1';
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'false';
 			// Clear require cache so client re-reads URL.
 			const clientPath = require.resolve('../modules/roll-worker/client');
 			const routerPath = require.resolve('../modules/roll-worker/parse-router');
@@ -793,11 +799,13 @@ async function main() {
 				inputStr: '1d3',
 				botname: 'Telegram',
 				locale: 'zh-tw',
-			}, { keepProof: true });
+			}, { keepProof: true, allowLocalFallback: true });
 			assert(result._rollWorker === false, 'dead worker Telegram falls local', result);
 			assert(String(result.text || '').length > 0, 'local dice text', result);
 			assert(!/忙碌|busy|SYSTEM_BUSY|system_busy/i.test(String(result.text || '')), 'no system_busy spam', result.text);
 			process.env.ROLL_WORKER_URL = prevUrl;
+			if (prevRemoteOnly === undefined) delete process.env.ROLL_WORKER_REMOTE_ONLY;
+			else process.env.ROLL_WORKER_REMOTE_ONLY = prevRemoteOnly;
 			delete require.cache[clientPath];
 			delete require.cache[routerPath];
 			pinGatewayWorkerUrl();
@@ -1375,13 +1383,14 @@ async function main() {
 				delete require.cache[clientPath];
 				delete require.cache[routerPath];
 				const deadRouter = require('../modules/roll-worker/parse-router');
+				process.env.ROLL_WORKER_REMOTE_ONLY = 'false';
 				const fb = await deadRouter.parseInput({
 					inputStr: '1d3',
 					botname: 'Telegram',
 					userid: 'u-skipexp',
 					groupid: 'g-skipexp',
 					locale: 'zh-tw',
-				}, { keepProof: true });
+				}, { keepProof: true, allowLocalFallback: true });
 				analytics.parseInput = prevParse;
 				analytics.findRollModuleName = prevFind;
 				process.env.ROLL_WORKER_URL = prevUrl;
@@ -1505,7 +1514,76 @@ async function main() {
 			console.log('[proof] PASS Phase 3aa Pass13 sign-all/court/denylist');
 		}
 
-		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3aa / Pass 13)');
+		// 42) Phase 3ab: REMOTE_ONLY defer-busy — dead URL enqueue, live Worker drain+deliver
+		{
+			pinGatewayWorkerUrl();
+			const deferQueue = require('../modules/roll-worker/defer-queue');
+			const parseRouter = require('../modules/roll-worker/parse-router');
+			const prevRemoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY;
+			const prevDefer = process.env.ROLL_WORKER_DEFER_BUSY;
+			const prevUrl = process.env.ROLL_WORKER_URL;
+
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+			// Default defer-on when remote-only (must not keep proof-start 'false').
+			delete process.env.ROLL_WORKER_DEFER_BUSY;
+			deferQueue.resetDeferQueue();
+
+			// Point Gateway client at a dead port while real Worker still listens on PROOF port.
+			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:1';
+			const deadResult = await parseRouter.parseInput({
+				inputStr: '1d100',
+				botname: 'Telegram',
+				userid: 'proof-defer-u',
+				groupid: 'proof-defer-g',
+				userrole: 1,
+				locale: 'zh-tw',
+			}, {
+				replyTarget: {
+					botname: 'Telegram',
+					chatId: 'proof-defer-g',
+					userid: 'proof-defer-u',
+				},
+			});
+			assert(deadResult.deferred === true, 'dead URL → deferred', deadResult);
+			assert(deadResult.text === '', 'deferred has empty text', deadResult);
+			assert(deferQueue.size() >= 1, 'queue has job', { size: deferQueue.size() });
+
+			const delivered = [];
+			deferQueue.registerDeliverer('Telegram', async (_job, result) => {
+				delivered.push(result?.text || '');
+			});
+
+			// Restore live Worker URL and drain — must get a real dice reply (not busy).
+			process.env.ROLL_WORKER_URL = URL;
+			const drain = await deferQueue.tryDrain({ batch: 10 });
+			assert(drain.drained >= 1, 'drain delivered >=1', drain);
+			assert(delivered.length >= 1, 'deliverer called', delivered);
+			assert(
+				delivered.some((t) => t && t !== 'SYSTEM_BUSY_I18N' && !/system is busy/i.test(t)),
+				'delivered non-busy text',
+				delivered
+			);
+			assert(deferQueue.size() === 0, 'queue empty after drain', { size: deferQueue.size() });
+
+			// Mutator fail-closed still busy (no enqueue) against live Worker timeout simulation:
+			// call path with export module + rejected parse is covered in Jest; here contract source.
+			const deferSrc = fs.readFileSync(path.join(ROOT, 'modules/roll-worker/defer-queue.js'), 'utf8');
+			assert(/isDeferBusyActive/.test(deferSrc), 'defer-queue module present');
+			assert(/ROLL_WORKER_REMOTE_ONLY/.test(deferSrc), 'defer gated on REMOTE_ONLY');
+			const envCopyAb = fs.readFileSync(path.join(ROOT, '.env.copy'), 'utf8');
+			assert(/ROLL_WORKER_DEFER_BUSY|ROLL_WORKER_DEFER_MAX/.test(envCopyAb), 'env documents defer');
+
+			if (prevRemoteOnly === undefined) delete process.env.ROLL_WORKER_REMOTE_ONLY;
+			else process.env.ROLL_WORKER_REMOTE_ONLY = prevRemoteOnly;
+			if (prevDefer === undefined) delete process.env.ROLL_WORKER_DEFER_BUSY;
+			else process.env.ROLL_WORKER_DEFER_BUSY = prevDefer;
+			process.env.ROLL_WORKER_URL = prevUrl || URL;
+			deferQueue.resetDeferQueue();
+
+			console.log('[proof] PASS Phase 3ab REMOTE_ONLY defer-busy enqueue+drain');
+		}
+
+		console.log('[proof] PASSED Worker+Gateway remote path (Phase 3 → 3ab / defer-busy)');
 		process.exitCode = 0;
 	} catch (error) {
 		console.error('[proof] ERROR', error.message || error);

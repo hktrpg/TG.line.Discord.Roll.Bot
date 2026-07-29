@@ -13,6 +13,7 @@ const lineAgenda = Boolean(process.env.LINE_AGENDA)
 const agenda = require('../modules/runtime/schedule');
 exports.analytics = require('./analytics');
 const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
 const darkRolling = require('./roll-worker/dark-rolling');
 const EXPUP = require('./chat/level').EXPUP || function () {};
 
@@ -176,6 +177,13 @@ let handleEvent = async function (event) {
 	const t = i18n.createTranslator(locale);
 	let rplyVal = {};
 	let didParse = false;
+	// replyToken expires quickly — drain uses Push API (SendToId), not replyToken.
+	const lineReplyTarget = {
+		botname: 'Line',
+		targetId: roomorgroupid || userid,
+		chatId: roomorgroupid || userid,
+		userid,
+	};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
 		rplyVal = await parseRouter.parseInput({
@@ -188,7 +196,7 @@ let handleEvent = async function (event) {
 			titleName: titleName,
 			locale,
 			t
-		});
+		}, { replyTarget: lineReplyTarget });
 		didParse = true;
 	} else {
 		if (channelKeyword == '') {
@@ -202,10 +210,12 @@ let handleEvent = async function (event) {
 				titleName: titleName,
 				locale,
 				t
-			});
+			}, { replyTarget: lineReplyTarget });
 			didParse = true;
 		}
 	}
+
+	if (rplyVal?.deferred) return;
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	//LevelUp功能
@@ -553,6 +563,18 @@ function SendToId(targetid, Reply) {
 		}
 	});
 }
+
+deferQueue.registerDeliverer('Line', async (job, result) => {
+	const text = result?.text || '';
+	const levelUp = result?.LevelUp || '';
+	const targetId = job.replyTarget?.targetId
+		|| job.replyTarget?.chatId
+		|| job.params?.groupid
+		|| job.userid;
+	if (!targetId) return;
+	const body = levelUp && text ? `${levelUp}\n${text}` : (levelUp || text);
+	if (body) SendToId(targetId, body);
+});
 async function privateMsgFinder(channelid) {
 	return darkRolling.getGroupGms(channelid);
 }

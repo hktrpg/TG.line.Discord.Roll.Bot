@@ -4,6 +4,7 @@ const analytics = require('../analytics');
 const i18n = require('../i18n/i18n.js');
 const client = require('./client');
 const { isRemoteAllowed } = require('./route-table');
+const deferQueue = require('./defer-queue');
 
 const SYSTEM_BUSY_KEY = 'common.errors.system_busy';
 
@@ -11,6 +12,7 @@ const FALLBACK_LOG_INTERVAL_MS = 60_000;
 let loggedModeOnce = false;
 let lastFallbackLogAt = 0;
 let fallbackSinceLastLog = 0;
+let replayHookInstalled = false;
 
 /**
  * Gateway switch: never run in-process analytics when remoting is configured.
@@ -18,6 +20,50 @@ let fallbackSinceLastLog = 0;
  */
 function isRemoteOnlyMode() {
 	return process.env.ROLL_WORKER_REMOTE_ONLY === 'true';
+}
+
+/** Job reasons that may complete via in-process analytics during defer drain. */
+const DEFER_LOCAL_REPLAY_REASONS = new Set([
+	'needsLocal',
+	'remoteOnlyBlockedLocal',
+]);
+
+function ensureDeferReplayHook() {
+	if (replayHookInstalled) return;
+	replayHookInstalled = true;
+	deferQueue.setReplayFn(async (job, replayOptions = {}) => {
+		// Transport/workerError must re-hit Worker only — never local on drain.
+		// Otherwise a flapping CONNECTED edge runs local and defeats REMOTE_ONLY.
+		const allowLocalFallback = DEFER_LOCAL_REPLAY_REASONS.has(job.reason);
+		const result = await parseInput(job.params || {}, {
+			deferredReplay: true,
+			allowLocalFallback,
+			replyTarget: job.replyTarget,
+			keepProof: false,
+			...replayOptions,
+		});
+		if (result?.deferred) return { deferred: true };
+		const busyText = await getSystemBusyText(job.params?.locale);
+		if (result?.text === busyText) return { busy: true };
+		return result || { text: '', type: 'text' };
+	});
+}
+
+/**
+ * Try to enqueue instead of returning system_busy (remote-only + defer on).
+ * @param {boolean} [alreadyQueued] - drain replay: signal re-queue without duplicating
+ * @returns {Promise<object|null>} deferred result or null to fall through to busy text
+ */
+async function tryDeferBusy({ reason, params, replyTarget, moduleName, alreadyQueued = false }) {
+	if (!deferQueue.isDeferBusyActive()) return null;
+	if (!replyTarget) return null;
+	// Drain path already holds the job — do not enqueue a second copy.
+	if (alreadyQueued) return { deferred: true, text: '', type: 'text' };
+	ensureDeferReplayHook();
+	deferQueue.startDrainMonitor();
+	const enq = deferQueue.enqueue({ reason, params, replyTarget, moduleName });
+	if (!enq.ok) return null;
+	return { deferred: true, text: '', type: 'text' };
 }
 
 async function getSystemBusyText(locale) {
@@ -46,10 +92,16 @@ function logParseMode(logger = console) {
 	if (client.isEnabled()) {
 		const { url, token, timeoutMs } = client.getConfig();
 		const remoteOnly = isRemoteOnlyMode();
+		const deferOn = remoteOnly && deferQueue.isDeferBusyActive();
 		info(`[ParseMode] GATEWAY → REMOTE WORKER | url=${url} | token=${token ? 'set' : 'off'} | timeout=${timeoutMs}ms`
-			+ ` | local=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid fallback)'}`);
+			+ ` | local=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid fallback)'}`
+			+ (remoteOnly ? ` | defer=${deferOn ? 'on' : 'off'}` : ''));
 		// Immediate health probe + 30s monitor — edge-triggered CONNECTED / DISCONNECTED logs.
 		client.beginLinkMonitor({ logger });
+		if (deferOn) {
+			ensureDeferReplayHook();
+			deferQueue.startDrainMonitor();
+		}
 		return;
 	}
 
@@ -97,14 +149,19 @@ function stripWorkerProof(result) {
  * @param {object} [options]
  * @param {boolean} [options.allowLocalFallback] - default true unless ROLL_WORKER_REMOTE_ONLY
  * @param {boolean} [options.keepProof=false] - keep `_rollWorker` markers for tests / ops
+ * @param {boolean} [options.deferredReplay=false] - drain path; allow local under remote-only
+ * @param {object} [options.replyTarget] - defer-queue delivery target (Discord/TG/LINE/WA/WWW)
  */
 async function parseInput(params = {}, options = {}) {
 	const remoteOnly = isRemoteOnlyMode();
+	const deferredReplay = options.deferredReplay === true;
 	// Default: fall back locally on Worker outages unless remote-only switch is on.
+	// Drain callers must pass allowLocalFallback explicitly (needsLocal only).
 	const allowLocalFallback = Object.hasOwn(options, 'allowLocalFallback')
 		? options.allowLocalFallback !== false
 		: !remoteOnly;
 	const keepProof = options.keepProof === true;
+	const replyTarget = options.replyTarget || null;
 
 	const mainMsg = typeof params.inputStr === 'string'
 		? params.inputStr.replaceAll(/^\s/g, '').match(/\S+/ig)
@@ -116,6 +173,14 @@ async function parseInput(params = {}, options = {}) {
 	if (!client.isEnabled()) {
 		if (remoteOnly) {
 			console.error('[ParseRouter] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL');
+			const deferred = await tryDeferBusy({
+				reason: 'remoteOnlyMisconfig',
+				params,
+				replyTarget,
+				moduleName,
+				alreadyQueued: deferredReplay,
+			});
+			if (deferred) return deferred;
 			return {
 				text: await getSystemBusyText(params.locale),
 				type: 'text',
@@ -135,10 +200,23 @@ async function parseInput(params = {}, options = {}) {
 					? { text: '', type: 'text', _rollWorker: false, _rollWorkerModule: null }
 					: { text: '', type: 'text' };
 			}
+			if (allowLocalFallback) {
+				const local = await analytics.parseInput(params);
+				invalidateCachesAfterRemote(moduleName, local, params);
+				return keepProof ? { ...local, _rollWorker: false, _rollWorkerModule: moduleName } : local;
+			}
 			logLocalFallback('remoteOnlyBlockedLocal', {
 				botname: params.botname,
 				moduleName,
 			});
+			const deferred = await tryDeferBusy({
+				reason: 'remoteOnlyBlockedLocal',
+				params,
+				replyTarget,
+				moduleName,
+				alreadyQueued: deferredReplay,
+			});
+			if (deferred) return deferred;
 			return {
 				text: await getSystemBusyText(params.locale),
 				type: 'text',
@@ -183,6 +261,14 @@ async function parseInput(params = {}, options = {}) {
 				invalidateCachesAfterRemote(moduleName, merged, remoteParams);
 				return keepProof ? { ...merged, _rollWorker: false } : merged;
 			}
+			const deferred = await tryDeferBusy({
+				reason: 'needsLocal',
+				params: remoteParams,
+				replyTarget,
+				moduleName: result.moduleName || moduleName,
+				alreadyQueued: deferredReplay,
+			});
+			if (deferred) return deferred;
 			return {
 				text: await getSystemBusyText(params.locale),
 				type: 'text',
@@ -201,6 +287,7 @@ async function parseInput(params = {}, options = {}) {
 				moduleName,
 				error: error?.message || String(error),
 			});
+			// Mutator mid-flight: never auto-defer/replay (double-charge risk).
 			return {
 				text: await getSystemBusyText(params.locale),
 				type: 'text',
@@ -217,6 +304,15 @@ async function parseInput(params = {}, options = {}) {
 			return keepProof ? { ...local, _rollWorker: false } : local;
 		}
 		console.error('[ParseRouter] Roll worker failed (no local fallback):', error?.message || error);
+		const deferReason = deferQueue.isTransportSafeError(error) ? 'transport' : 'workerError';
+		const deferred = await tryDeferBusy({
+			reason: deferReason,
+			params: remoteParams,
+			replyTarget,
+			moduleName,
+			alreadyQueued: deferredReplay,
+		});
+		if (deferred) return deferred;
 		return {
 			text: await getSystemBusyText(params.locale),
 			type: 'text',
@@ -593,4 +689,5 @@ module.exports = {
 	logParseMode,
 	getSystemBusyText,
 	SYSTEM_BUSY_KEY,
+	tryDeferBusy,
 };

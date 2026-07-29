@@ -114,11 +114,13 @@ describe('Phase 3x M1 WWW character-action fail-closed', () => {
 		const src = fs.readFileSync(path.join(ROOT, 'modules/core-www.js'), 'utf8');
 		const fnIdx = src.indexOf('async function resolveCharacterAction');
 		expect(fnIdx).toBeGreaterThan(-1);
-		const block = src.slice(fnIdx, fnIdx + 900);
+		const block = src.slice(fnIdx, fnIdx + 2800);
 		expect(block).toMatch(/no local retry/);
 		expect(block).toMatch(/system_busy/);
 		expect(block).toMatch(/rollWorkerClient\.isEnabled\(\)/);
 		expect(block).toMatch(/return runCharacterAction/);
+		expect(block).toMatch(/ROLL_WORKER_REMOTE_ONLY/);
+		expect(block).toMatch(/tryDeferCharacterAction/);
 		const catchIdx = block.indexOf('} catch (error)');
 		expect(catchIdx).toBeGreaterThan(-1);
 		// Local runCharacterAction must not appear inside the catch block.

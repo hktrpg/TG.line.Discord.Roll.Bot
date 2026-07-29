@@ -17,8 +17,35 @@ const checkMongodb = require('../db/watchdog.js');
 
 exports.analytics = require('../analytics');
 const parseRouter = require('../roll-worker/parse-router');
+const deferQueue = require('../roll-worker/defer-queue');
 const { assertArtifactReadable } = require('../roll-worker/artifacts');
 parseRouter.logParseMode(console);
+
+const { deliverDiscordDeferred } = require('../roll-worker/discord-defer-deliver');
+
+async function clearDeferredDiscordInteraction(interaction) {
+	if (!interaction) return;
+	try {
+		if (interaction.deferred || interaction.replied) {
+			await interaction.deleteReply();
+		}
+	} catch (error) {
+		if (!isDiscordUnknownInteraction(error)) {
+			console.error('[DeferQueue] Discord deleteReply:', error.message);
+		}
+	}
+}
+
+/** Drain deliverer: text via editReply/channel; .me/.mee via webhook then drop ephemeral. */
+deferQueue.registerDeliverer('Discord', async (job, result) => {
+	await deliverDiscordDeferred(job, result, {
+		repeatMessages,
+		sendMeMessage: __sendMeMessage,
+		sendToReplyChannel: SendToReplychannel,
+		clearInteraction: clearDeferredDiscordInteraction,
+		fetchChannel: (channelId) => client.channels.fetch(channelId),
+	});
+});
 const i18n = require('../i18n/i18n.js');
 const debugMode = !!process.env.DEBUG;
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
@@ -1011,6 +1038,8 @@ client.on('clientReady', async () => {
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
+	// Busy-queue: leave Discord "thinking…" until drain editReply.
+	if (result?.deferred) return;
 	if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
 		if (result.webhookOnly) {
 			try {
@@ -3615,7 +3644,21 @@ async function handlingResponMessage(message, answer = '') {
 			channelType: message?.channel?.type,
 			locale: message?._hktrpgLocale,
 			t: message?._hktrpgT
+		}, {
+			replyTarget: {
+				botname: 'Discord',
+				channelId: channelid,
+				messageId: message?.id || null,
+				guildId: groupid || null,
+				userid,
+				isInteraction: Boolean(message?.isInteraction),
+				interaction: message?.isInteraction ? message : null,
+			},
 		});
+
+		if (rplyVal?.deferred) {
+			return { deferred: true };
+		}
 
 		// Ensure isInteraction flag is preserved
 		if (message.isInteraction) {

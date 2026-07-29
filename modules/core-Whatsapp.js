@@ -163,6 +163,7 @@ const i18n = require('./i18n/i18n.js');
 
 exports.analytics = require('./analytics');
 const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
 const darkRolling = require('./roll-worker/dark-rolling');
 
 let whatsappClient = null;
@@ -284,7 +285,7 @@ async function startUp() {
 
 				// 分析訊息內容
 				const result = await processMessage(msg, groupInfo, client);
-				if (!result) return;
+				if (!result || result.deferred) return;
 
 				// 發送回覆
 				await handleReply(result, msg, client);
@@ -461,6 +462,11 @@ async function processMessage(msg, groupInfo, client) {
 	}
 	const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' });
 	const t = i18n.createTranslator(locale);
+	const waReplyTarget = {
+		botname: 'Whatsapp',
+		chatId: msg.from || groupid || userid,
+		userid,
+	};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
 		rplyVal = await parseRouter.parseInput({
@@ -474,7 +480,7 @@ async function processMessage(msg, groupInfo, client) {
 			membercount: membercount,
 			locale,
 			t
-		})
+		}, { replyTarget: waReplyTarget });
 	} else {
 		if (channelKeyword == '') {
 			rplyVal = await parseRouter.parseInput({
@@ -488,9 +494,11 @@ async function processMessage(msg, groupInfo, client) {
 				membercount: membercount,
 				locale,
 				t
-			})
+			}, { replyTarget: waReplyTarget });
 		}
 	}
+
+	if (rplyVal?.deferred) return { deferred: true };
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}
@@ -702,6 +710,21 @@ async function SendToId(targetid, rplyVal, client) {
 		console.error('[WhatsApp] SendToId general error:', error.message);
 	}
 }
+
+deferQueue.registerDeliverer('Whatsapp', async (job, result) => {
+	const client = whatsappClient;
+	if (!client) throw new Error('WhatsApp client not ready');
+	const text = result?.text || '';
+	const levelUp = result?.LevelUp || '';
+	const targetId = job.replyTarget?.chatId || job.params?.groupid || job.userid;
+	if (!targetId) return;
+	if (levelUp) {
+		const display = job.params?.displayname || '';
+		const statue = result?.statue ? ` ${result.statue}` : '';
+		await client.sendMessage(targetId, `@${display}${statue}\n\t\t${levelUp}`);
+	}
+	if (text) await SendToId(targetId, { text }, client);
+});
 
 // Unhandled rejections are handled by the main application error handler in index.js
 

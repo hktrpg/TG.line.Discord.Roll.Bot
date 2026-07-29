@@ -157,7 +157,11 @@ const Tesseract = require('tesseract.js');
 const { getPool } = require('../modules/db/pool');
 const imagePool = getPool('image');
 (() => {
-	const preserveKeys = ['ROLL_WORKER_URL', 'ROLL_WORKER_TOKEN', 'ROLL_WORKER_TIMEOUT_MS', 'ROLL_WORKER_MODE', 'ROLL_WORKER_HOST', 'ROLL_WORKER_PORT', 'ADMIN_SECRET'];
+	const preserveKeys = [
+		'ROLL_WORKER_URL', 'ROLL_WORKER_TOKEN', 'ROLL_WORKER_TIMEOUT_MS', 'ROLL_WORKER_MODE',
+		'ROLL_WORKER_HOST', 'ROLL_WORKER_PORT', 'ROLL_WORKER_REMOTE_ONLY', 'ROLL_WORKER_DEFER_BUSY',
+		'ADMIN_SECRET',
+	];
 	const preserved = {};
 	for (const key of preserveKeys) {
 		if (process.env[key] !== undefined) preserved[key] = process.env[key];

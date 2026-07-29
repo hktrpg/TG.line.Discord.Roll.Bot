@@ -9,7 +9,26 @@ const agenda = require('../modules/runtime/schedule')
 const rollText = require('./chat/getRoll').rollText;
 exports.analytics = require('./analytics');
 const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
 const darkRolling = require('./roll-worker/dark-rolling');
+
+deferQueue.registerDeliverer('Telegram', async (job, result) => {
+	const text = result?.text || '';
+	const levelUp = result?.LevelUp || '';
+	const chatId = job.replyTarget?.chatId || job.params?.groupid || job.userid;
+	if (!chatId) return;
+	if (levelUp) {
+		const display = job.params?.displayname || '';
+		const statue = result?.statue ? ` ${result.statue}` : '';
+		await SendToId(chatId, `@${display}${statue}\n\t\t${levelUp}`);
+	}
+	if (text) {
+		const opts = job.replyTarget?.messageId
+			? { reply_to_message_id: job.replyTarget.messageId }
+			: undefined;
+		await SendToId(chatId, text, opts);
+	}
+});
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./chat/message');
@@ -115,6 +134,12 @@ TGclient.on('message:text', (ctx) => {
 
         // After message arrives, automatically jump to analytics.js for dice group analysis
         // If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
+        const tgReplyTarget = {
+            botname: 'Telegram',
+            chatId: groupid || ctx.chat?.id || userid,
+            messageId: ctx.message?.message_id || null,
+            userid,
+        };
         if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
             mainMsg.shift();
             rplyVal = await parseRouter.parseInput({
@@ -130,7 +155,7 @@ TGclient.on('message:text', (ctx) => {
                 tgDisplayname: tgDisplayname,
                 locale,
                 t
-            });
+            }, { replyTarget: tgReplyTarget });
             didParse = true;
         } else {
             if (channelKeyword == '') {
@@ -147,10 +172,12 @@ TGclient.on('message:text', (ctx) => {
                     tgDisplayname: tgDisplayname,
                     locale,
                     t
-                });
+                }, { replyTarget: tgReplyTarget });
                 didParse = true;
             }
         }
+
+        if (rplyVal?.deferred) return;
 
         if (rplyVal.sendNews) sendNewstoAll(rplyVal);
         // Handle .me messages

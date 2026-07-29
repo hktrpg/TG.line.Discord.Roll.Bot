@@ -24,6 +24,7 @@ const cspConfig = require('../modules/config/csp.js');
 const security = require('../utils/security.js');
 const rollWorkerClient = require('./roll-worker/client');
 const { runCharacterAction } = require('./roll-worker/character-action');
+const deferQueue = require('./roll-worker/defer-queue');
 const { buildBusEtaShortcut } = require('./www/bus-shortcut.js');
 const i18n = require('./i18n/i18n.js');
 const patreonTiers = require('./patreon/patreon-tiers.js');
@@ -34,26 +35,63 @@ const {
     createRateLimitReject
 } = security;
 
+function tryDeferCharacterAction({ reason, doc, item, locale, botname, replyTarget }) {
+    if (!deferQueue.isDeferBusyActive() || !replyTarget) return null;
+    deferQueue.startDrainMonitor();
+    const enq = deferQueue.enqueue({
+        reason,
+        jobType: 'characterAction',
+        params: { doc, item, locale, botname },
+        replyTarget,
+    });
+    if (!enq.ok) return null;
+    return {
+        characterResult: null,
+        rplyVal: { deferred: true, text: '', type: 'text' },
+    };
+}
+
 /**
  * Character card item roll via Worker when enabled, else local.
  * ROLL_WORKER_REMOTE_ONLY=true never runs local character-action.
+ * @param {object} [replyTarget] - defer-busy socket target (REMOTE_ONLY)
  */
-async function resolveCharacterAction({ doc, item, locale, botname = 'WWW' }) {
+async function resolveCharacterAction({ doc, item, locale, botname = 'WWW', replyTarget = null } = {}) {
     const remoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY === 'true';
     if (rollWorkerClient.isEnabled()) {
         try {
             return await rollWorkerClient.characterAction({ doc, item, locale, botname });
         } catch (error) {
-            // Fail closed: Worker may already have nested-parse / mutated before timeout.
+            // Only defer clear pre-flight connect failures. Timeouts may have nested-parsed (M1).
+            const hay = String(error?.message || error || '').toLowerCase();
+            const connectDown = /econnrefused|enotfound|econnreset|eai_again|socket hang up|network error/
+                .test(hay);
+            if (connectDown) {
+                const deferred = tryDeferCharacterAction({
+                    reason: 'transport', doc, item, locale, botname, replyTarget,
+                });
+                if (deferred) return deferred;
+            }
             console.error('[Web Server] character-action worker failed (no local retry):', error?.message || error);
             const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
-            return { text: t('common.errors.system_busy'), type: 'text' };
+            return {
+                characterResult: null,
+                rplyVal: { text: t('common.errors.system_busy'), type: 'text' },
+            };
         }
     }
     if (remoteOnly) {
+        const deferred = tryDeferCharacterAction({
+            reason: 'remoteOnlyMisconfig',
+            doc, item, locale, botname, replyTarget,
+        });
+        if (deferred) return deferred;
         console.error('[Web Server] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL for character-action');
         const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
-        return { text: t('common.errors.system_busy'), type: 'text' };
+        return {
+            characterResult: null,
+            rplyVal: { text: t('common.errors.system_busy'), type: 'text' },
+        };
     }
     return runCharacterAction({ doc, item, locale, botname });
 }
@@ -2103,10 +2141,19 @@ if (io) {
                 item: message.item,
                 locale: socket._hktrpgLocale,
                 botname: 'WWW',
+                replyTarget: {
+                    botname: 'WWW',
+                    kind: 'characterAction',
+                    eventName: 'publicRolling',
+                    includeCandle: false,
+                    userid: socket.id,
+                    socket,
+                },
             });
 
             // 訊息來到後, 會自動跳到analytics.js進行骰組分析
             // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+            if (rplyVal?.deferred) return;
             if (rplyVal && rplyVal.text && result) {
                 socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
             }
@@ -2119,10 +2166,19 @@ if (io) {
                 item: message.item,
                 locale: socket._hktrpgLocale,
                 botname: 'WWW',
+                replyTarget: {
+                    botname: 'WWW',
+                    kind: 'characterAction',
+                    eventName: 'rolling',
+                    includeCandle: true,
+                    userid: socket.id,
+                    socket,
+                },
             });
 
             // 訊息來到後, 會自動跳到analytics.js進行骰組分析
             // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
+            if (rplyVal?.deferred) return;
             if (rplyVal && rplyVal.text && result) {
                 socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
 
@@ -2499,6 +2555,16 @@ records.on("new_message", async (message) => {
 
         const locale = i18n.normalizeLocale(message.locale || i18n.DEFAULT_LOCALE);
         const t = i18n.createTranslator(locale);
+        const wwwReplyTarget = {
+            botname: 'WWW',
+            kind: 'chat',
+            userid: message.userid || message.name || message.roomNumber || 'www',
+            wwwMessage: {
+                name: message.name,
+                time: message.time,
+                roomNumber: message.roomNumber,
+            },
+        };
 
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
@@ -2506,20 +2572,23 @@ records.on("new_message", async (message) => {
             rplyVal = await parseRouter.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "WWW",
+                userid: wwwReplyTarget.userid,
                 locale,
                 t
-            })
+            }, { replyTarget: wwwReplyTarget });
 
         } else {
             if (channelKeyword == '') {
                 rplyVal = await parseRouter.parseInput({
                     inputStr: mainMsg.join(' '),
                     botname: "WWW",
+                    userid: wwwReplyTarget.userid,
                     locale,
                     t
-                })
+                }, { replyTarget: wwwReplyTarget });
             }
         }
+        if (rplyVal?.deferred) return;
         if (rplyVal && rplyVal.text) {
             rplyVal.text = '\n' + rplyVal.text
             loadb(io, records, rplyVal, message);
@@ -2620,6 +2689,45 @@ async function loadb(io, records, rplyVal, message) {
         io.emit(message.roomNumber, botMessage);
         records.chatRoomPush(botMessage);
     }
+}
+
+if (io) {
+    deferQueue.setCharacterReplayFn(async (job) => {
+        const p = job.params || {};
+        try {
+            return await rollWorkerClient.characterAction({
+                doc: p.doc,
+                item: p.item,
+                locale: p.locale,
+                botname: p.botname || 'WWW',
+            });
+        } catch (error) {
+            if (deferQueue.isTransportSafeError(error)) return { deferred: true };
+            return { busy: true };
+        }
+    });
+
+    deferQueue.registerDeliverer('WWW', async (job, result) => {
+        const rt = job.replyTarget || {};
+        if (rt.kind === 'characterAction' || job.jobType === 'characterAction') {
+            const socket = rt.socket;
+            const rply = result?.rplyVal || result;
+            const characterResult = result?.characterResult;
+            const text = rply?.text || '';
+            if (!socket || !text || !characterResult) {
+                if (!socket?.connected) throw new Error('WWW socket gone');
+                return;
+            }
+            let out = `${characterResult.characterReRollName}：\n${text}`;
+            if (rt.includeCandle) out += candle.checker();
+            socket.emit(rt.eventName || 'rolling', out);
+            return;
+        }
+        const wwwMessage = rt.wwwMessage;
+        const text = result?.text || '';
+        if (!wwwMessage || !text || !io) return;
+        await loadb(io, records, { text: `\n${text}` }, wwwMessage);
+    });
 }
 async function limitRaterChatRoom(address) {
     return await checkRateLimit('chatRoom', address);

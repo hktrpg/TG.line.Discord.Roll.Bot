@@ -15,6 +15,8 @@ process.env.ROLL_WORKER_MODE = 'true';
 		'ROLL_WORKER_MODE',
 		'ROLL_WORKER_HOST',
 		'ROLL_WORKER_PORT',
+		'ROLL_WORKER_REMOTE_ONLY',
+		'ROLL_WORKER_DEFER_BUSY',
 		// Tests/proof may pin ADMIN_SECRET on the child env; do not let .env wipe it.
 		'ADMIN_SECRET',
 	];

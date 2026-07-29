@@ -2,12 +2,41 @@
 
 const axios = require('axios');
 const { attachGatewayAuth } = require('./request-auth');
+const { ensureRollWorkerToken } = require('./ensure-token');
+const {
+	markWorkerUp,
+	markWorkerDown,
+	startConnectionMonitor,
+	stopConnectionMonitor,
+	probeWorkerLink,
+	getState: getLinkState,
+	resetConnectionStatus,
+} = require('./connection-status');
 
 const DEFAULT_URL = 'http://127.0.0.1:3950';
 // OpenAI / heavy export often exceed 30s; env still overrides.
 const DEFAULT_TIMEOUT_MS = 120_000;
 
+function noteTransportOk() {
+	const { url } = getConfig();
+	markWorkerUp({ url, detail: 'request ok' });
+}
+
+function noteTransportDown(error) {
+	const { url } = getConfig();
+	markWorkerDown({
+		url,
+		reason: error?.message || String(error || 'unknown'),
+	});
+}
+
 function getConfig() {
+	// When remoting is enabled, load/generate the shared secret from .env so
+	// Gateway matches Worker without manual copy-paste on a single machine.
+	if ((process.env.ROLL_WORKER_URL || '').trim()
+		&& process.env.ROLL_WORKER_ALLOW_NO_TOKEN !== 'true') {
+		ensureRollWorkerToken({ generate: true });
+	}
 	const url = (process.env.ROLL_WORKER_URL || '').trim() || DEFAULT_URL;
 	const token = (process.env.ROLL_WORKER_TOKEN || '').trim();
 	const timeoutMs = Number.parseInt(process.env.ROLL_WORKER_TIMEOUT_MS || String(DEFAULT_TIMEOUT_MS), 10);
@@ -64,11 +93,20 @@ async function parse(params) {
 	}
 
 	const body = attachGatewayAuth(toSerializableContext(params), token);
-	const response = await axios.post(
-		`${url}/v1/parse`,
-		body,
-		{ headers, timeout: timeoutMs, validateStatus: () => true }
-	);
+	let response;
+	try {
+		response = await axios.post(
+			`${url}/v1/parse`,
+			body,
+			{ headers, timeout: timeoutMs, validateStatus: () => true }
+		);
+	} catch (error) {
+		noteTransportDown(error);
+		throw error;
+	}
+
+	// Transport reached Worker (even 4xx/5xx/needsLocal) — link is up.
+	noteTransportOk();
 
 	if (response.status === 503 && response.data?.needsLocal) {
 		return {
@@ -100,11 +138,19 @@ async function characterAction({ doc, item, locale, botname = 'WWW' } = {}) {
 	}
 
 	const body = attachGatewayAuth({ doc, item, locale, botname }, token);
-	const response = await axios.post(
-		`${url}/v1/character-action`,
-		body,
-		{ headers, timeout: timeoutMs, validateStatus: () => true }
-	);
+	let response;
+	try {
+		response = await axios.post(
+			`${url}/v1/character-action`,
+			body,
+			{ headers, timeout: timeoutMs, validateStatus: () => true }
+		);
+	} catch (error) {
+		noteTransportDown(error);
+		throw error;
+	}
+
+	noteTransportOk();
 
 	if (response.status < 200 || response.status >= 300) {
 		const message = response.data?.error || `Roll worker HTTP ${response.status}`;
@@ -126,6 +172,28 @@ async function health() {
 	return response.data;
 }
 
+function beginLinkMonitor(options = {}) {
+	if (!isEnabled()) return;
+	startConnectionMonitor({
+		healthFn: health,
+		getUrl: () => getConfig().url,
+		intervalMs: options.intervalMs,
+		logger: options.logger,
+	});
+}
+
+function endLinkMonitor() {
+	stopConnectionMonitor();
+}
+
+async function checkLinkOnce(options = {}) {
+	return probeWorkerLink({
+		healthFn: health,
+		getUrl: () => getConfig().url,
+		logger: options.logger,
+	});
+}
+
 module.exports = {
 	DEFAULT_TIMEOUT_MS,
 	isEnabled,
@@ -134,4 +202,9 @@ module.exports = {
 	parse,
 	characterAction,
 	health,
+	beginLinkMonitor,
+	endLinkMonitor,
+	checkLinkOnce,
+	getLinkState,
+	resetConnectionStatus,
 };

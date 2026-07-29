@@ -10,6 +10,7 @@ const {
 	verifyGatewayAuth,
 	stripGatewayAuth,
 } = require('./request-auth');
+const { ensureRollWorkerToken } = require('./ensure-token');
 
 function timingSafeTokenEqual(provided, expected) {
 	const a = Buffer.from(String(provided || ''), 'utf8');
@@ -85,6 +86,30 @@ function createRollWorkerApp(options = {}) {
 		}
 	}
 
+	/** Worker-side peer link (edge-triggered CONNECTED / DISCONNECTED). */
+	let peerState = 'waiting';
+	let lastPeerAt = 0;
+	const PEER_IDLE_MS = 90_000;
+	const peerIdleTimer = setInterval(() => {
+		if (peerState === 'up' && lastPeerAt > 0 && (Date.now() - lastPeerAt) > PEER_IDLE_MS) {
+			peerState = 'down';
+			console.warn(`[RollWorker] DISCONNECTED | no Gateway traffic for ${Math.round(PEER_IDLE_MS / 1000)}s`);
+		}
+	}, 15_000);
+	if (typeof peerIdleTimer.unref === 'function') {
+		peerIdleTimer.unref();
+	}
+	app.locals.peerIdleTimer = peerIdleTimer;
+
+	function noteGatewayPeer(req, via) {
+		const from = req.ip || req.socket?.remoteAddress || 'unknown';
+		lastPeerAt = Date.now();
+		if (peerState === 'up') return;
+		const prev = peerState;
+		peerState = 'up';
+		console.info(`[RollWorker] CONNECTED | peer=${from} | via=${via} | was=${prev}`);
+	}
+
 	app.use((req, res, next) => {
 		// Health stays open for probes; mutate endpoints require a shared secret when configured.
 		if (req.path === '/health') {
@@ -121,6 +146,8 @@ function createRollWorkerApp(options = {}) {
 		if (!detailOk) {
 			return res.json(base);
 		}
+		// Authenticated (or auth-off) health probe from Gateway monitor.
+		noteGatewayPeer(req, 'GET /health');
 		return res.json({
 			...base,
 			uptime: process.uptime(),
@@ -128,6 +155,7 @@ function createRollWorkerApp(options = {}) {
 			characterActionCount: stats.characterActionCount,
 			needsLocalCount: stats.needsLocalCount,
 			rateLimitedCount: stats.rateLimitedCount,
+			peer: peerState,
 		});
 	});
 
@@ -141,6 +169,7 @@ function createRollWorkerApp(options = {}) {
 			if (!auth.ok) {
 				return res.status(401).json({ error: `Unauthorized: ${auth.error}` });
 			}
+			noteGatewayPeer(req, 'POST /v1/parse');
 			const params = stripGatewayAuth(rawParams);
 			const mainMsg = typeof params.inputStr === 'string'
 				? params.inputStr.replaceAll(/^\s/g, '').match(/\S+/ig)
@@ -200,6 +229,7 @@ function createRollWorkerApp(options = {}) {
 			if (!auth.ok) {
 				return res.status(401).json({ error: `Unauthorized: ${auth.error}` });
 			}
+			noteGatewayPeer(req, 'POST /v1/character-action');
 			const body = stripGatewayAuth(rawBody);
 			const payload = await runCharacterAction({
 				doc: body.doc,
@@ -233,13 +263,16 @@ function createRollWorkerApp(options = {}) {
 function startRollWorkerServer() {
 	const host = process.env.ROLL_WORKER_HOST || '127.0.0.1';
 	const port = Number.parseInt(process.env.ROLL_WORKER_PORT || '3950', 10);
-	const token = (process.env.ROLL_WORKER_TOKEN || '').trim();
 	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true';
+
+	// Auto-generate + persist shared secret unless auth-off test mode is explicit.
+	ensureRollWorkerToken({ generate: !allowNoToken });
+	const token = (process.env.ROLL_WORKER_TOKEN || '').trim();
 
 	if (!token && !allowNoToken) {
 		console.error(
 			'[RollWorker] Refusing to start without ROLL_WORKER_TOKEN'
-			+ ' (set ROLL_WORKER_ALLOW_NO_TOKEN=true only for local tests)'
+			+ ' (auto-generate failed; set ROLL_WORKER_TOKEN or ROLL_WORKER_ALLOW_NO_TOKEN=true for local tests)'
 		);
 		// eslint-disable-next-line n/no-process-exit
 		process.exit(1);
@@ -262,6 +295,7 @@ function startRollWorkerServer() {
 		console.log(`[RollWorker] Listening on http://${host}:${port}`
 			+ (token ? ' (auth + gateway signature required)' : ' (auth off)')
 			+ ` | jsonLimit=${getJsonBodyLimit()}`);
+		console.info('[RollWorker] Waiting for Gateway — will log CONNECTED on first probe/request, DISCONNECTED after 90s silence');
 	});
 	return { app, server };
 }

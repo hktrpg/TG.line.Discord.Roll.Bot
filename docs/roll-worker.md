@@ -24,7 +24,7 @@ ROLL_WORKER_TOKEN=change-me-shared-secret
 
 Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 
-**Auth:** set the same `ROLL_WORKER_TOKEN` on worker and every gateway. Worker refuses to start without a token unless `ROLL_WORKER_ALLOW_NO_TOKEN=true` (local tests only; non-loopback bind refused). Gateways attach an HMAC signature (`_gatewayAuth`) over identity and Discord prefetch claims; Worker rejects unsigned/expired bodies when a token is set.
+**Auth:** set the same `ROLL_WORKER_TOKEN` on worker and every gateway. If unset, Worker (and Gateway when `ROLL_WORKER_URL` is set) auto-generate a 64-hex token and append it to `.env` so a single-machine split shares one secret. `ROLL_WORKER_ALLOW_NO_TOKEN=true` skips auto-generate (local tests only; auth off; non-loopback bind refused). Gateways attach an HMAC signature (`_gatewayAuth`) over identity and Discord prefetch claims; Worker rejects unsigned/expired bodies when a token is set.
 
 **Artifacts:** Worker writes `export/` and `temp/` under `ROLL_ARTIFACT_ROOT` (default: process cwd) via `getTempFilePath` / `getExportDir`. Gateway and Worker must share that directory (same machine cwd or a mounted volume). Gateway skips attach when the file is missing (`assertArtifactReadable`). Writers: token, wheel GIF, `.st export`, openai `createFile`, export HTML/TXT.
 
@@ -39,7 +39,7 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | Variable | Where | Default / notes |
 |----------|--------|-----------------|
 | `ROLL_WORKER_URL` | Gateway | unset = local analytics |
-| `ROLL_WORKER_TOKEN` | Both | required on Worker unless allow-no-token |
+| `ROLL_WORKER_TOKEN` | Both | auto-generated into `.env` if unset (unless allow-no-token) |
 | `ROLL_WORKER_TIMEOUT_MS` | Gateway | `120000` |
 | `ROLL_WORKER_HOST` / `PORT` | Worker | `127.0.0.1` / `3950` |
 | `ROLL_WORKER_JSON_LIMIT` | Worker | `32mb` |

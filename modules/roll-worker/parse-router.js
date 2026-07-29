@@ -40,6 +40,9 @@ function logParseMode(logger = console) {
 		const { url, token, timeoutMs } = client.getConfig();
 		info(`[ParseMode] ROLE=gateway | mode=roll-worker-remote | url=${url} | token=${token ? 'set' : 'off'} | timeoutMs=${timeoutMs}`);
 		info('[ParseMode] Discord matched modules → worker (denylist; needsLocal for live Discord). Other platforms → worker.');
+		info('[ParseMode] Probing Roll Worker link (CONNECTED/DISCONNECTED via [RollWorkerLink])…');
+		// Immediate health probe + 30s monitor — edge-triggered CONNECTED / DISCONNECTED logs.
+		client.beginLinkMonitor({ logger });
 		return;
 	}
 

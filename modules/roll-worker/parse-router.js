@@ -12,6 +12,14 @@ let loggedModeOnce = false;
 let lastFallbackLogAt = 0;
 let fallbackSinceLastLog = 0;
 
+/**
+ * Gateway switch: never run in-process analytics when remoting is configured.
+ * Env: ROLL_WORKER_REMOTE_ONLY=true
+ */
+function isRemoteOnlyMode() {
+	return process.env.ROLL_WORKER_REMOTE_ONLY === 'true';
+}
+
 async function getSystemBusyText(locale) {
 	await i18n.init();
 	const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
@@ -31,22 +39,26 @@ function logParseMode(logger = console) {
 
 	if (process.env.ROLL_WORKER_MODE === 'true') {
 		const { url, token } = client.getConfig();
-		info(`[ParseMode] ROLE=roll-worker | mode=backend | token=${token ? 'set' : 'off'}`);
-		info(`[ParseMode] Gateways should set ROLL_WORKER_URL (default ${url})`);
+		info(`[ParseMode] WORKER backend | token=${token ? 'set' : 'off'} | Gateways → ROLL_WORKER_URL=${url}`);
 		return;
 	}
 
 	if (client.isEnabled()) {
 		const { url, token, timeoutMs } = client.getConfig();
-		info(`[ParseMode] ROLE=gateway | mode=roll-worker-remote | url=${url} | token=${token ? 'set' : 'off'} | timeoutMs=${timeoutMs}`);
-		info('[ParseMode] Discord matched modules → worker (denylist; needsLocal for live Discord). Other platforms → worker.');
-		info('[ParseMode] Probing Roll Worker link (CONNECTED/DISCONNECTED via [RollWorkerLink])…');
+		const remoteOnly = isRemoteOnlyMode();
+		info(`[ParseMode] GATEWAY → REMOTE WORKER | url=${url} | token=${token ? 'set' : 'off'} | timeout=${timeoutMs}ms`
+			+ ` | local=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid fallback)'}`);
 		// Immediate health probe + 30s monitor — edge-triggered CONNECTED / DISCONNECTED logs.
 		client.beginLinkMonitor({ logger });
 		return;
 	}
 
-	info('[ParseMode] ROLE=gateway | mode=local-analytics | ROLL_WORKER_URL unset (in-process roll/*)');
+	if (isRemoteOnlyMode()) {
+		info('[ParseMode] MISCONFIG | REMOTE_ONLY=on but ROLL_WORKER_URL unset');
+		return;
+	}
+
+	info('[ParseMode] GATEWAY → LOCAL | ROLL_WORKER_URL unset (in-process roll/*)');
 }
 
 /**
@@ -83,12 +95,15 @@ function stripWorkerProof(result) {
  * Route parseInput to Roll Worker or local analytics.
  * @param {object} params - same as analytics.parseInput
  * @param {object} [options]
- * @param {boolean} [options.allowLocalFallback=true] - fall back to local on worker error / needsLocal
+ * @param {boolean} [options.allowLocalFallback] - default true unless ROLL_WORKER_REMOTE_ONLY
  * @param {boolean} [options.keepProof=false] - keep `_rollWorker` markers for tests / ops
  */
 async function parseInput(params = {}, options = {}) {
-	// Default: always fall back locally so Worker outages do not spam system_busy on TG/Line/etc.
-	const allowLocalFallback = options.allowLocalFallback !== false;
+	const remoteOnly = isRemoteOnlyMode();
+	// Default: fall back locally on Worker outages unless remote-only switch is on.
+	const allowLocalFallback = Object.hasOwn(options, 'allowLocalFallback')
+		? options.allowLocalFallback !== false
+		: !remoteOnly;
 	const keepProof = options.keepProof === true;
 
 	const mainMsg = typeof params.inputStr === 'string'
@@ -99,6 +114,13 @@ async function parseInput(params = {}, options = {}) {
 		: null;
 
 	if (!client.isEnabled()) {
+		if (remoteOnly) {
+			console.error('[ParseRouter] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL');
+			return {
+				text: await getSystemBusyText(params.locale),
+				type: 'text',
+			};
+		}
 		const local = await analytics.parseInput(params);
 		invalidateCachesAfterRemote(moduleName, local, params);
 		return keepProof ? { ...local, _rollWorker: false } : local;
@@ -106,6 +128,22 @@ async function parseInput(params = {}, options = {}) {
 
 	const useRemote = isRemoteAllowed(moduleName, params.botname);
 	if (!useRemote) {
+		if (remoteOnly) {
+			// Unmatched Discord chat: stay silent (do not hit Worker or local analytics).
+			if (!moduleName) {
+				return keepProof
+					? { text: '', type: 'text', _rollWorker: false, _rollWorkerModule: null }
+					: { text: '', type: 'text' };
+			}
+			logLocalFallback('remoteOnlyBlockedLocal', {
+				botname: params.botname,
+				moduleName,
+			});
+			return {
+				text: await getSystemBusyText(params.locale),
+				type: 'text',
+			};
+		}
 		const local = await analytics.parseInput(params);
 		invalidateCachesAfterRemote(moduleName, local, params);
 		return keepProof ? { ...local, _rollWorker: false, _rollWorkerModule: moduleName } : local;
@@ -547,6 +585,7 @@ function shouldSkipLocalFindRollList() {
 
 module.exports = {
 	parseInput,
+	isRemoteOnlyMode,
 	shouldSkipLocalFallbackOnWorkerError,
 	shouldSkipLocalFindRollList,
 	hasOpenAiDiscordPrefetch,

@@ -41,6 +41,7 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | `ROLL_WORKER_URL` | Gateway | unset = local analytics |
 | `ROLL_WORKER_TOKEN` | Both | auto-generated into `.env` if unset (unless allow-no-token) |
 | `ROLL_WORKER_TIMEOUT_MS` | Gateway | `120000` |
+| `ROLL_WORKER_REMOTE_ONLY` | Gateway | `true` = never local analytics (busy on error/needsLocal/denylist) |
 | `ROLL_WORKER_HOST` / `PORT` | Worker | `127.0.0.1` / `3950` |
 | `ROLL_WORKER_JSON_LIMIT` | Worker | `32mb` |
 | `ROLL_WORKER_RATE_LIMIT_POINTS` / `DURATION` | Worker | `300` / `60` (per IP on `/v1/*`) |

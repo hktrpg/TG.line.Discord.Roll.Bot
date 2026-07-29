@@ -32,7 +32,7 @@ function markWorkerUp(meta = {}) {
 	const info = typeof log.info === 'function' ? log.info.bind(log) : log.log.bind(log);
 	info(
 		`[RollWorkerLink] CONNECTED`
-		+ (meta.url ? ` | url=${meta.url}` : '')
+		+ (meta.url ? ` | ${meta.url}` : '')
 		+ (meta.detail ? ` | ${meta.detail}` : '')
 		+ ` | was=${prev}`
 	);
@@ -52,8 +52,8 @@ function markWorkerDown(meta = {}) {
 	const warn = typeof log.warn === 'function' ? log.warn.bind(log) : log.log.bind(log);
 	warn(
 		`[RollWorkerLink] DISCONNECTED`
-		+ (meta.url ? ` | url=${meta.url}` : '')
-		+ (meta.reason ? ` | reason=${meta.reason}` : '')
+		+ (meta.url ? ` | ${meta.url}` : '')
+		+ (meta.reason ? ` | ${meta.reason}` : '')
 		+ ` | was=${prev}`
 	);
 	return true;

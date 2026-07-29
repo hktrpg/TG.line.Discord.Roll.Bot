@@ -93,7 +93,7 @@ function createRollWorkerApp(options = {}) {
 	const peerIdleTimer = setInterval(() => {
 		if (peerState === 'up' && lastPeerAt > 0 && (Date.now() - lastPeerAt) > PEER_IDLE_MS) {
 			peerState = 'down';
-			console.warn(`[RollWorker] DISCONNECTED | no Gateway traffic for ${Math.round(PEER_IDLE_MS / 1000)}s`);
+			console.warn(`[RollWorker] DISCONNECTED | idle>${Math.round(PEER_IDLE_MS / 1000)}s`);
 		}
 	}, 15_000);
 	if (typeof peerIdleTimer.unref === 'function') {
@@ -293,9 +293,9 @@ function startRollWorkerServer() {
 	const app = createRollWorkerApp({ host });
 	const server = app.listen(port, host, () => {
 		console.log(`[RollWorker] Listening on http://${host}:${port}`
-			+ (token ? ' (auth + gateway signature required)' : ' (auth off)')
-			+ ` | jsonLimit=${getJsonBodyLimit()}`);
-		console.info('[RollWorker] Waiting for Gateway — will log CONNECTED on first probe/request, DISCONNECTED after 90s silence');
+			+ (token ? ' | auth=on' : ' | auth=off')
+			+ ` | jsonLimit=${getJsonBodyLimit()}`
+			+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
 	});
 	return { app, server };
 }

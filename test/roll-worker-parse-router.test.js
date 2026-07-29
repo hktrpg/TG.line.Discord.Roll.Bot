@@ -8,6 +8,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 		timeoutMs: 30_000,
 	})),
 	parse: jest.fn(),
+	beginLinkMonitor: jest.fn(),
 }));
 
 jest.mock('../modules/analytics', () => ({
@@ -187,5 +188,87 @@ describe('roll-worker parse-router', () => {
 		expect(client.parse).not.toHaveBeenCalled();
 		expect(analytics.parseInput).toHaveBeenCalled();
 		expect(result.text).toBe('local-ok');
+	});
+
+	describe('ROLL_WORKER_REMOTE_ONLY', () => {
+		const prevRemoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY;
+		const prevDenylist = process.env.ROLL_WORKER_DISCORD_DENYLIST;
+
+		afterEach(() => {
+			if (prevRemoteOnly === undefined) delete process.env.ROLL_WORKER_REMOTE_ONLY;
+			else process.env.ROLL_WORKER_REMOTE_ONLY = prevRemoteOnly;
+			if (prevDenylist === undefined) delete process.env.ROLL_WORKER_DISCORD_DENYLIST;
+			else process.env.ROLL_WORKER_DISCORD_DENYLIST = prevDenylist;
+		});
+
+		it('isRemoteOnlyMode follows env', () => {
+			delete process.env.ROLL_WORKER_REMOTE_ONLY;
+			expect(parseRouter.isRemoteOnlyMode()).toBe(false);
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+			expect(parseRouter.isRemoteOnlyMode()).toBe(true);
+		});
+
+		it('disables local fallback on worker error', async () => {
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+			client.isEnabled.mockReturnValue(true);
+			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+
+			const result = await parseRouter.parseInput({
+				inputStr: '1d100',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			});
+
+			expect(result.text).toBe('SYSTEM_BUSY_I18N');
+			expect(analytics.parseInput).not.toHaveBeenCalled();
+		});
+
+		it('Discord unmatched chat returns empty (no local)', async () => {
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+			client.isEnabled.mockReturnValue(true);
+			analytics.findRollModuleName.mockReturnValue(null);
+
+			const result = await parseRouter.parseInput({
+				inputStr: 'hello unrelated chat',
+				botname: 'Discord',
+				locale: 'zh-tw',
+			});
+
+			expect(client.parse).not.toHaveBeenCalled();
+			expect(analytics.parseInput).not.toHaveBeenCalled();
+			expect(result.text).toBe('');
+		});
+
+		it('denylist-forced local module returns busy (no local)', async () => {
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+			process.env.ROLL_WORKER_DISCORD_DENYLIST = 'lang';
+			client.isEnabled.mockReturnValue(true);
+			analytics.findRollModuleName.mockReturnValue('lang');
+
+			const result = await parseRouter.parseInput({
+				inputStr: '.lang help',
+				botname: 'Discord',
+				locale: 'zh-tw',
+			});
+
+			expect(client.parse).not.toHaveBeenCalled();
+			expect(analytics.parseInput).not.toHaveBeenCalled();
+			expect(result.text).toBe('SYSTEM_BUSY_I18N');
+		});
+
+		it('explicit allowLocalFallback true still overrides remote-only', async () => {
+			process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+			client.isEnabled.mockReturnValue(true);
+			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+
+			const result = await parseRouter.parseInput({
+				inputStr: '1d100',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			}, { allowLocalFallback: true });
+
+			expect(analytics.parseInput).toHaveBeenCalled();
+			expect(result.text).toBe('local-ok');
+		});
 	});
 });

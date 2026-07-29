@@ -36,8 +36,10 @@ const {
 
 /**
  * Character card item roll via Worker when enabled, else local.
+ * ROLL_WORKER_REMOTE_ONLY=true never runs local character-action.
  */
 async function resolveCharacterAction({ doc, item, locale, botname = 'WWW' }) {
+    const remoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY === 'true';
     if (rollWorkerClient.isEnabled()) {
         try {
             return await rollWorkerClient.characterAction({ doc, item, locale, botname });
@@ -47,6 +49,11 @@ async function resolveCharacterAction({ doc, item, locale, botname = 'WWW' }) {
             const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
             return { text: t('common.errors.system_busy'), type: 'text' };
         }
+    }
+    if (remoteOnly) {
+        console.error('[Web Server] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL for character-action');
+        const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+        return { text: t('common.errors.system_busy'), type: 'text' };
     }
     return runCharacterAction({ doc, item, locale, botname });
 }

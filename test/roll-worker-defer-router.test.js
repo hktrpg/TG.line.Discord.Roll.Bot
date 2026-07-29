@@ -127,6 +127,19 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 		expect(needsLocal.text).not.toBe('SYSTEM_BUSY_I18N');
 	});
 
+	it('HTTP path without replyTarget returns deferred flag (client retry)', async () => {
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:1'));
+		const result = await parseRouter.parseInput({
+			inputStr: '1d100',
+			botname: 'Local',
+			userid: 'http-user',
+			locale: 'zh-tw',
+		});
+		expect(result.deferred).toBe(true);
+		expect(result.text).toBe('');
+		expect(deferQueue.size()).toBe(0);
+	});
+
 	it('mutator pre-flight ECONNREFUSED defers under REMOTE_ONLY', async () => {
 		analytics.findRollModuleName.mockReturnValue('z_schedule');
 		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));

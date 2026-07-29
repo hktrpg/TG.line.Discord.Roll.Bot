@@ -463,6 +463,11 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
         }
     }
 
+    if (rplyVal?.deferred) {
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(String.raw`{"message":"","deferred":true}`);
+        return;
+    }
     if (!rplyVal || !rplyVal.text) rplyVal.text = '';
     res.writeHead(200, { 'Content-type': 'application/json' });
     res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
@@ -572,6 +577,11 @@ www.get('/api/local', async (req, res) => {
                 locale,
                 t: i18n.createTranslator(locale)
             });
+        }
+        if (rplyVal?.deferred) {
+            res.writeHead(200, { 'Content-type': 'application/json' });
+            res.end(String.raw`{"message":"","deferred":true}`);
+            return;
         }
         if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
         res.writeHead(200, { 'Content-type': 'application/json' });

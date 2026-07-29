@@ -58,7 +58,10 @@ function ensureDeferReplayHook() {
  */
 async function tryDeferBusy({ reason, params, replyTarget, moduleName, alreadyQueued = false }) {
 	if (!deferQueue.isDeferBusyActive()) return null;
-	if (!replyTarget) return null;
+	// HTTP (/api, /api/local): no push channel — signal deferred so clients can retry.
+	if (!replyTarget) {
+		return { deferred: true, text: '', type: 'text' };
+	}
 	// Drain path already holds the job — do not enqueue a second copy.
 	if (alreadyQueued) return { deferred: true, text: '', type: 'text' };
 	ensureDeferReplayHook();

@@ -146,12 +146,15 @@ const parseInput = async (params) => {
 	// and replies become the literal string "undefined" (e.g. COC `cc`).
 	await i18n.init();
 
-	// Worker: always re-resolve from DB. Gateway Discord clusters each have a
-	// process-local locale cache; after `.lang` (or a transient DB miss that
-	// previously poisoned the cache) different shards can pass zh-tw vs en for
-	// the same guild within seconds. DB is the source of truth on Worker.
+	// Worker + chat platforms: re-resolve from DB so Discord/TG Gateway
+	// process-local locale caches cannot disagree (zh-tw vs en) for the same guild.
+	// WWW/Local/Api: trust params.locale (page UI language), not botLocale DB.
 	const channelType = params.channelType ?? params.discordMessage?.channel?.type;
-	if (process.env.ROLL_WORKER_MODE === 'true' || !params.locale) {
+	const webBot = context.botname === 'WWW'
+		|| context.botname === 'Local'
+		|| context.botname === 'Api';
+	const onWorker = process.env.ROLL_WORKER_MODE === 'true';
+	if ((onWorker && !webBot) || !params.locale) {
 		context.locale = await i18n.resolveLocale({
 			groupid: context.groupid,
 			userid: context.userid,

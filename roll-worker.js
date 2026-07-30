@@ -17,6 +17,10 @@ process.env.ROLL_WORKER_MODE = 'true';
 		'ROLL_WORKER_PORT',
 		'ROLL_WORKER_REMOTE_ONLY',
 		'ROLL_WORKER_DEFER_BUSY',
+		// Keep spawn-cleared Standby/Primary frame flags (do not let .env re-enable on Worker).
+		'ROLL_STANDBY_URL',
+		'ROLL_STANDBY_SPAWN',
+		'ROLL_WORKER_SPAWN',
 		// Tests/proof may pin ADMIN_SECRET on the child env; do not let .env wipe it.
 		'ADMIN_SECRET',
 	];

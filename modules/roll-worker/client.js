@@ -130,6 +130,12 @@ function toSerializableContext(params = {}) {
 				? null
 				: require('../runtime/build-info').getPublic()
 		),
+		// So Primary can probe Standby version in `.admin state` (Worker has no Standby URL).
+		standbyWorkerUrl: params.standbyWorkerUrl || (
+			process.env.ROLL_WORKER_MODE === 'true'
+				? null
+				: (isLocalEnabled() ? getLocalConfig().url : null)
+		),
 	};
 }
 

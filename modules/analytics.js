@@ -91,6 +91,7 @@ class RollContext {
 		this.fixShardMeta = params.fixShardMeta || null;
 		this.slashDeployMeta = params.slashDeployMeta || null;
 		this.gatewayBuildInfo = params.gatewayBuildInfo || null;
+		this.standbyWorkerUrl = params.standbyWorkerUrl || null;
 		this.skipExp = Boolean(params.skipExp);
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
 		this.t = params.t || i18n.createTranslator(this.locale);
@@ -130,6 +131,7 @@ class RollContext {
 			fixShardMeta: this.fixShardMeta,
 			slashDeployMeta: this.slashDeployMeta,
 			gatewayBuildInfo: this.gatewayBuildInfo,
+			standbyWorkerUrl: this.standbyWorkerUrl,
 			skipExp: this.skipExp,
 			locale: this.locale,
 			t: this.t
@@ -272,6 +274,7 @@ const parseInput = async (params) => {
 	if (result.state) {
 		result.text = await stateText(context.locale, {
 			gatewayBuildInfo: context.gatewayBuildInfo || null,
+			standbyWorkerUrl: context.standbyWorkerUrl || null,
 		});
 	}
 
@@ -789,6 +792,7 @@ async function refreshStateCache(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	const normalized = i18n.normalizeLocale(locale);
 	const versionKey = [
 		options.gatewayBuildInfo?.display || '',
+		options.standbyWorkerUrl || '',
 		buildInfo.getDisplay(),
 	].join('|');
 	const cacheKey = `${normalized}::${versionKey}`;
@@ -813,6 +817,7 @@ async function stateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	const normalized = i18n.normalizeLocale(locale);
 	const versionKey = [
 		options.gatewayBuildInfo?.display || '',
+		options.standbyWorkerUrl || '',
 		buildInfo.getDisplay(),
 	].join('|');
 	const cacheKey = `${normalized}::${versionKey}`;

@@ -4109,7 +4109,7 @@
       "section_version": "🏷 版本",
       "version_gateway": "Gateway  {{display}}  role=gateway",
       "version_worker": "Primary  {{display}}  role=primary  link={{link}}",
-      "version_local": "Standby  {{display}}  role=standby",
+      "version_local": "Standby  {{display}}  role=standby  link={{link}}",
       "version_parse": "Parse    {{mode}} · standby={{standby}}",
       "version_unreachable": "unreachable",
       "section_time": "⏰ 時間資訊",

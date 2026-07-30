@@ -2,14 +2,14 @@
 
 /**
  * Version section lines for `.admin state`.
- * On Worker: Gateway comes from request `gatewayBuildInfo` (Gateway prefetch); self = Worker.
+ * On Worker: Gateway from `gatewayBuildInfo`; self = Primary; Standby via `standbyWorkerUrl` + /health.
  */
 
 const buildInfo = require('./build-info');
 
 /**
  * @param {(key: string, vars?: object) => string} t
- * @param {{ gatewayBuildInfo?: object | null, debug?: boolean }} [options]
+ * @param {{ gatewayBuildInfo?: object | null, standbyWorkerUrl?: string | null, debug?: boolean }} [options]
  * @returns {Promise<string[]>}
  */
 async function buildStateVersionSection(t, options = {}) {
@@ -53,11 +53,18 @@ async function buildStateVersionSection(t, options = {}) {
 	}
 
 	const remoteConfigured = Boolean(rollWorkerClient?.isEnabled?.());
-	const localConfigured = Boolean(rollWorkerClient?.isLocalEnabled?.());
 	const primaryStopped = Boolean(localLifecycle?.isPrimaryStopped?.());
 	const standbyStopped = Boolean(localLifecycle?.isStandbyStopped?.());
-	const remoteOnEffective = remoteConfigured && !primaryStopped;
-	const localOnEffective = localConfigured && !standbyStopped;
+
+	const standbyUrl = (() => {
+		const fromOpts = String(options.standbyWorkerUrl || '').trim().replace(/\/$/, '');
+		if (fromOpts) return fromOpts;
+		if (!onWorker && rollWorkerClient?.isLocalEnabled?.()) {
+			return String(rollWorkerClient.getLocalConfig()?.url || '').trim().replace(/\/$/, '');
+		}
+		return '';
+	})();
+	const localConfigured = Boolean(standbyUrl);
 
 	if (!onWorker && remoteConfigured && typeof rollWorkerClient.health === 'function') {
 		if (primaryStopped) {
@@ -80,33 +87,26 @@ async function buildStateVersionSection(t, options = {}) {
 		}
 	}
 
-	if (!onWorker && localConfigured && typeof rollWorkerClient.healthAt === 'function') {
+	if (localConfigured && typeof rollWorkerClient?.healthAt === 'function') {
 		if (standbyStopped) {
 			lines.push(t('admin.state_report.version_local', {
 				display: t('admin.state_report.version_stopped'),
+				link: 'stopped',
 			}));
 		} else {
 			try {
-				const { url } = rollWorkerClient.getLocalConfig();
-				const body = await rollWorkerClient.healthAt(url);
+				const body = await rollWorkerClient.healthAt(standbyUrl);
 				const display = body?.version?.display || '—';
-				lines.push(t('admin.state_report.version_local', { display }));
+				const link = body?.ok ? 'up' : 'down';
+				lines.push(t('admin.state_report.version_local', { display, link }));
 			} catch {
 				lines.push(t('admin.state_report.version_local', {
 					display: t('admin.state_report.version_unreachable'),
+					link: 'down',
 				}));
 			}
 		}
 	}
-
-	let parseMode = 'embedded';
-	if (remoteOnEffective && localOnEffective) parseMode = 'hybrid';
-	else if (remoteOnEffective || onWorker) parseMode = 'primary';
-
-	lines.push(t('admin.state_report.version_parse', {
-		mode: parseMode,
-		standby: localOnEffective ? 'on' : (standbyStopped ? 'stopped' : 'off'),
-	}));
 
 	return lines;
 }

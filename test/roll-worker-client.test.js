@@ -81,24 +81,32 @@ describe('roll-worker client', () => {
 
 	it('attaches gatewayBuildInfo on Gateway; keeps provided meta on Worker', () => {
 		const savedMode = process.env.ROLL_WORKER_MODE;
+		const savedStandby = process.env.ROLL_STANDBY_URL;
 		delete process.env.ROLL_WORKER_MODE;
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951';
 		require('../modules/runtime/build-info').resetCache();
 		const fromGateway = toSerializableContext({ inputStr: '.admin state' });
 		expect(fromGateway.gatewayBuildInfo).toBeTruthy();
 		expect(typeof fromGateway.gatewayBuildInfo.display).toBe('string');
+		expect(fromGateway.standbyWorkerUrl).toBe('http://127.0.0.1:3951');
 
 		process.env.ROLL_WORKER_MODE = 'true';
 		const fromWorker = toSerializableContext({
 			inputStr: '.admin state',
 			gatewayBuildInfo: { display: 'master · 2026-01-01 · abcdef1', role: 'gateway' },
+			standbyWorkerUrl: 'http://127.0.0.1:3951',
 		});
 		expect(fromWorker.gatewayBuildInfo.display).toBe('master · 2026-01-01 · abcdef1');
+		expect(fromWorker.standbyWorkerUrl).toBe('http://127.0.0.1:3951');
 
 		const missing = toSerializableContext({ inputStr: '.admin state' });
 		expect(missing.gatewayBuildInfo).toBeNull();
+		expect(missing.standbyWorkerUrl).toBeNull();
 
 		if (savedMode === undefined) delete process.env.ROLL_WORKER_MODE;
 		else process.env.ROLL_WORKER_MODE = savedMode;
+		if (savedStandby === undefined) delete process.env.ROLL_STANDBY_URL;
+		else process.env.ROLL_STANDBY_URL = savedStandby;
 		require('../modules/runtime/build-info').resetCache();
 	});
 

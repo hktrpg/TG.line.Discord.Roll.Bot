@@ -37,6 +37,7 @@ const SIGNED_CLAIM_KEYS = [
 	'slashDeployMeta',
 	'skipExp',
 	'gatewayBuildInfo',
+	'standbyWorkerUrl',
 	'doc',
 	'item',
 	'locale',

@@ -39,6 +39,12 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | Variable | Where | Default / notes |
 |----------|--------|-----------------|
 | `ROLL_WORKER_URL` | Gateway | unset = local analytics |
+| `ROLL_LOCAL_WORKER_URL` | Gateway | optional HTTP fallback on hybrid `workerError` (ignored if equal to `ROLL_WORKER_URL`) |
+| `ROLL_LOCAL_WORKER_SPAWN` | Gateway | `true` = Gateway may spawn one supervised local child (single-process) |
+| `ROLL_LOCAL_WORKER_PORT` | Gateway | default `3951` when spawning |
+| `ROLL_LOCAL_WORKER_DRAIN_MS` | Gateway | drain before reload kill (default `1500`) |
+| `ROLL_LOCAL_WORKER_RELOAD_WAIT_MS` | Gateway | wait for external local worker health after shutdown (default `15000`) |
+| `ROLL_LOCAL_WORKER_HEALTH_PROBE_MS` | Gateway | initial local URL / lock health probe (default `5000`) |
 | `ROLL_GATEWAY_NAME` | Gateway | optional Worker CONNECTED label; default auto `Discord+Telegram+…` |
 | `ROLL_WORKER_TOKEN` | Both | auto-generated into `.env` if unset (unless allow-no-token) |
 | `ROLL_WORKER_TIMEOUT_MS` | Gateway | `120000` |
@@ -59,13 +65,146 @@ Without `ROLL_WORKER_URL`, behavior is unchanged (in-process analytics).
 | Process | Env focus |
 |---------|-----------|
 | `yarn start:roll-worker` | `mongoURL`, `ROLL_WORKER_TOKEN`, no platform secrets required |
-| Discord gateway | `DISCORD_CHANNEL_SECRET`, `ROLL_WORKER_URL`, `mongoURL` |
+| Discord gateway | `DISCORD_CHANNEL_SECRET`, `ROLL_WORKER_URL`, optional `ROLL_LOCAL_WORKER_URL`, `mongoURL` |
 | WWW + LINE | `CREATEWEB`, LINE secrets, `ROLL_WORKER_URL` |
 | WhatsApp alone | `WHATSAPP_SWITCH`, session volume, `ROLL_WORKER_URL` |
+| Local fallback worker | Same binary as primary; e.g. `ROLL_WORKER_PORT=3951 yarn start:roll-worker` |
 
 Worker sets `ROLL_WORKER_MODE=true`, **eagerly** loads Agenda at boot (`await _ready`, API only), and **does not** start the Agenda job processor (platforms keep `scheduleAtMessage*` handlers).
 
-Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
+Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`, `yarn proof:local-worker`.
+
+---
+
+## Local HTTP fallback + `.root reload` (Phase A/B)
+
+### Goal
+
+- Keep Discord Gateway process up (no IDENTIFY / shard respawn) when updating **compute** code.
+- Hybrid `workerError` can fall back to a **second HTTP Roll Worker** (`ROLL_LOCAL_WORKER_URL`) instead of only in-process `analytics`.
+- Admin `.root reload` restarts compute Workers only — **never** `.root respawn*` (cluster/shard).
+
+### Recommended ops (shared local worker per machine)
+
+```bash
+# Terminal A — primary
+ROLL_WORKER_PORT=3950 yarn start:roll-worker
+
+# Terminal B — local fallback (one per host; not per Discord cluster process)
+ROLL_WORKER_PORT=3951 yarn start:roll-worker
+```
+
+Gateway `.env`:
+
+```env
+ROLL_WORKER_URL=http://127.0.0.1:3950
+ROLL_LOCAL_WORKER_URL=http://127.0.0.1:3951
+ROLL_WORKER_TOKEN=change-me
+```
+
+Optional single-process Gateway auto-spawn (dev / non-sharded only):
+
+```env
+ROLL_LOCAL_WORKER_SPAWN=true
+ROLL_LOCAL_WORKER_PORT=3951
+```
+
+Uses `temp/roll-local-worker.lock` so a second Gateway process reuses an existing healthy child instead of double-spawning. If `ROLL_LOCAL_WORKER_URL` is set but unhealthy **and** `SPAWN=true`, Gateway spawns a replacement on `ROLL_LOCAL_WORKER_PORT` and overwrites the URL. **Do not enable SPAWN on every Discord hybrid-sharding cluster worker** — prefer Terminal B above.
+
+### Three-way fallback (hybrid)
+
+| Path | Where it runs | Covered by `.root reload local`? |
+|------|---------------|----------------------------------|
+| Primary OK | `ROLL_WORKER_URL` HTTP | No (use `.root reload remote` / PM2 restart primary) |
+| `workerError` (non fail-closed) | 1) `ROLL_LOCAL_WORKER_URL` HTTP → 2) in-process `analytics` | **Yes** for step 1 only |
+| `needsLocal` (live `discordClient` / Message) | Gateway in-process `analytics` | **No** — Gateway restart required |
+| `FAIL_CLOSED_ON_WORKER_ERROR` | no local re-run | n/a |
+| `REMOTE_ONLY` | defer-busy / silent (unchanged) | local HTTP unused |
+
+Proof markers (`keepProof` / tests): `_rollWorker: true` (primary), `_rollLocalWorker: true` (local HTTP), `_rollWorker: false` (main-thread).
+
+### Why `needsLocal` is not hot-reloadable
+
+`needsLocal` re-runs on the Gateway with live `discordClient` / `discordMessage` (not JSON-serializable). Local/remote Workers cannot receive those objects. Reloading a child process only refreshes code **inside that process**; Gateway `require` cache for Discord-coupled paths stays until Gateway restart.
+
+### Admin commands
+
+```text
+.root reload              # same as local
+.root reload local        # drain + restart local compute
+.root reload remote       # loopback POST /v1/admin/shutdown on ROLL_WORKER_URL
+.root reload all          # local then remote
+```
+
+- Runs on **Gateway** (`adminSubNeedsLiveDiscord('.root','reload')` → always `needsLocal`).
+- **Not** Discord cluster respawn. Do not confuse with `.root respawn` / `respawnall`.
+- Reply text includes `ok` / `mode` / `url` / `pid` and an explicit note about Discord-coupled paths.
+
+### `POST /v1/admin/shutdown`
+
+| Rule | Detail |
+|------|--------|
+| Auth | Bearer `ROLL_WORKER_TOKEN` (same middleware as `/v1/*`) |
+| Network | **Loopback callers only** (`127.0.0.1` / `::1`); else `403` |
+| Behavior | Respond `{ ok, shuttingDown, pid, drainMs }` then `process.exit(0)` after `drainMs` (cap 10s) |
+| Ops | PM2/docker/systemd (or Gateway SPAWN supervisor) must restart the process |
+
+Remote hosts: Gateway `.root reload remote` gets `403` / transport error → reply tells you to restart Worker on that host via process manager. No public kill endpoint.
+
+### Reload modes (`local-worker.js`)
+
+| Mode | When | Effect |
+|------|------|--------|
+| `supervised-respawn` | Gateway owns child (`SPAWN=true`) | shutdown → wait unhealthy → respawn → wait health |
+| `external-restart` | Shared URL; health went down then up | shutdown → confirm down → wait health OK (PM2/docker) |
+| `shutdown-sent` | Health went down; not back within wait | warn: ensure PM2/docker restart |
+| `shutdown-uncertain` | Shutdown requested but `/health` still OK | fail: process may not have exited |
+
+### Key modules (Phase A/B)
+
+| File | Role |
+|------|------|
+| `local-worker.js` | SPAWN/lock, `reloadLocal` / `reloadRemote`, status, Gateway shutdown of supervised child |
+| `client.js` | `isLocalEnabled`, `parseLocal`, `parseWithUrl`, `requestAdminShutdown`, `healthAt` |
+| `parse-router.js` | hybrid: `workerError` → local HTTP then main-thread; `needsLocal` → main-thread only |
+| `server.js` | `POST /v1/admin/shutdown` (loopback) |
+| `admin-remote.js` | `.root reload` always Gateway-local |
+| `roll/z_admin.js` | `.root reload [local\|remote\|all]` command |
+
+### Tests / proof
+
+```bash
+yarn test:roll-worker          # includes local-http + reload Jest
+yarn proof:local-worker        # live primary+local Workers + parseRouter fallback + reload
+# Targeted:
+yarn jest test/roll-worker-parse-router.test.js test/roll-worker-local-http-fallback.test.js test/roll-worker-reload.test.js --runInBand
+```
+
+| Suite | Covers |
+|-------|--------|
+| `roll-worker-parse-router.test.js` | mock: local HTTP preferred on `workerError`; `needsLocal` skips `parseLocal` |
+| `roll-worker-local-http-fallback.test.js` | live spawn two Workers; `client.parse` / `parseLocal` |
+| `roll-worker-reload.test.js` | unit shutdown auth; supervised respawn; remote loopback shutdown |
+| `scripts/proof-local-worker.js` | full parseRouter `_rollLocalWorker` after primary kill |
+
+### Review verdict (Phase A/B)
+
+**Ship-ready for hybrid ops behind `ROLL_LOCAL_WORKER_URL`.** Correctly avoids `worker_threads` for full `analytics` (Discord live objects). Hot reload covers **HTTP compute** (primary + local Workers), not Gateway Discord-coupled `needsLocal` paths — documented and surfaced in `.root reload` replies.
+
+| Check | Result |
+|-------|--------|
+| Shared local worker (not per-cluster spawn by default) | Yes — URL + optional SPAWN+lock |
+| Three-way fallback | Yes — remote / local HTTP / main-thread |
+| Fail-closed unchanged | Yes |
+| Shutdown loopback-only | Yes |
+| Discord Gateway never restarted by reload | Yes |
+| Proof green | `yarn proof:local-worker` → PASSED |
+
+**Accepted limits:**
+
+1. Main-thread `needsLocal` code still needs Gateway restart to pick up source changes.
+2. `.root reload remote` on a non-loopback Worker host cannot kill remotely — use PM2/docker on that host.
+3. Local HTTP Worker still loads full `analytics` + Mongo (same as primary); memory cost is a second process, not a thread.
 
 ## Discord hybrid routing
 
@@ -79,11 +218,13 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 
 ## Separation status
 
-**Module split is complete (Phase 3 → 3ab).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. **Hybrid:** Worker outages fall back to local analytics (except `FAIL_CLOSED_ON_WORKER_ERROR` mutators). **`ROLL_WORKER_REMOTE_ONLY`:** no local analytics; defer-busy queues safe failures (Discord/TG/LINE/WA/WWW/Plurk) and **never shows system_busy** while defer is on (timeout/mutator mid-flight → silent empty, not replayed). HTTP `/api` and `/api/local` have no push channel → return `{ deferred: true }` under defer so clients (個人小屋) can retry until Worker is back (opt-out `DEFER_BUSY=false` restores system_busy text). Both `needsLocal` and `workerError` hybrid fallbacks use `skipExp`. Export history prefetch skips GP cooldown / low userrole; empty `sum_messages` does not count as prefetch. Chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false (deleted reply-refs fail closed). Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP. Non-Discord platforms (including WWW chat) keep local `findRollList` as the command gate so chatter does not hit Worker / award EXP via parse. OpenAI Discord attachment downloads use `safeFetchBuffer` with a 50MB hard cap. `fileLink` / `dmFileLink` attach only paths under `ROLL_ARTIFACT_ROOT`.
+**Module split is complete (Phase 3 → 3ab).** Remaining `needsLocal` paths are intentional Gateway fallbacks when prefetch meta is unavailable — not unfinished remotes. **Hybrid:** Worker outages fall back to **`ROLL_LOCAL_WORKER_URL` HTTP when set**, else in-process analytics (except `FAIL_CLOSED_ON_WORKER_ERROR` mutators). **Phase A/B:** `.root reload local|remote|all` restarts compute only; Discord Gateway stays up. **`ROLL_WORKER_REMOTE_ONLY`:** no local analytics; defer-busy queues safe failures (Discord/TG/LINE/WA/WWW/Plurk) and **never shows system_busy** while defer is on (timeout/mutator mid-flight → silent empty, not replayed). HTTP `/api` and `/api/local` have no push channel → return `{ deferred: true }` under defer so clients (個人小屋) can retry until Worker is back (opt-out `DEFER_BUSY=false` restores system_busy text). Both `needsLocal` and `workerError` hybrid fallbacks use `skipExp`. Export history prefetch skips GP cooldown / low userrole; empty `sum_messages` does not count as prefetch. Chatroom ManageChannels checks the invoking member via `guild.members.fetch`. `.forward` Gateway fallback live-retries ownership when prefetch flags are false (deleted reply-refs fail closed). Schedule `[[dice]]` uses `skipExp` so cron/at jobs never award channel XP. Non-Discord platforms (including WWW chat) keep local `findRollList` as the command gate so chatter does not hit Worker / award EXP via parse. OpenAI Discord attachment downloads use `safeFetchBuffer` with a 50MB hard cap. `fileLink` / `dmFileLink` attach only paths under `ROLL_ARTIFACT_ROOT`.
 
 ## Health
 
-`GET http://127.0.0.1:3950/health`
+`GET http://127.0.0.1:3950/health` (primary; local fallback uses its own port, e.g. `:3951/health`)
+
+`POST http://127.0.0.1:3950/v1/admin/shutdown` — Bearer + loopback only (see Phase A/B).
 
 ## Character card (WWW)
 
@@ -95,8 +236,8 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 
 | Field | Value |
 |-------|-------|
-| Code tip (fixes) | working tree Pass 3ab |
-| Prior code tip | `e0565b7c` Harden roll-worker fallbacks and fetch limits |
+| Code tip (fixes) | working tree Phase A/B (local HTTP + `.root reload`) |
+| Prior code tip | Pass 3ab REMOTE_ONLY defer-busy |
 | Base | `master` (`793d1058`) |
 | Pass 8 | 2026-07-29 — Bugbot + findings list |
 | Pass 9 | 2026-07-29 — **fix all** open High/Medium (+ key Lows) |
@@ -105,12 +246,15 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 | Pass 12 | 2026-07-29 — **fix remaining Lows** L3–L7/L12/L13 + Phase 3z proof |
 | Pass 13 | 2026-07-29 — **fix L8/L10/M4** + M6 design contract + Phase 3aa proof |
 | Pass 3ab | 2026-07-29 — REMOTE_ONLY defer-busy + ops UX (token/link/mode) Jest+live proof |
+| Phase A/B | 2026-07-30 — local HTTP fallback + `.root reload` + loopback admin shutdown |
 
 ### Verdict
 
 **Pass 9–13 + 3ab: remoting is production-ready behind `ROLL_WORKER_URL`.** All actionable High/Medium/Low review findings are closed or accepted (M6). Latest ops layer: auto-token, link CONNECTED/DISCONNECTED, `ROLL_WORKER_REMOTE_ONLY`, and silent defer-busy queue (Discord/TG/LINE/WA/WWW).
 
-**Last green proof (2026-07-29):** `yarn test:roll-worker` → **41 suites / 264 tests**; `yarn proof:roll-worker` → **PASSED Phase 3 → 3ab / defer-busy**.
+**Phase A/B (2026-07-30): local compute hot-reload is production-ready behind `ROLL_LOCAL_WORKER_URL`.** Hybrid `workerError` → local HTTP then in-process; `.root reload` never touches Discord Gateway; `needsLocal` remains Gateway-bound by design.
+
+**Last green proof (2026-07-30):** Phase A/B Jest → **63 passed** (8 suites); `yarn proof:local-worker` → **PASSED** (primary → local HTTP → in-process → reload `shutdown-sent`). Prior: `yarn proof:roll-worker` → Phase 3 → 3ab.
 
 **Fixed in Pass 9:** H1–H4, M1–M3, M5, M7–M15, L1, L11, L14.
 
@@ -130,11 +274,23 @@ Scripts: `yarn test:roll-worker`, `yarn proof:roll-worker`.
 | `REMOTE_ONLY` | No in-process analytics; errors/needsLocal/denylist → busy (or defer) |
 | Defer-busy | **Only when `REMOTE_ONLY`**: silent memory queue (max 10000 / 20 per user / TTL 10m); deliver on CONNECTED + 5s drain; **never show `system_busy`** while defer is on (queue or silent empty); mutator **timeout** not replayed (silent); mutator **pre-flight** connect may defer |
 
+**Added in Phase A/B (local HTTP + reload):**
+
+| Item | Behavior |
+|------|----------|
+| `ROLL_LOCAL_WORKER_URL` | Hybrid `workerError` → `client.parseLocal` before in-process analytics |
+| `ROLL_LOCAL_WORKER_SPAWN` | Optional supervised child + `temp/roll-local-worker.lock` (single-process) |
+| `.root reload` | `local` / `remote` / `all`; Gateway-only; never cluster respawn |
+| `/v1/admin/shutdown` | Bearer + loopback; drain then `process.exit(0)` |
+| ParseMode | Logs `localHttp=<url\|off>` when remoting |
+| Hot-reload scope | HTTP Workers yes; Gateway `needsLocal` + live Discord paths no |
+
 **Proof commands (exit 0):**
 
 ```bash
-yarn test:roll-worker   # Phase 3 → 3ab Jest (includes REMOTE_ONLY defer-busy)
-yarn proof:roll-worker  # spawns roll-worker.js + Gateway parseRouter/client (→ 3ab)
+yarn test:roll-worker     # Phase 3 → 3ab + Phase A/B Jest
+yarn proof:roll-worker    # spawns roll-worker.js + Gateway parseRouter/client (→ 3ab)
+yarn proof:local-worker   # primary + local Workers; parseRouter fallback + reload
 ```
 
 **Still optional / ops / accepted design:**
@@ -144,6 +300,8 @@ yarn proof:roll-worker  # spawns roll-worker.js + Gateway parseRouter/client (�
 3. Interaction token ~15m → defer TTL capped at 14m; ephemeral slash cannot recover after expiry
 4. Ops: shared `ROLL_WORKER_TOKEN` + `ROLL_ARTIFACT_ROOT`; bind Worker loopback/private
 5. WWW HTTP Api/Local cannot defer (no reply channel); character deferred drain emits socket only (no selectedGroupId bridge)
+6. Phase A/B: Gateway Discord-coupled `needsLocal` code still requires Gateway restart to refresh
+7. Phase A/B: non-loopback primary Worker cannot be killed via `.root reload remote` (use host PM2/docker)
 
 ### Architecture overview
 
@@ -153,24 +311,30 @@ flowchart LR
     D[Discord bot.js]
     T[TG / LINE / WA / Plurk / WWW]
   end
-  PR[parse-router]
-  Q[defer-queue memory]
-  W[Roll Worker :3950]
-  A[analytics + roll/*]
+  PR[parse_router]
+  Q[defer_queue_memory]
+  W[RollWorker_primary]
+  LW[RollWorker_local]
+  A[analytics_main_thread]
   M[(Mongo)]
-  FS[Shared ROLL_ARTIFACT_ROOT]
+  FS[Shared_ROLL_ARTIFACT_ROOT]
 
-  D -->|prefetch meta| PR
-  T -->|findRollList gate then| PR
-  PR -->|ROLL_WORKER_URL set + remote allowed| W
-  PR -->|hybrid: unset / denylist / needsLocal / error| A
-  PR -->|REMOTE_ONLY busy safe| Q
-  Q -->|drain CONNECTED| W
-  Q -->|deferredReplay needsLocal| A
-  W --> A
+  D -->|prefetch_meta| PR
+  T -->|findRollList_gate| PR
+  PR -->|"1_primary_HTTP"| W
+  PR -->|"2_workerError_local_HTTP"| LW
+  PR -->|"3_needsLocal_or_localHttp_down"| A
+  PR -->|REMOTE_ONLY_busy_safe| Q
+  Q -->|drain_CONNECTED| W
+  Q -->|deferredReplay_needsLocal| A
+  W --> M
+  LW --> M
   A --> M
   W --> FS
+  LW --> FS
   D --> FS
+  Admin["root_reload"] -->|restart_local| LW
+  Admin -.->|loopback_shutdown| W
 ```
 
 | Layer | Behavior |
@@ -179,7 +343,8 @@ flowchart LR
 | Discord | Prefetch meta → Worker; missing meta → `needsLocal` (except openai M3) |
 | Other platforms | Remote when enabled + matched; local `findRollList` gates chatter |
 | Auth | Bearer `ROLL_WORKER_TOKEN` (+ auto `.env` generate) + HMAC `_gatewayAuth` |
-| Hybrid fail | Default local fallback; `FAIL_CLOSED_ON_WORKER_ERROR` on Worker error |
+| Hybrid fail | `ROLL_LOCAL_WORKER_URL` HTTP then in-process; `FAIL_CLOSED_ON_WORKER_ERROR` skips both |
+| Local HTTP | Optional second Worker; hot-reload via `.root reload local` |
 | Remote-only | No local; busy or **defer-busy** (Discord/TG/LINE/WA/WWW); mutator timeout still immediate busy |
 | EXP | `needsLocal` + `workerError` fallbacks use `skipExp`; schedule `[[dice]]` uses `skipExp` |
 
@@ -187,8 +352,9 @@ flowchart LR
 
 | File | Role |
 |------|------|
-| `server.js` | Express Worker (`/health`, `/v1/parse`, `/v1/character-action`) + peer link logs |
-| `client.js` | Gateway HTTP client + serializable context + link monitor hook |
+| `server.js` | Express Worker (`/health`, `/v1/parse`, `/v1/character-action`, `/v1/admin/shutdown`) + peer link logs |
+| `client.js` | Gateway HTTP client + `parseLocal` / shutdown + serializable context + link monitor |
+| `local-worker.js` | SPAWN/lock supervisor + `.root reload` local/remote |
 | `parse-router.js` | Remote vs local routing, prefetch, fallbacks, REMOTE_ONLY, defer enqueue |
 | `defer-queue.js` | In-memory busy queue (REMOTE_ONLY); drain + deliverers |
 | `ensure-token.js` | Auto-generate / upsert `ROLL_WORKER_TOKEN` in `.env` |
@@ -221,6 +387,7 @@ flowchart LR
 13. Discord/TG/Line/WA dark-roll all use `darkRolling.getGroupGms` + invalidate.
 14. Auto-token + concise ParseMode + dual-side link CONNECTED/DISCONNECTED.
 15. `REMOTE_ONLY` + defer-busy (silent queue; proved Phase 3ab) without showing system_busy for safe failures.
+16. Phase A/B: local HTTP fallback + `.root reload` without Discord Gateway restart; loopback admin shutdown.
 
 ### Open findings
 
@@ -282,10 +449,11 @@ flowchart LR
 | 12 | **Fixed+proved** L3–L7/L12/L13 via Phase 3z Jest + live Worker proof |
 | 13 | **Fixed+proved** L8/L10/M4 + M6 contract via Phase 3aa Jest + live Worker proof |
 | 3ab | **Added+proved** REMOTE_ONLY defer-busy, auto-token, link status, ParseMode (264 Jest + live) |
+| A/B | **Added+proved** local HTTP fallback, `.root reload`, loopback `/v1/admin/shutdown`, SPAWN+lock |
 
 ### Test coverage
 
-**Well covered:** routing, client serialization, HMAC tamper, SSRF host allowlist, byte limits, **redirect refuse + IP pin (M2)**, needsLocal+skipExp, **workerError skipExp (H1)**, fail-closed openai/export **+ DB mutators (H2)**, artifacts escape + **getTempFilePath writers (M9–M11)**, prefetch helpers, live spawn+token, fixshard deferred, schedule skipExp, multi-platform fallback, empty-array prefetch guards, loopback allow-no-token, 32mb JSON body, **bare Discord `.ai` needsLocal + `.ai help` remote (M3)**, **WWW character-action fail-closed (M1)**, **nested needsLocal (M13)**, **level sticky invalidate (H4)**, **Discord getGroupGms (H3)**, **`.bk`/`.cmd` reload (M7/M12)**, **slashDeploy defer (M14)**, **schedule save errors (M15)**, **statue←status (L14)**, default 120s timeout (M5), **/v1 rate-limit 429 (L2)**, **Api+/api/local findRollList (I11)**, **LevelUp displayName signed fallback (L15)**, **REMOTE_ONLY defer-busy enqueue/drain (3ab)**, **auto-token upsert**, **link CONNECTED edge**.
+**Well covered:** routing, client serialization, HMAC tamper, SSRF host allowlist, byte limits, **redirect refuse + IP pin (M2)**, needsLocal+skipExp, **workerError skipExp (H1)**, fail-closed openai/export **+ DB mutators (H2)**, artifacts escape + **getTempFilePath writers (M9–M11)**, prefetch helpers, live spawn+token, fixshard deferred, schedule skipExp, multi-platform fallback, empty-array prefetch guards, loopback allow-no-token, 32mb JSON body, **bare Discord `.ai` needsLocal + `.ai help` remote (M3)**, **WWW character-action fail-closed (M1)**, **nested needsLocal (M13)**, **level sticky invalidate (H4)**, **Discord getGroupGms (H3)**, **`.bk`/`.cmd` reload (M7/M12)**, **slashDeploy defer (M14)**, **schedule save errors (M15)**, **statue←status (L14)**, default 120s timeout (M5), **/v1 rate-limit 429 (L2)**, **Api+/api/local findRollList (I11)**, **LevelUp displayName signed fallback (L15)**, **REMOTE_ONLY defer-busy enqueue/drain (3ab)**, **auto-token upsert**, **link CONNECTED edge**, **local HTTP `parseLocal` fallback (A)**, **admin shutdown loopback (A/B)**, **supervised / remote reload (A/B)**, **`proof:local-worker`**.
 
 **Remaining gaps (optional):**
 
@@ -294,10 +462,11 @@ flowchart LR
 3. Multi-gateway concurrent fallback races on Mongo.
 4. Live `.drgm` → `ddr` GM DM with Mongo (H3 unit covers Discord `getGroupGms` wiring).
 5. Persist defer queue (Agenda/Mongo).
+6. Phase A/B: live Discord `.root reload` slash UX (text command covered); Monorepo `@hktrpg/core` deferred.
 
 ### Recommended fixes (shortest path)
 
-**Pass 9–13 + 3ab closed the priority fix + proof + ops UX path.** Remaining accepted design: M6 (no Worker cancel). Optional next: persist defer queue.
+**Pass 9–13 + 3ab + Phase A/B closed remoting + local compute hot-reload.** Remaining accepted design: M6 (no Worker cancel); `needsLocal` Gateway-bound. Optional next: persist defer queue; incremental `@hktrpg/core` extract (not required for reload).
 
 ### Focus-area checklist (Pass 9)
 
@@ -310,7 +479,8 @@ flowchart LR
 | Artifact writers | **Fixed:** token / wheel / `.st export` / openai `createFile` use `getTempFilePath` |
 | Admin slash vs fixshard | **Fixed:** both deferred via `gatewayAction` |
 | client.js | 503→needsLocal; 5xx/timeout → fallback; default 120s |
-| parse-router fail-closed / fallback | Expanded fail-closed + skipExp on workerError; nested handoff; cache invalidation hooks |
+| parse-router fail-closed / fallback | Expanded fail-closed + skipExp on workerError; nested handoff; cache invalidation hooks; **Phase A local HTTP before in-process** |
+| local-worker / reload | SPAWN+lock; `.root reload local\|remote\|all`; shutdown loopback-only |
 | discord-prefetch | Chatroom OK; empty export history OK; denied-read skips fetch |
 | forward-ownership | Deleted refs fail closed (I4) |
 | getRoll + schedule | `skipExp` OK; Agenda skipped on Worker; Agenda save errors surfaced |
@@ -323,20 +493,22 @@ flowchart LR
 | courtMessage / metrics | skipExp skips courtMessage (L10); needsLocal does not dual-count |
 | Defer-busy | REMOTE_ONLY only; Discord/TG/LINE/WA/WWW/Plurk; never surface system_busy while defer on; Discord drain full finalize; mutator timeout silent no-replay; pre-flight connect may defer |
 
-### Delivered on this branch (through Pass 3ab)
+### Delivered on this branch (through Phase A/B)
 
 | Area | What landed |
 |------|-------------|
-| Backend | `roll-worker.js` + Express `/health`, `/v1/parse`, `/v1/character-action` |
+| Backend | `roll-worker.js` + Express `/health`, `/v1/parse`, `/v1/character-action`, `/v1/admin/shutdown` |
 | Routing | `parse-router` remote/local + Discord prefetch + fail-closed + REMOTE_ONLY |
+| Local HTTP | `ROLL_LOCAL_WORKER_URL` + `parseLocal`; SPAWN+lock supervisor |
+| Reload | `.root reload local\|remote\|all` (Gateway; no Discord respawn) |
 | Auth | Bearer + HMAC; auto-generate token into `.env` |
 | Discord hybrid | Prefetch metas + `needsLocal` |
 | Defer-busy | `defer-queue.js` silent queue when REMOTE_ONLY (Discord/TG/LINE/WA/WWW deliver) |
 | Link UX | `[RollWorkerLink]` / Worker peer CONNECTED–DISCONNECTED |
 | Artifacts | Shared `ROLL_ARTIFACT_ROOT` jail; Gateway attach gated |
-| Safety | CDN allowlist fetch + byte caps; rate-limit `/v1/*`; health counters auth |
+| Safety | CDN allowlist fetch + byte caps; rate-limit `/v1/*`; health counters auth; shutdown loopback |
 | Platforms | TG/Line/WA/Plurk/WWW + Discord + schedule `skipExp` |
-| Tests | Phase 3 → **3ab** Jest (264) + `scripts/proof-gateway-worker.js` |
+| Tests | Phase 3 → **3ab** + Phase A/B Jest + `proof-gateway-worker.js` + `proof-local-worker.js` |
 
 ### Commits in scope (`master..Distributed-`)
 

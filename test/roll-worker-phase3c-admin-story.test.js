@@ -174,6 +174,7 @@ describe('Phase 3c adminSubNeedsLiveDiscord unit', () => {
 		expect(adminSubNeedsLiveDiscord('.root', 'decrypt')).toBe(false);
 		expect(adminSubNeedsLiveDiscord('.root', 'respawn')).toBe(false);
 		expect(adminSubNeedsLiveDiscord('.root', 'respawnall')).toBe(false);
+		expect(adminSubNeedsLiveDiscord('.root', 'reload')).toBe(true);
 		expect(adminSubNeedsLiveDiscord('.root', 'mem')).toBe(true);
 		expect(adminSubNeedsLiveDiscord('.root', 'mem', {
 			clusterMemMeta: { rows: [{ clusterId: 0 }] },

@@ -60,8 +60,33 @@ function getConfig() {
 	};
 }
 
+/** Local HTTP fallback worker (Phase A). Same token / timeout as primary. */
+function getLocalConfig() {
+	// Ensure shared secret exists when only local URL is configured (SPAWN / dual-worker).
+	if ((process.env.ROLL_LOCAL_WORKER_URL || '').trim()
+		&& process.env.ROLL_WORKER_ALLOW_NO_TOKEN !== 'true') {
+		ensureRollWorkerToken({ generate: true });
+	}
+	const url = (process.env.ROLL_LOCAL_WORKER_URL || '').trim().replace(/\/$/, '');
+	const { token, timeoutMs } = getConfig();
+	return { url, token, timeoutMs };
+}
+
 function isEnabled() {
 	return Boolean((process.env.ROLL_WORKER_URL || '').trim());
+}
+
+function normalizeWorkerBaseUrl(raw) {
+	return String(raw || '').trim().replace(/\/$/, '').toLowerCase();
+}
+
+function isLocalEnabled() {
+	const local = normalizeWorkerBaseUrl(process.env.ROLL_LOCAL_WORKER_URL);
+	if (!local) return false;
+	// Same URL as primary is useless for fallback (primary is already down).
+	const primary = normalizeWorkerBaseUrl(process.env.ROLL_WORKER_URL);
+	if (primary && local === primary) return false;
+	return true;
 }
 
 function toSerializableContext(params = {}) {
@@ -98,8 +123,19 @@ function toSerializableContext(params = {}) {
 	};
 }
 
-async function parse(params) {
-	const { url, token, timeoutMs } = getConfig();
+/**
+ * POST /v1/parse against an explicit Worker base URL.
+ * @param {string} baseUrl
+ * @param {object} params
+ * @param {{ trackPrimaryLink?: boolean }} [options]
+ */
+async function parseWithUrl(baseUrl, params, options = {}) {
+	const trackPrimaryLink = options.trackPrimaryLink !== false;
+	const { token, timeoutMs } = getConfig();
+	const url = String(baseUrl || '').replace(/\/$/, '');
+	if (!url) {
+		throw new Error('Roll worker URL missing');
+	}
 	const headers = {
 		'Content-Type': 'application/json',
 		...gatewayRequestHeaders({ botname: params?.botname }),
@@ -117,12 +153,12 @@ async function parse(params) {
 			{ headers, timeout: timeoutMs, validateStatus: () => true }
 		);
 	} catch (error) {
-		noteTransportDown(error);
+		if (trackPrimaryLink) noteTransportDown(error);
 		throw error;
 	}
 
 	// Transport reached Worker (even 4xx/5xx/needsLocal) — link is up.
-	noteTransportOk();
+	if (trackPrimaryLink) noteTransportOk();
 
 	if (response.status === 503 && response.data?.needsLocal) {
 		return {
@@ -143,6 +179,66 @@ async function parse(params) {
 		error.body = response.data;
 		throw error;
 	}
+	return response.data;
+}
+
+async function parse(params) {
+	const { url } = getConfig();
+	return parseWithUrl(url, params, { trackPrimaryLink: true });
+}
+
+/** Hybrid fallback: parse on ROLL_LOCAL_WORKER_URL (does not affect primary link monitor). */
+async function parseLocal(params) {
+	const { url } = getLocalConfig();
+	if (!url) {
+		throw new Error('ROLL_LOCAL_WORKER_URL unset');
+	}
+	return parseWithUrl(url, params, { trackPrimaryLink: false });
+}
+
+/**
+ * Loopback-only admin shutdown (Worker exits after drainMs).
+ * Server rejects non-loopback callers.
+ */
+async function requestAdminShutdown(baseUrl, { drainMs = 500 } = {}) {
+	const { token, timeoutMs } = getConfig();
+	const url = String(baseUrl || '').replace(/\/$/, '');
+	if (!url) {
+		throw new Error('Roll worker URL missing');
+	}
+	const headers = {
+		'Content-Type': 'application/json',
+		...gatewayRequestHeaders(),
+	};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+	const response = await axios.post(
+		`${url}/v1/admin/shutdown`,
+		{ drainMs },
+		{ headers, timeout: Math.min(timeoutMs, 10_000), validateStatus: () => true }
+	);
+	if (response.status < 200 || response.status >= 300) {
+		const message = response.data?.error || `Roll worker shutdown HTTP ${response.status}`;
+		const error = new Error(message);
+		error.status = response.status;
+		error.body = response.data;
+		throw error;
+	}
+	return response.data;
+}
+
+async function healthAt(baseUrl) {
+	const { token, timeoutMs } = getConfig();
+	const url = String(baseUrl || '').replace(/\/$/, '');
+	const headers = { ...gatewayRequestHeaders() };
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+	const response = await axios.get(`${url}/health`, {
+		headers,
+		timeout: Math.min(timeoutMs, 5000),
+	});
 	return response.data;
 }
 
@@ -217,11 +313,18 @@ async function checkLinkOnce(options = {}) {
 module.exports = {
 	DEFAULT_TIMEOUT_MS,
 	isEnabled,
+	isLocalEnabled,
+	normalizeWorkerBaseUrl,
 	getConfig,
+	getLocalConfig,
 	toSerializableContext,
 	parse,
+	parseLocal,
+	parseWithUrl,
+	requestAdminShutdown,
 	characterAction,
 	health,
+	healthAt,
 	beginLinkMonitor,
 	endLinkMonitor,
 	checkLinkOnce,

@@ -2,12 +2,19 @@
 
 jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(),
+	isLocalEnabled: jest.fn(() => false),
 	getConfig: jest.fn(() => ({
 		url: 'http://127.0.0.1:3950',
 		token: '',
 		timeoutMs: 30_000,
 	})),
+	getLocalConfig: jest.fn(() => ({
+		url: '',
+		token: '',
+		timeoutMs: 30_000,
+	})),
 	parse: jest.fn(),
+	parseLocal: jest.fn(),
 	beginLinkMonitor: jest.fn(),
 }));
 
@@ -268,6 +275,110 @@ describe('roll-worker parse-router', () => {
 			}, { allowLocalFallback: true });
 
 			expect(analytics.parseInput).toHaveBeenCalled();
+			expect(result.text).toBe('local-ok');
+		});
+	});
+
+	describe('Phase A local HTTP fallback', () => {
+		beforeEach(() => {
+			client.isLocalEnabled.mockReturnValue(false);
+			client.parseLocal.mockReset();
+		});
+
+		it('workerError prefers parseLocal when ROLL_LOCAL_WORKER enabled', async () => {
+			client.isEnabled.mockReturnValue(true);
+			client.isLocalEnabled.mockReturnValue(true);
+			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+			client.parseLocal.mockResolvedValue({
+				text: 'local-http-ok',
+				type: 'text',
+				_rollWorker: true,
+			});
+
+			const result = await parseRouter.parseInput({
+				inputStr: 'cc 50',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			}, { keepProof: true });
+
+			expect(client.parseLocal).toHaveBeenCalled();
+			expect(analytics.parseInput).not.toHaveBeenCalled();
+			expect(result.text).toBe('local-http-ok');
+			expect(result._rollLocalWorker).toBe(true);
+			expect(result._rollWorker).toBe(false);
+		});
+
+		it('needsLocal stays on main-thread analytics (not parseLocal)', async () => {
+			client.isEnabled.mockReturnValue(true);
+			client.isLocalEnabled.mockReturnValue(true);
+			client.parse.mockResolvedValue({
+				needsLocal: true,
+				moduleName: 'token',
+			});
+
+			const result = await parseRouter.parseInput({
+				inputStr: '.token',
+				botname: 'Discord',
+				locale: 'zh-tw',
+			});
+
+			expect(client.parseLocal).not.toHaveBeenCalled();
+			expect(analytics.parseInput).toHaveBeenCalled();
+			expect(result.text).toBe('local-ok');
+		});
+
+		it('localHttp failure falls through to in-process analytics', async () => {
+			client.isEnabled.mockReturnValue(true);
+			client.isLocalEnabled.mockReturnValue(true);
+			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+			client.parseLocal.mockRejectedValue(new Error('local down'));
+
+			const result = await parseRouter.parseInput({
+				inputStr: '1d3',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			});
+
+			expect(client.parseLocal).toHaveBeenCalled();
+			expect(analytics.parseInput).toHaveBeenCalled();
+			expect(result.text).toBe('local-ok');
+		});
+
+		it('localHttp needsLocal falls through to main-thread', async () => {
+			client.isEnabled.mockReturnValue(true);
+			client.isLocalEnabled.mockReturnValue(true);
+			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+			client.parseLocal.mockResolvedValue({
+				needsLocal: true,
+				moduleName: 'token',
+			});
+
+			const result = await parseRouter.parseInput({
+				inputStr: '.token',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			}, { keepProof: true });
+
+			expect(client.parseLocal).toHaveBeenCalled();
+			expect(analytics.parseInput).toHaveBeenCalled();
+			expect(result.text).toBe('local-ok');
+			expect(result._rollLocalWorker).toBeUndefined();
+		});
+
+		it('when isLocalEnabled false, workerError uses in-process only', async () => {
+			client.isEnabled.mockReturnValue(true);
+			client.isLocalEnabled.mockReturnValue(false);
+			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));
+
+			const result = await parseRouter.parseInput({
+				inputStr: '1d3',
+				botname: 'Telegram',
+				locale: 'zh-tw',
+			}, { keepProof: true });
+
+			expect(client.parseLocal).not.toHaveBeenCalled();
+			expect(analytics.parseInput).toHaveBeenCalled();
+			expect(result._rollLocalWorker).toBeUndefined();
 			expect(result.text).toBe('local-ok');
 		});
 	});

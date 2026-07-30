@@ -114,14 +114,37 @@ function logParseMode(logger = console) {
 		const { url, token, timeoutMs } = client.getConfig();
 		const remoteOnly = isRemoteOnlyMode();
 		const deferOn = remoteOnly && deferQueue.isDeferBusyActive();
+		const localUrl = (typeof client.isLocalEnabled === 'function' && client.isLocalEnabled()
+			&& typeof client.getLocalConfig === 'function')
+			? (client.getLocalConfig().url || '')
+			: '';
 		info(`[ParseMode] GATEWAY → REMOTE WORKER | url=${url} | token=${token ? 'set' : 'off'} | timeout=${timeoutMs}ms`
 			+ ` | local=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid fallback)'}`
+			+ (localUrl ? ` | localHttp=${localUrl}` : ' | localHttp=off (in-process on workerError)')
 			+ (remoteOnly ? ` | defer=${deferOn ? 'on' : 'off'}` : ''));
 		// Immediate health probe + 30s monitor — edge-triggered CONNECTED / DISCONNECTED logs.
 		client.beginLinkMonitor({ logger });
 		if (deferOn) {
 			ensureDeferReplayHook();
 			deferQueue.startDrainMonitor();
+		}
+		// Optional supervised local child / health probe for ROLL_LOCAL_WORKER_*.
+		try {
+			const localWorker = require('./local-worker');
+			localWorker.startIfConfigured(logger).then((started) => {
+				if (started?.url && (started.supervised || started.reusedLock || started.ok)) {
+					info(`[ParseMode] localHttp ready | url=${started.url}`
+						+ ` | supervised=${Boolean(started.supervised)}`
+						+ (started.reusedLock ? ' | reusedLock=1' : '')
+						+ (started.pending ? ' | pending=1' : ''));
+				} else if (started?.pending) {
+					info(`[ParseMode] localHttp pending | url=${started.url || ''}`);
+				}
+			}).catch((error) => {
+				console.warn('[ParseMode] local worker start skipped:', error?.message || error);
+			});
+		} catch (error) {
+			console.warn('[ParseMode] local worker module skipped:', error?.message || error);
 		}
 		return;
 	}
@@ -191,6 +214,7 @@ function stripWorkerProof(result) {
 	const cleaned = { ...result };
 	delete cleaned._rollWorker;
 	delete cleaned._rollWorkerModule;
+	delete cleaned._rollLocalWorker;
 	return cleaned;
 }
 
@@ -274,8 +298,11 @@ async function parseInput(params = {}, options = {}) {
 
 	const remoteParams = await enrichParamsForRemote(params, moduleName);
 
-	/** Prefer enriched meta on local fallback so Gateway side-effects (e.g. fixshard) are not re-run. */
-	const runLocalFallback = async ({ skipExp = false } = {}) => analytics.parseInput({
+	/**
+	 * Main-thread analytics (needs live Discord client / Message).
+	 * Not covered by .root reload local — Gateway process must restart for these code paths.
+	 */
+	const runMainThreadLocal = async ({ skipExp = false } = {}) => analytics.parseInput({
 		...remoteParams,
 		discordClient: params.discordClient,
 		discordMessage: params.discordMessage,
@@ -283,6 +310,43 @@ async function parseInput(params = {}, options = {}) {
 		// Worker may already have awarded EXP / mutated; never double-award on fallback.
 		skipExp: skipExp || Boolean(remoteParams.skipExp) || Boolean(params.skipExp),
 	});
+
+	/**
+	 * Hybrid workerError path: prefer ROLL_LOCAL_WORKER_URL HTTP, then in-process analytics.
+	 * needsLocal must NOT use this — Discord live objects cannot cross HTTP.
+	 */
+	const runLocalFallback = async ({ skipExp = false } = {}) => {
+		const skip = skipExp || Boolean(remoteParams.skipExp) || Boolean(params.skipExp);
+		if (typeof client.isLocalEnabled === 'function'
+			&& client.isLocalEnabled()
+			&& typeof client.parseLocal === 'function') {
+			try {
+				const httpLocal = await client.parseLocal({
+					...remoteParams,
+					skipExp: skip,
+				});
+				if (httpLocal?.needsLocal) {
+					logLocalFallback('localHttpNeedsLocal', {
+						botname: params.botname,
+						moduleName: httpLocal.moduleName || moduleName,
+					});
+					return runMainThreadLocal({ skipExp: true });
+				}
+				logLocalFallback('workerErrorLocalHttp', {
+					botname: params.botname,
+					moduleName,
+				});
+				return { ...httpLocal, _rollLocalWorker: true };
+			} catch (error) {
+				logLocalFallback('localHttpError', {
+					botname: params.botname,
+					moduleName,
+					error: error?.message || String(error),
+				});
+			}
+		}
+		return runMainThreadLocal({ skipExp: skip });
+	};
 
 	try {
 		const result = await client.parse(remoteParams);
@@ -293,6 +357,7 @@ async function parseInput(params = {}, options = {}) {
 					moduleName: result.moduleName || moduleName,
 				});
 				// Nested characterReRoll/cmd already mutated parent on Worker — only re-run nested input.
+				// Always main-thread: needs live discordClient / Message (not hot-reloadable via local HTTP).
 				const nestedOnly = result.nestedNeedsLocal && result.nestedInputStr;
 				const local = await analytics.parseInput({
 					...remoteParams,
@@ -351,14 +416,19 @@ async function parseInput(params = {}, options = {}) {
 			return remoteOnlyFailResult(params.locale);
 		}
 		if (allowLocalFallback) {
-			logLocalFallback('workerError', {
-				botname: params.botname,
-				moduleName,
-				error: error?.message || String(error),
-			});
+			// runLocalFallback logs workerErrorLocalHttp / localHttpError / falls to main-thread.
 			const local = await runLocalFallback({ skipExp: true });
+			if (!local?._rollLocalWorker) {
+				logLocalFallback('workerError', {
+					botname: params.botname,
+					moduleName,
+					error: error?.message || String(error),
+				});
+			}
 			invalidateCachesAfterRemote(moduleName, local, remoteParams);
-			return keepProof ? { ...local, _rollWorker: false } : local;
+			return keepProof
+				? { ...local, _rollWorker: false }
+				: stripWorkerProof(local);
 		}
 		const deferReason = deferQueue.isTransportSafeError(error) ? 'transport' : 'workerError';
 		const deferred = await tryDeferBusy({

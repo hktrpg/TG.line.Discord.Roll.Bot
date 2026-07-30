@@ -1,15 +1,28 @@
 "use strict";
 
-const { toSerializableContext, isEnabled, getConfig } = require('../modules/roll-worker/client');
+const {
+	toSerializableContext,
+	isEnabled,
+	isLocalEnabled,
+	normalizeWorkerBaseUrl,
+	getConfig,
+	getLocalConfig,
+} = require('../modules/roll-worker/client');
 
 describe('roll-worker client', () => {
 	const originalUrl = process.env.ROLL_WORKER_URL;
+	const originalLocal = process.env.ROLL_LOCAL_WORKER_URL;
 
 	afterEach(() => {
 		if (originalUrl === undefined) {
 			delete process.env.ROLL_WORKER_URL;
 		} else {
 			process.env.ROLL_WORKER_URL = originalUrl;
+		}
+		if (originalLocal === undefined) {
+			delete process.env.ROLL_LOCAL_WORKER_URL;
+		} else {
+			process.env.ROLL_LOCAL_WORKER_URL = originalLocal;
 		}
 	});
 
@@ -18,6 +31,34 @@ describe('roll-worker client', () => {
 		expect(isEnabled()).toBe(false);
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
 		expect(isEnabled()).toBe(true);
+	});
+
+	it('isLocalEnabled / getLocalConfig for ROLL_LOCAL_WORKER_URL', () => {
+		delete process.env.ROLL_LOCAL_WORKER_URL;
+		expect(isLocalEnabled()).toBe(false);
+		expect(getLocalConfig().url).toBe('');
+		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3951/';
+		expect(isLocalEnabled()).toBe(true);
+		expect(getLocalConfig().url).toBe('http://127.0.0.1:3951');
+	});
+
+	it('isLocalEnabled false when local URL equals primary URL', () => {
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3950/';
+		expect(isLocalEnabled()).toBe(false);
+		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3951';
+		expect(isLocalEnabled()).toBe(true);
+	});
+
+	it('isLocalEnabled treats URL case as equal', () => {
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_LOCAL_WORKER_URL = 'HTTP://127.0.0.1:3950';
+		expect(isLocalEnabled()).toBe(false);
+	});
+
+	it('normalizeWorkerBaseUrl strips trailing slash and lowercases', () => {
+		expect(normalizeWorkerBaseUrl('HTTP://127.0.0.1:3951/')).toBe('http://127.0.0.1:3951');
+		expect(normalizeWorkerBaseUrl('')).toBe('');
 	});
 
 	it('strips non-serializable fields from context', () => {

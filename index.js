@@ -380,6 +380,13 @@ async function gracefulShutdown(moduleManager) {
     isShuttingDown = true;
     
     logger.info('Starting graceful shutdown...');
+
+    try {
+        const localWorker = require('./modules/roll-worker/local-worker');
+        await localWorker.shutdown();
+    } catch (error) {
+        logger.warn(`Local worker shutdown skipped: ${error.message}`);
+    }
     
     // Unload all loaded modules in parallel
     const unloadPromises = [...moduleManager.loadedModules].map(moduleName => 

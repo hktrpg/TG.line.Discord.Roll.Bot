@@ -1049,6 +1049,39 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
+            case /^reload$/i.test(mainMsg[1]): {
+                // Phase A/B: reload local/remote Roll Worker compute — never Discord Gateway respawn.
+                const target = (mainMsg[2] || 'local').toLowerCase();
+                if (!['local', 'remote', 'all'].includes(target)) {
+                    rply.text = 'Usage: .root reload [local|remote|all]\n'
+                        + 'local = restart ROLL_LOCAL_WORKER (HTTP fallback)\n'
+                        + 'remote = ask primary ROLL_WORKER_URL to shutdown (loopback; PM2/docker must restart it)\n'
+                        + 'Note: Discord-coupled needsLocal paths still use Gateway in-process code until Gateway restart.';
+                    return rply;
+                }
+                try {
+                    const localWorker = require('../modules/roll-worker/local-worker');
+                    const result = await localWorker.reload(target);
+                    rply.text = [
+                        `.root reload ${target}`,
+                        `ok=${result.ok}`,
+                        result.mode ? `mode=${result.mode}` : '',
+                        result.url ? `url=${result.url}` : '',
+                        result.pid != null ? `pid=${result.pid}` : '',
+                        result.error ? `error=${result.error}` : '',
+                        result.warning ? `warning=${result.warning}` : '',
+                        result.hint ? `hint=${result.hint}` : '',
+                        result.note || '',
+                        result.local || result.remote
+                            ? `detail=${JSON.stringify({ local: result.local, remote: result.remote })}`
+                            : '',
+                    ].filter(Boolean).join('\n');
+                } catch (error) {
+                    console.error('[Admin] .root reload error:', error);
+                    rply.text = `.root reload failed: ${error?.message || error}`;
+                }
+                return rply;
+            }
             case /^respawn$/i.test(mainMsg[1]): {
                 if (mainMsg[2] == null) return rply;
                 const ipcPayload = {

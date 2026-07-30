@@ -10,7 +10,10 @@ jest.mock('../modules/roll-worker/character-action', () => ({
 }));
 
 const request = require('node:http');
-const { createRollWorkerApp } = require('../modules/roll-worker/server');
+const {
+	createRollWorkerApp,
+	isLoopbackRemoteAddress,
+} = require('../modules/roll-worker/server');
 
 function listen(app) {
 	return new Promise((resolve) => {
@@ -48,6 +51,17 @@ function httpJson(port, method, path, body, extraHeaders = {}) {
 		req.end();
 	});
 }
+
+describe('isLoopbackRemoteAddress', () => {
+	it('accepts IPv4 / IPv6 / mapped loopback', () => {
+		expect(isLoopbackRemoteAddress('127.0.0.1')).toBe(true);
+		expect(isLoopbackRemoteAddress('::1')).toBe(true);
+		expect(isLoopbackRemoteAddress('localhost')).toBe(true);
+		expect(isLoopbackRemoteAddress('::ffff:127.0.0.1')).toBe(true);
+		expect(isLoopbackRemoteAddress('10.0.0.1')).toBe(false);
+		expect(isLoopbackRemoteAddress('')).toBe(false);
+	});
+});
 
 describe('roll-worker HTTP server', () => {
 	let server;
@@ -159,5 +173,19 @@ describe('roll-worker HTTP server', () => {
 		expect(res.status).toBe(200);
 		expect(res.body._rollWorker).toBe(true);
 		expect(res.body._rollWorkerModule).toBe('openai');
+	});
+
+	it('POST /v1/admin/shutdown accepts loopback when auth-off', async () => {
+		const exitSpy = jest.spyOn(process, 'exit').mockImplementation(() => {});
+		const res = await httpJson(port, 'POST', '/v1/admin/shutdown', { drainMs: 5 });
+		expect(res.status).toBe(200);
+		expect(res.body.ok).toBe(true);
+		expect(res.body.shuttingDown).toBe(true);
+		const again = await httpJson(port, 'POST', '/v1/admin/shutdown', { drainMs: 5 });
+		expect(again.status).toBe(200);
+		expect(again.body.already).toBe(true);
+		await new Promise((r) => setTimeout(r, 40));
+		expect(exitSpy).toHaveBeenCalledWith(0);
+		exitSpy.mockRestore();
 	});
 });

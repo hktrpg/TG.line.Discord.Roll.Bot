@@ -66,6 +66,10 @@ function adminSubNeedsLiveDiscord(mainMsg0, mainMsg1, meta = {}) {
 		if (sub === 'respawn' || sub === 'respawnall') {
 			return false;
 		}
+		// .root reload* must run on Gateway (owns local child / loopback admin).
+		if (sub === 'reload') {
+			return true;
+		}
 		return ROOT_LIVE_SUBS.has(sub);
 	}
 	return true;

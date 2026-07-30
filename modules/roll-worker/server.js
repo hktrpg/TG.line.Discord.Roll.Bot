@@ -31,6 +31,12 @@ function isLoopbackHost(host) {
 	return h === '127.0.0.1' || h === '::1' || h === 'localhost';
 }
 
+/** Express req.ip / remoteAddress may be IPv4-mapped (`::ffff:127.0.0.1`). */
+function isLoopbackRemoteAddress(addr) {
+	const a = String(addr || '').toLowerCase().replace(/^::ffff:/, '');
+	return a === '127.0.0.1' || a === '::1' || a === 'localhost';
+}
+
 function getJsonBodyLimit() {
 	const fromEnv = (process.env.ROLL_WORKER_JSON_LIMIT || '').trim();
 	return fromEnv || DEFAULT_JSON_BODY_LIMIT;
@@ -282,6 +288,35 @@ function createRollWorkerApp(options = {}) {
 		}
 	});
 
+	/**
+	 * Phase A/B: drain + exit so process manager / Gateway supervisor can respawn.
+	 * Bearer required (middleware). Callers must be loopback only.
+	 */
+	let shuttingDown = false;
+	app.post('/v1/admin/shutdown', (req, res) => {
+		const remote = req.ip || req.socket?.remoteAddress || '';
+		if (!isLoopbackRemoteAddress(remote)) {
+			return res.status(403).json({
+				error: 'Forbidden: /v1/admin/shutdown is loopback-only',
+			});
+		}
+		if (shuttingDown) {
+			return res.json({ ok: true, shuttingDown: true, pid: process.pid, already: true });
+		}
+		const rawDrain = Number.parseInt(String(req.body?.drainMs ?? '500'), 10);
+		const drainMs = Number.isFinite(rawDrain)
+			? Math.min(Math.max(rawDrain, 0), 10_000)
+			: 500;
+		shuttingDown = true;
+		console.warn(`[RollWorker] admin shutdown requested | drainMs=${drainMs} | pid=${process.pid}`);
+		res.json({ ok: true, shuttingDown: true, pid: process.pid, drainMs });
+		setTimeout(() => {
+			// eslint-disable-next-line n/no-process-exit
+			process.exit(0);
+		}, drainMs).unref?.();
+		return undefined;
+	});
+
 	app.locals.stats = stats;
 	app.locals.expectedToken = expectedToken;
 	app.locals.allowNoToken = allowNoToken;
@@ -338,4 +373,5 @@ module.exports = {
 	createRollWorkerApp,
 	startRollWorkerServer,
 	isLoopbackHost,
+	isLoopbackRemoteAddress,
 };

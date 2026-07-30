@@ -23,13 +23,15 @@ async function buildStateVersionSection(t, options = {}) {
 	if (onWorker) {
 		const gatewayDisplay = gatewayPrefetch?.display
 			|| t('admin.state_report.version_unreachable');
-		lines.push(t('admin.state_report.version_gateway', {
-			display: gatewayDisplay,
-		}));
-		lines.push(t('admin.state_report.version_worker', {
-			display: self.display,
-			link: 'self',
-		}));
+		lines.push(
+			t('admin.state_report.version_gateway', {
+				display: gatewayDisplay,
+			}),
+			t('admin.state_report.version_worker', {
+				display: self.display,
+				link: 'self',
+			}),
+		);
 	} else {
 		lines.push(t('admin.state_report.version_gateway', {
 			display: self.display,

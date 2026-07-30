@@ -10,7 +10,7 @@ const { spawn } = require('node:child_process');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_79;
+const PORT = 3979;
 const TOKEN = 'phase3p-levelup-token';
 
 function sleep(ms) {

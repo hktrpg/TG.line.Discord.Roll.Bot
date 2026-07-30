@@ -10,7 +10,7 @@ const {
 	markStandbyDown,
 	getStandbyState,
 	resetStandbyConnectionStatus,
-	probeStandbyLink,
+	probeStandbyLink: _probeStandbyLink,
 } = require('../modules/roll-worker/connection-status');
 
 describe('roll-worker connection-status', () => {

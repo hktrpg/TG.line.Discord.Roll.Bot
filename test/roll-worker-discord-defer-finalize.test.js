@@ -5,9 +5,9 @@
  * can run the same path as online (quotes/buttons/files/myNames/…).
  */
 
-const deferQueue = require('../modules/roll-worker/defer-queue');
 const fs = require('node:fs');
 const path = require('node:path');
+const deferQueue = require('../modules/roll-worker/defer-queue');
 
 describe('Discord defer full-finalize wiring', () => {
 	beforeEach(() => {

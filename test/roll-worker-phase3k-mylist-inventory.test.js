@@ -11,7 +11,7 @@ const { spawn } = require('node:child_process');
 const http = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_73;
+const PORT = 3973;
 const TOKEN = 'phase-spawn-token';
 
 function sleep(ms) {

@@ -48,7 +48,7 @@ const UNSIGNED_KEYS = new Set(['_gatewayAuth']);
 
 const DEFAULT_MAX_AGE_MS = 120_000;
 /** Allow small clock skew; reject far-future ts so replay window cannot be extended (L3). */
-const DEFAULT_CLOCK_SKEW_MS = 5_000;
+const DEFAULT_CLOCK_SKEW_MS = 5000;
 
 function stableStringify(value) {
 	if (value === null || typeof value !== 'object') {

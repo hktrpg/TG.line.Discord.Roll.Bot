@@ -23,8 +23,8 @@ const request = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
 const LOCK_PATH = path.join(ROOT, 'temp', 'roll-local-worker.lock');
-const PORT = 39_73;
-const PORT_R = 39_74;
+const PORT = 3973;
+const PORT_R = 3974;
 const TOKEN = 'phase-ab-reload-token';
 
 function sleep(ms) {
@@ -230,7 +230,7 @@ describe('Phase A supervised local reload (live)', () => {
 
 describe('Phase A external local reload without PM2 (live)', () => {
 	let child;
-	const PORT_E = 39_75;
+	const PORT_E = 3975;
 	const saved = {};
 
 	beforeAll(async () => {

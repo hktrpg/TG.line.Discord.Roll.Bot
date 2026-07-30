@@ -12,8 +12,8 @@ const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PRIMARY_PORT = 39_71;
-const LOCAL_PORT = 39_72;
+const PRIMARY_PORT = 3971;
+const LOCAL_PORT = 3972;
 const TOKEN = 'phase-a-local-http-token';
 
 function sleep(ms) {

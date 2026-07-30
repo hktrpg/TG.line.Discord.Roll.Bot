@@ -12,7 +12,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_74;
+const PORT = 3974;
 const TOKEN = 'phase3l-proof-token';
 const ADMIN_ID = 'proof-admin-3l';
 

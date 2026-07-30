@@ -10,8 +10,8 @@ const path = require('node:path');
 const http = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
-const PORT_P = 39_81;
-const PORT_S = 39_82;
+const PORT_P = 3981;
+const PORT_S = 3982;
 const TOKEN = 'live-stop-restart-token';
 
 function sleep(ms) {

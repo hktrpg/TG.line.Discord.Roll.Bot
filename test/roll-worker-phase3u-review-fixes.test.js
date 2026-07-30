@@ -311,9 +311,13 @@ describe('Phase 3u SSRF allowlist', () => {
 		expect(isDiscordCdnHost('cdn.discord.com')).toBe(true);
 		expect(isDiscordCdnHost('evil.example')).toBe(false);
 
-		expect((await assertSafeDiscordFetchUrl('http://cdn.discordapp.com/a.png')).ok).toBe(false);
-		expect((await assertSafeDiscordFetchUrl('https://169.254.169.254/latest/meta-data/')).ok).toBe(false);
-		expect((await assertSafeDiscordFetchUrl('https://evil.example/a.csv')).ok).toBe(false);
-		expect((await assertSafeDiscordFetchUrl('https://cdn.discordapp.com/attachments/1/2/a.csv')).ok).toBe(true);
+		const httpCdn = await assertSafeDiscordFetchUrl('http://cdn.discordapp.com/a.png');
+		const metadata = await assertSafeDiscordFetchUrl('https://169.254.169.254/latest/meta-data/');
+		const evil = await assertSafeDiscordFetchUrl('https://evil.example/a.csv');
+		const okCsv = await assertSafeDiscordFetchUrl('https://cdn.discordapp.com/attachments/1/2/a.csv');
+		expect(httpCdn.ok).toBe(false);
+		expect(metadata.ok).toBe(false);
+		expect(evil.ok).toBe(false);
+		expect(okCsv.ok).toBe(true);
 	});
 });

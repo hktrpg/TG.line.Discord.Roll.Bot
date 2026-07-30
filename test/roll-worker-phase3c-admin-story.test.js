@@ -10,7 +10,7 @@ const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_65;
+const PORT = 3965;
 const TOKEN = 'phase-spawn-token';
 
 function sleep(ms) {

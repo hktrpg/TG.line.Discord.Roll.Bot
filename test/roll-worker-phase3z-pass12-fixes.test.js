@@ -39,7 +39,7 @@ describe('Phase 3z L3 reject future gateway auth ts', () => {
 			verifyGatewayAuth,
 			DEFAULT_CLOCK_SKEW_MS,
 		} = require('../modules/roll-worker/request-auth');
-		expect(DEFAULT_CLOCK_SKEW_MS).toBe(5_000);
+		expect(DEFAULT_CLOCK_SKEW_MS).toBe(5000);
 		const token = 'phase3z-hmac';
 		const now = Date.now();
 		const signed = attachGatewayAuth({
@@ -62,7 +62,7 @@ describe('Phase 3z L3 reject future gateway auth ts', () => {
 			inputStr: '1d3',
 			userid: 'u',
 			botname: 'Telegram',
-		}, token, now + 1_000);
+		}, token, now + 1000);
 		expect(verifyGatewayAuth(skewOk, token, { now }).ok).toBe(true);
 	});
 });

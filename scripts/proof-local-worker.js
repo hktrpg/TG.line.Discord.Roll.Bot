@@ -9,8 +9,8 @@ const path = require('node:path');
 const http = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
-const PRIMARY_PORT = 39_81;
-const LOCAL_PORT = 39_82;
+const PRIMARY_PORT = 3981;
+const LOCAL_PORT = 3982;
 const TOKEN = process.env.ROLL_WORKER_TOKEN || 'proof-local-worker-token';
 
 function sleep(ms) {

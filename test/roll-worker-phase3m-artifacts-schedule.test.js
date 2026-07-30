@@ -11,7 +11,7 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_75;
+const PORT = 3975;
 const TOKEN = 'phase3m-proof-token';
 
 function sleep(ms) {

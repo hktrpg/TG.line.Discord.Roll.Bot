@@ -122,7 +122,7 @@ describe('deliverDiscordDeferred', () => {
 		await deliverDiscordDeferred({
 			replyTarget: { isInteraction: true, interaction },
 		}, { text: '' }, hooks);
-		expect(interaction.editReply).toHaveBeenCalledWith({ content: '\u200b' });
+		expect(interaction.editReply).toHaveBeenCalledWith({ content: '\u200B' });
 	});
 
 	it('channel message text (non-interaction) uses sendToReplyChannel', async () => {

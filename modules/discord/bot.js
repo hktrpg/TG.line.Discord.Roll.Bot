@@ -78,11 +78,11 @@ deferQueue.registerDeliverer('Discord', async (job, result) => {
 			return `<@${uid}>${candle.checker(uid)}\n${body}`;
 		},
 		replyInteraction: async (interaction, { text, quotes }) => {
-			const chunks = String(text || '').match(/[\s\S]{1,2000}/g) || ['\u200b'];
+			const chunks = String(text || '').match(/[\s\S]{1,2000}/g) || ['\u200B'];
 			const first = chunks[0];
 			const payload = quotes
 				? { embeds: await convQuotes(first) }
-				: { content: first || '\u200b' };
+				: { content: first || '\u200B' };
 			if (interaction.deferred && !interaction.replied) {
 				await interaction.editReply(payload);
 			} else if (!interaction.replied) {
@@ -3756,7 +3756,7 @@ async function handlingResponMessage(message, answer = '') {
  * @returns {Promise<object|undefined>} handlingSendMessage / replilyMessage input, or undefined
  */
 async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
-	if (!message || !rplyVal || rplyVal.deferred) return undefined;
+	if (!message || !rplyVal || rplyVal.deferred) return;
 
 	const groupid = message.guildId || '';
 	const channelid = message.channelId || '';
@@ -3779,7 +3779,7 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 	if (rplyVal.myspeck) {
 		await __sendMeMessage({ message, rplyVal, groupid });
 		if (message.isInteraction && groupid) return { webhookOnly: true };
-		return undefined;
+		return;
 	}
 	if (rplyVal.myNames) {
 		const webhookSent = await repeatMessages(message, rplyVal);
@@ -3788,7 +3788,7 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 			return { interactionHandled: true };
 		}
 		// Channel .meN: webhook is the reply; do not fall through to plain text send.
-		return undefined;
+		return;
 	}
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
@@ -3853,7 +3853,7 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 	}
 	if (!rplyVal.text && !rplyVal.LevelUp) {
 		flushPendingClusterIpc(pendingClusterIpc);
-		return undefined;
+		return;
 	}
 	if (process.env.mongoURL) {
 		try {
@@ -3997,7 +3997,7 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 	}
 	if (!rplyVal.text) {
 		flushPendingClusterIpc(pendingClusterIpc);
-		return undefined;
+		return;
 	}
 	return {
 		privatemsg,

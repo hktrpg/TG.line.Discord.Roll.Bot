@@ -12,7 +12,7 @@ const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_63;
+const PORT = 3963;
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));

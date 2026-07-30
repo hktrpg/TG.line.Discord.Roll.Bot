@@ -1,5 +1,6 @@
 "use strict";
 
+const path = require('node:path');
 const analytics = require('../analytics');
 const i18n = require('../i18n/i18n.js');
 const client = require('./client');
@@ -20,7 +21,7 @@ function getLifecycleFlags() {
 }
 
 const FALLBACK_LOG_INTERVAL_MS = 60_000;
-const PARSE_MODE_LOCK = require('node:path').join(__dirname, '..', '..', 'temp', 'parse-mode-announced.lock');
+const PARSE_MODE_LOCK = path.join(__dirname, '..', '..', 'temp', 'parse-mode-announced.lock');
 let loggedModeOnce = false;
 let workersReadyPromise = null;
 let lastFallbackLogAt = 0;

@@ -11,7 +11,7 @@ const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_70;
+const PORT = 3970;
 const TOKEN = 'phase-spawn-token';
 const ADMIN_ID = 'proof-admin-3h';
 

@@ -71,13 +71,13 @@ async function deliverDiscordDeferred(job, result, hooks) {
 	if (interaction && target.isInteraction) {
 		try {
 			if (typeof replyInteraction === 'function') {
-				await replyInteraction(interaction, { text: text || '\u200b', quotes });
+				await replyInteraction(interaction, { text: text || '\u200B', quotes });
 			} else if (interaction.deferred && !interaction.replied) {
-				await interaction.editReply({ content: text || '\u200b' });
+				await interaction.editReply({ content: text || '\u200B' });
 			} else if (!interaction.replied) {
-				await interaction.reply({ content: text || '\u200b' });
+				await interaction.reply({ content: text || '\u200B' });
 			} else if (typeof interaction.followUp === 'function') {
-				await interaction.followUp({ content: text || '\u200b' });
+				await interaction.followUp({ content: text || '\u200B' });
 			}
 		} catch (error) {
 			const channelId = target.channelId || interaction.channelId;

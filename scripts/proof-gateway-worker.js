@@ -12,7 +12,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 39_61;
+const PORT = 3961;
 const URL = `http://127.0.0.1:${PORT}`;
 const PROOF_ADMIN_ID = 'proof-admin-3h';
 const PROOF_ADMIN_SECRET = [process.env.ADMIN_SECRET, PROOF_ADMIN_ID].filter(Boolean).join(',');
@@ -1444,7 +1444,7 @@ async function main() {
 				verifyGatewayAuth,
 				DEFAULT_CLOCK_SKEW_MS,
 			} = require('../modules/roll-worker/request-auth');
-			assert(DEFAULT_CLOCK_SKEW_MS === 5_000, 'clock skew 5s');
+			assert(DEFAULT_CLOCK_SKEW_MS === 5000, 'clock skew 5s');
 			const now = Date.now();
 			const future = attachGatewayAuth({
 				inputStr: '1d3', userid: 'u', botname: 'Telegram',
@@ -1557,7 +1557,7 @@ async function main() {
 			process.env.ROLL_WORKER_URL = URL;
 			const drain = await deferQueue.tryDrain({ batch: 10 });
 			assert(drain.drained >= 1, 'drain delivered >=1', drain);
-			assert(delivered.length >= 1, 'deliverer called', delivered);
+			assert(delivered.length > 0, 'deliverer called', delivered);
 			assert(
 				delivered.some((t) => t && t !== 'SYSTEM_BUSY_I18N' && !/system is busy/i.test(t)),
 				'delivered non-busy text',
@@ -1595,6 +1595,7 @@ async function main() {
 		await sleep(500);
 		try { child.kill('SIGKILL'); } catch { /* ignore */ }
 		// Force exit — worker child / open handles can keep the event loop alive.
+		// eslint-disable-next-line n/no-process-exit -- intentional proof harness teardown
 		process.exit(process.exitCode || 0);
 	}
 }

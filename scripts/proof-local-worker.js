@@ -142,13 +142,13 @@ async function main() {
 		await waitHealth(LOCAL_PORT);
 		process.env.ROLL_LOCAL_WORKER_URL = `http://127.0.0.1:${LOCAL_PORT}`;
 		const localWorker = require('../modules/roll-worker/local-worker');
-		const reload = await localWorker.reloadLocal({ drainMs: 200 });
+		const reload = await localWorker.restartStandby({ drainMs: 200 });
 		assert(
 			reload.ok === true
-			&& ['shutdown-sent', 'supervised-respawn', 'external-restart'].includes(reload.mode),
-			`reload local mode=${reload.mode} ok=${reload.ok} error=${reload.error || ''}`
+			&& ['shutdown-sent', 'supervised-respawn', 'external-restart', 'self-restart', 'ensure-spawn'].includes(reload.mode),
+			`restart standby mode=${reload.mode} ok=${reload.ok} error=${reload.error || ''}`
 		);
-		console.log('OK .root reload local path:', reload.mode);
+		console.log('OK .root restart standby path:', reload.mode);
 		local = null; // process exiting via shutdown
 		console.log('PROOF PASSED Phase A/B local worker');
 	} finally {

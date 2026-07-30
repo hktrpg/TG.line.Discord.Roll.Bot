@@ -172,9 +172,10 @@ describe('Phase 3c adminSubNeedsLiveDiscord unit', () => {
 		expect(adminSubNeedsLiveDiscord('.root', 'help')).toBe(false);
 		expect(adminSubNeedsLiveDiscord('.root', 'schedule')).toBe(false);
 		expect(adminSubNeedsLiveDiscord('.root', 'decrypt')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'respawn')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'respawnall')).toBe(false);
-		expect(adminSubNeedsLiveDiscord('.root', 'reload')).toBe(true);
+		expect(adminSubNeedsLiveDiscord('.root', 'restart')).toBe(true);
+		expect(adminSubNeedsLiveDiscord('.root', 'restart', { mainMsg2: 'primary' })).toBe(true);
+		expect(adminSubNeedsLiveDiscord('.root', 'restart', { mainMsg2: 'discord' })).toBe(false);
+		expect(adminSubNeedsLiveDiscord('.root', 'stop')).toBe(true);
 		expect(adminSubNeedsLiveDiscord('.root', 'mem')).toBe(true);
 		expect(adminSubNeedsLiveDiscord('.root', 'mem', {
 			clusterMemMeta: { rows: [{ clusterId: 0 }] },

@@ -8,8 +8,20 @@ const deferQueue = require('./defer-queue');
 
 const SYSTEM_BUSY_KEY = 'common.errors.system_busy';
 
+function getLifecycleFlags() {
+	try {
+		return require('./local-worker');
+	} catch {
+		return {
+			isPrimaryStopped: () => false,
+			isStandbyStopped: () => false,
+		};
+	}
+}
+
 const FALLBACK_LOG_INTERVAL_MS = 60_000;
 let loggedModeOnce = false;
+let workersReadyPromise = null;
 let lastFallbackLogAt = 0;
 let fallbackSinceLastLog = 0;
 let lastRemoteFailLogAt = 0;
@@ -94,9 +106,30 @@ async function remoteOnlyFailResult(locale, extras = {}) {
 }
 
 /**
+ * Auto-frame primary + local Workers once per Gateway process (no-op on Worker).
+ */
+function ensureWorkersReady(logger = console) {
+	if (process.env.ROLL_WORKER_MODE === 'true') {
+		return Promise.resolve(null);
+	}
+	if (!workersReadyPromise) {
+		workersReadyPromise = (async () => {
+			try {
+				const localWorker = require('./local-worker');
+				return await localWorker.startIfConfigured(logger);
+			} catch (error) {
+				console.warn('[ParseMode] worker auto-start skipped:', error?.message || error);
+				return { ok: false, error: error?.message || String(error) };
+			}
+		})();
+	}
+	return workersReadyPromise;
+}
+
+/**
  * Log parse backend mode once per process (gateway or diagnostics).
  */
-function logParseMode(logger = console) {
+async function logParseMode(logger = console) {
 	if (loggedModeOnce) return;
 	loggedModeOnce = true;
 
@@ -106,8 +139,24 @@ function logParseMode(logger = console) {
 
 	if (process.env.ROLL_WORKER_MODE === 'true') {
 		const { url, token } = client.getConfig();
-		info(`[ParseMode] WORKER backend | token=${token ? 'set' : 'off'} | Gateways → ROLL_WORKER_URL=${url}`);
+		info(`[ParseMode] Primary/Standby backend | token=${token ? 'set' : 'off'} | Gateways → ROLL_WORKER_URL=${url}`);
 		return;
+	}
+
+	const started = await ensureWorkersReady(logger);
+	if (started?.primary?.ok) {
+		info(`[ParseMode] Primary ready | url=${started.primary.url || ''}`
+			+ ` | supervised=${Boolean(started.primary.supervised)}`
+			+ (started.primary.discovered ? ' | discovered=1' : '')
+			+ (started.primary.reusedLock ? ' | reusedLock=1' : '')
+			+ (started.primary.existing ? ' | existing=1' : ''));
+	}
+	if (started?.local?.url && (started.local.supervised || started.local.reusedLock || started.local.ok)) {
+		info(`[ParseMode] Standby ready | url=${started.local.url}`
+			+ ` | supervised=${Boolean(started.local.supervised)}`
+			+ (started.local.reusedLock ? ' | reusedLock=1' : ''));
+	} else if (started?.local?.pending) {
+		info(`[ParseMode] Standby pending | url=${started.local.url || ''}`);
 	}
 
 	if (client.isEnabled()) {
@@ -118,33 +167,14 @@ function logParseMode(logger = console) {
 			&& typeof client.getLocalConfig === 'function')
 			? (client.getLocalConfig().url || '')
 			: '';
-		info(`[ParseMode] GATEWAY → REMOTE WORKER | url=${url} | token=${token ? 'set' : 'off'} | timeout=${timeoutMs}ms`
-			+ ` | local=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid fallback)'}`
-			+ (localUrl ? ` | localHttp=${localUrl}` : ' | localHttp=off (in-process on workerError)')
+		info(`[ParseMode] GATEWAY → Primary | url=${url} | token=${token ? 'set' : 'off'} | timeout=${timeoutMs}ms`
+			+ ` | fallback=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid)'}`
+			+ (localUrl ? ` | Standby=${localUrl}` : ' | Standby=off (Embedded on Primary error)')
 			+ (remoteOnly ? ` | defer=${deferOn ? 'on' : 'off'}` : ''));
-		// Immediate health probe + 30s monitor — edge-triggered CONNECTED / DISCONNECTED logs.
 		client.beginLinkMonitor({ logger });
 		if (deferOn) {
 			ensureDeferReplayHook();
 			deferQueue.startDrainMonitor();
-		}
-		// Optional supervised local child / health probe for ROLL_LOCAL_WORKER_*.
-		try {
-			const localWorker = require('./local-worker');
-			localWorker.startIfConfigured(logger).then((started) => {
-				if (started?.url && (started.supervised || started.reusedLock || started.ok)) {
-					info(`[ParseMode] localHttp ready | url=${started.url}`
-						+ ` | supervised=${Boolean(started.supervised)}`
-						+ (started.reusedLock ? ' | reusedLock=1' : '')
-						+ (started.pending ? ' | pending=1' : ''));
-				} else if (started?.pending) {
-					info(`[ParseMode] localHttp pending | url=${started.url || ''}`);
-				}
-			}).catch((error) => {
-				console.warn('[ParseMode] local worker start skipped:', error?.message || error);
-			});
-		} catch (error) {
-			console.warn('[ParseMode] local worker module skipped:', error?.message || error);
 		}
 		return;
 	}
@@ -154,7 +184,7 @@ function logParseMode(logger = console) {
 		return;
 	}
 
-	info('[ParseMode] GATEWAY → LOCAL | ROLL_WORKER_URL unset (in-process roll/*)');
+	info('[ParseMode] GATEWAY → Embedded | ROLL_WORKER_URL unset (in-process roll/*; SPAWN=false or auto-start failed)');
 }
 
 /**
@@ -228,6 +258,11 @@ function stripWorkerProof(result) {
  * @param {object} [options.replyTarget] - defer-queue delivery target (Discord/TG/LINE/WA/WWW)
  */
 async function parseInput(params = {}, options = {}) {
+	// Ensure auto primary/local Workers are up before first route decision.
+	if (process.env.ROLL_WORKER_MODE !== 'true') {
+		await ensureWorkersReady(console);
+	}
+
 	const remoteOnly = isRemoteOnlyMode();
 	const deferredReplay = options.deferredReplay === true;
 	// Default: fall back locally on Worker outages unless remote-only switch is on.
@@ -245,7 +280,13 @@ async function parseInput(params = {}, options = {}) {
 		? analytics.findRollModuleName(mainMsg)
 		: null;
 
-	if (!client.isEnabled()) {
+	if (!client.isEnabled() || getLifecycleFlags().isPrimaryStopped()) {
+		if (client.isEnabled() && getLifecycleFlags().isPrimaryStopped()) {
+			logLocalFallback('primaryStopped', {
+				botname: params.botname,
+				moduleName,
+			});
+		}
 		if (remoteOnly) {
 			console.error('[ParseRouter] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL');
 			const deferred = await tryDeferBusy({
@@ -300,7 +341,7 @@ async function parseInput(params = {}, options = {}) {
 
 	/**
 	 * Main-thread analytics (needs live Discord client / Message).
-	 * Not covered by .root reload local — Gateway process must restart for these code paths.
+	 * Not covered by .root restart standby — Gateway process must restart for these code paths.
 	 */
 	const runMainThreadLocal = async ({ skipExp = false } = {}) => analytics.parseInput({
 		...remoteParams,
@@ -319,7 +360,8 @@ async function parseInput(params = {}, options = {}) {
 		const skip = skipExp || Boolean(remoteParams.skipExp) || Boolean(params.skipExp);
 		if (typeof client.isLocalEnabled === 'function'
 			&& client.isLocalEnabled()
-			&& typeof client.parseLocal === 'function') {
+			&& typeof client.parseLocal === 'function'
+			&& !getLifecycleFlags().isStandbyStopped()) {
 			try {
 				const httpLocal = await client.parseLocal({
 					...remoteParams,
@@ -817,6 +859,7 @@ module.exports = {
 	FAIL_CLOSED_ON_WORKER_ERROR,
 	FALLBACK_LOG_INTERVAL_MS,
 	logParseMode,
+	ensureWorkersReady,
 	logRemoteFailNoLocal,
 	resetOpsLogCounters,
 	getSystemBusyText,

@@ -15,7 +15,7 @@ const ADMIN_LIVE_SUBS = new Set([
 
 /**
  * .root subs that need live Discord unless meta is prefetched.
- * mem / importpatreon / fixshard / slash deploy use meta; respawn* uses clusterIpc.
+ * mem / importpatreon / fixshard / slash deploy use meta; restart discord uses clusterIpc.
  */
 const ROOT_LIVE_SUBS = new Set([
 	'removeslashcommands',
@@ -62,13 +62,14 @@ function adminSubNeedsLiveDiscord(mainMsg0, mainMsg1, meta = {}) {
 			// Prefetch may be deferred (Gateway applies via gatewayAction) or already have text.
 			return !(meta.slashDeployMeta?.text || meta.slashDeployMeta?.deferred);
 		}
-		// respawn / respawnall → Worker returns clusterIpc; Gateway applies.
-		if (sub === 'respawn' || sub === 'respawnall') {
-			return false;
-		}
-		// .root reload* must run on Gateway (owns local child / loopback admin).
-		if (sub === 'reload') {
+		// .root stop / restart primary|standby|gateway|all → Gateway.
+		// .root restart discord → clusterIpc from Worker (no live Discord on Worker).
+		if (sub === 'stop') {
 			return true;
+		}
+		if (sub === 'restart') {
+			const target = String(meta.mainMsg2 || meta.restartTarget || '').toLowerCase();
+			return target !== 'discord';
 		}
 		return ROOT_LIVE_SUBS.has(sub);
 	}

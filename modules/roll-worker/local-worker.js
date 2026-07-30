@@ -1,11 +1,10 @@
 "use strict";
 
 /**
- * Local HTTP Roll Worker helpers for Gateway hybrid fallback + .root reload.
+ * Gateway auto-frame helpers (Primary + Standby) + .root restart / stop.
  *
- * Preferred ops: run one shared `yarn start:roll-worker` on ROLL_LOCAL_WORKER_URL
- * (e.g. :3951). Optional ROLL_LOCAL_WORKER_SPAWN=true lets a single Gateway process
- * own a child — do NOT enable on every Discord hybrid-sharding cluster worker.
+ * Default (SPAWN unset): Gateway auto-discovers/spawns Primary (:3950)
+ * then Standby (:3951). Opt-out: ROLL_LOCAL_WORKER_SPAWN=false → Embedded only.
  */
 
 const { spawn } = require('node:child_process');
@@ -16,14 +15,23 @@ const { ensureRollWorkerToken } = require('./ensure-token');
 
 const ROOT = path.join(__dirname, '..', '..');
 const LOCK_PATH = path.join(ROOT, 'temp', 'roll-local-worker.lock');
+const PRIMARY_LOCK_PATH = path.join(ROOT, 'temp', 'roll-primary-worker.lock');
 const DEFAULT_LOCAL_PORT = 3951;
+const DEFAULT_PRIMARY_PORT = 3950;
 const DEFAULT_DRAIN_MS = 1500;
 const DEFAULT_HEALTH_WAIT_MS = 25_000;
 const DEFAULT_HEALTH_PROBE_MS = 5000;
 
+/** Supervised Standby child. */
 let childProc = null;
 let supervised = false;
+/** Supervised Primary child (when ROLL_WORKER_URL was unset). */
+let primaryChildProc = null;
+let primarySupervised = false;
 let reloading = false;
+/** Operator stop: block auto-ensure / parse until .root restart. */
+let stoppedPrimary = false;
+let stoppedStandby = false;
 
 function sleep(ms) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
@@ -42,13 +50,65 @@ function getHealthProbeMs() {
 	return Number.isFinite(n) && n > 0 ? Math.min(n, 30_000) : DEFAULT_HEALTH_PROBE_MS;
 }
 
-function getSpawnPort() {
-	const n = Number.parseInt(process.env.ROLL_LOCAL_WORKER_PORT || String(DEFAULT_LOCAL_PORT), 10);
-	return Number.isFinite(n) && n > 0 ? n : DEFAULT_LOCAL_PORT;
+function spawnFlag() {
+	return (process.env.ROLL_LOCAL_WORKER_SPAWN || '').trim().toLowerCase();
 }
 
+/** Global auto-spawn opt-out / force (primary + local). */
+function shouldAutoSpawnWorkers() {
+	const flag = spawnFlag();
+	if (flag === 'false' || flag === '0' || flag === 'off') return false;
+	if (process.env.ROLL_WORKER_MODE === 'true') return false;
+	if (flag === 'true' || flag === '1' || flag === 'on') return true;
+	// Jest / unit tests: never auto-spawn unless SPAWN=true (avoids live children).
+	if (process.env.NODE_ENV === 'test') return false;
+	// Default: Gateway auto-frames Workers even when ROLL_WORKER_URL unset.
+	return true;
+}
+
+function getPrimaryWorkerPort() {
+	const raw = (process.env.ROLL_WORKER_URL || '').trim();
+	if (!raw) return null;
+	try {
+		const u = new URL(raw);
+		if (u.port) return Number.parseInt(u.port, 10);
+		if (u.protocol === 'https:') return 443;
+		if (u.protocol === 'http:') return 80;
+	} catch {
+		/* ignore */
+	}
+	return null;
+}
+
+function getPrimarySpawnPort() {
+	const n = Number.parseInt(process.env.ROLL_WORKER_PORT || String(DEFAULT_PRIMARY_PORT), 10);
+	return Number.isFinite(n) && n > 0 ? n : DEFAULT_PRIMARY_PORT;
+}
+
+function getSpawnPort() {
+	const n = Number.parseInt(process.env.ROLL_LOCAL_WORKER_PORT || String(DEFAULT_LOCAL_PORT), 10);
+	let port = Number.isFinite(n) && n > 0 ? n : DEFAULT_LOCAL_PORT;
+	const primaryPort = getPrimaryWorkerPort() || getPrimarySpawnPort();
+	if (primaryPort && port === primaryPort) {
+		port = primaryPort === DEFAULT_LOCAL_PORT ? 3952 : DEFAULT_LOCAL_PORT;
+	}
+	return port;
+}
+
+/**
+ * Whether Gateway may spawn a supervised Local Worker.
+ * Requires primary URL (after ensurePrimary) and not REMOTE_ONLY.
+ */
 function shouldSpawn() {
-	return process.env.ROLL_LOCAL_WORKER_SPAWN === 'true';
+	if (!shouldAutoSpawnWorkers()) return false;
+	if (process.env.ROLL_WORKER_REMOTE_ONLY === 'true') return false;
+	return Boolean((process.env.ROLL_WORKER_URL || '').trim());
+}
+
+/** Only explicit SPAWN=true may replace an operator-set ROLL_LOCAL_WORKER_URL. */
+function shouldReplaceUnhealthyUrl() {
+	const flag = spawnFlag();
+	return flag === 'true' || flag === '1' || flag === 'on';
 }
 
 function isPidAlive(pid) {
@@ -61,33 +121,57 @@ function isPidAlive(pid) {
 	}
 }
 
-function readLock() {
+function readLockFile(lockPath) {
 	try {
-		const raw = fs.readFileSync(LOCK_PATH, 'utf8');
+		const raw = fs.readFileSync(lockPath, 'utf8');
 		return JSON.parse(raw);
 	} catch {
 		return null;
 	}
 }
 
-function writeLock({ pid, port, url }) {
+function writeLockFile(lockPath, { pid, port, url }) {
 	try {
-		fs.mkdirSync(path.dirname(LOCK_PATH), { recursive: true });
-		fs.writeFileSync(LOCK_PATH, JSON.stringify({ pid, port, url, at: Date.now() }, null, 2));
+		fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+		fs.writeFileSync(lockPath, JSON.stringify({ pid, port, url, at: Date.now() }, null, 2));
 	} catch (error) {
-		console.warn('[LocalWorker] lock write failed:', error?.message || error);
+		console.warn('[Standby] lock write failed:', error?.message || error);
 	}
 }
 
-function clearLockIfOurs(pid) {
-	const lock = readLock();
+function clearLockFileIfPid(lockPath, pid) {
+	const lock = readLockFile(lockPath);
 	if (lock?.pid === pid) {
 		try {
-			fs.unlinkSync(LOCK_PATH);
+			fs.unlinkSync(lockPath);
 		} catch {
 			/* ignore */
 		}
 	}
+}
+
+function readLock() {
+	return readLockFile(LOCK_PATH);
+}
+
+function writeLock(payload) {
+	writeLockFile(LOCK_PATH, payload);
+}
+
+function clearLockIfOurs(pid) {
+	clearLockFileIfPid(LOCK_PATH, pid);
+}
+
+function readPrimaryLock() {
+	return readLockFile(PRIMARY_LOCK_PATH);
+}
+
+function writePrimaryLock(payload) {
+	writeLockFile(PRIMARY_LOCK_PATH, payload);
+}
+
+function clearPrimaryLockIfOurs(pid) {
+	clearLockFileIfPid(PRIMARY_LOCK_PATH, pid);
 }
 
 async function waitHealth(url, timeoutMs = DEFAULT_HEALTH_WAIT_MS) {
@@ -127,8 +211,9 @@ function ensureSharedToken() {
 	return (process.env.ROLL_WORKER_TOKEN || '').trim();
 }
 
-function spawnChild({ port, token }) {
+function spawnChild({ port, token, role = 'local' }) {
 	const url = `http://127.0.0.1:${port}`;
+	const label = role === 'primary' ? 'PrimaryWorker' : 'LocalWorker';
 	const child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
 		cwd: ROOT,
 		env: {
@@ -146,14 +231,22 @@ function spawnChild({ port, token }) {
 	});
 	child.stdout?.on('data', (buf) => {
 		const line = String(buf).trim();
-		if (line) console.info(`[LocalWorker:child] ${line}`);
+		if (line) console.info(`[${label}:child] ${line}`);
 	});
 	child.stderr?.on('data', (buf) => {
 		const line = String(buf).trim();
-		if (line) console.warn(`[LocalWorker:child] ${line}`);
+		if (line) console.warn(`[${label}:child] ${line}`);
 	});
 	child.on('exit', (code, signal) => {
-		console.warn(`[LocalWorker] child exit code=${code} signal=${signal || ''}`);
+		console.warn(`[${label}] child exit code=${code} signal=${signal || ''}`);
+		if (role === 'primary') {
+			if (primaryChildProc === child) {
+				primaryChildProc = null;
+				primarySupervised = false;
+			}
+			clearPrimaryLockIfOurs(child.pid);
+			return;
+		}
 		if (childProc === child) {
 			childProc = null;
 			supervised = false;
@@ -164,29 +257,105 @@ function spawnChild({ port, token }) {
 }
 
 /**
- * Ensure ROLL_LOCAL_WORKER_URL is usable. Optionally spawn a supervised child.
- * Safe no-op when URL unset and SPAWN off.
+ * Ensure ROLL_WORKER_URL: discover existing :3950, reuse lock, or auto-spawn.
  */
-async function startIfConfigured(logger = console) {
+function isPrimaryStopped() {
+	return stoppedPrimary === true;
+}
+
+function isStandbyStopped() {
+	return stoppedStandby === true;
+}
+
+/** @internal Jest / process recycle */
+function resetStoppedFlagsForTests() {
+	stoppedPrimary = false;
+	stoppedStandby = false;
+}
+
+async function ensurePrimaryWorker(logger = console) {
+	const info = typeof logger.info === 'function'
+		? (msg) => logger.info(msg)
+		: (msg) => console.info(msg);
+	const probeMs = getHealthProbeMs();
+
+	if (stoppedPrimary) {
+		return { ok: false, skipped: true, stopped: true };
+	}
+
+	if (client.isEnabled()) {
+		const { url } = client.getConfig();
+		return { ok: true, url, supervised: false, existing: true };
+	}
+	if (!shouldAutoSpawnWorkers()) {
+		return { ok: false, skipped: true };
+	}
+
+	const port = getPrimarySpawnPort();
+	const defaultUrl = `http://127.0.0.1:${port}`;
+
+	try {
+		await waitHealth(defaultUrl, probeMs);
+		process.env.ROLL_WORKER_URL = defaultUrl;
+		info(`[Primary] discovered existing ${defaultUrl}`);
+		return { ok: true, url: defaultUrl, supervised: false, discovered: true };
+	} catch {
+		/* spawn path */
+	}
+
+	const lock = readPrimaryLock();
+	if (lock?.url && isPidAlive(lock.pid)) {
+		try {
+			await waitHealth(lock.url, probeMs);
+			process.env.ROLL_WORKER_URL = lock.url;
+			info(`[Primary] reuse lock pid=${lock.pid} url=${lock.url}`);
+			return { ok: true, url: lock.url, supervised: false, reusedLock: true };
+		} catch {
+			info(`[Primary] lock pid=${lock.pid} unhealthy — spawning replacement`);
+			clearPrimaryLockIfOurs(lock.pid);
+		}
+	}
+
+	const token = ensureSharedToken();
+	if (!token && process.env.ROLL_WORKER_ALLOW_NO_TOKEN !== 'true') {
+		return { ok: false, error: 'ROLL_WORKER_TOKEN missing; cannot spawn primary worker' };
+	}
+	const { child, url } = spawnChild({ port, token, role: 'primary' });
+	primaryChildProc = child;
+	primarySupervised = true;
+	process.env.ROLL_WORKER_URL = url;
+	writePrimaryLock({ pid: child.pid, port, url });
+	await waitHealth(url);
+	info(`[Primary] spawned pid=${child.pid} url=${url}`);
+	return { ok: true, url, supervised: true, pid: child.pid };
+}
+
+/**
+ * Ensure ROLL_LOCAL_WORKER_URL (after primary is available).
+ */
+async function ensureLocalWorker(logger = console) {
 	const info = typeof logger.info === 'function'
 		? (msg) => logger.info(msg)
 		: (msg) => console.info(msg);
 
 	const probeMs = getHealthProbeMs();
 
+	if (stoppedStandby) {
+		return { ok: false, skipped: true, stopped: true };
+	}
+
 	if (client.isLocalEnabled()) {
 		const { url } = client.getLocalConfig();
 		try {
 			await waitHealth(url, probeMs);
-			info(`[LocalWorker] using existing ${url}`);
+			info(`[Standby] using existing ${url}`);
 			return { ok: true, url, supervised: false };
 		} catch {
-			if (!shouldSpawn()) {
-				info(`[LocalWorker] ROLL_LOCAL_WORKER_URL=${url} not healthy yet (will retry on fallback)`);
+			if (!shouldReplaceUnhealthyUrl()) {
+				info(`[Standby] ROLL_LOCAL_WORKER_URL=${url} not healthy yet (will retry on fallback)`);
 				return { ok: false, url, supervised: false, pending: true };
 			}
-			// SPAWN on: replace dead shared URL with a supervised child on ROLL_LOCAL_WORKER_PORT.
-			info(`[LocalWorker] ROLL_LOCAL_WORKER_URL=${url} unhealthy — SPAWN replacement`);
+			info(`[Standby] ROLL_LOCAL_WORKER_URL=${url} unhealthy — SPAWN replacement`);
 		}
 	} else if (!shouldSpawn()) {
 		return { ok: false, skipped: true };
@@ -197,10 +366,10 @@ async function startIfConfigured(logger = console) {
 		try {
 			await waitHealth(lock.url, probeMs);
 			process.env.ROLL_LOCAL_WORKER_URL = lock.url;
-			info(`[LocalWorker] reuse lock pid=${lock.pid} url=${lock.url}`);
+			info(`[Standby] reuse lock pid=${lock.pid} url=${lock.url}`);
 			return { ok: true, url: lock.url, supervised: false, reusedLock: true };
 		} catch {
-			info(`[LocalWorker] lock pid=${lock.pid} unhealthy — spawning replacement`);
+			info(`[Standby] lock pid=${lock.pid} unhealthy — spawning replacement`);
 			clearLockIfOurs(lock.pid);
 		}
 	}
@@ -210,14 +379,32 @@ async function startIfConfigured(logger = console) {
 	if (!token && process.env.ROLL_WORKER_ALLOW_NO_TOKEN !== 'true') {
 		return { ok: false, error: 'ROLL_WORKER_TOKEN missing; cannot spawn local worker' };
 	}
-	const { child, url } = spawnChild({ port, token });
+	const { child, url } = spawnChild({ port, token, role: 'local' });
 	childProc = child;
 	supervised = true;
 	process.env.ROLL_LOCAL_WORKER_URL = url;
 	writeLock({ pid: child.pid, port, url });
 	await waitHealth(url);
-	info(`[LocalWorker] spawned pid=${child.pid} url=${url}`);
+	info(`[Standby] spawned pid=${child.pid} url=${url}`);
 	return { ok: true, url, supervised: true, pid: child.pid };
+}
+
+/**
+ * Ensure primary then local Workers (auto when SPAWN not false).
+ */
+async function startIfConfigured(logger = console) {
+	const primary = await ensurePrimaryWorker(logger);
+	const local = await ensureLocalWorker(logger);
+	return {
+		ok: Boolean(primary?.ok || local?.ok),
+		primary,
+		local,
+		url: local?.url || primary?.url || null,
+		supervised: Boolean(local?.supervised || primary?.supervised),
+		reusedLock: Boolean(local?.reusedLock || primary?.reusedLock),
+		pending: Boolean(local?.pending),
+		skipped: Boolean(primary?.skipped && local?.skipped),
+	};
 }
 
 async function stopSupervisedChild() {
@@ -249,13 +436,78 @@ async function stopSupervisedChild() {
 }
 
 /**
- * Reload local compute.
+ * Restart Standby compute (clears stopped flag).
+ * - Supervised SPAWN: Gateway shutdown + respawn child.
+ * - Shared Standby: self-restart via /v1/admin/reload.
+ * - If down after stop: ensure/spawn.
+ */
+async function restartStandby({ drainMs = getDrainMs() } = {}) {
+	stoppedStandby = false;
+	const { url } = client.getLocalConfig();
+	const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
+	if (targetUrl) {
+		try {
+			await waitHealth(targetUrl, getHealthProbeMs());
+			return reloadLocal({ drainMs });
+		} catch {
+			/* down — ensure path */
+		}
+	}
+	const ensured = await ensureLocalWorker(console);
+	if (ensured?.ok) {
+		return {
+			ok: true,
+			mode: ensured.supervised ? 'supervised-respawn' : 'ensure-spawn',
+			url: ensured.url,
+			pid: ensured.pid,
+			note: 'Standby was down; ensure/spawn completed. Discord Gateway was not restarted.',
+		};
+	}
+	return {
+		ok: false,
+		error: ensured?.error
+			|| 'Standby unavailable (set ROLL_LOCAL_WORKER_URL or allow auto SPAWN)',
+	};
+}
+
+/**
+ * Restart Primary compute (clears stopped flag).
+ */
+async function restartPrimary({ drainMs = getDrainMs() } = {}) {
+	stoppedPrimary = false;
+	if (client.isEnabled()) {
+		const { url } = client.getConfig();
+		try {
+			await waitHealth(url, getHealthProbeMs());
+			return reloadRemote({ drainMs });
+		} catch {
+			/* down — ensure path */
+		}
+	}
+	const ensured = await ensurePrimaryWorker(console);
+	if (ensured?.ok) {
+		return {
+			ok: true,
+			mode: ensured.supervised ? 'supervised-respawn' : 'ensure-spawn',
+			url: ensured.url,
+			pid: ensured.pid,
+			note: 'Primary was down; ensure/spawn completed. Gateway Discord connection was not restarted.',
+		};
+	}
+	return {
+		ok: false,
+		error: ensured?.error || 'ROLL_WORKER_URL unset (auto-spawn disabled?)',
+	};
+}
+
+/**
+ * Reload local compute (internal; prefer restartStandby).
  * - Supervised SPAWN: Gateway shutdown + respawn child.
  * - Shared local Worker: Worker self-restarts via /v1/admin/reload.
  */
 async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 	if (reloading) {
-		return { ok: false, error: 'reload already in progress' };
+		return { ok: false, error: 'restart already in progress' };
 	}
 	reloading = true;
 	try {
@@ -263,7 +515,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 		if (!url && !supervised) {
 			return {
 				ok: false,
-				error: 'ROLL_LOCAL_WORKER_URL unset (start shared local worker or ROLL_LOCAL_WORKER_SPAWN=true)',
+				error: 'ROLL_LOCAL_WORKER_URL unset (auto-spawn disabled? set URL or remove ROLL_LOCAL_WORKER_SPAWN=false)',
 			};
 		}
 		const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
@@ -275,14 +527,14 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 					await client.requestAdminShutdown(targetUrl, { drainMs });
 				} catch (error) {
 					// Process may already be dead — continue respawn.
-					console.warn('[LocalWorker] supervised shutdown:', error?.message || error);
+					console.warn('[Standby] supervised shutdown:', error?.message || error);
 				}
 			}
 			await waitUntilUnhealthy(targetUrl, Math.min(drainMs + 3000, 10_000));
 			await stopSupervisedChild();
 			const port = getSpawnPort();
 			const token = ensureSharedToken();
-			const spawned = spawnChild({ port, token });
+			const spawned = spawnChild({ port, token, role: 'local' });
 			childProc = spawned.child;
 			supervised = true;
 			process.env.ROLL_LOCAL_WORKER_URL = spawned.url;
@@ -307,7 +559,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 				url: targetUrl,
 				error: error?.message || String(error),
 				status: error?.status,
-				hint: 'Reload requires loopback + Bearer on the local Worker.',
+				hint: 'Restart requires loopback + Bearer on the Standby process.',
 			};
 		}
 
@@ -319,7 +571,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 				url: targetUrl,
 				pid: data?.pid,
 				error: 'Reload requested but /health still OK — process may not have restarted',
-				hint: 'Check Worker logs; retry .root reload local.',
+				hint: 'Check Standby logs; retry .root restart standby.',
 			};
 		}
 		const waitMs = Number.parseInt(process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS || '15000', 10);
@@ -330,7 +582,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 				mode: 'self-restart',
 				url: targetUrl,
 				pid: data?.pid,
-				note: 'Local Worker self-restarted (successor process). Discord Gateway was not restarted.',
+				note: 'Standby self-restarted (successor process). Discord Gateway was not restarted.',
 			};
 		} catch {
 			return {
@@ -338,8 +590,8 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 				mode: 'reload-sent',
 				url: targetUrl,
 				pid: data?.pid,
-				error: 'Local Worker reload started but /health did not return',
-				hint: 'Check Worker logs; start yarn start:roll-worker on ROLL_LOCAL_WORKER_URL if needed.',
+				error: 'Standby reload started but /health did not return',
+				hint: 'Check Standby logs; start yarn start:roll-worker on ROLL_LOCAL_WORKER_URL if needed.',
 			};
 		}
 	} finally {
@@ -349,7 +601,6 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 
 /**
  * Reload primary ROLL_WORKER_URL via Worker self-restart (/v1/admin/reload).
- * Waits for health to drop then return — no PM2 required on loopback.
  */
 async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 	if (!client.isEnabled()) {
@@ -367,8 +618,8 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 			error: error?.message || String(error),
 			status,
 			hint: status === 403
-				? 'Worker refused non-loopback admin reload. Run reload on the Worker host or use SSH/PM2 there.'
-				: 'Reload failed. Confirm ROLL_WORKER_URL is reachable on loopback with a valid Bearer token.',
+				? 'Primary refused non-loopback admin reload. Run restart on the Primary host or use SSH/PM2 there.'
+				: 'Restart failed. Confirm ROLL_WORKER_URL is reachable on loopback with a valid Bearer token.',
 		};
 	}
 
@@ -380,7 +631,7 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 			url,
 			pid: data?.pid,
 			error: 'Reload requested but /health still OK — process may not have restarted',
-			hint: 'Check Worker logs; retry .root reload remote.',
+			hint: 'Check Primary logs; retry .root restart primary.',
 		};
 	}
 
@@ -397,7 +648,7 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 			mode: 'self-restart',
 			url,
 			pid: data?.pid,
-			note: 'Primary Roll Worker self-restarted (successor process). Gateway Discord connection was not restarted.',
+			note: 'Primary self-restarted (successor process). Gateway Discord connection was not restarted.',
 		};
 	} catch {
 		return {
@@ -405,34 +656,181 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 			mode: 'reload-sent',
 			url,
 			pid: data?.pid,
-			error: 'Primary Roll Worker reload started but /health did not return',
-			hint: 'Check Worker logs on the host. If the successor failed to bind the port, start yarn start:roll-worker manually.',
-			warning: 'ROLL_WORKER_URL may be down until the Worker is running again. Discord Gateway stays up.',
+			error: 'Primary reload started but /health did not return',
+			hint: 'Check Primary logs on the host. If the successor failed to bind the port, start yarn start:roll-worker manually.',
+			warning: 'ROLL_WORKER_URL may be down until Primary is running again. Discord Gateway stays up.',
 		};
 	}
 }
 
-async function reload(target = 'local') {
-	const t = String(target || 'local').toLowerCase();
-	if (t === 'remote') return reloadRemote();
-	if (t === 'all') {
-		const local = await reloadLocal();
-		const remote = await reloadRemote();
-		return { ok: Boolean(local.ok || remote.ok), local, remote };
+async function stopStandby({ drainMs = getDrainMs() } = {}) {
+	if (reloading) {
+		return { ok: false, error: 'restart already in progress' };
 	}
-	return reloadLocal();
+	reloading = true;
+	try {
+		stoppedStandby = true;
+		const { url } = client.getLocalConfig();
+		const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
+		const wasSupervised = supervised && childProc;
+
+		if (wasSupervised) {
+			if (targetUrl) {
+				try {
+					await client.requestAdminShutdown(targetUrl, { drainMs });
+				} catch (error) {
+					console.warn('[Standby] stop shutdown:', error?.message || error);
+				}
+			}
+			await waitUntilUnhealthy(targetUrl, Math.min(drainMs + 3000, 10_000));
+			await stopSupervisedChild();
+			return {
+				ok: true,
+				mode: 'stopped',
+				url: targetUrl || null,
+				note: 'Standby stopped; auto-spawn blocked until .root restart standby.',
+			};
+		}
+
+		if (!targetUrl) {
+			return {
+				ok: true,
+				mode: 'stopped',
+				url: null,
+				note: 'No Standby URL; flag set so auto-spawn stays off until restart.',
+			};
+		}
+
+		try {
+			await client.requestAdminShutdown(targetUrl, { drainMs });
+		} catch (error) {
+			console.warn('[Standby] stop shutdown:', error?.message || error);
+		}
+		await waitUntilUnhealthy(targetUrl, Math.min(drainMs + 5000, 15_000));
+		return {
+			ok: true,
+			mode: 'stopped',
+			url: targetUrl,
+			note: 'Standby shutdown requested; auto-spawn blocked until .root restart standby.',
+		};
+	} finally {
+		reloading = false;
+	}
+}
+
+async function stopPrimary({ drainMs = getDrainMs() } = {}) {
+	if (reloading) {
+		return { ok: false, error: 'restart already in progress' };
+	}
+	reloading = true;
+	try {
+		stoppedPrimary = true;
+		const { url } = client.getConfig();
+		const wasSupervised = primarySupervised && primaryChildProc;
+
+		if (wasSupervised) {
+			if (url) {
+				try {
+					await client.requestAdminShutdown(url, { drainMs });
+				} catch (error) {
+					console.warn('[Primary] stop shutdown:', error?.message || error);
+				}
+			}
+			await waitUntilUnhealthy(url, Math.min(drainMs + 3000, 10_000));
+			await stopPrimarySupervisedChild();
+			return {
+				ok: true,
+				mode: 'stopped',
+				url: url || null,
+				note: 'Primary stopped; auto-spawn blocked until .root restart primary.',
+			};
+		}
+
+		if (!url || !client.isEnabled()) {
+			return {
+				ok: true,
+				mode: 'stopped',
+				url: null,
+				note: 'No Primary URL; flag set so auto-spawn stays off until restart.',
+			};
+		}
+
+		try {
+			await client.requestAdminShutdown(url, { drainMs });
+		} catch (error) {
+			console.warn('[Primary] stop shutdown:', error?.message || error);
+		}
+		await waitUntilUnhealthy(url, Math.min(drainMs + 5000, 15_000));
+		return {
+			ok: true,
+			mode: 'stopped',
+			url,
+			note: 'Primary shutdown requested; auto-spawn blocked until .root restart primary.',
+		};
+	} finally {
+		reloading = false;
+	}
+}
+
+async function restart(target = 'standby') {
+	const t = String(target || 'standby').toLowerCase();
+	if (t === 'primary') return restartPrimary();
+	return restartStandby();
+}
+
+async function stop(target = 'standby') {
+	const t = String(target || 'standby').toLowerCase();
+	if (t === 'primary') return stopPrimary();
+	return stopStandby();
+}
+
+async function stopPrimarySupervisedChild() {
+	if (!primaryChildProc || primaryChildProc.killed) {
+		primaryChildProc = null;
+		primarySupervised = false;
+		return;
+	}
+	const pid = primaryChildProc.pid;
+	try {
+		primaryChildProc.kill('SIGTERM');
+	} catch {
+		/* ignore */
+	}
+	const start = Date.now();
+	while (Date.now() - start < 5000 && isPidAlive(pid)) {
+		await sleep(100);
+	}
+	if (isPidAlive(pid)) {
+		try {
+			primaryChildProc.kill('SIGKILL');
+		} catch {
+			/* ignore */
+		}
+	}
+	primaryChildProc = null;
+	primarySupervised = false;
+	clearPrimaryLockIfOurs(pid);
 }
 
 function getStatus() {
 	const local = client.getLocalConfig();
+	const primary = client.getConfig();
 	return {
+		primaryUrl: primary.url || null,
+		primaryEnabled: client.isEnabled(),
+		primarySupervised,
+		primaryChildPid: primaryChildProc?.pid || null,
+		primaryStopped: stoppedPrimary,
 		localUrl: local.url || null,
 		localEnabled: client.isLocalEnabled(),
+		standbyStopped: stoppedStandby,
 		spawn: shouldSpawn(),
+		autoSpawn: shouldAutoSpawnWorkers(),
 		supervised,
 		childPid: childProc?.pid || null,
 		reloading,
 		lock: readLock(),
+		primaryLock: readPrimaryLock(),
 	};
 }
 
@@ -440,16 +838,35 @@ async function shutdown() {
 	if (supervised) {
 		await stopSupervisedChild();
 	}
+	if (primarySupervised) {
+		await stopPrimarySupervisedChild();
+	}
 }
 
 module.exports = {
 	DEFAULT_LOCAL_PORT,
+	DEFAULT_PRIMARY_PORT,
 	startIfConfigured,
-	reload,
+	ensurePrimaryWorker,
+	ensureLocalWorker,
+	restart,
+	stop,
+	restartStandby,
+	restartPrimary,
+	stopStandby,
+	stopPrimary,
 	reloadLocal,
 	reloadRemote,
+	isPrimaryStopped,
+	isStandbyStopped,
+	resetStoppedFlagsForTests,
 	getStatus,
 	shutdown,
 	waitHealth,
 	waitUntilUnhealthy,
+	shouldSpawn,
+	shouldAutoSpawnWorkers,
+	shouldReplaceUnhealthyUrl,
+	getSpawnPort,
+	getPrimarySpawnPort,
 };

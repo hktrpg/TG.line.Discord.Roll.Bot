@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * /root reload slash → `.root reload …` bridge + text-command handler.
+ * /root restart|stop slash → `.root …` bridge + text handlers.
  */
 process.env.SALT = process.env.SALT || 'test_salt';
 process.env.CRYPTO_SECRET = process.env.CRYPTO_SECRET || 'test_crypto_secret';
@@ -73,12 +73,17 @@ jest.mock('../modules/runtime/schedule.js', () => ({
 }));
 
 jest.mock('../modules/roll-worker/local-worker', () => ({
-	reload: jest.fn(),
-	reloadLocal: jest.fn(),
-	reloadRemote: jest.fn(),
+	restart: jest.fn(),
+	stop: jest.fn(),
+	restartStandby: jest.fn(),
+	restartPrimary: jest.fn(),
+	stopStandby: jest.fn(),
+	stopPrimary: jest.fn(),
 	getStatus: jest.fn(),
 	startIfConfigured: jest.fn(),
 	shutdown: jest.fn(),
+	isPrimaryStopped: jest.fn(() => false),
+	isStandbyStopped: jest.fn(() => false),
 }));
 
 const adminModule = require('../roll/z_admin.js');
@@ -99,93 +104,124 @@ function mockRootInteraction({ subcommand, getString = () => null } = {}) {
 	};
 }
 
-describe('/root reload slash', () => {
+describe('/root restart|stop slash', () => {
 	const rootCommand = adminModule.discordCommand.find((cmd) => cmd.data?.name === 'root');
 
 	beforeEach(() => {
 		jest.clearAllMocks();
 	});
 
-	it('registers reload subcommand with target choices', () => {
+	it('registers restart and stop; removes reload/respawn', () => {
 		expect(rootCommand).toBeTruthy();
 		const json = rootCommand.data.toJSON();
-		const reload = json.options.find((opt) => opt.name === 'reload');
-		expect(reload).toBeTruthy();
-		expect(reload.type).toBe(1); // SUB_COMMAND
-		expect(reload.description).toMatch(/Roll Worker|計算|compute/i);
-		const target = reload.options.find((opt) => opt.name === 'target');
-		expect(target).toBeTruthy();
-		expect(target.required).toBeFalsy();
-		expect(target.choices.map((c) => c.value).sort()).toEqual(['all', 'local', 'remote']);
-	});
+		const names = json.options.map((opt) => opt.name);
+		expect(names).toContain('restart');
+		expect(names).toContain('stop');
+		expect(names).not.toContain('reload');
+		expect(names).not.toContain('respawn');
+		expect(names).not.toContain('respawnall');
 
-	it('execute defaults target to local', async () => {
-		const text = await rootCommand.execute(mockRootInteraction({
-			subcommand: 'reload',
-			getString: () => null,
-		}));
-		expect(text).toBe('.root reload local');
+		const restart = json.options.find((opt) => opt.name === 'restart');
+		const target = restart.options.find((opt) => opt.name === 'target');
+		expect(target.required).toBe(true);
+		expect(target.choices.map((c) => c.value).sort()).toEqual([
+			'all', 'discord', 'gateway', 'primary', 'standby',
+		]);
 	});
 
 	it.each([
-		['local', '.root reload local'],
-		['remote', '.root reload remote'],
-		['all', '.root reload all'],
-	])('execute maps target=%s', async (target, expected) => {
+		['primary', '.root restart primary'],
+		['standby', '.root restart standby'],
+		['discord', '.root restart discord'],
+		['gateway', '.root restart gateway'],
+		['all', '.root restart all'],
+	])('execute restart maps target=%s', async (target, expected) => {
 		const text = await rootCommand.execute(mockRootInteraction({
-			subcommand: 'reload',
+			subcommand: 'restart',
+			getString: (name) => (name === 'target' ? target : null),
+		}));
+		expect(text).toBe(expected);
+	});
+
+	it('execute restart discord with cluster_id', async () => {
+		const text = await rootCommand.execute(mockRootInteraction({
+			subcommand: 'restart',
+			getString: (name) => {
+				if (name === 'target') return 'discord';
+				if (name === 'cluster_id') return '2';
+				return null;
+			},
+		}));
+		expect(text).toBe('.root restart discord 2');
+	});
+
+	it.each([
+		['primary', '.root stop primary'],
+		['standby', '.root stop standby'],
+	])('execute stop maps target=%s', async (target, expected) => {
+		const text = await rootCommand.execute(mockRootInteraction({
+			subcommand: 'stop',
 			getString: (name) => (name === 'target' ? target : null),
 		}));
 		expect(text).toBe(expected);
 	});
 });
 
-describe('.root reload text command (slash bridge target)', () => {
+describe('.root restart|stop text', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 	});
 
-	it('rejects invalid target with usage text', async () => {
+	it('rejects invalid restart target', async () => {
 		const result = await adminModule.rollDiceCommand({
-			mainMsg: ['.root', 'reload', 'nope'],
+			mainMsg: ['.root', 'restart', 'nope'],
 			userid: 'test_admin_id',
 			locale: 'zh-tw',
 		});
-		expect(result.text).toMatch(/local\|remote\|all|用法|Usage/i);
-		expect(localWorker.reload).not.toHaveBeenCalled();
+		expect(result.text).toMatch(/primary\|standby|用法|Usage/i);
+		expect(localWorker.restart).not.toHaveBeenCalled();
 	});
 
-	it('calls localWorker.reload(local) by default and formats reply', async () => {
-		localWorker.reload.mockResolvedValue({
+	it('calls localWorker.restart(standby)', async () => {
+		localWorker.restart.mockResolvedValue({
 			ok: true,
 			mode: 'self-restart',
 			url: 'http://127.0.0.1:3951',
 			pid: 42,
 		});
 		const result = await adminModule.rollDiceCommand({
-			mainMsg: ['.root', 'reload'],
+			mainMsg: ['.root', 'restart', 'standby'],
 			userid: 'test_admin_id',
 			locale: 'zh-tw',
 		});
-		expect(localWorker.reload).toHaveBeenCalledWith('local');
+		expect(localWorker.restart).toHaveBeenCalledWith('standby');
 		expect(result.quotes).toBe(true);
-		expect(result.text).toContain('【.root reload local】成功');
-		expect(result.text).toContain('self-restart');
+		expect(result.text).toContain('【.root restart standby】成功');
 	});
 
-	it('calls localWorker.reload(remote) for slash-mapped remote', async () => {
-		localWorker.reload.mockResolvedValue({
+	it('calls localWorker.stop(primary)', async () => {
+		localWorker.stop.mockResolvedValue({
 			ok: true,
-			mode: 'self-restart',
+			mode: 'stopped',
 			url: 'http://127.0.0.1:3950',
-			pid: 7,
 		});
 		const result = await adminModule.rollDiceCommand({
-			mainMsg: ['.root', 'reload', 'remote'],
+			mainMsg: ['.root', 'stop', 'primary'],
 			userid: 'test_admin_id',
 			locale: 'zh-tw',
 		});
-		expect(localWorker.reload).toHaveBeenCalledWith('remote');
-		expect(result.text).toContain('【.root reload remote】成功');
+		expect(localWorker.stop).toHaveBeenCalledWith('primary');
+		expect(result.text).toContain('【.root stop primary】成功');
+	});
+
+	it('restart discord returns clusterIpc respawnall', async () => {
+		const result = await adminModule.rollDiceCommand({
+			mainMsg: ['.root', 'restart', 'discord'],
+			userid: 'test_admin_id',
+			locale: 'zh-tw',
+			botname: 'Discord',
+		});
+		expect(result.clusterIpc).toEqual(expect.objectContaining({ respawnall: true }));
+		expect(result.text).toMatch(/restart discord/i);
 	});
 });

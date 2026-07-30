@@ -37,7 +37,7 @@ const patreonSync = require('../modules/patreon/patreon-sync.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const scheduleModule = require('../modules/runtime/schedule.js');
 const { adminSubNeedsLiveDiscord } = require('../modules/roll-worker/admin-remote.js');
-const { formatRootReloadText } = require('../modules/roll-worker/reload-reply.js');
+const { formatRootRestartText, formatRootStopText } = require('../modules/roll-worker/restart-reply.js');
 const SCHEDULE_DOC_KEY = scheduleModule.SCHEDULE_DOC_KEY || 'default';
 const AGENDA_TIMEZONE = scheduleModule.AGENDA_TIMEZONE || process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong';
 const gameName = function (params = {}) {
@@ -175,40 +175,46 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('root')
             .setDescription('【🔐系統管理員專用】')
-            // System restart
+            // System restart / stop
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('respawn')
-                    .setDescription('重啟指定ID的服務')
+                    .setName('restart')
+                    .setDescription('Restart Primary / Standby / Discord / Gateway')
                     .addStringOption(option =>
-                        option.setName('id')
-                            .setDescription('服務ID')
-                            .setRequired(true)))
+                        option.setName('target')
+                            .setDescription('primary | standby | discord | gateway | all')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'primary - Primary (:3950)', value: 'primary' },
+                                { name: 'standby - Standby (:3951)', value: 'standby' },
+                                { name: 'discord - Discord clusters', value: 'discord' },
+                                { name: 'gateway - platform Gateway', value: 'gateway' },
+                                { name: 'all - standby → primary → gateway', value: 'all' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('cluster_id')
+                            .setDescription('Optional Discord cluster id (target=discord)')
+                            .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('respawnall')
-                    .setDescription('重啟所有服務'))
+                    .setName('stop')
+                    .setDescription('Stop Primary or Standby (until restart)')
+                    .addStringOption(option =>
+                        option.setName('target')
+                            .setDescription('primary | standby')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'primary - Primary (:3950)', value: 'primary' },
+                                { name: 'standby - Standby (:3951)', value: 'standby' }
+                            )))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('mem')
                     .setDescription('顯示各叢集 RSS 記憶體'))
-            .addSubcommand(subcommand =>
-                subcommand
-                    .setName('reload')
-                    .setDescription('重啟 Roll Worker 計算進程（不重啟 Discord）')
-                    .addStringOption(option =>
-                        option.setName('target')
-                            .setDescription('local / remote / all（預設 local）')
-                            .setRequired(false)
-                            .addChoices(
-                                { name: 'local - 本機 fallback Worker', value: 'local' },
-                                { name: 'remote - 主 Worker', value: 'remote' },
-                                { name: 'all - local 再 remote', value: 'all' }
-                            )))
             .addSubcommandGroup(group =>
                 group
                     .setName('schedule')
-                    .setDescription('排程自動 respawn（需手動開啟）')
+                    .setDescription('排程自動 restart discord（需手動開啟）')
                     .addSubcommand(subcommand =>
                         subcommand
                             .setName('show')
@@ -428,21 +434,22 @@ const discordCommand = [
                 }
             }
 
-            // System restart
+            // System restart / stop
             switch (subcommand) {
-            case 'respawn': {
-                const id = interaction.options.getString('id');
-                return `.root respawn ${id}`;
+            case 'restart': {
+                const target = interaction.options.getString('target') || 'standby';
+                const clusterId = interaction.options.getString('cluster_id');
+                if (target === 'discord' && clusterId) {
+                    return `.root restart discord ${clusterId}`;
+                }
+                return `.root restart ${target}`;
             }
-            case 'respawnall': {
-                return '.root respawnall';
+            case 'stop': {
+                const target = interaction.options.getString('target') || 'standby';
+                return `.root stop ${target}`;
             }
             case 'mem': {
                 return '.root mem';
-            }
-            case 'reload': {
-                const target = interaction.options.getString('target') || 'local';
-                return `.root reload ${target}`;
             }
             case 'addvipgroup': {
                 const id = interaction.options.getString('id');
@@ -629,6 +636,7 @@ const rollDiceCommand = async function ({
             csvAttachmentMeta,
             fixShardMeta,
             slashDeployMeta,
+            mainMsg2: mainMsg[2],
         })
     ) {
         return { needsLocal: true, moduleName: 'z_admin' };
@@ -1068,70 +1076,164 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            case /^reload$/i.test(mainMsg[1]): {
-                // Phase A/B: reload local/remote Roll Worker compute — never Discord Gateway respawn.
-                const target = (mainMsg[2] || 'local').toLowerCase();
-                if (!['local', 'remote', 'all'].includes(target)) {
-                    rply.text = translate('admin.reload_usage');
+            case /^restart$/i.test(mainMsg[1]): {
+                const target = (mainMsg[2] || '').toLowerCase();
+                const clusterId = mainMsg[3];
+                const valid = ['primary', 'standby', 'discord', 'gateway', 'all'];
+                if (!valid.includes(target)) {
+                    rply.text = translate('admin.restart_usage');
                     return rply;
                 }
                 try {
+                    if (target === 'primary' || target === 'standby') {
+                        const localWorker = require('../modules/roll-worker/local-worker');
+                        const result = await localWorker.restart(target);
+                        rply.text = formatRootRestartText(translate, target, result);
+                        rply.quotes = true;
+                        return rply;
+                    }
+                    if (target === 'discord') {
+                        if (clusterId != null && clusterId !== '') {
+                            const ipcPayload = {
+                                respawn: true,
+                                id: clusterId,
+                                meta: {
+                                    source: 'admin_command',
+                                    trigger: '.root restart discord',
+                                    targetClusterId: clusterId,
+                                    userid,
+                                    groupid,
+                                    channelid,
+                                },
+                            };
+                            if (discordClient?.cluster?.send) {
+                                discordClient.cluster.send(ipcPayload);
+                            } else {
+                                rply.clusterIpc = ipcPayload;
+                            }
+                            rply.text = translate('admin.restart_discord_one_sent', { id: clusterId });
+                            rply.quotes = true;
+                            return rply;
+                        }
+                        const ipcPayload = {
+                            respawnall: true,
+                            meta: {
+                                source: 'admin_command',
+                                trigger: '.root restart discord',
+                                userid,
+                                groupid,
+                                channelid,
+                            },
+                        };
+                        if (discordClient?.cluster?.send) {
+                            discordClient.cluster.send(ipcPayload);
+                        } else {
+                            rply.clusterIpc = ipcPayload;
+                        }
+                        rply.text = translate('admin.restart_discord_all_sent');
+                        rply.quotes = true;
+                        return rply;
+                    }
+                    if (target === 'gateway') {
+                        const bot = String(botname || '').toLowerCase();
+                        if (bot === 'discord' && discordClient?.cluster) {
+                            const ipcPayload = {
+                                respawnall: true,
+                                meta: {
+                                    source: 'admin_command',
+                                    trigger: '.root restart gateway',
+                                    userid,
+                                    groupid,
+                                    channelid,
+                                },
+                            };
+                            if (discordClient.cluster.send) {
+                                discordClient.cluster.send(ipcPayload);
+                            } else {
+                                rply.clusterIpc = ipcPayload;
+                            }
+                            rply.text = translate('admin.restart_gateway_discord_sent');
+                            rply.quotes = true;
+                            return rply;
+                        }
+                        rply.text = translate('admin.restart_gateway_process_sent');
+                        rply.quotes = true;
+                        setImmediate(() => {
+                            try {
+                                process.kill(process.pid, 'SIGTERM');
+                            } catch (error) {
+                                console.error('[Admin] gateway SIGTERM failed:', error);
+                            }
+                        });
+                        return rply;
+                    }
+                    // all: standby → primary → gateway
                     const localWorker = require('../modules/roll-worker/local-worker');
-                    const result = await localWorker.reload(target);
-                    rply.text = formatRootReloadText(translate, target, result);
+                    const standby = await localWorker.restart('standby');
+                    const primary = await localWorker.restart('primary');
+                    const parts = [
+                        translate('admin.restart_all_header'),
+                        '',
+                        formatRootRestartText(translate, 'standby', standby),
+                        '',
+                        formatRootRestartText(translate, 'primary', primary),
+                        '',
+                    ];
+                    const bot = String(botname || '').toLowerCase();
+                    if (bot === 'discord' && discordClient?.cluster) {
+                        const ipcPayload = {
+                            respawnall: true,
+                            meta: {
+                                source: 'admin_command',
+                                trigger: '.root restart all',
+                                userid,
+                                groupid,
+                                channelid,
+                            },
+                        };
+                        if (discordClient.cluster.send) {
+                            discordClient.cluster.send(ipcPayload);
+                        } else {
+                            rply.clusterIpc = ipcPayload;
+                        }
+                        parts.push(translate('admin.restart_gateway_discord_sent'));
+                    } else {
+                        parts.push(translate('admin.restart_gateway_process_sent'));
+                        setImmediate(() => {
+                            try {
+                                process.kill(process.pid, 'SIGTERM');
+                            } catch (error) {
+                                console.error('[Admin] gateway SIGTERM failed:', error);
+                            }
+                        });
+                    }
+                    rply.text = parts.join('\n');
                     rply.quotes = true;
                 } catch (error) {
-                    console.error('[Admin] .root reload error:', error);
-                    rply.text = translate('admin.reload_failed', {
+                    console.error('[Admin] .root restart error:', error);
+                    rply.text = translate('admin.restart_failed', {
                         message: error?.message || String(error),
                     });
                 }
                 return rply;
             }
-            case /^respawn$/i.test(mainMsg[1]): {
-                if (mainMsg[2] == null) {
-                    rply.text = translate('admin.respawn_missing_id');
+            case /^stop$/i.test(mainMsg[1]): {
+                const target = (mainMsg[2] || '').toLowerCase();
+                if (!['primary', 'standby'].includes(target)) {
+                    rply.text = translate('admin.stop_usage');
                     return rply;
                 }
-                const ipcPayload = {
-                    respawn: true,
-                    id: mainMsg[2],
-                    meta: {
-                        source: 'admin_command',
-                        trigger: '.root respawn',
-                        targetClusterId: mainMsg[2],
-                        userid,
-                        groupid,
-                        channelid
-                    }
-                };
-                if (discordClient?.cluster?.send) {
-                    discordClient.cluster.send(ipcPayload);
-                } else {
-                    rply.clusterIpc = ipcPayload;
+                try {
+                    const localWorker = require('../modules/roll-worker/local-worker');
+                    const result = await localWorker.stop(target);
+                    rply.text = formatRootStopText(translate, target, result);
+                    rply.quotes = true;
+                } catch (error) {
+                    console.error('[Admin] .root stop error:', error);
+                    rply.text = translate('admin.stop_failed', {
+                        message: error?.message || String(error),
+                    });
                 }
-                rply.text = translate('admin.respawn_sent', { id: mainMsg[2] });
-                rply.quotes = true;
-                return rply;
-            }
-            case /^respawnall$/i.test(mainMsg[1]): {
-                const ipcPayload = {
-                    respawnall: true,
-                    meta: {
-                        source: 'admin_command',
-                        trigger: '.root respawnall',
-                        userid,
-                        groupid,
-                        channelid
-                    }
-                };
-                if (discordClient?.cluster?.send) {
-                    discordClient.cluster.send(ipcPayload);
-                } else {
-                    rply.clusterIpc = ipcPayload;
-                }
-                rply.text = translate('admin.respawnall_sent');
-                rply.quotes = true;
                 return rply;
             }
             case /^mem$/i.test(mainMsg[1]): {

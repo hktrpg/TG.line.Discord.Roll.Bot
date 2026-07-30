@@ -479,22 +479,22 @@ async function main() {
 			console.log('[proof] PASS Discord .admin clusterhealth with meta remote');
 		}
 
-		// 18) Phase 3h: .root respawn → clusterIpc on Worker
+		// 18) Phase 3h: .root restart discord → clusterIpc on Worker
 		{
 			pinGatewayWorkerUrl();
 			const before = await client.health();
 			const result = await client.parse({
-				inputStr: '.root respawn 0',
+				inputStr: '.root restart discord 0',
 				botname: 'Discord',
 				userid: PROOF_ADMIN_ID,
 				locale: 'zh-tw',
 			});
 			const after = await client.health();
-			assert(!result.needsLocal, 'respawn not needsLocal', result);
-			assert(result._rollWorker === true, 'respawn _rollWorker', result);
-			assert(result.clusterIpc?.respawn === true, 'respawn clusterIpc', result);
-			assert(after.parseCount === before.parseCount + 1, 'respawn parseCount++', { before, after });
-			console.log('[proof] PASS Discord .root respawn clusterIpc remote');
+			assert(!result.needsLocal, 'restart discord not needsLocal', result);
+			assert(result._rollWorker === true, 'restart discord _rollWorker', result);
+			assert(result.clusterIpc?.respawn === true, 'restart discord clusterIpc', result);
+			assert(after.parseCount === before.parseCount + 1, 'restart discord parseCount++', { before, after });
+			console.log('[proof] PASS Discord .root restart discord clusterIpc remote');
 		}
 
 		// 19) Phase 3h: .token with avatarUrl → Worker

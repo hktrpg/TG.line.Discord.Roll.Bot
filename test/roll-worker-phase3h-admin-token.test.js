@@ -178,10 +178,10 @@ describe('Phase 3h admin/token Worker remote (spawned)', () => {
 		expect(String(result.text || '').length).toBeGreaterThan(10);
 	});
 
-	it('.root respawn returns clusterIpc remotely', async () => {
+	it('.root restart discord returns clusterIpc remotely', async () => {
 		const before = await client.health();
 		const result = await client.parse({
-			inputStr: '.root respawn 0',
+			inputStr: '.root restart discord 0',
 			botname: 'Discord',
 			userid: ADMIN_ID,
 			groupid: 'g1',

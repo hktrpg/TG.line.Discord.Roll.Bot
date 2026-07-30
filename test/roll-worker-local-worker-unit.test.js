@@ -26,9 +26,15 @@ describe('local-worker unit', () => {
 	const prevUrl = process.env.ROLL_LOCAL_WORKER_URL;
 	const prevProbe = process.env.ROLL_LOCAL_WORKER_HEALTH_PROBE_MS;
 	const prevReloadWait = process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS;
+	const prevPrimary = process.env.ROLL_WORKER_URL;
+	const prevRemoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY;
+	const prevWorkerMode = process.env.ROLL_WORKER_MODE;
 
 	beforeEach(() => {
 		process.env.ROLL_LOCAL_WORKER_HEALTH_PROBE_MS = '300';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		delete process.env.ROLL_WORKER_REMOTE_ONLY;
+		delete process.env.ROLL_WORKER_MODE;
 	});
 
 	afterEach(() => {
@@ -41,16 +47,104 @@ describe('local-worker unit', () => {
 		else process.env.ROLL_LOCAL_WORKER_HEALTH_PROBE_MS = prevProbe;
 		if (prevReloadWait === undefined) delete process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS;
 		else process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS = prevReloadWait;
+		if (prevPrimary === undefined) delete process.env.ROLL_WORKER_URL;
+		else process.env.ROLL_WORKER_URL = prevPrimary;
+		if (prevRemoteOnly === undefined) delete process.env.ROLL_WORKER_REMOTE_ONLY;
+		else process.env.ROLL_WORKER_REMOTE_ONLY = prevRemoteOnly;
+		if (prevWorkerMode === undefined) delete process.env.ROLL_WORKER_MODE;
+		else process.env.ROLL_WORKER_MODE = prevWorkerMode;
 	});
 
-	it('startIfConfigured skips when no URL and SPAWN off', async () => {
-		client.isLocalEnabled.mockReturnValue(false);
+	it('shouldAutoSpawnWorkers defaults on even without ROLL_WORKER_URL', () => {
 		delete process.env.ROLL_LOCAL_WORKER_SPAWN;
-		const result = await localWorker.startIfConfigured();
-		expect(result).toEqual({ ok: false, skipped: true });
+		delete process.env.ROLL_WORKER_URL;
+		const prevNodeEnv = process.env.NODE_ENV;
+		process.env.NODE_ENV = 'production';
+		try {
+			expect(localWorker.shouldAutoSpawnWorkers()).toBe(true);
+			expect(localWorker.shouldSpawn()).toBe(false); // local needs primary URL first
+		} finally {
+			process.env.NODE_ENV = prevNodeEnv;
+		}
 	});
 
-	it('startIfConfigured pending when URL unhealthy and SPAWN off', async () => {
+	it('shouldAutoSpawnWorkers stays off in Jest unless SPAWN=true', () => {
+		delete process.env.ROLL_LOCAL_WORKER_SPAWN;
+		expect(process.env.NODE_ENV).toBe('test');
+		expect(localWorker.shouldAutoSpawnWorkers()).toBe(false);
+		process.env.ROLL_LOCAL_WORKER_SPAWN = 'true';
+		expect(localWorker.shouldAutoSpawnWorkers()).toBe(true);
+	});
+
+	it('shouldSpawn defaults on when ROLL_WORKER_URL set and SPAWN unset (non-test)', () => {
+		delete process.env.ROLL_LOCAL_WORKER_SPAWN;
+		const prevNodeEnv = process.env.NODE_ENV;
+		process.env.NODE_ENV = 'production';
+		try {
+			expect(localWorker.shouldSpawn()).toBe(true);
+		} finally {
+			process.env.NODE_ENV = prevNodeEnv;
+		}
+	});
+	it('shouldSpawn respects SPAWN=false opt-out', () => {
+		process.env.ROLL_LOCAL_WORKER_SPAWN = 'false';
+		expect(localWorker.shouldSpawn()).toBe(false);
+		expect(localWorker.shouldAutoSpawnWorkers()).toBe(false);
+	});
+
+	it('shouldSpawn stays off under REMOTE_ONLY', () => {
+		delete process.env.ROLL_LOCAL_WORKER_SPAWN;
+		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+		expect(localWorker.shouldSpawn()).toBe(false);
+	});
+
+	it('shouldAutoSpawnWorkers stays off in Worker mode', () => {
+		delete process.env.ROLL_LOCAL_WORKER_SPAWN;
+		process.env.ROLL_WORKER_MODE = 'true';
+		expect(localWorker.shouldAutoSpawnWorkers()).toBe(false);
+	});
+	it('getSpawnPort avoids colliding with primary Worker port', () => {
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3951';
+		delete process.env.ROLL_LOCAL_WORKER_PORT;
+		expect(localWorker.getSpawnPort()).toBe(3952);
+	});
+
+	it('startIfConfigured skips spawn when SPAWN=false but keeps existing primary URL', async () => {
+		client.isLocalEnabled.mockReturnValue(false);
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3950',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		process.env.ROLL_LOCAL_WORKER_SPAWN = 'false';
+		delete process.env.ROLL_LOCAL_WORKER_URL;
+		const result = await localWorker.startIfConfigured();
+		expect(result.ok).toBe(true);
+		expect(result.primary.ok).toBe(true);
+		expect(result.primary.existing).toBe(true);
+		expect(result.local.skipped).toBe(true);
+	});
+
+	it('startIfConfigured fully skips when SPAWN=false and no primary URL', async () => {
+		client.isLocalEnabled.mockReturnValue(false);
+		client.isEnabled.mockReturnValue(false);
+		process.env.ROLL_LOCAL_WORKER_SPAWN = 'false';
+		delete process.env.ROLL_WORKER_URL;
+		delete process.env.ROLL_LOCAL_WORKER_URL;
+		const result = await localWorker.startIfConfigured();
+		expect(result.ok).toBe(false);
+		expect(result.skipped).toBe(true);
+		expect(result.primary.skipped).toBe(true);
+		expect(result.local.skipped).toBe(true);
+	});
+	it('startIfConfigured pending when URL unhealthy and SPAWN not explicit true', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3950',
+			token: 't',
+			timeoutMs: 1000,
+		});
 		client.isLocalEnabled.mockReturnValue(true);
 		client.getLocalConfig.mockReturnValue({
 			url: 'http://127.0.0.1:3999',
@@ -60,12 +154,11 @@ describe('local-worker unit', () => {
 		client.healthAt.mockRejectedValue(new Error('down'));
 		delete process.env.ROLL_LOCAL_WORKER_SPAWN;
 		const result = await localWorker.startIfConfigured();
-		expect(result.ok).toBe(false);
+		expect(result.ok).toBe(true); // primary existing still ok
 		expect(result.pending).toBe(true);
-		expect(result.url).toBe('http://127.0.0.1:3999');
-	});
-
-	it('waitUntilUnhealthy returns true when healthAt throws', async () => {
+		expect(result.local.pending).toBe(true);
+		expect(result.local.url).toBe('http://127.0.0.1:3999');
+	});	it('waitUntilUnhealthy returns true when healthAt throws', async () => {
 		client.healthAt.mockRejectedValue(new Error('ECONNREFUSED'));
 		const down = await localWorker.waitUntilUnhealthy('http://127.0.0.1:3998', 1000);
 		expect(down).toBe(true);

@@ -57,7 +57,7 @@ describe('buildStateVersionSection', () => {
 		buildInfo.resetCache();
 	});
 
-	it('on Worker includes Gateway from gatewayBuildInfo prefetch', async () => {
+	it('on Primary includes Gateway from gatewayBuildInfo prefetch', async () => {
 		process.env.ROLL_WORKER_MODE = 'true';
 		buildInfo.resetCache();
 
@@ -71,14 +71,14 @@ describe('buildStateVersionSection', () => {
 		const text = lines.join('\n');
 		expect(text).toContain('Gateway');
 		expect(text).toContain('Distributed- · 2026-07-30 · gateway1');
-		expect(text).toContain('Worker');
+		expect(text).toContain('Primary');
 		expect(text).toContain('Distributed- · 2026-07-30 · abcdef1');
 		expect(text).toContain('link=self');
 		expect(text).not.toContain('unreachable');
-		expect(text).toMatch(/Parse\s+remote/);
+		expect(text).toMatch(/Parse\s+primary/);
 	});
 
-	it('on Worker without prefetch shows Gateway unreachable', async () => {
+	it('on Primary without prefetch shows Gateway unreachable', async () => {
 		process.env.ROLL_WORKER_MODE = 'true';
 		buildInfo.resetCache();
 
@@ -86,11 +86,11 @@ describe('buildStateVersionSection', () => {
 		const text = lines.join('\n');
 		expect(text).toContain('Gateway');
 		expect(text).toContain('unreachable');
-		expect(text).toContain('Worker');
+		expect(text).toContain('Primary');
 		expect(text).toContain('link=self');
 	});
 
-	it('on Gateway shows self and probes Worker + Local when enabled', async () => {
+	it('on Gateway shows self and probes Primary + Standby when enabled', async () => {
 		delete process.env.ROLL_WORKER_MODE;
 		buildInfo.resetCache();
 		rollWorkerClient.isEnabled.mockReturnValue(true);
@@ -109,18 +109,18 @@ describe('buildStateVersionSection', () => {
 		const text = lines.join('\n');
 		expect(text).toContain('Gateway');
 		expect(text).toContain('Distributed- · 2026-07-30 · abcdef1');
-		expect(text).toContain('Worker');
+		expect(text).toContain('Primary');
 		expect(text).toContain('Distributed- · 2026-07-30 · worker01');
 		expect(text).toContain('link=up');
-		expect(text).toContain('Local');
+		expect(text).toContain('Standby');
 		expect(text).toContain('Distributed- · 2026-07-30 · local001');
 		expect(text).toMatch(/Parse\s+hybrid/);
-		expect(text).toContain('localHttp=on');
+		expect(text).toContain('standby=on');
 		expect(rollWorkerClient.health).toHaveBeenCalled();
 		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951');
 	});
 
-	it('on Gateway marks Worker unreachable when health fails', async () => {
+	it('on Gateway marks Primary unreachable when health fails', async () => {
 		delete process.env.ROLL_WORKER_MODE;
 		buildInfo.resetCache();
 		rollWorkerClient.isEnabled.mockReturnValue(true);
@@ -128,7 +128,7 @@ describe('buildStateVersionSection', () => {
 
 		const lines = await buildStateVersionSection(t, {});
 		const text = lines.join('\n');
-		expect(text).toContain('Worker');
+		expect(text).toContain('Primary');
 		expect(text).toContain('unreachable');
 		expect(text).toContain('link=down');
 	});

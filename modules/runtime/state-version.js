@@ -45,43 +45,67 @@ async function buildStateVersionSection(t, options = {}) {
 		}
 	}
 
-	const remoteOn = Boolean(rollWorkerClient?.isEnabled?.());
-	const localOn = Boolean(rollWorkerClient?.isLocalEnabled?.());
+	let localLifecycle = null;
+	try {
+		localLifecycle = require('../roll-worker/local-worker');
+	} catch {
+		localLifecycle = null;
+	}
 
-	if (!onWorker && remoteOn && typeof rollWorkerClient.health === 'function') {
-		try {
-			const body = await rollWorkerClient.health();
-			const display = body?.version?.display || '—';
-			const link = body?.ok ? 'up' : 'down';
-			lines.push(t('admin.state_report.version_worker', { display, link }));
-		} catch {
+	const remoteConfigured = Boolean(rollWorkerClient?.isEnabled?.());
+	const localConfigured = Boolean(rollWorkerClient?.isLocalEnabled?.());
+	const primaryStopped = Boolean(localLifecycle?.isPrimaryStopped?.());
+	const standbyStopped = Boolean(localLifecycle?.isStandbyStopped?.());
+	const remoteOnEffective = remoteConfigured && !primaryStopped;
+	const localOnEffective = localConfigured && !standbyStopped;
+
+	if (!onWorker && remoteConfigured && typeof rollWorkerClient.health === 'function') {
+		if (primaryStopped) {
 			lines.push(t('admin.state_report.version_worker', {
-				display: t('admin.state_report.version_unreachable'),
-				link: 'down',
+				display: t('admin.state_report.version_stopped'),
+				link: 'stopped',
 			}));
+		} else {
+			try {
+				const body = await rollWorkerClient.health();
+				const display = body?.version?.display || '—';
+				const link = body?.ok ? 'up' : 'down';
+				lines.push(t('admin.state_report.version_worker', { display, link }));
+			} catch {
+				lines.push(t('admin.state_report.version_worker', {
+					display: t('admin.state_report.version_unreachable'),
+					link: 'down',
+				}));
+			}
 		}
 	}
 
-	if (!onWorker && localOn && typeof rollWorkerClient.healthAt === 'function') {
-		try {
-			const { url } = rollWorkerClient.getLocalConfig();
-			const body = await rollWorkerClient.healthAt(url);
-			const display = body?.version?.display || '—';
-			lines.push(t('admin.state_report.version_local', { display }));
-		} catch {
+	if (!onWorker && localConfigured && typeof rollWorkerClient.healthAt === 'function') {
+		if (standbyStopped) {
 			lines.push(t('admin.state_report.version_local', {
-				display: t('admin.state_report.version_unreachable'),
+				display: t('admin.state_report.version_stopped'),
 			}));
+		} else {
+			try {
+				const { url } = rollWorkerClient.getLocalConfig();
+				const body = await rollWorkerClient.healthAt(url);
+				const display = body?.version?.display || '—';
+				lines.push(t('admin.state_report.version_local', { display }));
+			} catch {
+				lines.push(t('admin.state_report.version_local', {
+					display: t('admin.state_report.version_unreachable'),
+				}));
+			}
 		}
 	}
 
-	let parseMode = 'in-process';
-	if (remoteOn && localOn) parseMode = 'hybrid';
-	else if (remoteOn || onWorker) parseMode = 'remote';
+	let parseMode = 'embedded';
+	if (remoteOnEffective && localOnEffective) parseMode = 'hybrid';
+	else if (remoteOnEffective || onWorker) parseMode = 'primary';
 
 	lines.push(t('admin.state_report.version_parse', {
 		mode: parseMode,
-		local_http: localOn ? 'on' : 'off',
+		standby: localOnEffective ? 'on' : (standbyStopped ? 'stopped' : 'off'),
 	}));
 
 	return lines;

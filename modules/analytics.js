@@ -50,6 +50,8 @@ function getRollModule(moduleName) {
 
 const schema = require('./db/schema.js');
 const i18n = require('./i18n/i18n.js');
+const buildInfo = require('./runtime/build-info');
+const { buildStateVersionSection } = require('./runtime/state-version');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const courtMessage = require('./chat/logs').courtMessage || function () {};
@@ -88,6 +90,7 @@ class RollContext {
 		this.csvAttachmentMeta = params.csvAttachmentMeta || null;
 		this.fixShardMeta = params.fixShardMeta || null;
 		this.slashDeployMeta = params.slashDeployMeta || null;
+		this.gatewayBuildInfo = params.gatewayBuildInfo || null;
 		this.skipExp = Boolean(params.skipExp);
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
 		this.t = params.t || i18n.createTranslator(this.locale);
@@ -126,6 +129,7 @@ class RollContext {
 			csvAttachmentMeta: this.csvAttachmentMeta,
 			fixShardMeta: this.fixShardMeta,
 			slashDeployMeta: this.slashDeployMeta,
+			gatewayBuildInfo: this.gatewayBuildInfo,
 			skipExp: this.skipExp,
 			locale: this.locale,
 			t: this.t
@@ -264,9 +268,11 @@ const parseInput = async (params) => {
 		}
 	}
 
-	// state 功能
+	// state 功能 — pass Gateway build identity when Worker computes the report
 	if (result.state) {
-		result.text = await stateText(context.locale);
+		result.text = await stateText(context.locale, {
+			gatewayBuildInfo: context.gatewayBuildInfo || null,
+		});
 	}
 
 	// courtMessage + saveLog — skip on skipExp (workerError/needsLocal fallback / schedule)
@@ -650,7 +656,7 @@ const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE
 let stateTextCache = {};
 let stateTextRefreshing = {};
 
-async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
+async function computeStateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	await i18n.init();
 	const t = i18n.createTranslator(locale);
 	let state = await getState() || '';
@@ -741,8 +747,17 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
 	const lmLabel = t('admin.state_report.month_label', { yy: hkLm.y % 100, m: hkLm.m });
 	const lyLabel = t('admin.state_report.month_label', { yy: hkLy.y % 100, m: hkLy.m });
 
+	const versionBlock = await buildStateVersionSection(t, {
+		...options,
+		debug: debugMode,
+	});
+
 	return [
 		t('admin.state_report.header'),
+		divTop,
+		t('admin.state_report.section_version'),
+		div,
+		...versionBlock,
 		divTop,
 		t('admin.state_report.section_time'),
 		div,
@@ -770,29 +785,39 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
 	].join('\n');
 }
 
-async function refreshStateCache(locale = i18n.DEFAULT_LOCALE) {
+async function refreshStateCache(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	const normalized = i18n.normalizeLocale(locale);
-	if (stateTextRefreshing[normalized]) return;
-	const cache = stateTextCache[normalized];
+	const versionKey = [
+		options.gatewayBuildInfo?.display || '',
+		buildInfo.getDisplay(),
+	].join('|');
+	const cacheKey = `${normalized}::${versionKey}`;
+	if (stateTextRefreshing[cacheKey]) return;
+	const cache = stateTextCache[cacheKey];
 	// Skip recompute if cache is still fresh (e.g. timer fires after a recent user-triggered refresh)
 	if (ADMIN_STATE_CACHE_MS > 0 && cache?.text && Date.now() < cache.expiresAt) return;
-	stateTextRefreshing[normalized] = true;
+	stateTextRefreshing[cacheKey] = true;
 	try {
-		const text = await computeStateText(normalized);
+		const text = await computeStateText(normalized, options);
 		if (text) {
-			stateTextCache[normalized] = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+			stateTextCache[cacheKey] = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
 		}
 	} catch (error) {
 		console.error('[Analytics] refreshStateCache error:', error.message);
 	} finally {
-		stateTextRefreshing[normalized] = false;
+		stateTextRefreshing[cacheKey] = false;
 	}
 }
 
-async function stateText(locale = i18n.DEFAULT_LOCALE) {
+async function stateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	const normalized = i18n.normalizeLocale(locale);
+	const versionKey = [
+		options.gatewayBuildInfo?.display || '',
+		buildInfo.getDisplay(),
+	].join('|');
+	const cacheKey = `${normalized}::${versionKey}`;
 	const now = Date.now();
-	const cache = stateTextCache[normalized] || { text: '', expiresAt: 0 };
+	const cache = stateTextCache[cacheKey] || { text: '', expiresAt: 0 };
 
 	// Cache valid → return immediately
 	if (cache.text && now < cache.expiresAt) {
@@ -801,13 +826,13 @@ async function stateText(locale = i18n.DEFAULT_LOCALE) {
 
 	// Cache stale but exists → return stale immediately, refresh in background
 	if (cache.text) {
-		refreshStateCache(normalized);
+		refreshStateCache(normalized, options);
 		return cache.text;
 	}
 
 	// Cache empty (first call) → must wait
-	await refreshStateCache(normalized);
-	return stateTextCache[normalized]?.text || '';
+	await refreshStateCache(normalized, options);
+	return stateTextCache[cacheKey]?.text || '';
 }
 
 // Pre-warm cache after startup to avoid first-call delay
@@ -871,3 +896,4 @@ module.exports.debugMode = debugMode;
 module.exports.parseInput = parseInput;
 module.exports.findRollList = findRollList;
 module.exports.findRollModuleName = findRollModuleName;
+module.exports.buildStateVersionSection = buildStateVersionSection;

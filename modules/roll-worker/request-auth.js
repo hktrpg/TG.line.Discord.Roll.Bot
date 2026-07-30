@@ -36,6 +36,7 @@ const SIGNED_CLAIM_KEYS = [
 	'fixShardMeta',
 	'slashDeployMeta',
 	'skipExp',
+	'gatewayBuildInfo',
 	'doc',
 	'item',
 	'locale',

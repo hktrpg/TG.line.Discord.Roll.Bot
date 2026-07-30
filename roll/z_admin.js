@@ -31,11 +31,13 @@ const deploy = require('../modules/discord/deploy-commands.js');
 const { viplevelCheckUser, viplevelCheckGroup } = require('../modules/patreon/veryImportantPerson.js');
 const dbProtectionLayer = require('../modules/db/protection-layer.js');
 const clusterProtection = require('../modules/runtime/cluster-protection.js');
+const buildInfo = require('../modules/runtime/build-info.js');
 const patreonTiers = require('../modules/patreon/patreon-tiers.js');
 const patreonSync = require('../modules/patreon/patreon-sync.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const scheduleModule = require('../modules/runtime/schedule.js');
 const { adminSubNeedsLiveDiscord } = require('../modules/roll-worker/admin-remote.js');
+const { formatRootReloadText } = require('../modules/roll-worker/reload-reply.js');
 const SCHEDULE_DOC_KEY = scheduleModule.SCHEDULE_DOC_KEY || 'default';
 const AGENDA_TIMEZONE = scheduleModule.AGENDA_TIMEZONE || process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong';
 const gameName = function (params = {}) {
@@ -190,6 +192,19 @@ const discordCommand = [
                 subcommand
                     .setName('mem')
                     .setDescription('顯示各叢集 RSS 記憶體'))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('reload')
+                    .setDescription('重啟 Roll Worker 計算進程（不重啟 Discord）')
+                    .addStringOption(option =>
+                        option.setName('target')
+                            .setDescription('local / remote / all（預設 local）')
+                            .setRequired(false)
+                            .addChoices(
+                                { name: 'local - 本機 fallback Worker', value: 'local' },
+                                { name: 'remote - 主 Worker', value: 'remote' },
+                                { name: 'all - local 再 remote', value: 'all' }
+                            )))
             .addSubcommandGroup(group =>
                 group
                     .setName('schedule')
@@ -424,6 +439,10 @@ const discordCommand = [
             }
             case 'mem': {
                 return '.root mem';
+            }
+            case 'reload': {
+                const target = interaction.options.getString('target') || 'local';
+                return `.root reload ${target}`;
             }
             case 'addvipgroup': {
                 const id = interaction.options.getString('id');
@@ -1053,37 +1072,27 @@ const rollDiceCommand = async function ({
                 // Phase A/B: reload local/remote Roll Worker compute — never Discord Gateway respawn.
                 const target = (mainMsg[2] || 'local').toLowerCase();
                 if (!['local', 'remote', 'all'].includes(target)) {
-                    rply.text = 'Usage: .root reload [local|remote|all]\n'
-                        + 'local = restart ROLL_LOCAL_WORKER (HTTP fallback)\n'
-                        + 'remote = ask primary ROLL_WORKER_URL to shutdown (loopback; PM2/docker must restart it)\n'
-                        + 'Note: Discord-coupled needsLocal paths still use Gateway in-process code until Gateway restart.';
+                    rply.text = translate('admin.reload_usage');
                     return rply;
                 }
                 try {
                     const localWorker = require('../modules/roll-worker/local-worker');
                     const result = await localWorker.reload(target);
-                    rply.text = [
-                        `.root reload ${target}`,
-                        `ok=${result.ok}`,
-                        result.mode ? `mode=${result.mode}` : '',
-                        result.url ? `url=${result.url}` : '',
-                        result.pid != null ? `pid=${result.pid}` : '',
-                        result.error ? `error=${result.error}` : '',
-                        result.warning ? `warning=${result.warning}` : '',
-                        result.hint ? `hint=${result.hint}` : '',
-                        result.note || '',
-                        result.local || result.remote
-                            ? `detail=${JSON.stringify({ local: result.local, remote: result.remote })}`
-                            : '',
-                    ].filter(Boolean).join('\n');
+                    rply.text = formatRootReloadText(translate, target, result);
+                    rply.quotes = true;
                 } catch (error) {
                     console.error('[Admin] .root reload error:', error);
-                    rply.text = `.root reload failed: ${error?.message || error}`;
+                    rply.text = translate('admin.reload_failed', {
+                        message: error?.message || String(error),
+                    });
                 }
                 return rply;
             }
             case /^respawn$/i.test(mainMsg[1]): {
-                if (mainMsg[2] == null) return rply;
+                if (mainMsg[2] == null) {
+                    rply.text = translate('admin.respawn_missing_id');
+                    return rply;
+                }
                 const ipcPayload = {
                     respawn: true,
                     id: mainMsg[2],
@@ -1101,6 +1110,8 @@ const rollDiceCommand = async function ({
                 } else {
                     rply.clusterIpc = ipcPayload;
                 }
+                rply.text = translate('admin.respawn_sent', { id: mainMsg[2] });
+                rply.quotes = true;
                 return rply;
             }
             case /^respawnall$/i.test(mainMsg[1]): {
@@ -1119,6 +1130,8 @@ const rollDiceCommand = async function ({
                 } else {
                     rply.clusterIpc = ipcPayload;
                 }
+                rply.text = translate('admin.respawnall_sent');
+                rply.quotes = true;
                 return rply;
             }
             case /^mem$/i.test(mainMsg[1]): {
@@ -1167,28 +1180,48 @@ const rollDiceCommand = async function ({
                         return rply;
                     }
                     const toMb = (bytes) => (bytes / (1024 * 1024)).toFixed(1);
-                    const lines = rows.map((row) => translate('admin.mem_line', {
-                        id: row.clusterId,
-                        rss: toMb(row.rss),
-                        heap: toMb(row.heapUsed),
-                        heap_total: toMb(row.heapTotal),
-                        external: toMb(row.external),
-                        uptime: row.uptime
-                    }));
+                    const makeBar = (pct, width = 10) => {
+                        const clamped = Math.max(0, Math.min(100, Number(pct) || 0));
+                        const filled = Math.round((clamped / 100) * width);
+                        return `${'█'.repeat(filled)}${'░'.repeat(width - filled)}`;
+                    };
+                    const lines = rows.map((row) => {
+                        const heapPct = row.heapTotal > 0
+                            ? Math.round((row.heapUsed / row.heapTotal) * 100)
+                            : 0;
+                        return translate('admin.mem_line', {
+                            id: row.clusterId,
+                            rss: toMb(row.rss),
+                            bar: makeBar(heapPct),
+                            heap_pct: String(heapPct),
+                        });
+                    });
                     const totalRss = rows.reduce((sum, row) => sum + (row.rss || 0), 0);
                     const hostUsed = hostTotal - hostFree;
-                    const hostPercent = ((hostUsed / hostTotal) * 100).toFixed(1);
+                    const hostPercentNum = hostTotal > 0 ? (hostUsed / hostTotal) * 100 : 0;
+                    const hostPercent = hostPercentNum.toFixed(1);
+                    const warnAt = '85';
+                    const criticalAt = '95';
+                    const hostLine = translate('admin.mem_host_line', {
+                        host_percent: hostPercent,
+                        bar: makeBar(hostPercentNum),
+                        warn_at: warnAt,
+                        critical_at: criticalAt,
+                    });
+                    const versionInfo = buildInfo.getPublic();
                     rply.text = translate('admin.mem_report', {
                         count: rows.length,
                         total_rss: toMb(totalRss),
                         lines: lines.join('\n'),
+                        host_line: hostLine,
                         host_total: toMb(hostTotal),
                         host_used: toMb(hostUsed),
                         host_free: toMb(hostFree),
-                        host_percent: hostPercent,
                         heap_limit: toMb(heapLimit),
-                        warn_at: '85',
-                        critical_at: '95'
+                        version: translate('admin.mem_version', {
+                            display: versionInfo.display,
+                            node: versionInfo.node,
+                        }),
                     });
                     rply.quotes = true;
                 } catch (error) {

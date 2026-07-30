@@ -70,6 +70,7 @@ describe('roll-worker HTTP server', () => {
 	beforeAll(async () => {
 		process.env.ROLL_WORKER_MODE = 'true';
 		delete process.env.ROLL_WORKER_TOKEN;
+		require('../modules/runtime/build-info').resetCache();
 		const app = createRollWorkerApp({ allowNoToken: true });
 		({ server, port } = await listen(app));
 	});
@@ -85,6 +86,9 @@ describe('roll-worker HTTP server', () => {
 		expect(res.body.ok).toBe(true);
 		expect(res.body.role).toBe('roll-worker');
 		expect(typeof res.body.parseCount).toBe('number');
+		expect(res.body.version).toBeDefined();
+		expect(typeof res.body.version.display).toBe('string');
+		expect(res.body.version.role).toBe('roll-worker');
 	});
 
 	it('CONNECTED log includes gateway label; health echoes gateway', async () => {
@@ -187,5 +191,47 @@ describe('roll-worker HTTP server', () => {
 		await new Promise((r) => setTimeout(r, 40));
 		expect(exitSpy).toHaveBeenCalledWith(0);
 		exitSpy.mockRestore();
+	});
+});
+
+describe('roll-worker admin reload', () => {
+	let server;
+	let port;
+	const reloadCalls = [];
+
+	beforeAll(async () => {
+		process.env.ROLL_WORKER_MODE = 'true';
+		delete process.env.ROLL_WORKER_TOKEN;
+		require('../modules/runtime/build-info').resetCache();
+		const { createRollWorkerApp } = require('../modules/roll-worker/server');
+		const app = createRollWorkerApp({
+			allowNoToken: true,
+			performAdminReload: (ctx) => {
+				reloadCalls.push(ctx);
+			},
+		});
+		({ server, port } = await new Promise((resolve) => {
+			const s = app.listen(0, '127.0.0.1', () => {
+				app.locals.httpServer = s;
+				resolve({ server: s, port: s.address().port });
+			});
+		}));
+	});
+
+	afterAll(async () => {
+		await new Promise((resolve) => server.close(resolve));
+		delete process.env.ROLL_WORKER_MODE;
+	});
+
+	it('POST /v1/admin/reload accepts loopback and schedules self-restart', async () => {
+		reloadCalls.length = 0;
+		const res = await httpJson(port, 'POST', '/v1/admin/reload', { drainMs: 5 });
+		expect(res.status).toBe(200);
+		expect(res.body.ok).toBe(true);
+		expect(res.body.reloading).toBe(true);
+		expect(res.body.mode).toBe('self-restart');
+		await new Promise((r) => setTimeout(r, 30));
+		expect(reloadCalls.length).toBeGreaterThanOrEqual(1);
+		expect(reloadCalls[0].drainMs).toBe(5);
 	});
 });

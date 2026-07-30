@@ -249,7 +249,9 @@ async function stopSupervisedChild() {
 }
 
 /**
- * Reload local compute: shutdown (drain) + respawn if we supervise, else HTTP shutdown only.
+ * Reload local compute.
+ * - Supervised SPAWN: Gateway shutdown + respawn child.
+ * - Shared local Worker: Worker self-restarts via /v1/admin/reload.
  */
 async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 	if (reloading) {
@@ -267,22 +269,15 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 		const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
 		const wasSupervised = supervised && childProc;
 
-		if (targetUrl) {
-			try {
-				await client.requestAdminShutdown(targetUrl, { drainMs });
-			} catch (error) {
-				// Process may already be dead — continue if we can respawn.
-				if (!wasSupervised) {
-					return {
-						ok: false,
-						error: error?.message || String(error),
-						hint: 'Shutdown requires loopback + Bearer. Or restart the local worker process (PM2/docker).',
-					};
+		if (wasSupervised) {
+			if (targetUrl) {
+				try {
+					await client.requestAdminShutdown(targetUrl, { drainMs });
+				} catch (error) {
+					// Process may already be dead — continue respawn.
+					console.warn('[LocalWorker] supervised shutdown:', error?.message || error);
 				}
 			}
-		}
-
-		if (wasSupervised) {
 			await waitUntilUnhealthy(targetUrl, Math.min(drainMs + 3000, 10_000));
 			await stopSupervisedChild();
 			const port = getSpawnPort();
@@ -302,16 +297,29 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 			};
 		}
 
-		// External supervisor (PM2/docker): confirm down, then wait for health to return.
+		// Shared / external local Worker: true self-restart (spawn successor + exit).
+		let data;
+		try {
+			data = await client.requestAdminReload(targetUrl, { drainMs });
+		} catch (error) {
+			return {
+				ok: false,
+				url: targetUrl,
+				error: error?.message || String(error),
+				status: error?.status,
+				hint: 'Reload requires loopback + Bearer on the local Worker.',
+			};
+		}
+
 		const down = await waitUntilUnhealthy(targetUrl, Math.min(drainMs + 5000, 15_000));
 		if (!down) {
 			return {
 				ok: false,
-				mode: 'shutdown-uncertain',
+				mode: 'reload-uncertain',
 				url: targetUrl,
-				error: 'Shutdown requested but /health still OK — process may not have exited',
-				hint: 'Check Worker logs; restart via PM2/docker if needed.',
-				note: 'Discord-coupled needsLocal paths still use Gateway in-process analytics (not reloaded).',
+				pid: data?.pid,
+				error: 'Reload requested but /health still OK — process may not have restarted',
+				hint: 'Check Worker logs; retry .root reload local.',
 			};
 		}
 		const waitMs = Number.parseInt(process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS || '15000', 10);
@@ -319,17 +327,19 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 			await waitHealth(targetUrl, Number.isFinite(waitMs) ? waitMs : 15_000);
 			return {
 				ok: true,
-				mode: 'external-restart',
+				mode: 'self-restart',
 				url: targetUrl,
-				note: 'Process manager restarted local worker. Discord-coupled needsLocal paths still use Gateway in-process code.',
+				pid: data?.pid,
+				note: 'Local Worker self-restarted (successor process). Discord Gateway was not restarted.',
 			};
 		} catch {
 			return {
-				ok: true,
-				mode: 'shutdown-sent',
+				ok: false,
+				mode: 'reload-sent',
 				url: targetUrl,
-				warning: 'Shutdown confirmed (health down) but not back yet — ensure PM2/docker restarts the local worker.',
-				note: 'Discord-coupled needsLocal paths still use Gateway in-process analytics (not reloaded).',
+				pid: data?.pid,
+				error: 'Local Worker reload started but /health did not return',
+				hint: 'Check Worker logs; start yarn start:roll-worker on ROLL_LOCAL_WORKER_URL if needed.',
 			};
 		}
 	} finally {
@@ -338,24 +348,17 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 }
 
 /**
- * Phase B: ask primary ROLL_WORKER_URL to shutdown (loopback-only on server).
- * Non-loopback / remote hosts get ops instructions instead of a blind kill.
+ * Reload primary ROLL_WORKER_URL via Worker self-restart (/v1/admin/reload).
+ * Waits for health to drop then return — no PM2 required on loopback.
  */
 async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 	if (!client.isEnabled()) {
 		return { ok: false, error: 'ROLL_WORKER_URL unset' };
 	}
 	const { url } = client.getConfig();
+	let data;
 	try {
-		const data = await client.requestAdminShutdown(url, { drainMs });
-		return {
-			ok: true,
-			mode: 'shutdown-sent',
-			url,
-			pid: data?.pid,
-			warning: 'Ensure process manager (PM2/docker/systemd) restarts the primary Roll Worker.',
-			note: 'Gateway Discord connection was not restarted.',
-		};
+		data = await client.requestAdminReload(url, { drainMs });
 	} catch (error) {
 		const status = error?.status;
 		return {
@@ -364,8 +367,47 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 			error: error?.message || String(error),
 			status,
 			hint: status === 403
-				? 'Worker refused non-loopback admin shutdown. Restart the primary Roll Worker via PM2/docker on its host.'
-				: 'Restart primary Roll Worker manually: yarn start:roll-worker (or PM2/docker). Gateway stays up.',
+				? 'Worker refused non-loopback admin reload. Run reload on the Worker host or use SSH/PM2 there.'
+				: 'Reload failed. Confirm ROLL_WORKER_URL is reachable on loopback with a valid Bearer token.',
+		};
+	}
+
+	const down = await waitUntilUnhealthy(url, Math.min(drainMs + 5000, 15_000));
+	if (!down) {
+		return {
+			ok: false,
+			mode: 'reload-uncertain',
+			url,
+			pid: data?.pid,
+			error: 'Reload requested but /health still OK — process may not have restarted',
+			hint: 'Check Worker logs; retry .root reload remote.',
+		};
+	}
+
+	const waitMs = Number.parseInt(
+		process.env.ROLL_WORKER_RELOAD_WAIT_MS
+			|| process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS
+			|| '15000',
+		10,
+	);
+	try {
+		await waitHealth(url, Number.isFinite(waitMs) && waitMs > 0 ? waitMs : 15_000);
+		return {
+			ok: true,
+			mode: 'self-restart',
+			url,
+			pid: data?.pid,
+			note: 'Primary Roll Worker self-restarted (successor process). Gateway Discord connection was not restarted.',
+		};
+	} catch {
+		return {
+			ok: false,
+			mode: 'reload-sent',
+			url,
+			pid: data?.pid,
+			error: 'Primary Roll Worker reload started but /health did not return',
+			hint: 'Check Worker logs on the host. If the successor failed to bind the port, start yarn start:roll-worker manually.',
+			warning: 'ROLL_WORKER_URL may be down until the Worker is running again. Discord Gateway stays up.',
 		};
 	}
 }

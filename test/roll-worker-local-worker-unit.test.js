@@ -10,6 +10,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(() => true),
 	healthAt: jest.fn(),
 	requestAdminShutdown: jest.fn(),
+	requestAdminReload: jest.fn(),
 	parseLocal: jest.fn(),
 }));
 
@@ -77,6 +78,58 @@ describe('local-worker unit', () => {
 		expect(result.error).toMatch(/ROLL_WORKER_URL unset/);
 	});
 
+	it('reloadRemote reports failure when health never returns after self-reload', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3950',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		client.requestAdminReload.mockResolvedValue({
+			ok: true,
+			reloading: true,
+			pid: 99,
+			mode: 'self-restart',
+		});
+		client.healthAt.mockRejectedValue(new Error('down'));
+		process.env.ROLL_WORKER_RELOAD_WAIT_MS = '200';
+
+		const result = await localWorker.reloadRemote({ drainMs: 10 });
+		expect(result.ok).toBe(false);
+		expect(result.mode).toBe('reload-sent');
+		expect(result.error).toMatch(/did not return/i);
+		expect(result.pid).toBe(99);
+		expect(client.requestAdminReload).toHaveBeenCalled();
+		expect(client.requestAdminShutdown).not.toHaveBeenCalled();
+	}, 10_000);
+
+	it('reloadRemote succeeds when worker self-restarts', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3950',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		client.requestAdminReload.mockResolvedValue({
+			ok: true,
+			reloading: true,
+			pid: 42,
+			mode: 'self-restart',
+		});
+		let calls = 0;
+		client.healthAt.mockImplementation(async () => {
+			calls += 1;
+			if (calls === 1) throw new Error('down');
+			return { ok: true };
+		});
+		process.env.ROLL_WORKER_RELOAD_WAIT_MS = '2000';
+
+		const result = await localWorker.reloadRemote({ drainMs: 10 });
+		expect(result.ok).toBe(true);
+		expect(result.mode).toBe('self-restart');
+		expect(client.requestAdminReload).toHaveBeenCalled();
+	}, 10_000);
+
 	it('getStatus reflects env', () => {
 		client.isLocalEnabled.mockReturnValue(true);
 		client.getLocalConfig.mockReturnValue({
@@ -98,13 +151,18 @@ describe('local-worker unit', () => {
 			token: 't',
 			timeoutMs: 1000,
 		});
-		let releaseShutdown;
-		client.requestAdminShutdown.mockImplementation(
+		let releaseReload;
+		client.requestAdminReload.mockImplementation(
 			() => new Promise((resolve) => {
-				releaseShutdown = () => resolve({ ok: true, pid: 1 });
+				releaseReload = () => resolve({
+					ok: true,
+					reloading: true,
+					pid: 1,
+					mode: 'self-restart',
+				});
 			})
 		);
-		// After shutdown: unhealthy immediately; then stay down → shutdown-sent.
+		// After reload: unhealthy immediately; then stay down → reload-sent.
 		client.healthAt.mockRejectedValue(new Error('down'));
 
 		const first = localWorker.reloadLocal({ drainMs: 10 });
@@ -112,9 +170,9 @@ describe('local-worker unit', () => {
 		const second = await localWorker.reloadLocal({ drainMs: 10 });
 		expect(second.ok).toBe(false);
 		expect(second.error).toMatch(/already in progress/i);
-		releaseShutdown();
+		releaseReload();
 		const firstResult = await first;
-		expect(firstResult.ok).toBe(true);
-		expect(firstResult.mode).toBe('shutdown-sent');
+		expect(firstResult.ok).toBe(false);
+		expect(firstResult.mode).toBe('reload-sent');
 	}, 10_000);
 });

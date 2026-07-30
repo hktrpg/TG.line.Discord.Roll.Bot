@@ -79,6 +79,29 @@ describe('roll-worker client', () => {
 		expect(ctx.t).toBeUndefined();
 	});
 
+	it('attaches gatewayBuildInfo on Gateway; keeps provided meta on Worker', () => {
+		const savedMode = process.env.ROLL_WORKER_MODE;
+		delete process.env.ROLL_WORKER_MODE;
+		require('../modules/runtime/build-info').resetCache();
+		const fromGateway = toSerializableContext({ inputStr: '.admin state' });
+		expect(fromGateway.gatewayBuildInfo).toBeTruthy();
+		expect(typeof fromGateway.gatewayBuildInfo.display).toBe('string');
+
+		process.env.ROLL_WORKER_MODE = 'true';
+		const fromWorker = toSerializableContext({
+			inputStr: '.admin state',
+			gatewayBuildInfo: { display: 'master · 2026-01-01 · abcdef1', role: 'gateway' },
+		});
+		expect(fromWorker.gatewayBuildInfo.display).toBe('master · 2026-01-01 · abcdef1');
+
+		const missing = toSerializableContext({ inputStr: '.admin state' });
+		expect(missing.gatewayBuildInfo).toBeNull();
+
+		if (savedMode === undefined) delete process.env.ROLL_WORKER_MODE;
+		else process.env.ROLL_WORKER_MODE = savedMode;
+		require('../modules/runtime/build-info').resetCache();
+	});
+
 	it('reads channelType from discordMessage when not provided', () => {
 		const ctx = toSerializableContext({
 			inputStr: 'x',

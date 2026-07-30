@@ -1,7 +1,8 @@
 "use strict";
 
 /**
- * Phase A/B: /v1/admin/shutdown (loopback) + supervised local reload + remote shutdown.
+ * Phase A/B: /v1/admin/shutdown + /v1/admin/reload (self-restart),
+ * supervised local respawn, shared local + remote reload without PM2.
  * Avoids requiring analytics via parse-router (Babel breaks on chat/logs top-level return).
  */
 jest.setTimeout(90_000);
@@ -115,6 +116,58 @@ describe('roll-worker admin shutdown (unit app)', () => {
 	});
 });
 
+describe('roll-worker admin reload (unit app)', () => {
+	const { createRollWorkerApp } = require('../modules/roll-worker/server');
+	let server;
+	let port;
+	let reloadCalls;
+
+	beforeAll(async () => {
+		process.env.ROLL_WORKER_TOKEN = TOKEN;
+		reloadCalls = [];
+		const app = createRollWorkerApp({
+			allowNoToken: false,
+			disableRateLimit: true,
+			performAdminReload: (ctx) => {
+				reloadCalls.push(ctx);
+			},
+		});
+		server = await new Promise((resolve) => {
+			const s = app.listen(0, '127.0.0.1', () => resolve(s));
+		});
+		app.locals.httpServer = server;
+		port = server.address().port;
+	});
+
+	afterAll(async () => {
+		await new Promise((resolve) => server.close(resolve));
+	});
+
+	it('POST /v1/admin/reload accepts loopback + Bearer and schedules self-restart', async () => {
+		reloadCalls.length = 0;
+		const res = await httpJson(port, 'POST', '/v1/admin/reload', { drainMs: 25 }, {
+			Authorization: `Bearer ${TOKEN}`,
+		});
+		expect(res.status).toBe(200);
+		expect(res.body.ok).toBe(true);
+		expect(res.body.reloading).toBe(true);
+		expect(res.body.mode).toBe('self-restart');
+		expect(res.body.shuttingDown).toBeUndefined();
+		expect(reloadCalls).toHaveLength(1);
+		expect(reloadCalls[0].drainMs).toBe(25);
+		expect(reloadCalls[0].httpServer).toBe(server);
+	});
+
+	it('POST /v1/admin/reload rejects bad token', async () => {
+		const before = reloadCalls.length;
+		const res = await httpJson(port, 'POST', '/v1/admin/reload', { drainMs: 10 }, {
+			Authorization: 'Bearer wrong',
+		});
+		expect(res.status).toBe(401);
+		expect(reloadCalls).toHaveLength(before);
+	});
+});
+
 describe('Phase A supervised local reload (live)', () => {
 	let localWorker;
 	const saved = {};
@@ -212,6 +265,12 @@ describe('Phase A external local reload without PM2 (live)', () => {
 	});
 
 	afterAll(async () => {
+		try {
+			await httpJson(PORT_E, 'POST', '/v1/admin/shutdown', { drainMs: 50 }, {
+				Authorization: `Bearer ${TOKEN}`,
+			});
+			await sleep(400);
+		} catch { /* ignore */ }
 		if (child && !child.killed) {
 			child.kill('SIGTERM');
 			await sleep(400);
@@ -223,15 +282,27 @@ describe('Phase A external local reload without PM2 (live)', () => {
 		}
 	});
 
-	it('reloadLocal confirms health-down then shutdown-sent (no false external-restart)', async () => {
+	it('reloadLocal self-restarts shared worker and health returns', async () => {
 		const localWorker = require('../modules/roll-worker/local-worker');
+		const beforePid = child?.pid;
+		// Ensure pre-reload uptime is high enough that a successor's fresh uptime is clearly lower.
+		let beforeHealth = await waitHealth(PORT_E);
+		while (beforeHealth.uptime < 4) {
+			await sleep(500);
+			beforeHealth = await waitHealth(PORT_E);
+		}
 		const result = await localWorker.reloadLocal({ drainMs: 150 });
 		expect(result.ok).toBe(true);
-		// Must not claim external-restart when nothing respawned the process.
-		expect(result.mode).toBe('shutdown-sent');
-		expect(result.warning).toMatch(/not back yet|PM2|docker/i);
+		expect(result.mode).toBe('self-restart');
+		const afterHealth = await waitHealth(PORT_E);
+		// Old child handle is obsolete; successor is detached.
 		child = null;
-	});
+		if (beforePid) {
+			expect(result.pid).toBe(beforePid);
+		}
+		expect(afterHealth.ok).toBe(true);
+		expect(afterHealth.uptime).toBeLessThan(beforeHealth.uptime);
+	}, 30_000);
 });
 
 describe('Phase B reloadRemote against live primary', () => {
@@ -255,6 +326,7 @@ describe('Phase B reloadRemote against live primary', () => {
 		});
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PORT_R}`;
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
+		process.env.ROLL_WORKER_RELOAD_WAIT_MS = '15000';
 		await waitHealth(PORT_R);
 	});
 
@@ -263,31 +335,39 @@ describe('Phase B reloadRemote against live primary', () => {
 		else process.env.ROLL_WORKER_URL = prevUrl;
 		if (prevToken === undefined) delete process.env.ROLL_WORKER_TOKEN;
 		else process.env.ROLL_WORKER_TOKEN = prevToken;
+		// Stop whatever is listening (may be a detached successor).
+		try {
+			await httpJson(PORT_R, 'POST', '/v1/admin/shutdown', { drainMs: 50 }, {
+				Authorization: `Bearer ${TOKEN}`,
+			});
+			await sleep(400);
+		} catch { /* ignore */ }
 		if (child && !child.killed) {
 			child.kill('SIGTERM');
-			await sleep(400);
+			await sleep(200);
 			try { child.kill('SIGKILL'); } catch { /* ignore */ }
 		}
 	});
 
-	it('reloadRemote sends loopback shutdown', async () => {
+	it('reloadRemote self-restarts and health returns without PM2', async () => {
 		jest.resetModules();
 		const localWorker = require('../modules/roll-worker/local-worker');
-		const result = await localWorker.reloadRemote({ drainMs: 100 });
-		expect(result.ok).toBe(true);
-		expect(result.mode).toBe('shutdown-sent');
-		const start = Date.now();
-		let down = false;
-		while (Date.now() - start < 10_000) {
-			try {
-				await httpJson(PORT_R, 'GET', '/health');
-			} catch {
-				down = true;
-				break;
-			}
-			await sleep(100);
+		const beforePid = child?.pid;
+		let beforeHealth = await waitHealth(PORT_R);
+		while (beforeHealth.uptime < 4) {
+			await sleep(500);
+			beforeHealth = await waitHealth(PORT_R);
 		}
-		expect(down).toBe(true);
+		const result = await localWorker.reloadRemote({ drainMs: 150 });
+		expect(result.ok).toBe(true);
+		expect(result.mode).toBe('self-restart');
+		const afterHealth = await waitHealth(PORT_R);
 		child = null;
-	});
+		if (beforePid) {
+			expect(result.pid).toBe(beforePid);
+		}
+		expect(afterHealth.ok).toBe(true);
+		// Successor is a new process — uptime must be lower than the pre-reload process.
+		expect(afterHealth.uptime).toBeLessThan(beforeHealth.uptime);
+	}, 30_000);
 });

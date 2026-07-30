@@ -120,6 +120,11 @@ function toSerializableContext(params = {}) {
 		fixShardMeta: params.fixShardMeta || null,
 		slashDeployMeta: params.slashDeployMeta || null,
 		skipExp: Boolean(params.skipExp),
+		gatewayBuildInfo: params.gatewayBuildInfo || (
+			process.env.ROLL_WORKER_MODE === 'true'
+				? null
+				: require('../runtime/build-info').getPublic()
+		),
 	};
 }
 
@@ -228,6 +233,37 @@ async function requestAdminShutdown(baseUrl, { drainMs = 500 } = {}) {
 	return response.data;
 }
 
+/**
+ * Loopback-only admin reload (Worker spawns successor then exits).
+ */
+async function requestAdminReload(baseUrl, { drainMs = 500 } = {}) {
+	const { token, timeoutMs } = getConfig();
+	const url = String(baseUrl || '').replace(/\/$/, '');
+	if (!url) {
+		throw new Error('Roll worker URL missing');
+	}
+	const headers = {
+		'Content-Type': 'application/json',
+		...gatewayRequestHeaders(),
+	};
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+	const response = await axios.post(
+		`${url}/v1/admin/reload`,
+		{ drainMs },
+		{ headers, timeout: Math.min(timeoutMs, 10_000), validateStatus: () => true }
+	);
+	if (response.status < 200 || response.status >= 300) {
+		const message = response.data?.error || `Roll worker reload HTTP ${response.status}`;
+		const error = new Error(message);
+		error.status = response.status;
+		error.body = response.data;
+		throw error;
+	}
+	return response.data;
+}
+
 async function healthAt(baseUrl) {
 	const { token, timeoutMs } = getConfig();
 	const url = String(baseUrl || '').replace(/\/$/, '');
@@ -322,6 +358,7 @@ module.exports = {
 	parseLocal,
 	parseWithUrl,
 	requestAdminShutdown,
+	requestAdminReload,
 	characterAction,
 	health,
 	healthAt,

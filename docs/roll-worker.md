@@ -132,13 +132,24 @@ Proof markers (`keepProof` / tests): `_rollWorker: true` (primary), `_rollLocalW
 ```text
 .root reload              # same as local
 .root reload local        # drain + restart local compute
-.root reload remote       # loopback POST /v1/admin/shutdown on ROLL_WORKER_URL
+.root reload remote       # loopback POST /v1/admin/reload on ROLL_WORKER_URL
 .root reload all          # local then remote
+/root reload              # Discord slash → .root reload local
+/root reload target:…     # local | remote | all
 ```
 
 - Runs on **Gateway** (`adminSubNeedsLiveDiscord('.root','reload')` → always `needsLocal`).
 - **Not** Discord cluster respawn. Do not confuse with `.root respawn` / `respawnall`.
 - Reply text includes `ok` / `mode` / `url` / `pid` and an explicit note about Discord-coupled paths.
+
+### `POST /v1/admin/reload` (preferred for `.root reload`)
+
+| Rule | Detail |
+|------|--------|
+| Auth | Bearer `ROLL_WORKER_TOKEN` (same middleware as `/v1/*`) |
+| Network | **Loopback callers only** (`127.0.0.1` / `::1`); else `403` |
+| Behavior | Respond `{ ok, reloading, pid, drainMs, mode: 'self-restart' }`, then drain → close HTTP listener → **spawn successor** `roll-worker.js` (detached) → `process.exit(0)` |
+| Ops | Works without PM2 for bare `yarn start:roll-worker`; successor inherits env and rebinds the same port |
 
 ### `POST /v1/admin/shutdown`
 
@@ -146,8 +157,8 @@ Proof markers (`keepProof` / tests): `_rollWorker: true` (primary), `_rollLocalW
 |------|--------|
 | Auth | Bearer `ROLL_WORKER_TOKEN` (same middleware as `/v1/*`) |
 | Network | **Loopback callers only** (`127.0.0.1` / `::1`); else `403` |
-| Behavior | Respond `{ ok, shuttingDown, pid, drainMs }` then `process.exit(0)` after `drainMs` (cap 10s) |
-| Ops | PM2/docker/systemd (or Gateway SPAWN supervisor) must restart the process |
+| Behavior | Respond `{ ok, shuttingDown, pid, drainMs }` then `process.exit(0)` after `drainMs` (cap 10s) — **no successor** |
+| Ops | Use for supervised SPAWN (Gateway respawns) or when PM2/docker/systemd owns restart |
 
 Remote hosts: Gateway `.root reload remote` gets `403` / transport error → reply tells you to restart Worker on that host via process manager. No public kill endpoint.
 
@@ -155,19 +166,19 @@ Remote hosts: Gateway `.root reload remote` gets `403` / transport error → rep
 
 | Mode | When | Effect |
 |------|------|--------|
-| `supervised-respawn` | Gateway owns child (`SPAWN=true`) | shutdown → wait unhealthy → respawn → wait health |
-| `external-restart` | Shared URL; health went down then up | shutdown → confirm down → wait health OK (PM2/docker) |
-| `shutdown-sent` | Health went down; not back within wait | warn: ensure PM2/docker restart |
-| `shutdown-uncertain` | Shutdown requested but `/health` still OK | fail: process may not have exited |
+| `supervised-respawn` | Gateway owns child (`SPAWN=true`) | shutdown → wait unhealthy → Gateway respawn → wait health |
+| `self-restart` | Shared local / primary Worker | `/v1/admin/reload` → wait unhealthy → wait health (successor) |
+| `reload-sent` | Reload started; health not back within wait | warn: check Worker logs / start Worker |
+| `reload-uncertain` | Reload requested but `/health` still OK | fail: process may not have restarted |
 
 ### Key modules (Phase A/B)
 
 | File | Role |
 |------|------|
 | `local-worker.js` | SPAWN/lock, `reloadLocal` / `reloadRemote`, status, Gateway shutdown of supervised child |
-| `client.js` | `isLocalEnabled`, `parseLocal`, `parseWithUrl`, `requestAdminShutdown`, `healthAt` |
+| `client.js` | `isLocalEnabled`, `parseLocal`, `parseWithUrl`, `requestAdminReload` / `requestAdminShutdown`, `healthAt` |
 | `parse-router.js` | hybrid: `workerError` → local HTTP then main-thread; `needsLocal` → main-thread only |
-| `server.js` | `POST /v1/admin/shutdown` (loopback) |
+| `server.js` | `POST /v1/admin/reload` (self-restart) + `POST /v1/admin/shutdown` (loopback) |
 | `admin-remote.js` | `.root reload` always Gateway-local |
 | `roll/z_admin.js` | `.root reload [local\|remote\|all]` command |
 
@@ -184,7 +195,7 @@ yarn jest test/roll-worker-parse-router.test.js test/roll-worker-local-http-fall
 |-------|--------|
 | `roll-worker-parse-router.test.js` | mock: local HTTP preferred on `workerError`; `needsLocal` skips `parseLocal` |
 | `roll-worker-local-http-fallback.test.js` | live spawn two Workers; `client.parse` / `parseLocal` |
-| `roll-worker-reload.test.js` | unit shutdown auth; supervised respawn; remote loopback shutdown |
+| `roll-worker-reload.test.js` | unit shutdown auth; supervised respawn; shared/local + remote **self-restart** |
 | `scripts/proof-local-worker.js` | full parseRouter `_rollLocalWorker` after primary kill |
 
 ### Review verdict (Phase A/B)
@@ -281,7 +292,8 @@ yarn jest test/roll-worker-parse-router.test.js test/roll-worker-local-http-fall
 | `ROLL_LOCAL_WORKER_URL` | Hybrid `workerError` → `client.parseLocal` before in-process analytics |
 | `ROLL_LOCAL_WORKER_SPAWN` | Optional supervised child + `temp/roll-local-worker.lock` (single-process) |
 | `.root reload` | `local` / `remote` / `all`; Gateway-only; never cluster respawn |
-| `/v1/admin/shutdown` | Bearer + loopback; drain then `process.exit(0)` |
+| `/v1/admin/reload` | Bearer + loopback; drain → close → spawn successor → exit |
+| `/v1/admin/shutdown` | Bearer + loopback; drain then `process.exit(0)` (no successor; SPAWN/PM2) |
 | ParseMode | Logs `localHttp=<url\|off>` when remoting |
 | Hot-reload scope | HTTP Workers yes; Gateway `needsLocal` + live Discord paths no |
 
@@ -509,6 +521,26 @@ flowchart LR
 | Safety | CDN allowlist fetch + byte caps; rate-limit `/v1/*`; health counters auth; shutdown loopback |
 | Platforms | TG/Line/WA/Plurk/WWW + Discord + schedule `skipExp` |
 | Tests | Phase 3 → **3ab** + Phase A/B Jest + `proof-gateway-worker.js` + `proof-local-worker.js` |
+| Ops version | `modules/runtime/build-info.js` — display `branch · YYYY-MM-DD · sha` on `.admin state` / `.root mem` / Bearer `/health` |
+
+### Ops build identity (`build-info`)
+
+Display format (not `package.json` semver):
+
+```text
+Distributed- · 2026-07-30 · a1b2c3d
+```
+
+| Field | Env (preferred on prod) | Fallback |
+|-------|-------------------------|----------|
+| branch | `GIT_BRANCH` / `GITHUB_REF_NAME` / `BRANCH_NAME` / `HEROKU_BRANCH` | `git rev-parse --abbrev-ref HEAD` |
+| sha | `GITHUB_SHA` / `SOURCE_VERSION` / `GIT_COMMIT` / `HEROKU_SLUG_COMMIT` | `git rev-parse --short HEAD` |
+| date | `BUILD_TIME` / `SOURCE_DATE` (UTC day) | git committer date / process start |
+
+`.admin state` shows up to three lines: Gateway (self or `gatewayBuildInfo` prefetch when report runs on Worker), Worker (`ROLL_WORKER_URL` health / self on Worker), Local (`ROLL_LOCAL_WORKER_URL` health).  
+Gateway always attaches `gatewayBuildInfo` in the remote parse body so Worker-side state still shows the Gateway line.  
+`.root mem` (B3 bars) footers Gateway only.  
+Bearer-detailed `GET /health` includes `version: { display, gitBranch, gitSha, builtAt, … }`.
 
 ### Commits in scope (`master..Distributed-`)
 

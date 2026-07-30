@@ -1,9 +1,12 @@
 "use strict";
 
 const crypto = require('node:crypto');
+const path = require('node:path');
+const { spawn } = require('node:child_process');
 const express = require('express');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const analytics = require('../analytics');
+const buildInfo = require('../runtime/build-info');
 const { isRemoteAllowed } = require('./route-table');
 const { runCharacterAction } = require('./character-action');
 const {
@@ -12,6 +15,9 @@ const {
 } = require('./request-auth');
 const { ensureRollWorkerToken } = require('./ensure-token');
 const { readGatewayFromRequest } = require('./gateway-label');
+
+const WORKER_ENTRY = path.join(__dirname, '..', '..', 'roll-worker.js');
+const WORKER_ROOT = path.join(__dirname, '..', '..');
 
 function timingSafeTokenEqual(provided, expected) {
 	const a = Buffer.from(String(provided || ''), 'utf8');
@@ -35,6 +41,48 @@ function isLoopbackHost(host) {
 function isLoopbackRemoteAddress(addr) {
 	const a = String(addr || '').toLowerCase().replace(/^::ffff:/, '');
 	return a === '127.0.0.1' || a === '::1' || a === 'localhost';
+}
+
+/**
+ * Close HTTP server (release port), spawn a successor Worker, then exit.
+ * Injectable for Jest (pass performAdminReload).
+ * @param {{ drainMs: number, httpServer?: import('node:http').Server | null }} ctx
+ */
+function defaultPerformAdminReload(ctx = {}) {
+	const drainMs = Number(ctx.drainMs) || 0;
+	const httpServer = ctx.httpServer || null;
+	setTimeout(() => {
+		let finished = false;
+		const startSuccessor = () => {
+			if (finished) return;
+			finished = true;
+			try {
+				const child = spawn(process.execPath, [WORKER_ENTRY], {
+					cwd: WORKER_ROOT,
+					env: { ...process.env },
+					detached: true,
+					stdio: 'ignore',
+				});
+				child.unref();
+				console.warn(
+					`[RollWorker] admin reload spawned successor pid=${child.pid}`
+					+ ` | exiting pid=${process.pid}`
+				);
+			} catch (error) {
+				console.error('[RollWorker] admin reload spawn failed:', error?.message || error);
+			}
+			// eslint-disable-next-line n/no-process-exit
+			process.exit(0);
+		};
+
+		if (httpServer && typeof httpServer.close === 'function') {
+			httpServer.close(() => startSuccessor());
+			// Port release hang fallback
+			setTimeout(startSuccessor, 2000).unref?.();
+			return;
+		}
+		startSuccessor();
+	}, drainMs).unref?.();
 }
 
 function getJsonBodyLimit() {
@@ -69,6 +117,9 @@ function createRollWorkerApp(options = {}) {
 	const rateLimitDisabled = options.disableRateLimit === true
 		|| process.env.ROLL_WORKER_RATE_LIMIT_DISABLED === 'true';
 	const rateLimitConfig = options.rateLimit || getRateLimitConfig();
+	const performAdminReload = typeof options.performAdminReload === 'function'
+		? options.performAdminReload
+		: defaultPerformAdminReload;
 	const rateLimiter = rateLimitDisabled
 		? null
 		: new RateLimiterMemory(rateLimitConfig);
@@ -189,6 +240,7 @@ function createRollWorkerApp(options = {}) {
 			gateway,
 			peer: peerStates[gateway] || 'waiting',
 			peers: peerStates,
+			version: buildInfo.getPublic(),
 		});
 	});
 
@@ -314,13 +366,54 @@ function createRollWorkerApp(options = {}) {
 			// eslint-disable-next-line n/no-process-exit
 			process.exit(0);
 		}, drainMs).unref?.();
-		return undefined;
+		return;
+	});
+
+	/**
+	 * True reload: drain, close listener, spawn successor Worker, exit.
+	 * Unlike shutdown, a new process binds the same port without PM2.
+	 */
+	let reloading = false;
+	app.post('/v1/admin/reload', (req, res) => {
+		const remote = req.ip || req.socket?.remoteAddress || '';
+		if (!isLoopbackRemoteAddress(remote)) {
+			return res.status(403).json({
+				error: 'Forbidden: /v1/admin/reload is loopback-only',
+			});
+		}
+		if (shuttingDown || reloading) {
+			return res.json({
+				ok: true,
+				reloading: true,
+				pid: process.pid,
+				already: true,
+			});
+		}
+		const rawDrain = Number.parseInt(String(req.body?.drainMs ?? '500'), 10);
+		const drainMs = Number.isFinite(rawDrain)
+			? Math.min(Math.max(rawDrain, 0), 10_000)
+			: 500;
+		reloading = true;
+		console.warn(`[RollWorker] admin reload requested | drainMs=${drainMs} | pid=${process.pid}`);
+		res.json({
+			ok: true,
+			reloading: true,
+			pid: process.pid,
+			drainMs,
+			mode: 'self-restart',
+		});
+		performAdminReload({
+			drainMs,
+			httpServer: app.locals.httpServer || null,
+		});
+		return;
 	});
 
 	app.locals.stats = stats;
 	app.locals.expectedToken = expectedToken;
 	app.locals.allowNoToken = allowNoToken;
 	app.locals.bindHost = bindHost;
+	app.locals.performAdminReload = performAdminReload;
 	return app;
 }
 
@@ -361,6 +454,7 @@ function startRollWorkerServer() {
 			+ ` | jsonLimit=${getJsonBodyLimit()}`
 			+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
 	});
+	app.locals.httpServer = server;
 	return { app, server };
 }
 
@@ -368,10 +462,12 @@ module.exports = {
 	DEFAULT_JSON_BODY_LIMIT,
 	DEFAULT_RATE_LIMIT_POINTS,
 	DEFAULT_RATE_LIMIT_DURATION,
+	WORKER_ENTRY,
 	getJsonBodyLimit,
 	getRateLimitConfig,
 	createRollWorkerApp,
 	startRollWorkerServer,
+	defaultPerformAdminReload,
 	isLoopbackHost,
 	isLoopbackRemoteAddress,
 };

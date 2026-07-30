@@ -51,6 +51,18 @@ HTTP (loopback + Bearer): `POST /v1/admin/reload` = self-restart; `POST /v1/admi
 
 Discord slash `.root restart gateway|discord`: cluster IPC is **deferred** until after `editReply` / channel send (`_pendingClusterIpc` → `flushPendingClusterIpc`), so the interaction is not left on “thinking…”.
 
+## Docker (multi-Gateway)
+
+When Discord and TG/LINE/WA are **separate containers**, run one shared **`roll-primary`** service and point both Gateways at it (`ROLL_WORKER_SPAWN=false`). Details and upgrade steps: [DOCKER_SETUP.md](./DOCKER_SETUP.md).
+
+| Pitfall | Fix |
+|---------|-----|
+| Primary binds `127.0.0.1` only | `ROLL_WORKER_HOST=0.0.0.0` in Primary container |
+| Each Gateway spawns its own Primary | Shared URL + `ROLL_WORKER_SPAWN=false` |
+| `EACCES mkdir modules/log` | Create / mount writable `modules/log` (not only root `log/`) |
+| `.admin state` shows `detached · unknown` | `build-info` uses git `safe.directory=*` + `.git` file fallback (redeploy code) |
+| AI crash on Worker | Copy `OPENAI_*` / `AI_MODEL_*` into Primary env |
+
 ## Quick start
 
 **Default:** leave URLs unset. Gateway auto-discovers/spawns **Primary only** (`:3950`).

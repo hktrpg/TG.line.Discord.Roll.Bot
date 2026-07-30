@@ -69,4 +69,23 @@ describe('build-info', () => {
 		buildInfo.resetCache();
 		expect(buildInfo.getDisplay()).toContain('b ·');
 	});
+
+	it('reads branch and sha from .git without env', () => {
+		const info = buildInfo.get();
+		// This repo checkout should expose a real branch/sha via git or FS fallback.
+		expect(info.gitBranch).not.toBe('detached');
+		expect(info.gitSha).not.toBe('unknown');
+		expect(info.gitSha.length).toBeGreaterThanOrEqual(7);
+		expect(info.display).toMatch(/· \d{4}-\d{2}-\d{2} ·/);
+	});
+
+	it('findGitDir / FS helpers resolve this repository', () => {
+		const gitDir = buildInfo.findGitDir();
+		expect(gitDir).toBeTruthy();
+		const branch = buildInfo.readBranchFromFs();
+		const sha = buildInfo.readShaFromFs();
+		// Branch may be empty only in true detached HEAD; sha should still resolve.
+		expect(sha).toMatch(/^[0-9a-f]{7,40}$/i);
+		if (branch) expect(branch).not.toBe('HEAD');
+	});
 });

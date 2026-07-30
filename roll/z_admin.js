@@ -1101,7 +1101,9 @@ const rollDiceCommand = async function ({
                             return rply;
                         }
                         if (spec === 'all') {
-                            const ipcPayload = {
+                            // Always defer IPC: Discord must editReply before respawnall
+                            // (else slash stays on "thinking…" while clusters die).
+                            rply.clusterIpc = {
                                 respawnall: true,
                                 meta: {
                                     source: 'admin_command',
@@ -1111,16 +1113,11 @@ const rollDiceCommand = async function ({
                                     channelid,
                                 },
                             };
-                            if (discordClient?.cluster?.send) {
-                                discordClient.cluster.send(ipcPayload);
-                            } else {
-                                rply.clusterIpc = ipcPayload;
-                            }
                             rply.text = translate('admin.restart_discord_all_sent');
                             rply.quotes = true;
                             return rply;
                         }
-                        const ipcPayload = {
+                        rply.clusterIpc = {
                             respawn: true,
                             id: clusterId,
                             meta: {
@@ -1132,11 +1129,6 @@ const rollDiceCommand = async function ({
                                 channelid,
                             },
                         };
-                        if (discordClient?.cluster?.send) {
-                            discordClient.cluster.send(ipcPayload);
-                        } else {
-                            rply.clusterIpc = ipcPayload;
-                        }
                         rply.text = translate('admin.restart_discord_one_sent', { id: clusterId });
                         rply.quotes = true;
                         return rply;
@@ -1144,7 +1136,8 @@ const rollDiceCommand = async function ({
                     if (target === 'gateway') {
                         const bot = String(botname || '').toLowerCase();
                         if (bot === 'discord' && discordClient?.cluster) {
-                            const ipcPayload = {
+                            // Defer IPC until after Discord reply (same as restart discord).
+                            rply.clusterIpc = {
                                 respawnall: true,
                                 meta: {
                                     source: 'admin_command',
@@ -1154,11 +1147,6 @@ const rollDiceCommand = async function ({
                                     channelid,
                                 },
                             };
-                            if (discordClient.cluster.send) {
-                                discordClient.cluster.send(ipcPayload);
-                            } else {
-                                rply.clusterIpc = ipcPayload;
-                            }
                             rply.text = translate('admin.restart_gateway_discord_sent');
                             rply.quotes = true;
                             return rply;
@@ -1188,7 +1176,7 @@ const rollDiceCommand = async function ({
                     ];
                     const bot = String(botname || '').toLowerCase();
                     if (bot === 'discord' && discordClient?.cluster) {
-                        const ipcPayload = {
+                        rply.clusterIpc = {
                             respawnall: true,
                             meta: {
                                 source: 'admin_command',
@@ -1198,11 +1186,6 @@ const rollDiceCommand = async function ({
                                 channelid,
                             },
                         };
-                        if (discordClient.cluster.send) {
-                            discordClient.cluster.send(ipcPayload);
-                        } else {
-                            rply.clusterIpc = ipcPayload;
-                        }
                         parts.push(translate('admin.restart_gateway_discord_sent'));
                     } else {
                         parts.push(translate('admin.restart_gateway_process_sent'));

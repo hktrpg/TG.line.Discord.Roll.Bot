@@ -1095,74 +1095,79 @@ async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
 	// Busy-queue: leave Discord "thinking…" until drain editReply.
 	if (result?.deferred) return;
-	if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
-		// webhookOnly: /me /mee sent via webhook. interactionHandled: webhook failed but
-		// interaction was acknowledged — always drop the deferred ephemeral.
-		try {
-			if (message.deferred || message.replied) {
-				await message.deleteReply();
-			}
-		} catch (error) {
-			if (!isDiscordUnknownInteraction(error)) {
-				console.error('replilyMessage deleteReply (webhook/me):', error.message);
-			}
-		}
-		return;
-	}
-	if (result && result.text) {
-		result.text = `${displayname}${result.text}`
-		await __handlingReplyMessage(message, result);
-	}
-	else {
-		const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
-		const noResponseText = t('common.errors.no_response_prefix', { prefix: displayname });
-		try {
-			// For interactions, check status and respond appropriately
-			if (message.isInteraction) {
-				if (!message.deferred && !message.replied) {
-					// Defer the reply if we haven't responded yet
-					await message.deferReply({ flags: MessageFlags.Ephemeral });
-					await message.editReply({ content: noResponseText, flags: MessageFlags.Ephemeral });
-				} else if (message.deferred && !message.replied) {
-					// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
-					// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
-					const noResponseEdit = { content: noResponseText };
-					if (message.ephemeral) {
-						noResponseEdit.flags = MessageFlags.Ephemeral;
-					}
-					await message.editReply(noResponseEdit);
-				} else if (!message.replied) {
-					// Last resort - try a direct reply
-					await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral })
-						.catch(error => console.error('Failed to reply to interaction:', error.message));
+	try {
+		if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
+			// webhookOnly: /me /mee sent via webhook. interactionHandled: webhook failed but
+			// interaction was acknowledged — always drop the deferred ephemeral.
+			try {
+				if (message.deferred || message.replied) {
+					await message.deleteReply();
 				}
-			} else {
-				// For regular messages
-				return await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral });
-			}
-		} catch (error) {
-			if (isDiscordUnknownInteraction(error)) {
-				warnInteraction10062('replily_no_result', message);
-				return;
-			}
-			if (message.isInteraction && error.code === 50_027) {
-				const fallbackSent = await replyInteractionPrivate(
-					message,
-					noResponseText
-				);
-				if (fallbackSent) return;
-				if (message.channel && typeof message.channel.send === 'function') {
-					try {
-						await message.channel.send(noResponseText);
-						return;
-					} catch (fallbackError) {
-						console.error('replilyMessage fallback channel.send:', fallbackError.message);
-					}
+			} catch (error) {
+				if (!isDiscordUnknownInteraction(error)) {
+					console.error('replilyMessage deleteReply (webhook/me):', error.message);
 				}
 			}
-			console.error('replilyMessage error:', error);
 			return;
 		}
+		if (result && result.text) {
+			result.text = `${displayname}${result.text}`
+			await __handlingReplyMessage(message, result);
+		}
+		else {
+			const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+			const noResponseText = t('common.errors.no_response_prefix', { prefix: displayname });
+			try {
+				// For interactions, check status and respond appropriately
+				if (message.isInteraction) {
+					if (!message.deferred && !message.replied) {
+						// Defer the reply if we haven't responded yet
+						await message.deferReply({ flags: MessageFlags.Ephemeral });
+						await message.editReply({ content: noResponseText, flags: MessageFlags.Ephemeral });
+					} else if (message.deferred && !message.replied) {
+						// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
+						// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
+						const noResponseEdit = { content: noResponseText };
+						if (message.ephemeral) {
+							noResponseEdit.flags = MessageFlags.Ephemeral;
+						}
+						await message.editReply(noResponseEdit);
+					} else if (!message.replied) {
+						// Last resort - try a direct reply
+						await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral })
+							.catch(error => console.error('Failed to reply to interaction:', error.message));
+					}
+				} else {
+					// For regular messages
+					await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral });
+					return;
+				}
+			} catch (error) {
+				if (isDiscordUnknownInteraction(error)) {
+					warnInteraction10062('replily_no_result', message);
+					return;
+				}
+				if (message.isInteraction && error.code === 50_027) {
+					const fallbackSent = await replyInteractionPrivate(
+						message,
+						noResponseText
+					);
+					if (fallbackSent) return;
+					if (message.channel && typeof message.channel.send === 'function') {
+						try {
+							await message.channel.send(noResponseText);
+							return;
+						} catch (fallbackError) {
+							console.error('replilyMessage fallback channel.send:', fallbackError.message);
+						}
+					}
+				}
+				console.error('replilyMessage error:', error);
+				return;
+			}
+		}
+	} finally {
+		flushPendingClusterIpc(result?._pendingClusterIpc);
 	}
 }
 
@@ -3807,13 +3812,10 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 			channelid
 		});
 	}
-	if (rplyVal.clusterIpc && client?.cluster?.send) {
-		try {
-			client.cluster.send(rplyVal.clusterIpc);
-		} catch (error) {
-			console.error('[Discord] clusterIpc send failed:', error?.message || error);
-		}
-	}
+	// clusterIpc (e.g. .root restart gateway/discord): do NOT send here.
+	// Flush after Discord editReply/channel send — otherwise slash stays on "thinking…".
+	const pendingClusterIpc = rplyVal.clusterIpc || null;
+	if (rplyVal.clusterIpc) delete rplyVal.clusterIpc;
 	if (rplyVal.gatewayAction?.type === 'fixshard') {
 		applyFixShardGatewayAction(rplyVal, message);
 	}
@@ -3849,7 +3851,10 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 			console.error('[Discord] adminDmFiles failed:', error?.message || error);
 		}
 	}
-	if (!rplyVal.text && !rplyVal.LevelUp) return undefined;
+	if (!rplyVal.text && !rplyVal.LevelUp) {
+		flushPendingClusterIpc(pendingClusterIpc);
+		return undefined;
+	}
 	if (process.env.mongoURL) {
 		try {
 			const isNew = await newMessage.newUserChecker(userid, "Discord");
@@ -3991,6 +3996,7 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 		}
 	}
 	if (!rplyVal.text) {
+		flushPendingClusterIpc(pendingClusterIpc);
 		return undefined;
 	}
 	return {
@@ -4003,8 +4009,21 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 		statue: rplyVal.statue,
 		quotes: rplyVal.quotes,
 		buttonCreate: rplyVal.buttonCreate,
-		discordCreatePoll: rplyVal.discordCreatePoll
+		discordCreatePoll: rplyVal.discordCreatePoll,
+		_pendingClusterIpc: pendingClusterIpc,
 	};
+}
+
+/**
+ * Send deferred clusterIpc after Discord reply is out (slash editReply first).
+ */
+function flushPendingClusterIpc(ipc) {
+	if (!ipc || !client?.cluster?.send) return;
+	try {
+		client.cluster.send(ipc);
+	} catch (error) {
+		console.error('[Discord] clusterIpc send failed:', error?.message || error);
+	}
 }
 
 /**
@@ -4149,91 +4168,95 @@ const sendDmFiles = async (message, rplyVal) => {
 }
 
 async function handlingSendMessage(input) {
-	const privatemsg = input.privatemsg || 0;
-	const channelid = input.channelid;
-	const groupid = input.groupid
-	const userid = input.userid
-	let sendText = input.text
-	const statue = input.statue
-	const quotes = input.quotes
-	const buttonCreate = input.buttonCreate;
-	const pollPayload = input.discordCreatePoll;
-	const t = input.message?._hktrpgT || i18n.createTranslator(input.message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
-	let TargetGMTempID = [];
-	let TargetGMTempdiyName = [];
-	let TargetGMTempdisplayname = [];
-	if (privatemsg > 1 && darkRolling) {
-		let groupInfo = await privateMsgFinder(channelid) || [];
-		for (const item of groupInfo) {
-			TargetGMTempID.push(item.userid);
-			TargetGMTempdiyName.push(item.diyName);
-			TargetGMTempdisplayname.push(item.displayname);
+	try {
+		const privatemsg = input.privatemsg || 0;
+		const channelid = input.channelid;
+		const groupid = input.groupid
+		const userid = input.userid
+		let sendText = input.text
+		const statue = input.statue
+		const quotes = input.quotes
+		const buttonCreate = input.buttonCreate;
+		const pollPayload = input.discordCreatePoll;
+		const t = input.message?._hktrpgT || i18n.createTranslator(input.message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		let TargetGMTempID = [];
+		let TargetGMTempdiyName = [];
+		let TargetGMTempdisplayname = [];
+		if (privatemsg > 1 && darkRolling) {
+			let groupInfo = await privateMsgFinder(channelid) || [];
+			for (const item of groupInfo) {
+				TargetGMTempID.push(item.userid);
+				TargetGMTempdiyName.push(item.diyName);
+				TargetGMTempdisplayname.push(item.displayname);
+			}
 		}
-	}
-	switch (true) {
-		case privatemsg == 1:
-			// Input dr (command) private message to self
-			//
-			if (groupid) {
-				await SendToReplychannel(
-					{ replyText: t('discord.dark_roll.dr_self_notice', { userid }), channelid })
-			}
-			if (userid) {
-				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
-				SendToId(userid, sendText, true);
-			}
-			return;
-		case privatemsg == 2:
-			// Input ddr(command) private message to GM and self
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+		switch (true) {
+			case privatemsg == 1:
+				// Input dr (command) private message to self
+				//
+				if (groupid) {
+					await SendToReplychannel(
+						{ replyText: t('discord.dark_roll.dr_self_notice', { userid }), channelid })
 				}
-				await SendToReplychannel(
-					{ replyText: t('discord.dark_roll.ddr_in_progress_self', { userid, targets: targetGMNameTemp }), channelid });
-			}
-			if (userid) {
-				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText;
-			}
-			SendToId(userid, sendText);
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i]) {
+				if (userid) {
+					sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
+					SendToId(userid, sendText, true);
+				}
+				return;
+			case privatemsg == 2:
+				// Input ddr(command) private message to GM and self
+				if (groupid) {
+					let targetGMNameTemp = "";
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+					}
+					await SendToReplychannel(
+						{ replyText: t('discord.dark_roll.ddr_in_progress_self', { userid, targets: targetGMNameTemp }), channelid });
+				}
+				if (userid) {
+					sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText;
+				}
+				SendToId(userid, sendText);
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					if (userid != TargetGMTempID[i]) {
+						SendToId(TargetGMTempID[i], sendText);
+					}
+				}
+				return;
+			case privatemsg == 3:
+				// Input dddr(command) private message to GM
+				if (groupid) {
+					let targetGMNameTemp = "";
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+					}
+					await SendToReplychannel(
+						{ replyText: t('discord.dark_roll.dddr_in_progress', { userid, targets: targetGMNameTemp }), channelid })
+				}
+				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
+				for (let i = 0; i < TargetGMTempID.length; i++) {
 					SendToId(TargetGMTempID[i], sendText);
 				}
-			}
-			return;
-		case privatemsg == 3:
-			// Input dddr(command) private message to GM
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+				return;
+			default:
+				if (userid) {
+					sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker(userid)}\n${sendText}`;
 				}
-				await SendToReplychannel(
-					{ replyText: t('discord.dark_roll.dddr_in_progress', { userid, targets: targetGMNameTemp }), channelid })
-			}
-			sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				SendToId(TargetGMTempID[i], sendText);
-			}
-			return;
-		default:
-			if (userid) {
-				sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker(userid)}\n${sendText}`;
-			}
-			if (groupid) {
-				// Prefer poll if present
-				if (pollPayload && Array.isArray(pollPayload.options)) {
-					await createStPollByChannel({ channelid, groupid, text: sendText, payload: pollPayload });
-					return;
+				if (groupid) {
+					// Prefer poll if present
+					if (pollPayload && Array.isArray(pollPayload.options)) {
+						await createStPollByChannel({ channelid, groupid, text: sendText, payload: pollPayload });
+						return;
+					}
+					await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
+				} else {
+					//SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
+					SendToId(userid, sendText, true);
 				}
-				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
-			} else {
-				//SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
-				SendToId(userid, sendText, true);
-			}
-			return;
+				return;
+		}
+	} finally {
+		flushPendingClusterIpc(input?._pendingClusterIpc);
 	}
 }
 

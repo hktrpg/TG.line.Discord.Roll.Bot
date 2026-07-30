@@ -248,6 +248,23 @@ describe('.root restart|stop text', () => {
 		expect(result.text).toMatch(/discord all/i);
 	});
 
+	it('restart gateway defers clusterIpc (no immediate cluster.send)', async () => {
+		const send = jest.fn();
+		const result = await adminModule.rollDiceCommand({
+			mainMsg: ['.root', 'restart', 'gateway'],
+			userid: 'test_admin_id',
+			locale: 'zh-tw',
+			botname: 'Discord',
+			discordClient: { cluster: { send } },
+		});
+		expect(send).not.toHaveBeenCalled();
+		expect(result.clusterIpc).toEqual(expect.objectContaining({
+			respawnall: true,
+			meta: expect.objectContaining({ trigger: '.root restart gateway' }),
+		}));
+		expect(result.text).toMatch(/gateway|Discord/i);
+	});
+
 	it('restart discord <id> returns clusterIpc respawn', async () => {
 		const result = await adminModule.rollDiceCommand({
 			mainMsg: ['.root', 'restart', 'discord', '0'],

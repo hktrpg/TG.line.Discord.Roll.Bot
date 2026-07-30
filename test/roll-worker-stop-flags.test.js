@@ -33,11 +33,18 @@ const parseRouter = require('../modules/roll-worker/parse-router');
 describe('stop flags', () => {
 	beforeEach(() => {
 		localWorker.resetStoppedFlagsForTests();
+		parseRouter.resetWorkersReadyForTests();
 		jest.clearAllMocks();
 		client.isEnabled.mockReturnValue(true);
 		client.isLocalEnabled.mockReturnValue(true);
 		client.requestAdminShutdown.mockResolvedValue({ ok: true });
-		client.healthAt.mockRejectedValue(new Error('down'));
+		// Healthy until operator stop flag is set (then waitUntilUnhealthy can finish).
+		client.healthAt.mockImplementation(async () => {
+			if (localWorker.isPrimaryStopped() || localWorker.isStandbyStopped()) {
+				throw new Error('down');
+			}
+			return { ok: true };
+		});
 		client.parseLocal.mockResolvedValue({ text: 'from-standby', type: 'text' });
 		analytics.parseInput.mockResolvedValue({ text: 'embedded', type: 'text' });
 		analytics.findRollModuleName.mockReturnValue('demo');

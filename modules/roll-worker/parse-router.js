@@ -125,19 +125,23 @@ async function getSystemBusyText(locale) {
 }
 
 /**
- * REMOTE_ONLY fail result after defer was attempted (or is unsafe to enqueue).
- * With defer-busy on: never show system_busy — silent empty (plan: user never sees busy).
- * With defer off / hybrid opt-out: classic system_busy text.
+ * REMOTE_ONLY fail after defer unavailable / enqueue failed.
+ * Successful defer returns `{ deferred: true }` elsewhere (silent until drain).
+ * Always surface system_busy — never silent empty (platforms would drop the reply).
  */
 async function remoteOnlyFailResult(locale, extras = {}) {
-	if (deferQueue.isDeferBusyActive()) {
-		return { text: '', type: 'text', ...extras };
-	}
 	return {
 		text: await getSystemBusyText(locale),
 		type: 'text',
 		...extras,
 	};
+}
+
+/**
+ * Mutator mid-flight timeout/error: Worker may already have committed — no replay, no busy spam.
+ */
+function remoteOnlySilentFailResult(extras = {}) {
+	return { text: '', type: 'text', ...extras };
 }
 
 /**
@@ -159,6 +163,11 @@ function ensureWorkersReady(logger = console) {
 		})();
 	}
 	return workersReadyPromise;
+}
+
+/** @internal Jest — clear cached auto-start promise between suites */
+function resetWorkersReadyForTests() {
+	workersReadyPromise = null;
 }
 
 /**
@@ -538,8 +547,8 @@ async function parseInput(params = {}, options = {}) {
 		return keepProof ? result : stripWorkerProof(result);
 	} catch (error) {
 		// Mutators (export / schedule / DB…): never local-fallback after Worker error.
-		// Pre-flight connect → defer. Timeout / mid-flight → no replay (double-write risk);
-		// under defer-busy still never show system_busy (silent).
+		// Pre-flight connect → defer (or system_busy if enqueue fails).
+		// Timeout / mid-flight → no replay (double-write risk); silent empty (not busy spam).
 		if (shouldSkipLocalFallbackOnWorkerError(moduleName)) {
 			if (deferQueue.isPreFlightConnectError(error)) {
 				const deferred = await tryDeferBusy({
@@ -556,14 +565,14 @@ async function parseInput(params = {}, options = {}) {
 					error: error?.message || String(error),
 				});
 				if (deferred) return deferred;
-			} else {
-				logLocalFallback('workerErrorNoFallback', {
-					botname: params.botname,
-					moduleName,
-					error: error?.message || String(error),
-				});
+				return remoteOnlyFailResult(params.locale);
 			}
-			return remoteOnlyFailResult(params.locale);
+			logLocalFallback('workerErrorNoFallback', {
+				botname: params.botname,
+				moduleName,
+				error: error?.message || String(error),
+			});
+			return remoteOnlySilentFailResult();
 		}
 		if (allowLocalFallback) {
 			// runLocalFallback logs workerErrorLocalHttp / localHttpError / falls to main-thread.
@@ -968,10 +977,12 @@ module.exports = {
 	FALLBACK_LOG_INTERVAL_MS,
 	logParseMode,
 	ensureWorkersReady,
+	resetWorkersReadyForTests,
 	logRemoteFailNoLocal,
 	resetOpsLogCounters,
 	getSystemBusyText,
 	remoteOnlyFailResult,
+	remoteOnlySilentFailResult,
 	SYSTEM_BUSY_KEY,
 	tryDeferBusy,
 };

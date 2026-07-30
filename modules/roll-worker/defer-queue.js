@@ -229,6 +229,7 @@ function enqueue(jobInput = {}) {
 	while (queue.length >= getMax()) {
 		const dropped = queue.shift();
 		console.warn(`[DeferQueue] drop oldest (full) | id=${dropped?.id} | reason=${dropped?.reason}`);
+		void notifyDroppedJob(dropped, 'full');
 	}
 
 	// Prefer interactions at the front of drain order: insert before first non-interaction.
@@ -244,17 +245,57 @@ function enqueue(jobInput = {}) {
 	return { ok: true, deferred: true, id: job.id };
 }
 
-function purgeExpired() {
+async function getDropBusyText(locale) {
+	try {
+		const i18n = require('../i18n/i18n');
+		await i18n.init();
+		const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+		return t('common.errors.system_busy');
+	} catch {
+		return 'The system is busy. Please try again later.';
+	}
+}
+
+/**
+ * Notify user / clear Discord interaction when a queued job is dropped (expire or full).
+ * Fire-and-forget safe — never throws to callers.
+ */
+async function notifyDroppedJob(job, dropReason) {
+	if (!job?.replyTarget?.botname) return;
+	const deliver = deliverers.get(job.replyTarget.botname);
+	if (!deliver) {
+		console.warn(`[DeferQueue] drop no deliverer | id=${job.id} | reason=${dropReason} | botname=${job.replyTarget.botname}`);
+		return;
+	}
+	try {
+		const text = await getDropBusyText(job.params?.locale);
+		await deliver(job, {
+			text,
+			type: 'text',
+			_deferDropped: dropReason,
+		});
+	} catch (error) {
+		console.warn(`[DeferQueue] drop notify error | id=${job.id} | ${error?.message || error}`);
+	}
+}
+
+async function purgeExpired() {
 	const now = Date.now();
 	const keep = [];
+	const expired = [];
 	for (const job of queue) {
 		if (job.expiresAt <= now) {
 			console.warn(`[DeferQueue] expire | id=${job.id} | reason=${job.reason} | botname=${job.replyTarget?.botname}`);
+			expired.push(job);
 			continue;
 		}
 		keep.push(job);
 	}
 	queue = keep;
+	for (const job of expired) {
+		await notifyDroppedJob(job, 'expire');
+	}
+	return expired.length;
 }
 
 async function tryDrain(options = {}) {
@@ -376,6 +417,7 @@ module.exports = {
 	stopDrainMonitor,
 	onWorkerConnected,
 	purgeExpired,
+	notifyDroppedJob,
 	getMax,
 	getPerUser,
 	getTtlMs,

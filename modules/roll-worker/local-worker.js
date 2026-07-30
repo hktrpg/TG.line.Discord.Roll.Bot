@@ -294,7 +294,12 @@ function resetStoppedFlagsForTests() {
 	stoppedStandby = false;
 }
 
-async function ensurePrimaryWorker(logger = console) {
+/**
+ * @param {Console} [logger]
+ * @param {{ forceSpawn?: boolean }} [options] - forceSpawn: operator restart; ignore SPAWN=false
+ */
+async function ensurePrimaryWorker(logger = console, options = {}) {
+	const forceSpawn = options.forceSpawn === true;
 	const info = typeof logger.info === 'function'
 		? (msg) => logger.info(msg)
 		: (msg) => console.info(msg);
@@ -306,9 +311,17 @@ async function ensurePrimaryWorker(logger = console) {
 
 	if (client.isEnabled()) {
 		const { url } = client.getConfig();
-		return { ok: true, url, supervised: false, existing: true };
-	}
-	if (!shouldAutoSpawnWorkers()) {
+		try {
+			await waitHealth(url, probeMs);
+			return { ok: true, url, supervised: false, existing: true };
+		} catch {
+			info(`[Primary] ROLL_WORKER_URL=${url} unhealthy`);
+			if (!forceSpawn && !shouldAutoSpawnWorkers()) {
+				return { ok: false, url, supervised: false, pending: true };
+			}
+			/* fall through — discover / lock / spawn (same as Standby ensure) */
+		}
+	} else if (!forceSpawn && !shouldAutoSpawnWorkers()) {
 		return { ok: false, skipped: true };
 	}
 
@@ -506,6 +519,8 @@ async function restartStandby({ drainMs = getDrainMs() } = {}) {
 
 /**
  * Restart Primary compute (clears stopped flag).
+ * When Primary is down, force spawn/discover even if ROLL_WORKER_SPAWN=false
+ * (operator explicitly asked to bring Primary back).
  */
 async function restartPrimary({ drainMs = getDrainMs() } = {}) {
 	stoppedPrimary = false;
@@ -515,10 +530,10 @@ async function restartPrimary({ drainMs = getDrainMs() } = {}) {
 			await waitHealth(url, getHealthProbeMs());
 			return reloadRemote({ drainMs });
 		} catch {
-			/* down — ensure path */
+			/* down — ensure/spawn path */
 		}
 	}
-	const ensured = await ensurePrimaryWorker(console);
+	const ensured = await ensurePrimaryWorker(console, { forceSpawn: true });
 	if (ensured?.ok) {
 		return {
 			ok: true,
@@ -637,63 +652,71 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
  * Reload primary ROLL_WORKER_URL via Worker self-restart (/v1/admin/reload).
  */
 async function reloadRemote({ drainMs = getDrainMs() } = {}) {
+	if (reloading) {
+		return { ok: false, error: 'restart already in progress' };
+	}
 	if (!client.isEnabled()) {
 		return { ok: false, error: 'ROLL_WORKER_URL unset' };
 	}
-	const { url } = client.getConfig();
-	let data;
+	reloading = true;
 	try {
-		data = await client.requestAdminReload(url, { drainMs });
-	} catch (error) {
-		const status = error?.status;
-		return {
-			ok: false,
-			url,
-			error: error?.message || String(error),
-			status,
-			hint: status === 403
-				? 'Primary refused non-loopback admin reload. Run restart on the Primary host or use SSH/PM2 there.'
-				: 'Restart failed. Confirm ROLL_WORKER_URL is reachable on loopback with a valid Bearer token.',
-		};
-	}
+		const { url } = client.getConfig();
+		let data;
+		try {
+			data = await client.requestAdminReload(url, { drainMs });
+		} catch (error) {
+			const status = error?.status;
+			return {
+				ok: false,
+				url,
+				error: error?.message || String(error),
+				status,
+				hint: status === 403
+					? 'Primary refused non-loopback admin reload. Run restart on the Primary host or use SSH/PM2 there.'
+					: 'Restart failed. Confirm ROLL_WORKER_URL is reachable on loopback with a valid Bearer token.',
+			};
+		}
 
-	const down = await waitUntilUnhealthy(url, Math.min(drainMs + 5000, 15_000));
-	if (!down) {
-		return {
-			ok: false,
-			mode: 'reload-uncertain',
-			url,
-			pid: data?.pid,
-			error: 'Reload requested but /health still OK — process may not have restarted',
-			hint: 'Check Primary logs; retry .root restart primary.',
-		};
-	}
+		const down = await waitUntilUnhealthy(url, Math.min(drainMs + 5000, 15_000));
+		if (!down) {
+			return {
+				ok: false,
+				mode: 'reload-uncertain',
+				url,
+				pid: data?.pid,
+				error: 'Reload requested but /health still OK — process may not have restarted',
+				hint: 'Check Primary logs; retry .root restart primary.',
+			};
+		}
 
-	const waitMs = Number.parseInt(
-		process.env.ROLL_WORKER_RELOAD_WAIT_MS
-			|| process.env.ROLL_STANDBY_RELOAD_WAIT_MS
-			|| '15000',
-		10,
-	);
-	try {
-		await waitHealth(url, Number.isFinite(waitMs) && waitMs > 0 ? waitMs : 15_000);
-		return {
-			ok: true,
-			mode: 'self-restart',
-			url,
-			pid: data?.pid,
-			note: 'Primary self-restarted (successor process). Gateway Discord connection was not restarted.',
-		};
-	} catch {
-		return {
-			ok: false,
-			mode: 'reload-sent',
-			url,
-			pid: data?.pid,
-			error: 'Primary reload started but /health did not return',
-			hint: 'Check Primary logs on the host. If the successor failed to bind the port, start yarn start:roll-worker:primary manually.',
-			warning: 'ROLL_WORKER_URL may be down until Primary is running again. Discord Gateway stays up.',
-		};
+		const waitMs = Number.parseInt(
+			process.env.ROLL_WORKER_RELOAD_WAIT_MS
+				|| process.env.ROLL_STANDBY_RELOAD_WAIT_MS
+				|| '15000',
+			10,
+		);
+		try {
+			await waitHealth(url, Number.isFinite(waitMs) && waitMs > 0 ? waitMs : 15_000);
+			return {
+				ok: true,
+				mode: 'self-restart',
+				url,
+				pid: data?.pid,
+				note: 'Primary self-restarted (successor process). Gateway Discord connection was not restarted.',
+			};
+		} catch {
+			return {
+				ok: false,
+				mode: 'reload-sent',
+				url,
+				pid: data?.pid,
+				error: 'Primary reload started but /health did not return',
+				hint: 'Check Primary logs on the host. If the successor failed to bind the port, start yarn start:roll-worker:primary manually.',
+				warning: 'ROLL_WORKER_URL may be down until Primary is running again. Discord Gateway stays up.',
+			};
+		}
+	} finally {
+		reloading = false;
 	}
 }
 

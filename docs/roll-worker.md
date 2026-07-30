@@ -106,26 +106,24 @@ Reviewed: 2026-07-30. Scope: Gateway → Primary → Standby → Embedded routin
 - `ROLL_WORKER_REMOTE_ONLY` + optional defer-busy queue
 - Discord slash restart: flush cluster IPC **after** reply (avoids stuck “thinking…”)
 
-### Known bugs (open)
+### Known bugs — fixed (2026-07-31)
 
-| Sev | Location | Finding |
-|-----|----------|---------|
-| **High** | `local-worker.js` `ensurePrimaryWorker` (~L307–309) + `restartPrimary` | After `.root stop primary`, `ROLL_WORKER_URL` stays set while the process is dead. `.root restart primary` clears the stop flag, `waitHealth` fails, then `ensurePrimaryWorker` short-circuits on `client.isEnabled()` **without** health-check/spawn and returns `ok: true` (`existing` / `ensure-spawn`) while Primary stays down. Standby’s ensure path *does* health-check. Live test works around this by spawning before `restartPrimary`. |
-| **High** | `defer-queue.js` `purgeExpired` (~L247–258) | Under `REMOTE_ONLY` + defer-busy, expired jobs are removed with only a warn log — no platform deliver / no Discord `deleteReply`. Users get no reply; slash can stay on “thinking…” until the interaction token expires (`ROLL_WORKER_DEFER_TTL_MS`, default 10m; interactions capped shorter). |
-| **High** | `defer-queue.js` enqueue full (~L229–232) | Same class: queue-full `shift()` drops oldest job with log only — no user reply / no Discord clear. |
-| **Medium** | `parse-router.js` `remoteOnlyFailResult` + platforms (e.g. `core-Line.js` ~L225–230, TG same pattern) | When defer-busy is on but enqueue fails (per-user cap, missing deliverer, etc.), router returns **empty text** without `deferred: true`. Platforms treat `didParse` as done and send nothing — silent drop (by design avoids `system_busy`, but user sees no feedback). |
-| **Medium** | `local-worker.js` `reloadRemote` (~L639–698) | Primary reload does not take the `reloading` mutex used by Standby reload / stop — concurrent stop/restart can interleave. |
-| **Medium** | `local-worker.js` stop flags + Discord clusters | `stoppedPrimary` / `stoppedStandby` are process-local. Only the Gateway that ran `.root stop` skips Primary; other clusters / platform processes keep hitting the dead URL until transport fails. |
+| Sev | Fix | Tests |
+|-----|-----|-------|
+| **High** | `ensurePrimaryWorker` health-checks URL; unhealthy → discover/spawn (or `pending` if SPAWN off). `restartPrimary` uses `forceSpawn: true`. | `roll-worker-local-worker-unit.test.js`, live `stop-restart` |
+| **High** | `purgeExpired` / queue-full drop call `notifyDroppedJob` → deliverer with `system_busy` (clears Discord “thinking…”). | `roll-worker-defer-queue.test.js` |
+| **Medium** | Enqueue failure → `remoteOnlyFailResult` returns `system_busy` (not silent empty). Mutator mid-flight timeout stays silent via `remoteOnlySilentFailResult`. | `roll-worker-review-fixes.test.js` |
+| **Medium** | `reloadRemote` takes the shared `reloading` mutex. | `roll-worker-local-worker-unit.test.js` |
+
+### Known limits (open / by design)
+
+| Sev | Location | Note |
+|-----|----------|------|
+| **Medium** | stop flags + Discord clusters | `stoppedPrimary` / `stoppedStandby` remain **process-local**. Other clusters / platform processes keep hitting a stopped Primary until transport fails. |
+| — | Mutator mid-flight timeout | Still silent empty (Worker may have committed — no busy spam / no replay). |
 
 ### Not bugs / intentional
 
-- Empty reply on `REMOTE_ONLY` + defer-busy when Primary is down **and** enqueue succeeds (`deferred: true`) — reply comes later on drain.
+- Empty reply on `REMOTE_ONLY` + defer-busy when enqueue succeeds (`deferred: true`) — reply comes later on drain.
 - Embedded has no `.root` target — use `restart gateway`.
 - Stop flags clearing on Gateway process restart — documented limit.
-
-### Suggested fix order
-
-1. `ensurePrimaryWorker`: if URL set, `waitHealth` (or clear URL) before treating as `existing`; align with Standby ensure.  
-2. On expire / queue-full drop: invoke registered deliverer with a failure/empty clear (especially Discord interaction).  
-3. On enqueue failure under defer-busy: return a short user-visible fail text (or true `deferred` only when queued), not silent empty.  
-4. Add `reloading` guard to `reloadRemote`; document or sync stop flags across clusters if multi-Gateway stop matters.

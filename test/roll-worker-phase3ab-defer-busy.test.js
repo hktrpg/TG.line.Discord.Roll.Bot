@@ -7,11 +7,14 @@
 
 jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(() => true),
+	isLocalEnabled: jest.fn(() => false),
 	getConfig: jest.fn(() => ({
 		url: process.env.ROLL_WORKER_URL || 'http://127.0.0.1:3950',
 		token: 'phase3ab',
 		timeoutMs: 5000,
 	})),
+	getLocalConfig: jest.fn(() => ({ url: '', token: 't', timeoutMs: 1000 })),
+	healthAt: jest.fn(async () => ({ ok: true })),
 	parse: jest.fn(),
 	beginLinkMonitor: jest.fn(),
 }));
@@ -57,8 +60,10 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		process.env.ROLL_WORKER_DEFER_MAX = '100';
 		process.env.ROLL_WORKER_DEFER_PER_USER = '10';
 		deferQueue.resetDeferQueue();
+		parseRouter.resetWorkersReadyForTests();
 		resetConnectionStatus();
 		client.isEnabled.mockReturnValue(true);
+		client.healthAt.mockResolvedValue({ ok: true });
 		analytics.findRollModuleName.mockReturnValue('0-advroll');
 		client.parse.mockReset();
 	});

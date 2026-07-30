@@ -85,10 +85,12 @@ describe('live stop / restart Primary + Standby', () => {
 	beforeAll(async () => {
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PORT_P}`;
 		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${PORT_S}`;
+		process.env.ROLL_WORKER_PORT = String(PORT_P);
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
 		process.env.ROLL_WORKER_DRAIN_MS = '200';
 		process.env.ROLL_WORKER_HEALTH_PROBE_MS = '2000';
 		process.env.ROLL_STANDBY_RELOAD_WAIT_MS = '15000';
+		process.env.ROLL_WORKER_SPAWN = 'true';
 		delete process.env.ROLL_WORKER_MODE;
 
 		primaryChild = spawnWorker(PORT_P);
@@ -102,6 +104,11 @@ describe('live stop / restart Primary + Standby', () => {
 	});
 
 	afterAll(async () => {
+		try {
+			await localWorker?.shutdown();
+		} catch {
+			/* ignore */
+		}
 		try {
 			localWorker?.resetStoppedFlagsForTests();
 		} catch {
@@ -126,10 +133,7 @@ describe('live stop / restart Primary + Standby', () => {
 		await sleep(400);
 		await expect(httpJson(PORT_P, 'GET', '/health')).rejects.toThrow();
 
-		// External process died — spawn a replacement then clear stop via restart path.
-		primaryChild = spawnWorker(PORT_P);
-		await waitHealth(PORT_P);
-
+		// restartPrimary must spawn/rediscover — no manual spawn workaround.
 		const restart = await localWorker.restartPrimary({ drainMs: 200 });
 		expect(restart.ok).toBe(true);
 		expect(localWorker.isPrimaryStopped()).toBe(false);

@@ -122,4 +122,55 @@ describe('roll-worker defer-queue', () => {
 		expect(deferQueue.isPreFlightConnectError(new Error('ETIMEDOUT'))).toBe(false);
 		expect(deferQueue.isPreFlightConnectError(new Error('Unauthorized'))).toBe(false);
 	});
+
+	it('purgeExpired notifies deliverer for expired jobs', async () => {
+		const delivered = [];
+		deferQueue.registerDeliverer('Telegram', async (job, result) => {
+			delivered.push({ id: job.id, text: result.text, dropped: result._deferDropped });
+		});
+		process.env.ROLL_WORKER_DEFER_TTL_MS = '1';
+		const enq = deferQueue.enqueue({
+			reason: 'transport',
+			params: { inputStr: '1d6', userid: 'u-exp', botname: 'Telegram', locale: 'en' },
+			replyTarget: { botname: 'Telegram', chatId: 'c-exp', userid: 'u-exp' },
+		});
+		expect(enq.ok).toBe(true);
+		await new Promise((r) => setTimeout(r, 5));
+		const n = await deferQueue.purgeExpired();
+		expect(n).toBe(1);
+		expect(deferQueue.size()).toBe(0);
+		await new Promise((r) => setTimeout(r, 50));
+		expect(delivered).toHaveLength(1);
+		expect(delivered[0].dropped).toBe('expire');
+		expect(delivered[0].text).toBeTruthy();
+	});
+
+	it('queue-full drop notifies deliverer for oldest job', async () => {
+		const delivered = [];
+		deferQueue.registerDeliverer('Telegram', async (job, result) => {
+			delivered.push({ id: job.id, dropped: result._deferDropped, text: result.text });
+		});
+		process.env.ROLL_WORKER_DEFER_MAX = '2';
+		process.env.ROLL_WORKER_DEFER_PER_USER = '10';
+		const target = (uid) => ({ botname: 'Telegram', chatId: `c-${uid}`, userid: uid });
+		expect(deferQueue.enqueue({
+			reason: 'transport',
+			params: { inputStr: '1d1', userid: 'a', botname: 'Telegram' },
+			replyTarget: target('a'),
+		}).ok).toBe(true);
+		expect(deferQueue.enqueue({
+			reason: 'transport',
+			params: { inputStr: '1d2', userid: 'b', botname: 'Telegram' },
+			replyTarget: target('b'),
+		}).ok).toBe(true);
+		expect(deferQueue.enqueue({
+			reason: 'transport',
+			params: { inputStr: '1d3', userid: 'c', botname: 'Telegram' },
+			replyTarget: target('c'),
+		}).ok).toBe(true);
+		expect(deferQueue.size()).toBe(2);
+		await new Promise((r) => setTimeout(r, 50));
+		expect(delivered.some((d) => d.dropped === 'full')).toBe(true);
+		expect(delivered.find((d) => d.dropped === 'full').text).toBeTruthy();
+	});
 });

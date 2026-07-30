@@ -137,6 +137,7 @@ describe('local-worker unit', () => {
 			token: 't',
 			timeoutMs: 1000,
 		});
+		client.healthAt.mockResolvedValue({ ok: true });
 		process.env.ROLL_WORKER_SPAWN = 'false';
 		process.env.ROLL_STANDBY_SPAWN = 'false';
 		delete process.env.ROLL_STANDBY_URL;
@@ -177,11 +178,111 @@ describe('local-worker unit', () => {
 		delete process.env.ROLL_WORKER_SPAWN;
 		delete process.env.ROLL_STANDBY_SPAWN;
 		const result = await localWorker.startIfConfigured();
-		expect(result.ok).toBe(true); // primary existing still ok
+		// Primary URL set but unhealthy + SPAWN off in Jest → pending (not fake existing).
+		expect(result.primary.pending).toBe(true);
+		expect(result.primary.ok).toBe(false);
 		expect(result.pending).toBe(true);
 		expect(result.local.pending).toBe(true);
 		expect(result.local.url).toBe('http://127.0.0.1:3999');
 	});
+
+	it('ensurePrimaryWorker does not treat unhealthy URL as existing', async () => {
+		localWorker.resetStoppedFlagsForTests();
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3950',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		client.healthAt.mockRejectedValue(new Error('ECONNREFUSED'));
+		delete process.env.ROLL_WORKER_SPAWN;
+		const result = await localWorker.ensurePrimaryWorker();
+		expect(result.ok).toBe(false);
+		expect(result.pending).toBe(true);
+		expect(result.existing).toBeUndefined();
+	});
+
+	it('ensurePrimaryWorker forceSpawn rediscovers when configured URL down', async () => {
+		localWorker.resetStoppedFlagsForTests();
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3990',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		client.healthAt.mockImplementation(async (url) => {
+			if (String(url).includes('3990')) throw new Error('down');
+			if (String(url).includes('3950')) return { ok: true };
+			throw new Error('down');
+		});
+		process.env.ROLL_WORKER_SPAWN = 'false';
+		process.env.ROLL_WORKER_PORT = '3950';
+		const result = await localWorker.ensurePrimaryWorker(console, { forceSpawn: true });
+		expect(result.ok).toBe(true);
+		expect(result.discovered).toBe(true);
+		expect(result.existing).toBeUndefined();
+		expect(process.env.ROLL_WORKER_URL).toBe('http://127.0.0.1:3950');
+	}, 15_000);
+
+	it('restartPrimary after stop rediscovers instead of fake existing', async () => {
+		localWorker.resetStoppedFlagsForTests();
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3990',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		client.requestAdminShutdown.mockResolvedValue({ ok: true });
+		client.healthAt.mockImplementation(async (url) => {
+			if (String(url).includes('3990')) throw new Error('down');
+			if (String(url).includes('3950')) return { ok: true };
+			throw new Error('down');
+		});
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3990';
+		process.env.ROLL_WORKER_SPAWN = 'false';
+		process.env.ROLL_WORKER_PORT = '3950';
+
+		await localWorker.stopPrimary({ drainMs: 10 });
+		expect(localWorker.isPrimaryStopped()).toBe(true);
+
+		const restart = await localWorker.restartPrimary({ drainMs: 10 });
+		expect(localWorker.isPrimaryStopped()).toBe(false);
+		expect(restart.ok).toBe(true);
+		expect(restart.mode).toBe('ensure-spawn');
+		expect(restart.url).toBe('http://127.0.0.1:3950');
+	}, 15_000);
+
+	it('reloadRemote rejects concurrent reload', async () => {
+		client.isEnabled.mockReturnValue(true);
+		client.getConfig.mockReturnValue({
+			url: 'http://127.0.0.1:3950',
+			token: 't',
+			timeoutMs: 1000,
+		});
+		let releaseReload;
+		client.requestAdminReload.mockImplementation(
+			() => new Promise((resolve) => {
+				releaseReload = () => resolve({
+					ok: true,
+					reloading: true,
+					pid: 1,
+					mode: 'self-restart',
+				});
+			})
+		);
+		client.healthAt.mockRejectedValue(new Error('down'));
+		process.env.ROLL_WORKER_RELOAD_WAIT_MS = '200';
+
+		const first = localWorker.reloadRemote({ drainMs: 10 });
+		await new Promise((r) => setTimeout(r, 20));
+		const second = await localWorker.reloadRemote({ drainMs: 10 });
+		expect(second.ok).toBe(false);
+		expect(second.error).toMatch(/already in progress/i);
+		releaseReload();
+		const firstResult = await first;
+		expect(firstResult.ok).toBe(false);
+		expect(firstResult.mode).toBe('reload-sent');
+	}, 10_000);
 
 	it('ensureLocalWorker discovers healthy manual Standby before SPAWN', async () => {
 		client.isEnabled.mockReturnValue(true);

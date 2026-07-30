@@ -25,11 +25,11 @@ process.env.ROLL_WORKER_MODE = 'true';
 		if (process.env[key] !== undefined) preserved[key] = process.env[key];
 	}
 	require('dotenv').config({ override: true, quiet: true });
+	process.env.DOTENV_CONFIG_QUIET = 'true';
 	Object.assign(process.env, preserved);
 })();
 
 const { startRollWorkerServer } = require('./modules/roll-worker/server');
-const { logParseMode } = require('./modules/roll-worker/parse-router');
 
 // Eager Agenda Mongo connect (API only, no job processor) so .at/.cron work
 // without waiting for the first z_schedule lazy-load.
@@ -38,7 +38,6 @@ if (process.env.mongoURL) {
 }
 
 startRollWorkerServer();
-logParseMode(console);
 
 process.on('SIGTERM', () => process.exit(0));
 process.on('SIGINT', () => process.exit(0));

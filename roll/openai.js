@@ -628,7 +628,7 @@ class OpenAI {
         fs2.watch('.env', (eventType) => {
             if (eventType === 'change') {
                 try {
-                    let tempEnv = dotenv.config({ override: false })
+                    let tempEnv = dotenv.config({ override: false, quiet: true })
                     if (tempEnv.parsed) {
                         // Only update OpenAI-related environment variables to avoid breaking cluster manager
                         const openaiPrefixes = ['OPENAI_', 'AI_MODEL_', 'OPENROUTER_'];

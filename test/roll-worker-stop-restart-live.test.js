@@ -68,7 +68,7 @@ function spawnWorker(port) {
 			ROLL_WORKER_MODE: 'true',
 			ROLL_WORKER_PORT: String(port),
 			ROLL_WORKER_TOKEN: TOKEN,
-			ROLL_LOCAL_WORKER_SPAWN: 'false',
+			ROLL_WORKER_SPAWN: 'false', ROLL_STANDBY_SPAWN: 'false',
 			NODE_ENV: 'production',
 		},
 		stdio: ['ignore', 'pipe', 'pipe'],
@@ -84,11 +84,11 @@ describe('live stop / restart Primary + Standby', () => {
 
 	beforeAll(async () => {
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PORT_P}`;
-		process.env.ROLL_LOCAL_WORKER_URL = `http://127.0.0.1:${PORT_S}`;
+		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${PORT_S}`;
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
-		process.env.ROLL_LOCAL_WORKER_DRAIN_MS = '200';
-		process.env.ROLL_LOCAL_WORKER_HEALTH_PROBE_MS = '2000';
-		process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS = '15000';
+		process.env.ROLL_WORKER_DRAIN_MS = '200';
+		process.env.ROLL_WORKER_HEALTH_PROBE_MS = '2000';
+		process.env.ROLL_STANDBY_RELOAD_WAIT_MS = '15000';
 		delete process.env.ROLL_WORKER_MODE;
 
 		primaryChild = spawnWorker(PORT_P);

@@ -62,8 +62,8 @@ function spawnWorker(port) {
 			ROLL_WORKER_PORT: String(port),
 			ROLL_WORKER_TOKEN: TOKEN,
 			ROLL_WORKER_URL: '',
-			ROLL_LOCAL_WORKER_URL: '',
-			ROLL_LOCAL_WORKER_SPAWN: 'false',
+			ROLL_STANDBY_URL: '',
+			ROLL_WORKER_SPAWN: 'false', ROLL_STANDBY_SPAWN: 'false',
 			ROLL_WORKER_REMOTE_ONLY: 'false',
 			OPENAI_SWITCH: process.env.OPENAI_SWITCH || 'true',
 			DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
@@ -85,7 +85,7 @@ describe('Phase A local HTTP workers (live client)', () => {
 	let client;
 	const prev = {
 		url: process.env.ROLL_WORKER_URL,
-		localUrl: process.env.ROLL_LOCAL_WORKER_URL,
+		localUrl: process.env.ROLL_STANDBY_URL,
 		token: process.env.ROLL_WORKER_TOKEN,
 	};
 
@@ -95,7 +95,7 @@ describe('Phase A local HTTP workers (live client)', () => {
 		await Promise.all([waitHealth(PRIMARY_PORT), waitHealth(LOCAL_PORT)]);
 
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PRIMARY_PORT}`;
-		process.env.ROLL_LOCAL_WORKER_URL = `http://127.0.0.1:${LOCAL_PORT}`;
+		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${LOCAL_PORT}`;
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
 		jest.resetModules();
 		client = require('../modules/roll-worker/client');
@@ -104,8 +104,8 @@ describe('Phase A local HTTP workers (live client)', () => {
 	afterAll(async () => {
 		if (prev.url === undefined) delete process.env.ROLL_WORKER_URL;
 		else process.env.ROLL_WORKER_URL = prev.url;
-		if (prev.localUrl === undefined) delete process.env.ROLL_LOCAL_WORKER_URL;
-		else process.env.ROLL_LOCAL_WORKER_URL = prev.localUrl;
+		if (prev.localUrl === undefined) delete process.env.ROLL_STANDBY_URL;
+		else process.env.ROLL_STANDBY_URL = prev.localUrl;
 		if (prev.token === undefined) delete process.env.ROLL_WORKER_TOKEN;
 		else process.env.ROLL_WORKER_TOKEN = prev.token;
 		await killChild(primary);

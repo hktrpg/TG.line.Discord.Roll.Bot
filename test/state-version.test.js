@@ -34,7 +34,7 @@ describe('buildStateVersionSection', () => {
 
 	beforeEach(() => {
 		for (const key of [
-			'ROLL_WORKER_MODE', 'ROLL_WORKER_URL', 'ROLL_LOCAL_WORKER_URL',
+			'ROLL_WORKER_MODE', 'ROLL_WORKER_URL', 'ROLL_STANDBY_URL',
 			'GIT_BRANCH', 'GITHUB_SHA', 'BUILD_TIME',
 		]) {
 			saved[key] = process.env[key];

@@ -91,7 +91,9 @@ describe('roll-worker HTTP server', () => {
 		expect(res.body.version.role).toBe('roll-worker');
 	});
 
-	it('CONNECTED log includes gateway label; health echoes gateway', async () => {
+	it('health marks gateway peer up; CONNECTED log only when ROLL_WORKER_DEBUG', async () => {
+		const prevDebug = process.env.ROLL_WORKER_DEBUG;
+		process.env.ROLL_WORKER_DEBUG = 'true';
 		const lines = [];
 		const spy = jest.spyOn(console, 'info').mockImplementation((m) => lines.push(String(m)));
 		const res = await httpJson(port, 'GET', '/health', null, {
@@ -116,6 +118,9 @@ describe('roll-worker HTTP server', () => {
 		await httpJson(port, 'GET', '/health', null, { 'X-Roll-Gateway': 'Whatsapp' });
 		spy3.mockRestore();
 		expect(lines3.some((l) => /CONNECTED/.test(l) && /gateway=Whatsapp/.test(l))).toBe(true);
+
+		if (prevDebug === undefined) delete process.env.ROLL_WORKER_DEBUG;
+		else process.env.ROLL_WORKER_DEBUG = prevDebug;
 	});
 
 	it('POST /v1/parse returns analytics result with proof marker', async () => {

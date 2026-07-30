@@ -147,7 +147,7 @@ if (process.env.mongoURL) {
             if (process.env.ROLL_WORKER_MODE === 'true') {
                 try {
                     await agenda._ready;
-                    console.log('[Schedule] ROLL_WORKER_MODE: Agenda DB ready (API only, processor off)');
+                    // Silent on success — Agenda API-only ready is expected on every Worker boot.
                 } catch (error) {
                     console.error('[Schedule] ROLL_WORKER_MODE: Agenda DB ready failed:', error?.message || error);
                 }
@@ -155,11 +155,7 @@ if (process.env.mongoURL) {
             }
 
             await agenda.start();
-            const defined = agenda._definitions ? Object.keys(agenda._definitions) : [];
-            console.log(`[Schedule] Agenda processor started | jobs=${defined.length || 0}`
-                + (defined.length ? ` [${defined.slice(0, 8).join(', ')}${defined.length > 8 ? ', …' : ''}]` : '')
-                + ` | pid=${process.pid}`);
-            // Opt-in only: cancel legacy hardcoded daily job, then sync from DB if enabled.
+            // Silent on success — Agenda processor start is expected on every Gateway boot.
             await syncDiscordMaintenanceSchedule();
         } catch (error) {
             console.error(`[Schedule] Agenda start error:`, error);

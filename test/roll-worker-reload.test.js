@@ -175,19 +175,20 @@ describe('Phase A supervised local reload (live)', () => {
 	beforeAll(async () => {
 		for (const key of [
 			'ROLL_WORKER_TOKEN',
-			'ROLL_LOCAL_WORKER_SPAWN',
-			'ROLL_LOCAL_WORKER_PORT',
-			'ROLL_LOCAL_WORKER_URL',
-			'ROLL_LOCAL_WORKER_DRAIN_MS',
+			'ROLL_WORKER_SPAWN', 'ROLL_STANDBY_SPAWN',
+			'ROLL_STANDBY_PORT',
+			'ROLL_STANDBY_URL',
+			'ROLL_WORKER_DRAIN_MS',
 			'ROLL_WORKER_URL',
 		]) {
 			saved[key] = process.env[key];
 		}
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
-		process.env.ROLL_LOCAL_WORKER_SPAWN = 'true';
-		process.env.ROLL_LOCAL_WORKER_PORT = String(PORT);
-		process.env.ROLL_LOCAL_WORKER_DRAIN_MS = '200';
-		delete process.env.ROLL_LOCAL_WORKER_URL;
+		process.env.ROLL_WORKER_SPAWN = 'true';
+		process.env.ROLL_STANDBY_SPAWN = 'true';
+		process.env.ROLL_STANDBY_PORT = String(PORT);
+		process.env.ROLL_WORKER_DRAIN_MS = '200';
+		delete process.env.ROLL_STANDBY_URL;
 		// Avoid primary URL side-effects during spawn-only test.
 		delete process.env.ROLL_WORKER_URL;
 		try { fs.unlinkSync(LOCK_PATH); } catch { /* ignore */ }
@@ -235,9 +236,9 @@ describe('Phase A external local reload without PM2 (live)', () => {
 	beforeAll(async () => {
 		for (const key of [
 			'ROLL_WORKER_TOKEN',
-			'ROLL_LOCAL_WORKER_URL',
-			'ROLL_LOCAL_WORKER_SPAWN',
-			'ROLL_LOCAL_WORKER_RELOAD_WAIT_MS',
+			'ROLL_STANDBY_URL',
+			'ROLL_WORKER_SPAWN', 'ROLL_STANDBY_SPAWN',
+			'ROLL_STANDBY_RELOAD_WAIT_MS',
 			'ROLL_WORKER_URL',
 		]) {
 			saved[key] = process.env[key];
@@ -251,14 +252,15 @@ describe('Phase A external local reload without PM2 (live)', () => {
 				ROLL_WORKER_PORT: String(PORT_E),
 				ROLL_WORKER_TOKEN: TOKEN,
 				ROLL_WORKER_URL: '',
-				ROLL_LOCAL_WORKER_SPAWN: 'false',
+				ROLL_WORKER_SPAWN: 'false', ROLL_STANDBY_SPAWN: 'false',
 			},
 			stdio: ['ignore', 'pipe', 'pipe'],
 		});
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
-		process.env.ROLL_LOCAL_WORKER_URL = `http://127.0.0.1:${PORT_E}`;
-		process.env.ROLL_LOCAL_WORKER_SPAWN = 'false';
-		process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS = '2000';
+		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${PORT_E}`;
+		process.env.ROLL_WORKER_SPAWN = 'false';
+		process.env.ROLL_STANDBY_SPAWN = 'false';
+		process.env.ROLL_STANDBY_RELOAD_WAIT_MS = '2000';
 		delete process.env.ROLL_WORKER_URL;
 		await waitHealth(PORT_E);
 		jest.resetModules();
@@ -320,7 +322,7 @@ describe('Phase B reloadRemote against live primary', () => {
 				ROLL_WORKER_PORT: String(PORT_R),
 				ROLL_WORKER_TOKEN: TOKEN,
 				ROLL_WORKER_URL: '',
-				ROLL_LOCAL_WORKER_SPAWN: 'false',
+				ROLL_WORKER_SPAWN: 'false', ROLL_STANDBY_SPAWN: 'false',
 			},
 			stdio: ['ignore', 'pipe', 'pipe'],
 		});

@@ -59,8 +59,8 @@ function spawnWorker(port) {
 			ROLL_WORKER_PORT: String(port),
 			ROLL_WORKER_TOKEN: TOKEN,
 			ROLL_WORKER_URL: '',
-			ROLL_LOCAL_WORKER_URL: '',
-			ROLL_LOCAL_WORKER_SPAWN: 'false',
+			ROLL_STANDBY_URL: '',
+			ROLL_WORKER_SPAWN: 'false', ROLL_STANDBY_SPAWN: 'false',
 			ROLL_WORKER_REMOTE_ONLY: 'false',
 			OPENAI_SWITCH: process.env.OPENAI_SWITCH || 'true',
 			DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
@@ -86,7 +86,7 @@ async function main() {
 	try {
 		await Promise.all([waitHealth(PRIMARY_PORT), waitHealth(LOCAL_PORT)]);
 		process.env.ROLL_WORKER_URL = `http://127.0.0.1:${PRIMARY_PORT}`;
-		process.env.ROLL_LOCAL_WORKER_URL = `http://127.0.0.1:${LOCAL_PORT}`;
+		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${LOCAL_PORT}`;
 		process.env.ROLL_WORKER_TOKEN = TOKEN;
 		process.env.ROLL_WORKER_REMOTE_ONLY = 'false';
 
@@ -140,7 +140,7 @@ async function main() {
 		// Reload proof against a fresh local worker (external, no PM2 → shutdown-sent).
 		local = spawnWorker(LOCAL_PORT);
 		await waitHealth(LOCAL_PORT);
-		process.env.ROLL_LOCAL_WORKER_URL = `http://127.0.0.1:${LOCAL_PORT}`;
+		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${LOCAL_PORT}`;
 		const localWorker = require('../modules/roll-worker/local-worker');
 		const reload = await localWorker.restartStandby({ drainMs: 200 });
 		assert(

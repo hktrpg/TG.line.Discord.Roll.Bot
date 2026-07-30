@@ -20,6 +20,7 @@ function getLifecycleFlags() {
 }
 
 const FALLBACK_LOG_INTERVAL_MS = 60_000;
+const PARSE_MODE_LOCK = require('node:path').join(__dirname, '..', '..', 'temp', 'parse-mode-announced.lock');
 let loggedModeOnce = false;
 let workersReadyPromise = null;
 let lastFallbackLogAt = 0;
@@ -27,6 +28,40 @@ let fallbackSinceLastLog = 0;
 let lastRemoteFailLogAt = 0;
 let remoteFailSinceLastLog = 0;
 let replayHookInstalled = false;
+
+function isPidAliveQuick(pid) {
+	if (!pid || !Number.isFinite(pid)) return false;
+	try {
+		process.kill(pid, 0);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Only one Gateway process prints the ParseMode banner (index + Discord clusters share host).
+ * Still runs ensureWorkersReady in every process.
+ */
+function claimParseModeBanner() {
+	const fs = require('node:fs');
+	try {
+		fs.mkdirSync(require('node:path').dirname(PARSE_MODE_LOCK), { recursive: true });
+		let existing = null;
+		try {
+			existing = JSON.parse(fs.readFileSync(PARSE_MODE_LOCK, 'utf8'));
+		} catch {
+			existing = null;
+		}
+		if (existing?.pid && isPidAliveQuick(existing.pid)) {
+			return false;
+		}
+		fs.writeFileSync(PARSE_MODE_LOCK, JSON.stringify({ pid: process.pid, at: Date.now() }));
+		return true;
+	} catch {
+		return true;
+	}
+}
 
 /**
  * Gateway switch: never run in-process analytics when remoting is configured.
@@ -127,37 +162,46 @@ function ensureWorkersReady(logger = console) {
 }
 
 /**
- * Log parse backend mode once per process (gateway or diagnostics).
+ * Log dice backends once per host (single [Gateway] line via console — not [System] logger).
  */
 async function logParseMode(logger = console) {
 	if (loggedModeOnce) return;
 	loggedModeOnce = true;
 
-	const info = typeof logger.info === 'function'
-		? (msg) => logger.info(msg)
-		: (msg) => console.info(msg);
+	// Always console.info so the line is `[Gateway] …`, not `[System] …`.
+	const info = (msg) => console.info(msg);
 
 	if (process.env.ROLL_WORKER_MODE === 'true') {
-		const { url, token } = client.getConfig();
-		info(`[ParseMode] Primary/Standby backend | token=${token ? 'set' : 'off'} | Gateways → ROLL_WORKER_URL=${url}`);
 		return;
 	}
 
 	const started = await ensureWorkersReady(logger);
-	if (started?.primary?.ok) {
-		info(`[ParseMode] Primary ready | url=${started.primary.url || ''}`
-			+ ` | supervised=${Boolean(started.primary.supervised)}`
-			+ (started.primary.discovered ? ' | discovered=1' : '')
-			+ (started.primary.reusedLock ? ' | reusedLock=1' : '')
-			+ (started.primary.existing ? ' | existing=1' : ''));
+	const announce = claimParseModeBanner();
+	if (!announce) {
+		if (client.isEnabled()) {
+			client.beginLinkMonitor({
+				logger: { info() {}, warn: console.warn, error: console.error },
+			});
+			if (typeof client.beginStandbyLinkMonitor === 'function' && client.isLocalEnabled()) {
+				client.beginStandbyLinkMonitor({
+					logger: { info() {}, warn: console.warn, error: console.error },
+				});
+			}
+			if (isRemoteOnlyMode() && deferQueue.isDeferBusyActive()) {
+				ensureDeferReplayHook();
+				deferQueue.startDrainMonitor();
+			}
+		}
+		return;
 	}
-	if (started?.local?.url && (started.local.supervised || started.local.reusedLock || started.local.ok)) {
-		info(`[ParseMode] Standby ready | url=${started.local.url}`
-			+ ` | supervised=${Boolean(started.local.supervised)}`
-			+ (started.local.reusedLock ? ' | reusedLock=1' : ''));
-	} else if (started?.local?.pending) {
-		info(`[ParseMode] Standby pending | url=${started.local.url || ''}`);
-	}
+
+	const primaryHow = started?.primary?.supervised
+		? `spawned${started.primary.pid ? ` pid=${started.primary.pid}` : ''}`
+		: (started?.primary?.discovered
+			? 'discovered'
+			: (started?.primary?.reusedLock
+				? 'reused'
+				: (started?.primary?.existing ? 'configured' : '')));
 
 	if (client.isEnabled()) {
 		const { url, token, timeoutMs } = client.getConfig();
@@ -167,11 +211,25 @@ async function logParseMode(logger = console) {
 			&& typeof client.getLocalConfig === 'function')
 			? (client.getLocalConfig().url || '')
 			: '';
-		info(`[ParseMode] GATEWAY → Primary | url=${url} | token=${token ? 'set' : 'off'} | timeout=${timeoutMs}ms`
-			+ ` | fallback=${remoteOnly ? 'OFF (remote-only)' : 'ON (hybrid)'}`
-			+ (localUrl ? ` | Standby=${localUrl}` : ' | Standby=off (Embedded on Primary error)')
+		const standbyPart = localUrl
+			? `Standby ${localUrl}`
+			: (started?.local?.pending ? 'Standby pending' : 'Standby off');
+		info(`[Gateway] Primary ${url}`
+			+ (primaryHow ? ` (${primaryHow})` : '')
+			+ ` | ${standbyPart}`
+			+ ` | fallback=${remoteOnly ? 'none (remote-only)' : 'Embedded'}`
+			+ ` | token=${token ? 'on' : 'off'}`
+			+ ` | timeout=${timeoutMs}ms`
 			+ (remoteOnly ? ` | defer=${deferOn ? 'on' : 'off'}` : ''));
-		client.beginLinkMonitor({ logger });
+		// Link monitors: warn on disconnect only (boot line already shows backends).
+		client.beginLinkMonitor({
+			logger: { info() {}, warn: console.warn, error: console.error },
+		});
+		if (localUrl && typeof client.beginStandbyLinkMonitor === 'function') {
+			client.beginStandbyLinkMonitor({
+				logger: { info() {}, warn: console.warn, error: console.error },
+			});
+		}
 		if (deferOn) {
 			ensureDeferReplayHook();
 			deferQueue.startDrainMonitor();
@@ -180,11 +238,11 @@ async function logParseMode(logger = console) {
 	}
 
 	if (isRemoteOnlyMode()) {
-		info('[ParseMode] MISCONFIG | REMOTE_ONLY=on but ROLL_WORKER_URL unset');
+		info('[Gateway] MISCONFIG | REMOTE_ONLY=on but ROLL_WORKER_URL unset');
 		return;
 	}
 
-	info('[ParseMode] GATEWAY → Embedded | ROLL_WORKER_URL unset (in-process roll/*; SPAWN=false or auto-start failed)');
+	info('[Gateway] Primary off | Standby off | Embedded only (set ROLL_WORKER_URL or allow auto-spawn)');
 }
 
 /**
@@ -353,7 +411,7 @@ async function parseInput(params = {}, options = {}) {
 	});
 
 	/**
-	 * Hybrid workerError path: prefer ROLL_LOCAL_WORKER_URL HTTP, then in-process analytics.
+	 * Hybrid workerError path: prefer ROLL_STANDBY_URL HTTP, then in-process analytics.
 	 * needsLocal must NOT use this — Discord live objects cannot cross HTTP.
 	 */
 	const runLocalFallback = async ({ skipExp = false } = {}) => {

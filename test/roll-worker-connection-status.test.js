@@ -6,15 +6,22 @@ const {
 	getState,
 	resetConnectionStatus,
 	probeWorkerLink,
+	markStandbyUp,
+	markStandbyDown,
+	getStandbyState,
+	resetStandbyConnectionStatus,
+	probeStandbyLink,
 } = require('../modules/roll-worker/connection-status');
 
 describe('roll-worker connection-status', () => {
 	beforeEach(() => {
 		resetConnectionStatus();
+		resetStandbyConnectionStatus();
 	});
 
 	afterEach(() => {
 		resetConnectionStatus();
+		resetStandbyConnectionStatus();
 	});
 
 	it('logs CONNECTED only on edge up', () => {
@@ -65,5 +72,29 @@ describe('roll-worker connection-status', () => {
 		});
 		expect(getState()).toBe('down');
 		expect(lines.some((l) => /DISCONNECTED/.test(l))).toBe(true);
+	});
+
+	it('Standby recovery CONNECTED is visible even when info logger is silenced', () => {
+		const warns = [];
+		const infos = [];
+		const logger = {
+			info: () => {},
+			warn: (m) => warns.push(m),
+			log: () => {},
+		};
+		const spy = jest.spyOn(console, 'info').mockImplementation((m) => infos.push(m));
+		try {
+			markStandbyDown({ url: 'http://127.0.0.1:3951', reason: 'ECONNREFUSED', logger });
+			expect(warns.some((l) => /DISCONNECTED/.test(l))).toBe(true);
+			expect(markStandbyUp({
+				url: 'http://127.0.0.1:3951',
+				detail: 'health ok',
+				logger,
+			})).toBe(true);
+			expect(getStandbyState()).toBe('up');
+			expect(infos.some((l) => /\[StandbyLink\] CONNECTED/.test(l) && /was=down/.test(l))).toBe(true);
+		} finally {
+			spy.mockRestore();
+		}
 	});
 });

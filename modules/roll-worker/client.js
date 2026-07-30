@@ -12,6 +12,11 @@ const {
 	getState: getLinkState,
 	resetConnectionStatus,
 	onWorkerUp,
+	startStandbyConnectionMonitor,
+	stopStandbyConnectionMonitor,
+	probeStandbyLink,
+	getStandbyState,
+	resetStandbyConnectionStatus,
 } = require('./connection-status');
 const deferQueue = require('./defer-queue');
 const {
@@ -60,14 +65,14 @@ function getConfig() {
 	};
 }
 
-/** Local HTTP fallback worker (Phase A). Same token / timeout as primary. */
+/** Standby HTTP fallback (same token / timeout as Primary). */
 function getLocalConfig() {
-	// Ensure shared secret exists when only local URL is configured (SPAWN / dual-worker).
-	if ((process.env.ROLL_LOCAL_WORKER_URL || '').trim()
+	// Ensure shared secret exists when only Standby URL is configured (SPAWN / dual-worker).
+	if ((process.env.ROLL_STANDBY_URL || '').trim()
 		&& process.env.ROLL_WORKER_ALLOW_NO_TOKEN !== 'true') {
 		ensureRollWorkerToken({ generate: true });
 	}
-	const url = (process.env.ROLL_LOCAL_WORKER_URL || '').trim().replace(/\/$/, '');
+	const url = (process.env.ROLL_STANDBY_URL || '').trim().replace(/\/$/, '');
 	const { token, timeoutMs } = getConfig();
 	return { url, token, timeoutMs };
 }
@@ -81,11 +86,11 @@ function normalizeWorkerBaseUrl(raw) {
 }
 
 function isLocalEnabled() {
-	const local = normalizeWorkerBaseUrl(process.env.ROLL_LOCAL_WORKER_URL);
-	if (!local) return false;
+	const standby = normalizeWorkerBaseUrl(process.env.ROLL_STANDBY_URL);
+	if (!standby) return false;
 	// Same URL as primary is useless for fallback (primary is already down).
 	const primary = normalizeWorkerBaseUrl(process.env.ROLL_WORKER_URL);
-	if (primary && local === primary) return false;
+	if (primary && standby === primary) return false;
 	return true;
 }
 
@@ -192,11 +197,11 @@ async function parse(params) {
 	return parseWithUrl(url, params, { trackPrimaryLink: true });
 }
 
-/** Hybrid fallback: parse on ROLL_LOCAL_WORKER_URL (does not affect primary link monitor). */
+/** Hybrid fallback: parse on ROLL_STANDBY_URL (does not affect primary link monitor). */
 async function parseLocal(params) {
 	const { url } = getLocalConfig();
 	if (!url) {
-		throw new Error('ROLL_LOCAL_WORKER_URL unset');
+		throw new Error('ROLL_STANDBY_URL unset');
 	}
 	return parseWithUrl(url, params, { trackPrimaryLink: false });
 }
@@ -323,6 +328,23 @@ async function health() {
 	return response.data;
 }
 
+async function healthLocal() {
+	const { url, token, timeoutMs } = getLocalConfig();
+	if (!url) {
+		throw new Error('ROLL_STANDBY_URL unset');
+	}
+	const headers = { ...gatewayRequestHeaders() };
+	if (token) {
+		headers.Authorization = `Bearer ${token}`;
+	}
+	const response = await axios.get(`${url}/health`, { headers, timeout: Math.min(timeoutMs, 5000) });
+	return response.data;
+}
+
+function quietLinkLogger(logger) {
+	return logger || { info() {}, warn: console.warn, error: console.error };
+}
+
 function beginLinkMonitor(options = {}) {
 	if (!isEnabled()) return;
 	ensureDeferConnectedHook();
@@ -330,7 +352,7 @@ function beginLinkMonitor(options = {}) {
 		healthFn: health,
 		getUrl: () => getConfig().url,
 		intervalMs: options.intervalMs,
-		logger: options.logger,
+		logger: quietLinkLogger(options.logger),
 	});
 }
 
@@ -342,6 +364,29 @@ async function checkLinkOnce(options = {}) {
 	return probeWorkerLink({
 		healthFn: health,
 		getUrl: () => getConfig().url,
+		logger: options.logger,
+	});
+}
+
+/** Periodic /health for ROLL_STANDBY_URL — failure logs [StandbyLink] DISCONNECTED. */
+function beginStandbyLinkMonitor(options = {}) {
+	if (!isLocalEnabled()) return;
+	startStandbyConnectionMonitor({
+		healthFn: healthLocal,
+		getUrl: () => getLocalConfig().url,
+		intervalMs: options.intervalMs,
+		logger: quietLinkLogger(options.logger),
+	});
+}
+
+function endStandbyLinkMonitor() {
+	stopStandbyConnectionMonitor();
+}
+
+async function checkStandbyLinkOnce(options = {}) {
+	return probeStandbyLink({
+		healthFn: healthLocal,
+		getUrl: () => getLocalConfig().url,
 		logger: options.logger,
 	});
 }
@@ -362,10 +407,16 @@ module.exports = {
 	characterAction,
 	health,
 	healthAt,
+	healthLocal,
 	beginLinkMonitor,
 	endLinkMonitor,
 	checkLinkOnce,
+	beginStandbyLinkMonitor,
+	endStandbyLinkMonitor,
+	checkStandbyLinkOnce,
 	getLinkState,
+	getStandbyState,
 	resetConnectionStatus,
+	resetStandbyConnectionStatus,
 	getGatewayLabel,
 };

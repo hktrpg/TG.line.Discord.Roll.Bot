@@ -3,8 +3,9 @@
 /**
  * Gateway auto-frame helpers (Primary + Standby) + .root restart / stop.
  *
- * Default (SPAWN unset): Gateway auto-discovers/spawns Primary (:3950)
- * then Standby (:3951). Opt-out: ROLL_LOCAL_WORKER_SPAWN=false → Embedded only.
+ * Default (ROLL_WORKER_SPAWN unset): Gateway auto-discovers/spawns **Primary only** (:3950).
+ * Standby (:3951) only when ROLL_STANDBY_SPAWN=true, or ROLL_STANDBY_URL is set.
+ * Opt-out Primary auto-frame: ROLL_WORKER_SPAWN=false → Embedded only (unless URL set).
  */
 
 const { spawn } = require('node:child_process');
@@ -38,31 +39,35 @@ function sleep(ms) {
 }
 
 function getDrainMs() {
-	const n = Number.parseInt(process.env.ROLL_LOCAL_WORKER_DRAIN_MS || String(DEFAULT_DRAIN_MS), 10);
+	const n = Number.parseInt(process.env.ROLL_WORKER_DRAIN_MS || String(DEFAULT_DRAIN_MS), 10);
 	return Number.isFinite(n) && n >= 0 ? Math.min(n, 30_000) : DEFAULT_DRAIN_MS;
 }
 
 function getHealthProbeMs() {
 	const n = Number.parseInt(
-		process.env.ROLL_LOCAL_WORKER_HEALTH_PROBE_MS || String(DEFAULT_HEALTH_PROBE_MS),
+		process.env.ROLL_WORKER_HEALTH_PROBE_MS || String(DEFAULT_HEALTH_PROBE_MS),
 		10
 	);
 	return Number.isFinite(n) && n > 0 ? Math.min(n, 30_000) : DEFAULT_HEALTH_PROBE_MS;
 }
 
-function spawnFlag() {
-	return (process.env.ROLL_LOCAL_WORKER_SPAWN || '').trim().toLowerCase();
+function workerSpawnFlag() {
+	return (process.env.ROLL_WORKER_SPAWN || '').trim().toLowerCase();
 }
 
-/** Global auto-spawn opt-out / force (primary + local). */
+function standbySpawnFlag() {
+	return (process.env.ROLL_STANDBY_SPAWN || '').trim().toLowerCase();
+}
+
+/** Primary auto-spawn opt-out / force. Standby uses shouldSpawn() separately. */
 function shouldAutoSpawnWorkers() {
-	const flag = spawnFlag();
+	const flag = workerSpawnFlag();
 	if (flag === 'false' || flag === '0' || flag === 'off') return false;
 	if (process.env.ROLL_WORKER_MODE === 'true') return false;
 	if (flag === 'true' || flag === '1' || flag === 'on') return true;
-	// Jest / unit tests: never auto-spawn unless SPAWN=true (avoids live children).
+	// Jest / unit tests: never auto-spawn unless ROLL_WORKER_SPAWN=true (avoids live children).
 	if (process.env.NODE_ENV === 'test') return false;
-	// Default: Gateway auto-frames Workers even when ROLL_WORKER_URL unset.
+	// Default: Gateway auto-frames Primary even when ROLL_WORKER_URL unset.
 	return true;
 }
 
@@ -86,7 +91,7 @@ function getPrimarySpawnPort() {
 }
 
 function getSpawnPort() {
-	const n = Number.parseInt(process.env.ROLL_LOCAL_WORKER_PORT || String(DEFAULT_LOCAL_PORT), 10);
+	const n = Number.parseInt(process.env.ROLL_STANDBY_PORT || String(DEFAULT_LOCAL_PORT), 10);
 	let port = Number.isFinite(n) && n > 0 ? n : DEFAULT_LOCAL_PORT;
 	const primaryPort = getPrimaryWorkerPort() || getPrimarySpawnPort();
 	if (primaryPort && port === primaryPort) {
@@ -96,18 +101,21 @@ function getSpawnPort() {
 }
 
 /**
- * Whether Gateway may spawn a supervised Local Worker.
+ * Whether Gateway may spawn a supervised Standby.
+ * Explicit ROLL_STANDBY_SPAWN=true only (default is Primary-only).
  * Requires primary URL (after ensurePrimary) and not REMOTE_ONLY.
  */
 function shouldSpawn() {
-	if (!shouldAutoSpawnWorkers()) return false;
 	if (process.env.ROLL_WORKER_REMOTE_ONLY === 'true') return false;
+	if (process.env.ROLL_WORKER_MODE === 'true') return false;
+	const flag = standbySpawnFlag();
+	if (flag !== 'true' && flag !== '1' && flag !== 'on') return false;
 	return Boolean((process.env.ROLL_WORKER_URL || '').trim());
 }
 
-/** Only explicit SPAWN=true may replace an operator-set ROLL_LOCAL_WORKER_URL. */
+/** Only explicit ROLL_STANDBY_SPAWN=true may replace an operator-set ROLL_STANDBY_URL. */
 function shouldReplaceUnhealthyUrl() {
-	const flag = spawnFlag();
+	const flag = standbySpawnFlag();
 	return flag === 'true' || flag === '1' || flag === 'on';
 }
 
@@ -203,6 +211,13 @@ async function waitUntilUnhealthy(url, timeoutMs = 10_000) {
 	return false;
 }
 
+function debugWorkerLog(...args) {
+	const flag = (process.env.ROLL_WORKER_DEBUG || '').trim().toLowerCase();
+	if (flag === 'true' || flag === '1' || flag === 'on') {
+		console.info(...args);
+	}
+}
+
 function ensureSharedToken() {
 	if (process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true') {
 		return (process.env.ROLL_WORKER_TOKEN || '').trim();
@@ -213,30 +228,36 @@ function ensureSharedToken() {
 
 function spawnChild({ port, token, role = 'local' }) {
 	const url = `http://127.0.0.1:${port}`;
-	const label = role === 'primary' ? 'PrimaryWorker' : 'LocalWorker';
+	const label = role === 'primary' ? 'Primary' : 'Standby';
+	const childLog = (process.env.ROLL_WORKER_CHILD_LOG || '').trim().toLowerCase();
+	const pipeChild = childLog === 'true' || childLog === '1' || childLog === 'on';
 	const child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
 		cwd: ROOT,
 		env: {
 			...process.env,
+			DOTENV_CONFIG_QUIET: 'true',
 			ROLL_WORKER_MODE: 'true',
 			ROLL_WORKER_HOST: '127.0.0.1',
 			ROLL_WORKER_PORT: String(port),
 			ROLL_WORKER_TOKEN: token || process.env.ROLL_WORKER_TOKEN || '',
 			// Child must not recurse into another local worker / primary URL.
 			ROLL_WORKER_URL: '',
-			ROLL_LOCAL_WORKER_URL: '',
-			ROLL_LOCAL_WORKER_SPAWN: 'false',
+			ROLL_STANDBY_URL: '',
+			ROLL_STANDBY_SPAWN: 'false',
+			ROLL_WORKER_SPAWN: 'false',
 		},
-		stdio: ['ignore', 'pipe', 'pipe'],
+		stdio: pipeChild ? ['ignore', 'pipe', 'pipe'] : ['ignore', 'ignore', 'ignore'],
 	});
-	child.stdout?.on('data', (buf) => {
-		const line = String(buf).trim();
-		if (line) console.info(`[${label}:child] ${line}`);
-	});
-	child.stderr?.on('data', (buf) => {
-		const line = String(buf).trim();
-		if (line) console.warn(`[${label}:child] ${line}`);
-	});
+	if (pipeChild) {
+		child.stdout?.on('data', (buf) => {
+			const line = String(buf).trim();
+			if (line) console.info(`[${label}:child] ${line}`);
+		});
+		child.stderr?.on('data', (buf) => {
+			const line = String(buf).trim();
+			if (line) console.warn(`[${label}:child] ${line}`);
+		});
+	}
 	child.on('exit', (code, signal) => {
 		console.warn(`[${label}] child exit code=${code} signal=${signal || ''}`);
 		if (role === 'primary') {
@@ -297,7 +318,7 @@ async function ensurePrimaryWorker(logger = console) {
 	try {
 		await waitHealth(defaultUrl, probeMs);
 		process.env.ROLL_WORKER_URL = defaultUrl;
-		info(`[Primary] discovered existing ${defaultUrl}`);
+		debugWorkerLog(`[Primary] discovered existing ${defaultUrl}`);
 		return { ok: true, url: defaultUrl, supervised: false, discovered: true };
 	} catch {
 		/* spawn path */
@@ -308,7 +329,7 @@ async function ensurePrimaryWorker(logger = console) {
 		try {
 			await waitHealth(lock.url, probeMs);
 			process.env.ROLL_WORKER_URL = lock.url;
-			info(`[Primary] reuse lock pid=${lock.pid} url=${lock.url}`);
+			debugWorkerLog(`[Primary] reuse lock pid=${lock.pid} url=${lock.url}`);
 			return { ok: true, url: lock.url, supervised: false, reusedLock: true };
 		} catch {
 			info(`[Primary] lock pid=${lock.pid} unhealthy — spawning replacement`);
@@ -326,12 +347,13 @@ async function ensurePrimaryWorker(logger = console) {
 	process.env.ROLL_WORKER_URL = url;
 	writePrimaryLock({ pid: child.pid, port, url });
 	await waitHealth(url);
-	info(`[Primary] spawned pid=${child.pid} url=${url}`);
+	debugWorkerLog(`[Primary] spawned pid=${child.pid} url=${url}`);
 	return { ok: true, url, supervised: true, pid: child.pid };
 }
 
 /**
- * Ensure ROLL_LOCAL_WORKER_URL (after primary is available).
+ * Ensure ROLL_STANDBY_URL (after primary is available).
+ * Discover existing :3951 (manual yarn start:roll-worker:standby) before SPAWN.
  */
 async function ensureLocalWorker(logger = console) {
 	const info = typeof logger.info === 'function'
@@ -348,25 +370,38 @@ async function ensureLocalWorker(logger = console) {
 		const { url } = client.getLocalConfig();
 		try {
 			await waitHealth(url, probeMs);
-			info(`[Standby] using existing ${url}`);
+			debugWorkerLog(`[Standby] using existing ${url}`);
 			return { ok: true, url, supervised: false };
 		} catch {
 			if (!shouldReplaceUnhealthyUrl()) {
-				info(`[Standby] ROLL_LOCAL_WORKER_URL=${url} not healthy yet (will retry on fallback)`);
+				debugWorkerLog(`[Standby] ROLL_STANDBY_URL=${url} not healthy yet (will retry on fallback)`);
 				return { ok: false, url, supervised: false, pending: true };
 			}
-			info(`[Standby] ROLL_LOCAL_WORKER_URL=${url} unhealthy — SPAWN replacement`);
+			info(`[Standby] ROLL_STANDBY_URL=${url} unhealthy — SPAWN replacement`);
 		}
 	} else if (!shouldSpawn()) {
 		return { ok: false, skipped: true };
+	}
+
+	const port = getSpawnPort();
+	const defaultUrl = `http://127.0.0.1:${port}`;
+
+	// Manual Standby (or prior process) already on the port — reuse, do not spawn.
+	try {
+		await waitHealth(defaultUrl, probeMs);
+		process.env.ROLL_STANDBY_URL = defaultUrl;
+		debugWorkerLog(`[Standby] discovered existing ${defaultUrl}`);
+		return { ok: true, url: defaultUrl, supervised: false, discovered: true };
+	} catch {
+		/* spawn path */
 	}
 
 	const lock = readLock();
 	if (lock?.url && isPidAlive(lock.pid)) {
 		try {
 			await waitHealth(lock.url, probeMs);
-			process.env.ROLL_LOCAL_WORKER_URL = lock.url;
-			info(`[Standby] reuse lock pid=${lock.pid} url=${lock.url}`);
+			process.env.ROLL_STANDBY_URL = lock.url;
+			debugWorkerLog(`[Standby] reuse lock pid=${lock.pid} url=${lock.url}`);
 			return { ok: true, url: lock.url, supervised: false, reusedLock: true };
 		} catch {
 			info(`[Standby] lock pid=${lock.pid} unhealthy — spawning replacement`);
@@ -374,18 +409,17 @@ async function ensureLocalWorker(logger = console) {
 		}
 	}
 
-	const port = getSpawnPort();
 	const token = ensureSharedToken();
 	if (!token && process.env.ROLL_WORKER_ALLOW_NO_TOKEN !== 'true') {
-		return { ok: false, error: 'ROLL_WORKER_TOKEN missing; cannot spawn local worker' };
+		return { ok: false, error: 'ROLL_WORKER_TOKEN missing; cannot spawn Standby' };
 	}
 	const { child, url } = spawnChild({ port, token, role: 'local' });
 	childProc = child;
 	supervised = true;
-	process.env.ROLL_LOCAL_WORKER_URL = url;
+	process.env.ROLL_STANDBY_URL = url;
 	writeLock({ pid: child.pid, port, url });
 	await waitHealth(url);
-	info(`[Standby] spawned pid=${child.pid} url=${url}`);
+	debugWorkerLog(`[Standby] spawned pid=${child.pid} url=${url}`);
 	return { ok: true, url, supervised: true, pid: child.pid };
 }
 
@@ -444,7 +478,7 @@ async function stopSupervisedChild() {
 async function restartStandby({ drainMs = getDrainMs() } = {}) {
 	stoppedStandby = false;
 	const { url } = client.getLocalConfig();
-	const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
+	const targetUrl = url || process.env.ROLL_STANDBY_URL;
 	if (targetUrl) {
 		try {
 			await waitHealth(targetUrl, getHealthProbeMs());
@@ -466,7 +500,7 @@ async function restartStandby({ drainMs = getDrainMs() } = {}) {
 	return {
 		ok: false,
 		error: ensured?.error
-			|| 'Standby unavailable (set ROLL_LOCAL_WORKER_URL or allow auto SPAWN)',
+			|| 'Standby unavailable (set ROLL_STANDBY_URL or ROLL_STANDBY_SPAWN=true)',
 	};
 }
 
@@ -515,10 +549,10 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 		if (!url && !supervised) {
 			return {
 				ok: false,
-				error: 'ROLL_LOCAL_WORKER_URL unset (auto-spawn disabled? set URL or remove ROLL_LOCAL_WORKER_SPAWN=false)',
+				error: 'ROLL_STANDBY_URL unset (auto-spawn disabled? set URL or ROLL_STANDBY_SPAWN=true)',
 			};
 		}
-		const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
+		const targetUrl = url || process.env.ROLL_STANDBY_URL;
 		const wasSupervised = supervised && childProc;
 
 		if (wasSupervised) {
@@ -537,7 +571,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 			const spawned = spawnChild({ port, token, role: 'local' });
 			childProc = spawned.child;
 			supervised = true;
-			process.env.ROLL_LOCAL_WORKER_URL = spawned.url;
+			process.env.ROLL_STANDBY_URL = spawned.url;
 			writeLock({ pid: spawned.child.pid, port: spawned.port, url: spawned.url });
 			await waitHealth(spawned.url);
 			return {
@@ -574,7 +608,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 				hint: 'Check Standby logs; retry .root restart standby.',
 			};
 		}
-		const waitMs = Number.parseInt(process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS || '15000', 10);
+		const waitMs = Number.parseInt(process.env.ROLL_STANDBY_RELOAD_WAIT_MS || '15000', 10);
 		try {
 			await waitHealth(targetUrl, Number.isFinite(waitMs) ? waitMs : 15_000);
 			return {
@@ -591,7 +625,7 @@ async function reloadLocal({ drainMs = getDrainMs() } = {}) {
 				url: targetUrl,
 				pid: data?.pid,
 				error: 'Standby reload started but /health did not return',
-				hint: 'Check Standby logs; start yarn start:roll-worker on ROLL_LOCAL_WORKER_URL if needed.',
+				hint: 'Check Standby logs; start yarn start:roll-worker:standby (or ROLL_WORKER_PORT matching ROLL_STANDBY_URL) if needed.',
 			};
 		}
 	} finally {
@@ -637,7 +671,7 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 
 	const waitMs = Number.parseInt(
 		process.env.ROLL_WORKER_RELOAD_WAIT_MS
-			|| process.env.ROLL_LOCAL_WORKER_RELOAD_WAIT_MS
+			|| process.env.ROLL_STANDBY_RELOAD_WAIT_MS
 			|| '15000',
 		10,
 	);
@@ -657,7 +691,7 @@ async function reloadRemote({ drainMs = getDrainMs() } = {}) {
 			url,
 			pid: data?.pid,
 			error: 'Primary reload started but /health did not return',
-			hint: 'Check Primary logs on the host. If the successor failed to bind the port, start yarn start:roll-worker manually.',
+			hint: 'Check Primary logs on the host. If the successor failed to bind the port, start yarn start:roll-worker:primary manually.',
 			warning: 'ROLL_WORKER_URL may be down until Primary is running again. Discord Gateway stays up.',
 		};
 	}
@@ -671,7 +705,7 @@ async function stopStandby({ drainMs = getDrainMs() } = {}) {
 	try {
 		stoppedStandby = true;
 		const { url } = client.getLocalConfig();
-		const targetUrl = url || process.env.ROLL_LOCAL_WORKER_URL;
+		const targetUrl = url || process.env.ROLL_STANDBY_URL;
 		const wasSupervised = supervised && childProc;
 
 		if (wasSupervised) {

@@ -19,6 +19,7 @@ exports.analytics = require('../analytics');
 const parseRouter = require('../roll-worker/parse-router');
 const deferQueue = require('../roll-worker/defer-queue');
 const { assertArtifactReadable } = require('../roll-worker/artifacts');
+// ParseMode banner: only once across Gateway processes (see parse-router claim).
 parseRouter.logParseMode(console);
 
 const { deliverDiscordDeferred } = require('../roll-worker/discord-defer-deliver');

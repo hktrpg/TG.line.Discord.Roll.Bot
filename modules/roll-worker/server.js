@@ -37,6 +37,11 @@ function isLoopbackHost(host) {
 	return h === '127.0.0.1' || h === '::1' || h === 'localhost';
 }
 
+function workerBootVerbose() {
+	const flag = (process.env.ROLL_WORKER_DEBUG || '').trim().toLowerCase();
+	return flag === 'true' || flag === '1' || flag === 'on';
+}
+
 /** Express req.ip / remoteAddress may be IPv4-mapped (`::ffff:127.0.0.1`). */
 function isLoopbackRemoteAddress(addr) {
 	const a = String(addr || '').toLowerCase().replace(/^::ffff:/, '');
@@ -180,11 +185,13 @@ function createRollWorkerApp(options = {}) {
 		const prev = entry.state;
 		entry.state = 'up';
 		peers.set(gateway, entry);
-		console.info(
-			`[RollWorker] CONNECTED | gateway=${gateway}`
-			+ (bot ? ` | bot=${bot}` : '')
-			+ ` | peer=${from} | via=${via} | was=${prev}`
-		);
+		if (workerBootVerbose()) {
+			console.info(
+				`[RollWorker] CONNECTED | gateway=${gateway}`
+				+ (bot ? ` | bot=${bot}` : '')
+				+ ` | peer=${from} | via=${via} | was=${prev}`
+			);
+		}
 	}
 
 	app.use((req, res, next) => {
@@ -419,7 +426,9 @@ function createRollWorkerApp(options = {}) {
 
 function startRollWorkerServer() {
 	const host = process.env.ROLL_WORKER_HOST || '127.0.0.1';
-	const port = Number.parseInt(process.env.ROLL_WORKER_PORT || '3950', 10);
+	// Manual `yarn start:roll-worker` defaults to :3952 so it does not collide with
+	// Gateway auto-Primary (:3950) or Standby (:3951). Gateway spawn always sets PORT explicitly.
+	const port = Number.parseInt(process.env.ROLL_WORKER_PORT || '3952', 10);
 	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true';
 
 	// Auto-generate + persist shared secret unless auth-off test mode is explicit.
@@ -449,10 +458,28 @@ function startRollWorkerServer() {
 
 	const app = createRollWorkerApp({ host });
 	const server = app.listen(port, host, () => {
-		console.log(`[RollWorker] Listening on http://${host}:${port}`
-			+ (token ? ' | auth=on' : ' | auth=off')
-			+ ` | jsonLimit=${getJsonBodyLimit()}`
-			+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
+		if (workerBootVerbose()) {
+			console.log(`[RollWorker] Listening on http://${host}:${port}`
+				+ (token ? ' | auth=on' : ' | auth=off')
+				+ ` | jsonLimit=${getJsonBodyLimit()}`
+				+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
+		} else if (!process.env.ROLL_WORKER_PORT) {
+			// One-line hint when using manual default port (not Gateway-spawned).
+			console.info(`[RollWorker] manual :${port} (auto Primary uses :3950; set ROLL_WORKER_PORT to override)`);
+		}
+	});
+	server.on('error', (error) => {
+		if (error?.code === 'EADDRINUSE') {
+			console.error(
+				`[RollWorker] port ${host}:${port} already in use.`
+				+ (port === 3950
+					? ' Gateway auto-Primary may already own :3950 — use ROLL_WORKER_PORT=3952 (yarn start:roll-worker default) or stop the other process.'
+					: ' Stop the other process or set ROLL_WORKER_PORT to a free port.')
+			);
+			// eslint-disable-next-line n/no-process-exit
+			process.exit(1);
+		}
+		throw error;
 	});
 	app.locals.httpServer = server;
 	return { app, server };

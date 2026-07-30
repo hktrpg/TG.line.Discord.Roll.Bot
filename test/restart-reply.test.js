@@ -16,7 +16,7 @@ describe('restart-reply', () => {
 	});
 
 	it('maps standby unset to actionable reason/hint', () => {
-		const mapped = mapRestartError(t, 'ROLL_LOCAL_WORKER_URL unset (auto-spawn disabled?)');
+		const mapped = mapRestartError(t, 'ROLL_STANDBY_URL unset (auto-spawn disabled?)');
 		expect(mapped.reason).toMatch(/Standby|URL/i);
 		expect(mapped.hint).toMatch(/SPAWN|standby/i);
 	});
@@ -24,7 +24,7 @@ describe('restart-reply', () => {
 	it('formats failed standby restart', () => {
 		const text = formatRootRestartText(t, 'standby', {
 			ok: false,
-			error: 'ROLL_LOCAL_WORKER_URL unset (auto-spawn disabled?)',
+			error: 'ROLL_STANDBY_URL unset (auto-spawn disabled?)',
 		});
 		expect(text).toContain('【.root restart standby】失敗');
 		expect(text).toContain('目標範圍');

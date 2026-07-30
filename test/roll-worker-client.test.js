@@ -11,7 +11,7 @@ const {
 
 describe('roll-worker client', () => {
 	const originalUrl = process.env.ROLL_WORKER_URL;
-	const originalLocal = process.env.ROLL_LOCAL_WORKER_URL;
+	const originalLocal = process.env.ROLL_STANDBY_URL;
 
 	afterEach(() => {
 		if (originalUrl === undefined) {
@@ -20,9 +20,9 @@ describe('roll-worker client', () => {
 			process.env.ROLL_WORKER_URL = originalUrl;
 		}
 		if (originalLocal === undefined) {
-			delete process.env.ROLL_LOCAL_WORKER_URL;
+			delete process.env.ROLL_STANDBY_URL;
 		} else {
-			process.env.ROLL_LOCAL_WORKER_URL = originalLocal;
+			process.env.ROLL_STANDBY_URL = originalLocal;
 		}
 	});
 
@@ -33,26 +33,26 @@ describe('roll-worker client', () => {
 		expect(isEnabled()).toBe(true);
 	});
 
-	it('isLocalEnabled / getLocalConfig for ROLL_LOCAL_WORKER_URL', () => {
-		delete process.env.ROLL_LOCAL_WORKER_URL;
+	it('isLocalEnabled / getLocalConfig for ROLL_STANDBY_URL', () => {
+		delete process.env.ROLL_STANDBY_URL;
 		expect(isLocalEnabled()).toBe(false);
 		expect(getLocalConfig().url).toBe('');
-		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3951/';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951/';
 		expect(isLocalEnabled()).toBe(true);
 		expect(getLocalConfig().url).toBe('http://127.0.0.1:3951');
 	});
 
 	it('isLocalEnabled false when local URL equals primary URL', () => {
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
-		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3950/';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3950/';
 		expect(isLocalEnabled()).toBe(false);
-		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3951';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951';
 		expect(isLocalEnabled()).toBe(true);
 	});
 
 	it('isLocalEnabled treats URL case as equal', () => {
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
-		process.env.ROLL_LOCAL_WORKER_URL = 'HTTP://127.0.0.1:3950';
+		process.env.ROLL_STANDBY_URL = 'HTTP://127.0.0.1:3950';
 		expect(isLocalEnabled()).toBe(false);
 	});
 

@@ -57,7 +57,7 @@ describe('stop flags', () => {
 	});
 
 	it('stopStandby sets flag and ensureLocalWorker skips', async () => {
-		process.env.ROLL_LOCAL_WORKER_URL = 'http://127.0.0.1:3951';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951';
 		const stop = await localWorker.stopStandby({ drainMs: 10 });
 		expect(stop.ok).toBe(true);
 		expect(localWorker.isStandbyStopped()).toBe(true);

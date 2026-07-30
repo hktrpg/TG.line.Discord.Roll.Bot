@@ -285,7 +285,7 @@ describe('roll-worker parse-router', () => {
 			client.parseLocal.mockReset();
 		});
 
-		it('workerError prefers parseLocal when ROLL_LOCAL_WORKER enabled', async () => {
+		it('workerError prefers parseLocal when ROLL_STANDBY enabled', async () => {
 			client.isEnabled.mockReturnValue(true);
 			client.isLocalEnabled.mockReturnValue(true);
 			client.parse.mockRejectedValue(new Error('ECONNREFUSED'));

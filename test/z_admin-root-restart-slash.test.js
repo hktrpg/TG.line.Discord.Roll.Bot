@@ -143,6 +143,18 @@ describe('/root restart|stop slash', () => {
 		expect(text).toBe(expected);
 	});
 
+	it('execute restart discord with cluster_id all', async () => {
+		const text = await rootCommand.execute(mockRootInteraction({
+			subcommand: 'restart',
+			getString: (name) => {
+				if (name === 'target') return 'discord';
+				if (name === 'cluster_id') return 'all';
+				return null;
+			},
+		}));
+		expect(text).toBe('.root restart discord all');
+	});
+
 	it('execute restart discord with cluster_id', async () => {
 		const text = await rootCommand.execute(mockRootInteraction({
 			subcommand: 'restart',
@@ -214,14 +226,35 @@ describe('.root restart|stop text', () => {
 		expect(result.text).toContain('【.root stop primary】成功');
 	});
 
-	it('restart discord returns clusterIpc respawnall', async () => {
+	it('bare restart discord is rejected (foolproof)', async () => {
 		const result = await adminModule.rollDiceCommand({
 			mainMsg: ['.root', 'restart', 'discord'],
 			userid: 'test_admin_id',
 			locale: 'zh-tw',
 			botname: 'Discord',
 		});
+		expect(result.clusterIpc).toBeUndefined();
+		expect(result.text).toMatch(/防呆|discord all|clusterId/i);
+	});
+
+	it('restart discord all returns clusterIpc respawnall', async () => {
+		const result = await adminModule.rollDiceCommand({
+			mainMsg: ['.root', 'restart', 'discord', 'all'],
+			userid: 'test_admin_id',
+			locale: 'zh-tw',
+			botname: 'Discord',
+		});
 		expect(result.clusterIpc).toEqual(expect.objectContaining({ respawnall: true }));
-		expect(result.text).toMatch(/restart discord/i);
+		expect(result.text).toMatch(/discord all/i);
+	});
+
+	it('restart discord <id> returns clusterIpc respawn', async () => {
+		const result = await adminModule.rollDiceCommand({
+			mainMsg: ['.root', 'restart', 'discord', '0'],
+			userid: 'test_admin_id',
+			locale: 'zh-tw',
+			botname: 'Discord',
+		});
+		expect(result.clusterIpc).toEqual(expect.objectContaining({ respawn: true, id: '0' }));
 	});
 });

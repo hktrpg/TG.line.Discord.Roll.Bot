@@ -6,7 +6,7 @@
 
 function mapRestartError(translate, error) {
 	const e = String(error || '');
-	if (/ROLL_LOCAL_WORKER_URL unset|Standby unavailable/i.test(e)) {
+	if (/ROLL_STANDBY_URL unset|Standby unavailable/i.test(e)) {
 		return {
 			reason: translate('admin.restart_reason_standby_unset'),
 			hint: translate('admin.restart_hint_standby_unset'),

@@ -193,7 +193,7 @@ const discordCommand = [
                             ))
                     .addStringOption(option =>
                         option.setName('cluster_id')
-                            .setDescription('Optional Discord cluster id (target=discord)')
+                            .setDescription('Required when target=discord: all | <clusterId>')
                             .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
@@ -1093,14 +1093,19 @@ const rollDiceCommand = async function ({
                         return rply;
                     }
                     if (target === 'discord') {
-                        if (clusterId != null && clusterId !== '') {
+                        const spec = String(clusterId || '').trim().toLowerCase();
+                        // Foolproof: bare `.root restart discord` must not restart every cluster.
+                        if (!spec) {
+                            rply.text = translate('admin.restart_discord_need_selector');
+                            rply.quotes = true;
+                            return rply;
+                        }
+                        if (spec === 'all') {
                             const ipcPayload = {
-                                respawn: true,
-                                id: clusterId,
+                                respawnall: true,
                                 meta: {
                                     source: 'admin_command',
-                                    trigger: '.root restart discord',
-                                    targetClusterId: clusterId,
+                                    trigger: '.root restart discord all',
                                     userid,
                                     groupid,
                                     channelid,
@@ -1111,15 +1116,17 @@ const rollDiceCommand = async function ({
                             } else {
                                 rply.clusterIpc = ipcPayload;
                             }
-                            rply.text = translate('admin.restart_discord_one_sent', { id: clusterId });
+                            rply.text = translate('admin.restart_discord_all_sent');
                             rply.quotes = true;
                             return rply;
                         }
                         const ipcPayload = {
-                            respawnall: true,
+                            respawn: true,
+                            id: clusterId,
                             meta: {
                                 source: 'admin_command',
                                 trigger: '.root restart discord',
+                                targetClusterId: clusterId,
                                 userid,
                                 groupid,
                                 channelid,
@@ -1130,7 +1137,7 @@ const rollDiceCommand = async function ({
                         } else {
                             rply.clusterIpc = ipcPayload;
                         }
-                        rply.text = translate('admin.restart_discord_all_sent');
+                        rply.text = translate('admin.restart_discord_one_sent', { id: clusterId });
                         rply.quotes = true;
                         return rply;
                     }

@@ -11,9 +11,9 @@ jest.mock('../modules/db/watchdog.js', () => ({
 }));
 jest.mock('../roll/rollbase.js', () => ({
     Dice: jest.fn(() => 50),
-    DiceINT: jest.fn(() => [1, 2]),
-    BuildDiceCal: jest.fn(() => '50'),
-    BuildRollDice: jest.fn(() => '2d6')
+    DiceINT: jest.fn(() => 20),
+    BuildDiceCal: jest.fn((expr) => `${expr} = 50`),
+    BuildRollDice: jest.fn(() => '3+3')
 }));
 jest.mock('mathjs', () => ({
     evaluate: jest.fn(() => 10)
@@ -104,6 +104,46 @@ describe('CoC (Call of Cthulhu) RPG System', () => {
             expect(typeof result).toBe('string');
             expect(result.length).toBeGreaterThan(0);
             expect(result).toContain('【🦑克蘇魯神話RPG系統】');
+        });
+    });
+
+    describe('cc7build i18n', () => {
+        const i18n = require('../modules/i18n/i18n.js');
+
+        beforeAll(async () => {
+            await i18n.init();
+        });
+
+        test('zh-tw build has no English Traditional Chinese banner', async () => {
+            const locale = 'zh-tw';
+            const t = i18n.createTranslator(locale);
+            const result = await coc.rollDiceCommand({
+                mainMsg: ['.cc7build', '20'],
+                userid: 'u1',
+                groupid: 'g1',
+                userrole: 1,
+                locale,
+                t
+            });
+            expect(result.text).toContain('調查員年齡設為：20');
+            expect(result.text).not.toContain('(Traditional Chinese)');
+            expect(result.text).not.toContain('Investigator age:');
+        });
+
+        test('en build is English without zh_only_notice banner', async () => {
+            const locale = 'en';
+            const t = i18n.createTranslator(locale);
+            const result = await coc.rollDiceCommand({
+                mainMsg: ['.cc7build', '20'],
+                userid: 'u1',
+                groupid: 'g1',
+                userrole: 1,
+                locale,
+                t
+            });
+            expect(result.text).toContain('Investigator age: 20');
+            expect(result.text).not.toContain('(Traditional Chinese)');
+            expect(result.text).not.toMatch(/^（繁中）/);
         });
     });
 

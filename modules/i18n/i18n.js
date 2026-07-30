@@ -286,7 +286,8 @@ async function resolveLocale({
         return locale;
     } catch (error) {
         console.error('[i18n] resolveLocale error:', error.message);
-        localeCache.set(cacheKey, DEFAULT_LOCALE);
+        // Do not cache DEFAULT on failure — a transient DB error would otherwise
+        // stick the wrong language for CACHE_TTL_SECONDS across shards/Worker.
         return DEFAULT_LOCALE;
     }
 }

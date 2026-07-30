@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * stop flags: ensure skips; parse-router skips Primary/Standby layers.
+ * stop flags: ensure skips; parse-router uses Standby when Primary stopped.
  */
 jest.mock('../modules/roll-worker/client', () => ({
 	isLocalEnabled: jest.fn(() => true),
@@ -38,7 +38,9 @@ describe('stop flags', () => {
 		client.isLocalEnabled.mockReturnValue(true);
 		client.requestAdminShutdown.mockResolvedValue({ ok: true });
 		client.healthAt.mockRejectedValue(new Error('down'));
+		client.parseLocal.mockResolvedValue({ text: 'from-standby', type: 'text' });
 		analytics.parseInput.mockResolvedValue({ text: 'embedded', type: 'text' });
+		analytics.findRollModuleName.mockReturnValue('demo');
 		delete process.env.ROLL_WORKER_REMOTE_ONLY;
 	});
 
@@ -65,7 +67,7 @@ describe('stop flags', () => {
 		expect(ensured.stopped).toBe(true);
 	});
 
-	it('parse-router skips Primary when stopped and uses Embedded', async () => {
+	it('parse-router uses Standby when Primary stopped', async () => {
 		jest.spyOn(parseRouter, 'ensureWorkersReady').mockResolvedValue(null);
 		await localWorker.stopPrimary({ drainMs: 10 });
 		const result = await parseRouter.parseInput({
@@ -74,8 +76,43 @@ describe('stop flags', () => {
 			userid: 'u1',
 		}, { keepProof: true });
 		expect(client.parse).not.toHaveBeenCalled();
+		expect(client.parseLocal).toHaveBeenCalled();
+		expect(analytics.parseInput).not.toHaveBeenCalled();
+		expect(result._rollLocalWorker).toBe(true);
+		expect(result.text).toBe('from-standby');
+		parseRouter.ensureWorkersReady.mockRestore();
+	}, 15_000);
+
+	it('parse-router uses Embedded when Primary stopped and Standby fails', async () => {
+		jest.spyOn(parseRouter, 'ensureWorkersReady').mockResolvedValue(null);
+		client.parseLocal.mockRejectedValue(new Error('standby down'));
+		await localWorker.stopPrimary({ drainMs: 10 });
+		const result = await parseRouter.parseInput({
+			inputStr: '.demo',
+			botname: 'Telegram',
+			userid: 'u1',
+		}, { keepProof: true });
+		expect(client.parse).not.toHaveBeenCalled();
+		expect(client.parseLocal).toHaveBeenCalled();
 		expect(analytics.parseInput).toHaveBeenCalled();
 		expect(result._rollWorker).toBe(false);
+		expect(result.text).toBe('embedded');
+		parseRouter.ensureWorkersReady.mockRestore();
+	}, 15_000);
+
+	it('REMOTE_ONLY + Primary stopped uses Standby, not Embedded', async () => {
+		jest.spyOn(parseRouter, 'ensureWorkersReady').mockResolvedValue(null);
+		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
+		await localWorker.stopPrimary({ drainMs: 10 });
+		const result = await parseRouter.parseInput({
+			inputStr: '.demo',
+			botname: 'Telegram',
+			userid: 'u1',
+		}, { keepProof: true });
+		expect(client.parse).not.toHaveBeenCalled();
+		expect(client.parseLocal).toHaveBeenCalled();
+		expect(analytics.parseInput).not.toHaveBeenCalled();
+		expect(result._rollLocalWorker).toBe(true);
 		parseRouter.ensureWorkersReady.mockRestore();
 	}, 15_000);
 });

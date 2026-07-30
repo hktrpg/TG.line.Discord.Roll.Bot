@@ -338,13 +338,7 @@ async function parseInput(params = {}, options = {}) {
 		? analytics.findRollModuleName(mainMsg)
 		: null;
 
-	if (!client.isEnabled() || getLifecycleFlags().isPrimaryStopped()) {
-		if (client.isEnabled() && getLifecycleFlags().isPrimaryStopped()) {
-			logLocalFallback('primaryStopped', {
-				botname: params.botname,
-				moduleName,
-			});
-		}
+	if (!client.isEnabled()) {
 		if (remoteOnly) {
 			console.error('[ParseRouter] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL');
 			const deferred = await tryDeferBusy({
@@ -447,6 +441,62 @@ async function parseInput(params = {}, options = {}) {
 		}
 		return runMainThreadLocal({ skipExp: skip });
 	};
+
+	// Operator stop Primary: still try Standby → Embedded (or Standby-only under REMOTE_ONLY).
+	if (getLifecycleFlags().isPrimaryStopped()) {
+		logLocalFallback('primaryStopped', {
+			botname: params.botname,
+			moduleName,
+		});
+		if (allowLocalFallback) {
+			const local = await runLocalFallback({ skipExp: false });
+			invalidateCachesAfterRemote(moduleName, local, remoteParams);
+			return keepProof
+				? { ...local, _rollWorker: false }
+				: stripWorkerProof(local);
+		}
+		if (typeof client.isLocalEnabled === 'function'
+			&& client.isLocalEnabled()
+			&& typeof client.parseLocal === 'function'
+			&& !getLifecycleFlags().isStandbyStopped()) {
+			try {
+				const httpLocal = await client.parseLocal({
+					...remoteParams,
+					skipExp: false,
+				});
+				if (httpLocal?.needsLocal) {
+					const deferred = await tryDeferBusy({
+						reason: 'needsLocal',
+						params: remoteParams,
+						replyTarget,
+						moduleName: httpLocal.moduleName || moduleName,
+						alreadyQueued: deferredReplay,
+					});
+					if (deferred) return deferred;
+					return remoteOnlyFailResult(params.locale);
+				}
+				invalidateCachesAfterRemote(moduleName, httpLocal, remoteParams);
+				return keepProof
+					? { ...httpLocal, _rollWorker: false, _rollLocalWorker: true }
+					: stripWorkerProof({ ...httpLocal, _rollLocalWorker: true });
+			} catch (error) {
+				logLocalFallback('localHttpError', {
+					botname: params.botname,
+					moduleName,
+					error: error?.message || String(error),
+				});
+			}
+		}
+		const deferred = await tryDeferBusy({
+			reason: 'primaryStopped',
+			params: remoteParams,
+			replyTarget,
+			moduleName,
+			alreadyQueued: deferredReplay,
+		});
+		if (deferred) return deferred;
+		return remoteOnlyFailResult(params.locale);
+	}
 
 	try {
 		const result = await client.parse(remoteParams);

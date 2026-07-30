@@ -82,6 +82,16 @@ describe('roll-worker defer-queue', () => {
 		}).ok).toBe(false);
 	});
 
+	it('defers primaryStopped for REMOTE_ONLY replay after restart', () => {
+		expect(deferQueue.isDeferrableReason('primaryStopped')).toBe(true);
+		expect(deferQueue.enqueue({
+			reason: 'primaryStopped',
+			params: { inputStr: '1d6', userid: 'u1', botname: 'Telegram' },
+			replyTarget: { botname: 'Telegram', chatId: 'c1', userid: 'u1' },
+		}).ok).toBe(true);
+		expect(deferQueue.size()).toBe(1);
+	});
+
 	it('drains with replay + deliverer', async () => {
 		const delivered = [];
 		deferQueue.registerDeliverer('Telegram', async (job, result) => {

@@ -158,6 +158,7 @@ function isDeferrableReason(reason) {
 		'remoteOnlyBlockedLocal',
 		'workerError',
 		'remoteOnlyMisconfig',
+		'primaryStopped',
 	].includes(reason);
 }
 

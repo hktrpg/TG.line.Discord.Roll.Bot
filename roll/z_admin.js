@@ -1318,6 +1318,7 @@ const rollDiceCommand = async function ({
                         critical_at: criticalAt,
                     });
                     const versionInfo = buildInfo.getPublic();
+                    const versionRole = versionInfo.role === 'roll-worker' ? 'primary' : (versionInfo.role || 'gateway');
                     rply.text = translate('admin.mem_report', {
                         count: rows.length,
                         total_rss: toMb(totalRss),
@@ -1328,6 +1329,7 @@ const rollDiceCommand = async function ({
                         host_free: toMb(hostFree),
                         heap_limit: toMb(heapLimit),
                         version: translate('admin.mem_version', {
+                            role: versionRole,
                             display: versionInfo.display,
                             node: versionInfo.node,
                         }),

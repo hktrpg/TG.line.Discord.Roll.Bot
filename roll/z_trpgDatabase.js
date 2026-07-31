@@ -129,7 +129,8 @@ const databaseOperations = {
     },
 
     /**
-     * 刪除指定索引的數據
+     * Delete one group DB entry by array index.
+     * @returns {Promise<boolean>} true when the entry was removed and persisted
      */
     async deleteGroupDataByIndex(groupid, index) {
         try {
@@ -139,9 +140,12 @@ const databaseOperations = {
             if (groupData && index >= 0 && index < groupData.trpgDatabasefunction.length) {
                 groupData.trpgDatabasefunction.splice(index, 1);
                 await records.setTrpgDatabaseFunction('trpgDatabase', groupData);
+                return true;
             }
+            return false;
         } catch (error) {
             console.error('Delete group data by index error:', error);
+            return false;
         }
     }
 };
@@ -333,7 +337,7 @@ function formatDatabaseList(items, page = 1, pageSize = 20, translate) {
  * @returns {boolean} 是否達到上限
  */
 function isGlobalDatabaseFull(database) {
-    return database?.[0]?.trpgDatabaseAllgroup?.length > 100;
+    return (database?.[0]?.trpgDatabaseAllgroup?.length || 0) >= 100;
 }
 
 /**
@@ -591,8 +595,11 @@ const rollDiceCommand = async function ({
             const targetTopic = targetItem.topic;
             const targetSerial = targetItem.serial;
 
-            // 刪除指定索引的數據
-            await databaseOperations.deleteGroupDataByIndex(groupid, targetIndex);
+            const deleted = await databaseOperations.deleteGroupDataByIndex(groupid, targetIndex);
+            if (!deleted) {
+                rply.text = translate('trpgdb.delete_failed');
+                return rply;
+            }
 
             rply.text = translate('trpgdb.deleted', { title: targetTopic, serial: targetSerial });
             rply.text += translate('trpgdb.delete_after_hint');

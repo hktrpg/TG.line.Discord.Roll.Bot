@@ -6,7 +6,9 @@ const { SlashCommandBuilder } = require('discord.js');
 const emojiRegex = require('emoji-regex');
 const VIP = require('../modules/patreon/veryImportantPerson');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const { findNextSerial } = require('../modules/db/serial.js');
 const FUNCTION_LIMIT = [3, 10, 50, 200, 200, 200, 200, 200];
+const ROLE_SERIAL_START = 1;
 const schema = require('../modules/db/schema.js');
 let regextemp = emojiRegex().toString();
 const regex = regextemp.replace(/^\//, '').replace(/\/g$/, '')
@@ -108,8 +110,13 @@ const rollDiceCommand = async function ({
             let list = await schema.roleReact.findOne({ groupid: groupid, messageID: checkName.messageID }).catch(error => console.error('role #240 mongoDB error:', error.name, error.reason));
             if (list) {
                 list.detail.push.apply(list.detail, checkName.detail);
-                await list.save()
-                    .catch(error => console.error('role #244 mongoDB error:', error.name, error.reason));
+                try {
+                    await list.save();
+                } catch (error) {
+                    console.error('role #244 mongoDB error:', error.name, error.reason);
+                    rply.text = translate('role.save_failed');
+                    return rply;
+                }
                 rply.text = translate('role.update_success', { serial: list.serial });
                 rply.newRoleReactFlag = true;
                 rply.newRoleReactMessageId = checkName.messageID;
@@ -132,8 +139,11 @@ const rollDiceCommand = async function ({
             let year = dateObj.getFullYear();
             let hour = dateObj.getHours()
             let minute = dateObj.getMinutes()
-            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").lean().catch(error => console.error('role #268 mongoDB error:', error.name, error.reason));
-            let serial = findTheNextSerial(listSerial);
+            let listSerial = await schema.roleReact.find({ groupid: groupid }, "serial").lean().catch(error => console.error('role #268 mongoDB error:', error.name, error.reason)) || [];
+            let serial = findNextSerial(
+                listSerial.map(item => item.serial).filter(n => Number.isSafeInteger(n)),
+                ROLE_SERIAL_START
+            );
             let myName = new schema.roleReact({
                 message: `${year}/${month}/${day}  ${hour}:${minute} - ID: ${checkName.messageID}`,
                 groupid: groupid,
@@ -142,7 +152,7 @@ const rollDiceCommand = async function ({
                 detail: checkName.detail
             })
             try {
-                await myName.save().catch(error => console.error('role #277 mongoDB error:', error.name, error.reason));
+                await myName.save();
                 rply.text = translate('role.add_success', { serial });
                 rply.newRoleReactFlag = true;
                 rply.newRoleReactMessageId = checkName.messageID;
@@ -319,23 +329,6 @@ function compareSerial(a, b) {
     return 0;
 }
 
-function findTheNextSerial(list) {
-    if (list.length === 0) return 1;
-    let serialList = []
-    for (let index = 0; index < list.length; index++) {
-        serialList.push(list[index].serial);
-    }
-    serialList.sort(function (a, b) {
-        return a - b;
-    });
-    //[1,2,4,5]
-    for (let index = 0; index < serialList.length - 1; index++) {
-        if (serialList[index] !== (index + 1)) {
-            return index + 1
-        }
-    }
-    return serialList[list.length - 1] + 1;
-}
 
 const discordCommand = [
     {

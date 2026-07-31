@@ -282,7 +282,7 @@ function logLocalFallback(reason, meta = {}) {
 	lastFallbackLogAt = now;
 	fallbackSinceLastLog = 0;
 	console.warn(
-		`[ParseRouter] OPS fallback→local | reason=${reason}`
+		`[Gateway] OPS fallback→local | reason=${reason}`
 		+ ` | botname=${meta.botname || ''}`
 		+ ` | module=${meta.moduleName || ''}`
 		+ ` | countSinceLastLog=${suppressed}`
@@ -303,7 +303,7 @@ function logRemoteFailNoLocal(meta = {}) {
 	lastRemoteFailLogAt = now;
 	remoteFailSinceLastLog = 0;
 	console.warn(
-		`[ParseRouter] OPS remote-fail (no local)`
+		`[Gateway] OPS remote-fail (no local)`
 		+ ` | deferred=${meta.deferred ? 'yes' : 'busy'}`
 		+ ` | botname=${meta.botname || ''}`
 		+ ` | module=${meta.moduleName || ''}`
@@ -363,7 +363,7 @@ async function parseInput(params = {}, options = {}) {
 
 	if (!client.isEnabled()) {
 		if (remoteOnly) {
-			console.error('[ParseRouter] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL');
+			console.error('[Gateway] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL');
 			const deferred = await tryDeferBusy({
 				reason: 'remoteOnlyMisconfig',
 				params,
@@ -700,14 +700,14 @@ function invalidateCachesAfterRemote(moduleName, result, params = {}) {
 		try {
 			require('./dark-rolling').invalidateCache();
 		} catch (error) {
-			console.warn('[ParseRouter] dark-rolling invalidate failed:', error?.message || error);
+			console.warn('[Gateway] dark-rolling invalidate failed:', error?.message || error);
 		}
 	}
 	if (name === 'z_Level_system' && params.groupid) {
 		try {
 			require('../chat/level').invalidateGroupConfig(params.groupid);
 		} catch (error) {
-			console.warn('[ParseRouter] level invalidate failed:', error?.message || error);
+			console.warn('[Gateway] level invalidate failed:', error?.message || error);
 		}
 	}
 	if (name === 'z_stop') {
@@ -715,11 +715,11 @@ function invalidateCachesAfterRemote(moduleName, result, params = {}) {
 			const zStop = require('../../roll/z_stop');
 			if (typeof zStop.reloadFromDb === 'function') {
 				Promise.resolve(zStop.reloadFromDb()).catch((error) => {
-					console.warn('[ParseRouter] z_stop reload failed:', error?.message || error);
+					console.warn('[Gateway] z_stop reload failed:', error?.message || error);
 				});
 			}
 		} catch (error) {
-			console.warn('[ParseRouter] z_stop reload failed:', error?.message || error);
+			console.warn('[Gateway] z_stop reload failed:', error?.message || error);
 		}
 	}
 	if (name === 'z_saveCommand') {
@@ -727,11 +727,11 @@ function invalidateCachesAfterRemote(moduleName, result, params = {}) {
 			const cmd = require('../../roll/z_saveCommand');
 			if (typeof cmd.reloadFromDb === 'function') {
 				Promise.resolve(cmd.reloadFromDb()).catch((error) => {
-					console.warn('[ParseRouter] z_saveCommand reload failed:', error?.message || error);
+					console.warn('[Gateway] z_saveCommand reload failed:', error?.message || error);
 				});
 			}
 		} catch (error) {
-			console.warn('[ParseRouter] z_saveCommand reload failed:', error?.message || error);
+			console.warn('[Gateway] z_saveCommand reload failed:', error?.message || error);
 		}
 	}
 	if (name === 'z_admin') {
@@ -739,7 +739,7 @@ function invalidateCachesAfterRemote(moduleName, result, params = {}) {
 			const vip = require('../patreon/veryImportantPerson');
 			if (typeof vip.invalidateCache === 'function') vip.invalidateCache();
 		} catch (error) {
-			console.warn('[ParseRouter] VIP invalidate failed:', error?.message || error);
+			console.warn('[Gateway] VIP invalidate failed:', error?.message || error);
 		}
 	}
 }
@@ -761,7 +761,7 @@ async function enrichParamsForRemote(params, moduleName) {
 			if (!avatarUrl) return params;
 			return { ...params, avatarUrl };
 		} catch (error) {
-			console.warn('[ParseRouter] token avatar prefetch failed:', error?.message || error);
+			console.warn('[Gateway] token avatar prefetch failed:', error?.message || error);
 			return params;
 		}
 	}
@@ -775,7 +775,7 @@ async function enrichParamsForRemote(params, moduleName) {
 			const ctx = await prefetchOpenAiDiscordContext(params.discordMessage, params.discordClient);
 			return { ...params, ...ctx };
 		} catch (error) {
-			console.warn('[ParseRouter] openai prefetch failed:', error?.message || error);
+			console.warn('[Gateway] openai prefetch failed:', error?.message || error);
 			return params;
 		}
 	}
@@ -793,7 +793,7 @@ async function enrichParamsForRemote(params, moduleName) {
 					return { ...params, storyAttachmentMeta };
 				}
 			} catch (error) {
-				console.warn('[ParseRouter] story prefetch failed:', error?.message || error);
+				console.warn('[Gateway] story prefetch failed:', error?.message || error);
 			}
 		}
 		if (sub === 'mylist' && !params.storyGroupNamesMeta && params.discordClient && params.userid) {
@@ -806,7 +806,7 @@ async function enrichParamsForRemote(params, moduleName) {
 					return { ...params, ...prefetched };
 				}
 			} catch (error) {
-				console.warn('[ParseRouter] story group names prefetch failed:', error?.message || error);
+				console.warn('[Gateway] story group names prefetch failed:', error?.message || error);
 			}
 		}
 		return params;
@@ -832,7 +832,7 @@ async function enrichParamsForRemote(params, moduleName) {
 					return { ...params, forwardSourceMeta };
 				}
 			} catch (error) {
-				console.warn('[ParseRouter] forward prefetch failed:', error?.message || error);
+				console.warn('[Gateway] forward prefetch failed:', error?.message || error);
 			}
 		}
 		return params;
@@ -857,7 +857,7 @@ async function enrichParamsForRemote(params, moduleName) {
 					return { ...params, chatroomChannelMeta };
 				}
 			} catch (error) {
-				console.warn('[ParseRouter] chatroom prefetch failed:', error?.message || error);
+				console.warn('[Gateway] chatroom prefetch failed:', error?.message || error);
 			}
 		}
 		return params;
@@ -876,7 +876,7 @@ async function enrichParamsForRemote(params, moduleName) {
 					withNotice = { ...params, exportWaitNoticeSent: true };
 				}
 			} catch (error) {
-				console.warn('[ParseRouter] export wait notice failed:', error?.message || error);
+				console.warn('[Gateway] export wait notice failed:', error?.message || error);
 			}
 		}
 		const { hasExportHistoryMessages } = require('./export-history');
@@ -906,7 +906,7 @@ async function enrichParamsForRemote(params, moduleName) {
 					return { ...withNotice, ...prefetched };
 				}
 			} catch (error) {
-				console.warn('[ParseRouter] export prefetch failed:', error?.message || error);
+				console.warn('[Gateway] export prefetch failed:', error?.message || error);
 			}
 		}
 		return withNotice;
@@ -963,7 +963,7 @@ async function enrichParamsForRemote(params, moduleName) {
 				}
 			}
 		} catch (error) {
-			console.warn('[ParseRouter] admin prefetch failed:', error?.message || error);
+			console.warn('[Gateway] admin prefetch failed:', error?.message || error);
 		}
 		return params;
 	}

@@ -25,21 +25,41 @@ const STORY_ALIAS_RE = /^[A-Za-z0-9_-]{1,64}$/;
 const STORY_TELLER_DIR = path.resolve(__dirname, 'storyTeller');
 const STORY_TEST_DIR = path.resolve(__dirname, '..', 'test');
 
+/** Strict alias for new imports (ASCII safe names only). */
 function isValidStoryAlias(alias) {
     return STORY_ALIAS_RE.test(String(alias || ''));
 }
 
 /**
+ * Path-safe alias for filesystem read/update/delete.
+ * Allows legacy names (spaces, CJK, etc.) but blocks traversal / separators.
+ */
+function isPathSafeStoryAlias(alias) {
+    const s = String(alias || '');
+    if (!s || s.length > 128) return false;
+    if (s.includes('\0')) return false;
+    if (s.includes('/') || s.includes('\\')) return false;
+    if (s === '.' || s === '..') return false;
+    return true;
+}
+
+/**
  * Resolve a story file path under storyTeller/ (or test/ in NODE_ENV=test).
- * Rejects path traversal / invalid aliases.
+ * Always enforces directory containment. Use `strict: true` for new writes/imports.
  * @returns {string|null}
  */
-function resolveContainedStoryPath(alias, { extension = '.json', baseDir = STORY_TELLER_DIR } = {}) {
-    if (!isValidStoryAlias(alias)) return null;
+function resolveContainedStoryPath(alias, { extension = '.json', baseDir = STORY_TELLER_DIR, strict = false } = {}) {
+    if (strict) {
+        if (!isValidStoryAlias(alias)) return null;
+    } else if (!isPathSafeStoryAlias(alias)) {
+        return null;
+    }
     const root = path.resolve(baseDir);
     const outPath = path.resolve(root, `${alias}${extension}`);
     const relative = path.relative(root, outPath);
     if (relative.startsWith('..') || path.isAbsolute(relative)) return null;
+    // Single-segment only (no nested dirs) — blocks odd resolve edge cases
+    if (relative.includes('..') || relative.includes(path.sep)) return null;
     return outPath;
 }
 
@@ -1450,7 +1470,7 @@ const rollDiceCommand = async function ({
                 await db.story.findOneAndUpdate(filter, update, { upsert: !existingDoc });
             }
             try {
-                const outPath = resolveContainedStoryPath(alias);
+                const outPath = resolveContainedStoryPath(alias, { strict: true });
                 if (!outPath) {
                     rply.text = translate('storyteller.alias_required');
                     return rply;
@@ -1482,7 +1502,7 @@ const rollDiceCommand = async function ({
             const alias = (mainMsg[2] || '').trim();
             const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
             if (!alias) { rply.text = translate('storyteller.usage_update'); return rply; }
-            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
+            if (!isPathSafeStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             // Ensure alias exists and belongs to user
             if (db.story && typeof db.story.findOne === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
@@ -1581,7 +1601,7 @@ const rollDiceCommand = async function ({
         case /^delete$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
             if (!alias) { rply.text = translate('storyteller.usage_delete'); return rply; }
-            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
+            if (!isPathSafeStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             // Verify ownership
             if (db.story && typeof db.story.findOne === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
@@ -2166,7 +2186,7 @@ const rollDiceCommand = async function ({
             const arg3 = (mainMsg[3] || '').trim();
             const moreGroupIds = mainMsg.slice(3).filter(Boolean);
             if (!alias) { rply.text = translate('storyteller.usage_allow'); return rply; }
-            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
+            if (!isPathSafeStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
                 if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
@@ -2216,7 +2236,7 @@ const rollDiceCommand = async function ({
             const alias = (mainMsg[2] || '').trim();
             const removeIds = mainMsg.slice(3).filter(Boolean);
             if (!alias) { rply.text = translate('storyteller.usage_disallow'); return rply; }
-            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
+            if (!isPathSafeStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
                 if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
@@ -2829,6 +2849,7 @@ module.exports = {
     webCommand,
     // Test / reuse helpers (path containment)
     isValidStoryAlias,
+    isPathSafeStoryAlias,
     resolveContainedStoryPath,
     STORY_TELLER_DIR,
 };

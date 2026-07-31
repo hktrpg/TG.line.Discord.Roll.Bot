@@ -190,7 +190,8 @@ let handleEvent = async function (event) {
 			inputStr: inputStr,
 			groupid: roomorgroupid,
 			userid: userid,
-			userrole: 1,
+			// LINE Messaging API has no group-admin role endpoint → keep legacy admin.
+			userrole: 3,
 			botname: "Line",
 			displayname: displayname,
 			titleName: titleName,
@@ -204,7 +205,7 @@ let handleEvent = async function (event) {
 				inputStr: inputStr,
 				groupid: roomorgroupid,
 				userid: userid,
-				userrole: 1,
+				userrole: 3,
 				botname: "Line",
 				displayname: displayname,
 				titleName: titleName,

@@ -1338,20 +1338,69 @@
         stateStore.rangeEnd = end;
         return data.filter((i) => i.timestamp >= start && i.timestamp <= end);
       },
-      decryptPayload(cipherText, password) {
+      async decryptPayload(cipherText, password) {
         try {
           if (!cipherText || !password) return null;
           const normalizedKey = password.padEnd(16, password).slice(0, 16);
-          const iv = CryptoJS.lib.WordArray.create(new Uint8Array(16));
-          const keyWords = CryptoJS.enc.Utf8.parse(normalizedKey);
-          const decrypted = CryptoJS.AES.decrypt(cipherText, keyWords, { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
-          const jsonText = decrypted.toString(CryptoJS.enc.Utf8);
-          if (!jsonText) return null;
-          return JSON.parse(jsonText).map((item) => ({
-            timestamp: item.t, contact: item.c, userName: item.u, isbot: item.b, attachments: item.a || [], embeds: item.e || [], reply_to: item.r || null
-          }));
+          if (typeof cipherText === "string" && cipherText.indexOf("v2g.") === 0) {
+            return await this.decryptPayloadV2(cipherText, normalizedKey);
+          }
+          return this.decryptPayloadLegacy(cipherText, normalizedKey);
         } catch (error) { return null; }
-      }
+      },
+      decryptPayloadLegacy(cipherText, normalizedKey) {
+        const iv = CryptoJS.lib.WordArray.create(new Uint8Array(16));
+        const keyWords = CryptoJS.enc.Utf8.parse(normalizedKey);
+        const decrypted = CryptoJS.AES.decrypt(cipherText, keyWords, { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+        const jsonText = decrypted.toString(CryptoJS.enc.Utf8);
+        if (!jsonText) return null;
+        return JSON.parse(jsonText).map((item) => ({
+          timestamp: item.t, contact: item.c, userName: item.u, isbot: item.b, attachments: item.a || [], embeds: item.e || [], reply_to: item.r || null
+        }));
+      },
+      async decryptPayloadV2(cipherText, normalizedKey) {
+        const packed = Uint8Array.from(atob(cipherText.slice(4)), (c) => c.charCodeAt(0));
+        if (packed.length < 12 + 16 + 1) return null;
+        const iv = packed.subarray(0, 12);
+        const authTag = packed.subarray(12, 28);
+        const ciphertext = packed.subarray(28);
+        const keyBytes = new TextEncoder().encode(normalizedKey);
+        const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+        const sealed = new Uint8Array(ciphertext.length + authTag.length);
+        sealed.set(ciphertext, 0);
+        sealed.set(authTag, ciphertext.length);
+        const plainBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, sealed);
+        const gunzipped = await this.gunzipBytes(new Uint8Array(plainBuf));
+        const jsonText = new TextDecoder().decode(gunzipped);
+        return JSON.parse(jsonText).map((item) => {
+          const reply = item.r;
+          return {
+            timestamp: item.t,
+            contact: item.c,
+            userName: item.u,
+            isbot: item.b,
+            attachments: item.a || [],
+            embeds: item.e || [],
+            reply_to: reply
+              ? {
+                  contact: reply.c,
+                  userName: reply.u,
+                  isbot: reply.b,
+                  attachments: reply.a || [],
+                  embeds: reply.e || []
+                }
+              : null
+          };
+        });
+      },
+      async gunzipBytes(bytes) {
+        if (typeof DecompressionStream === "function") {
+          const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+          const ab = await new Response(stream).arrayBuffer();
+          return new Uint8Array(ab);
+        }
+        throw new Error("DecompressionStream unavailable");
+      },
     };
     function initApp() {
       return new Vue({
@@ -1474,9 +1523,9 @@
             $("#decryptModal").modal("hide");
             this.logDebug("loadDemo:done");
           },
-          decryptAndLoad() {
+          async decryptAndLoad() {
             this.logDebug("decryptAndLoad:before");
-            const data = appController.decryptPayload(encryptedPayload, this.decryptPassword || "");
+            const data = await appController.decryptPayload(encryptedPayload, this.decryptPassword || "");
             if (!data) { this.decryptError = dt("dlog_error_decrypt_failed"); return; }
             this.decryptError = "";
             stateStore.rawData = analysisEngine.sortByTime(data);

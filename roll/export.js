@@ -5,7 +5,6 @@ if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'tru
 let variables = {};
 const oneMinuts = (process.env.DEBUG) ? 1 : 60_000;
 const sevenDay = (process.env.DEBUG) ? 1 : 60 * 24 * 7 * 60_000;
-const crypto = require('crypto');
 const gameName = function (params = {}) {
     return resolveGameName(params, 'export.game_name', '【Discord 頻道輸出工具】');
 }
@@ -36,6 +35,7 @@ const {
 	getExportDir,
 	truncateExportHistoryForDemo,
 } = require('../modules/roll-worker/artifacts');
+const { encryptExportPayload } = require('../modules/roll-worker/export-crypto');
 const { getPool } = require('../modules/db/pool');
 const htmlPool = getPool('html');
 const schema = require('../modules/db/schema.js');
@@ -509,7 +509,7 @@ const rollDiceCommand = async function ({
             // 在 rollDiceCommand 中使用
             let key = makeid(16); // 使用16位元的金鑰
             let randomLink = makeid(7);
-            let encryptedData = lightEncrypt(newRawDate, key);
+            let encryptedData = encryptExportPayload(newRawDate, key);
             // discordlog-new.html reads encrypted payload from window.aesData.
             const escapedEncryptedData = JSON.stringify(encryptedData);
             newValue = data
@@ -722,55 +722,6 @@ const rollDiceCommand = async function ({
 }
 
 
-
-
-
-
-// eslint-disable-next-line no-unused-vars
-function AES(key, iv, data) {
-    let algo = "aes-256-cbc"; // we are using 128 bit here because of the 16 byte key. use 256 is the key is 32 byte.
-    let cipher = crypto.createCipheriv(algo, Buffer.from(key, 'utf8'), iv.slice(0, 16));
-    // let encrypted = cipher.update(data, 'utf-8', 'base64'); // `base64` here represents output encoding
-    //encrypted += cipher.final('base64');
-    let encrypted = Buffer.concat([cipher.update(Buffer.from(data)), cipher.final()]);
-    return encrypted;
-}
-
-
-
-
-function lightEncrypt(data, key) {
-    try {
-        const iv = Buffer.alloc(16, 0);
-        const cipher = crypto.createCipheriv('aes-128-cbc',
-            Buffer.from(key.slice(0, 16)),
-            iv);
-
-        // 壓縮數據並轉換為字串
-        const minData = data.map(item => ({
-            t: item.timestamp,
-            c: item.contact,
-            u: item.userName,
-            b: item.isbot,
-            a: item.attachments,
-            e: item.embeds,
-            r: item.reply_to
-        }));
-        const jsonString = JSON.stringify(minData);
-
-        // 加密數據
-        const encrypted = Buffer.concat([
-            cipher.update(jsonString, 'utf8'),
-            cipher.final()
-        ]);
-
-        // 轉換為 base64
-        return encrypted.toString('base64');
-    } catch (error) {
-        console.error('Encryption error:', error);
-        throw error;
-    }
-}
 
 
 

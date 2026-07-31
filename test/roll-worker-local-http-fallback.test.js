@@ -12,8 +12,9 @@ const http = require('node:http');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const PRIMARY_PORT = 3971;
-const LOCAL_PORT = 3972;
+// Keep clear of phase3i/j (3971/3972) — Jest runs live spawn suites in parallel.
+const PRIMARY_PORT = 3983;
+const LOCAL_PORT = 3984;
 const TOKEN = 'phase-a-local-http-token';
 
 function sleep(ms) {

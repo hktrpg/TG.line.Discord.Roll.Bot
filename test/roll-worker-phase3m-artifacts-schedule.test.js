@@ -11,7 +11,8 @@ const path = require('node:path');
 const { spawn } = require('node:child_process');
 
 const ROOT = path.join(__dirname, '..');
-const PORT = 3975;
+// Avoid 3975 — historically shared with reload PORT_E; leftovers cause Unauthorized.
+const PORT = 3988;
 const TOKEN = 'phase3m-proof-token';
 
 function sleep(ms) {
@@ -181,7 +182,8 @@ describe('Phase 3m live worker+gateway (spawned)', () => {
 		while (Date.now() - start < 25_000) {
 			try {
 				const health = await client.health();
-				if (health?.ok) {
+				// parseCount only present when Bearer matches Worker token
+				if (health?.ok && typeof health.parseCount === 'number') {
 					ready = true;
 					break;
 				}

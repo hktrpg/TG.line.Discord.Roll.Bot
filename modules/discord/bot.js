@@ -111,7 +111,9 @@ const { Client } = Discord;
 const { Collection, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, AttachmentBuilder, ChannelType, MessageFlags, WebhookClient } = Discord;
 
 /** Slash commands that defer with Ephemeral (fewer sync checks before deferReply). */
-const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info', 'me', 'mee']);
+// `export` must be ephemeral: finalize/editReply used to force Ephemeral after a *public*
+// defer, which Discord rejects (50027) and leaves the slash stuck on "processing…".
+const EPHEMERAL_DEFER_COMMAND_NAMES = new Set(['state', 'help', 'bothelp', 'info', 'me', 'mee', 'export']);
 
 const ME_WEBHOOK_SEND_ERROR_KEY = 'discord.me.webhook_send_error';
 const ME_WEBHOOK_CREATE_ERROR_KEY = 'discord.me.webhook_create_error';
@@ -124,6 +126,56 @@ function shouldUseEphemeralInteractionReply(message, result) {
 	if (result?.ephemeral) return true;
 	if (message?.ephemeral) return true;
 	return message?.isCommand?.() && EPHEMERAL_DEFER_COMMAND_NAMES.has(message.commandName);
+}
+
+/** Build editReply/reply flags matching how the interaction was deferred. */
+function interactionReplyFlagPayload(message) {
+	return shouldUseEphemeralInteractionReply(message)
+		? { flags: MessageFlags.Ephemeral }
+		: {};
+}
+
+async function updateExportInteractionReply(message, content, replyFlags = {}) {
+	if (!message?.isInteraction || !content) return;
+	try {
+		if (message.deferred && !message.replied) {
+			await message.editReply({ content, ...replyFlags });
+			return;
+		}
+		if (!message.deferred && !message.replied) {
+			await message.reply({ content, ...replyFlags });
+		}
+	} catch (error) {
+		console.error('[Discord] export interaction reply failed:', error?.message || error);
+	}
+}
+
+/**
+ * DM export result to slash user, then update the slash reply.
+ * DM and editReply are separate — editReply failure must not look like DM failure
+ * (previously forced Ephemeral after public defer → 50027 → stuck on "processing").
+ * @returns {Promise<boolean>} true if DM was sent
+ */
+async function sendExportInteractionDm(message, dmPayload, replyFlags, t) {
+	if (!message?.user || typeof message.user.send !== 'function') return false;
+	try {
+		if (!message.deferred && !message.replied) {
+			await message.deferReply(replyFlags);
+		}
+	} catch (error) {
+		console.error('[Discord] export defer before DM failed:', error?.message || error);
+	}
+
+	try {
+		await message.user.send(dmPayload);
+	} catch (error) {
+		console.error('Failed to send DM with exported file:', error?.message || error);
+		await updateExportInteractionReply(message, t('discord.export.dm_blocked'), replyFlags);
+		return false;
+	}
+
+	await updateExportInteractionReply(message, t('discord.export.sent_dm'), replyFlags);
+	return true;
 }
 
 async function replyInteractionPrivate(message, content) {
@@ -3913,31 +3965,24 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 		const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
 		const exportContent = t('discord.export.channel_log', { channelName });
 		const exportTxtPath = assertArtifactReadable(`export/${rplyVal.discordExport}.txt`);
+		const replyFlags = interactionReplyFlagPayload(message);
 		if (!exportTxtPath) {
 			console.warn('[Discord] export txt artifact missing:', rplyVal.discordExport);
 			delete rplyVal.discordExport;
+			await updateExportInteractionReply(message, t('discord.export.dm_blocked'), replyFlags);
 		} else if (message.author && typeof message.author.send === 'function') {
 			message.author.send({
 				content: exportContent,
 				files: [new AttachmentBuilder(exportTxtPath)]
 			}).catch(error => console.error('Failed to send DM with exported file:', error));
 		} else if (message.user && message.isInteraction) {
-			try {
-				if (!message.deferred && !message.replied) {
-					await message.deferReply({ flags: MessageFlags.Ephemeral });
-				}
-				await message.user.send({
-					content: exportContent,
-					files: [new AttachmentBuilder(exportTxtPath)]
-				});
-				await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
-			} catch (error) {
-				console.error('Failed to send DM with exported file:', error);
-				if (message.deferred && !message.replied) {
-					await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-				} else if (!message.deferred && !message.replied) {
-					await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-				}
+			const dmOk = await sendExportInteractionDm(message, {
+				content: exportContent,
+				files: [new AttachmentBuilder(exportTxtPath)],
+			}, replyFlags, t);
+			if (dmOk) {
+				// Slash already shows sent_dm; avoid a second channel/slash body from export.success_dm.
+				delete rplyVal.text;
 			}
 		}
 	}
@@ -3951,47 +3996,35 @@ async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
 		});
 		const exportHtmlPath = assertArtifactReadable(`export/${rplyVal.discordExportHtml[0]}.html`);
 		const needsLocalHtmlFile = !link || !mongo;
+		const replyFlags = interactionReplyFlagPayload(message);
+		const htmlLinkDm = (!needsLocalHtmlFile)
+			? t('discord.export.channel_log_password_link', {
+				channelName,
+				password: rplyVal.discordExportHtml[1],
+				url: link + rplyVal.discordExportHtml[0] + '.html'
+			})
+			: null;
 		if (needsLocalHtmlFile && !exportHtmlPath) {
 			console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
 			delete rplyVal.discordExportHtml;
+			await updateExportInteractionReply(message, t('discord.export.dm_blocked'), replyFlags);
 		} else if (message.author && typeof message.author.send === 'function') {
-			if (!link || !mongo) {
+			if (htmlLinkDm) {
+				message.author.send(htmlLinkDm)
+					.catch(error => console.error('Failed to send DM with HTML link:', error));
+			} else {
 				message.author.send({
 					content: passwordContent,
 					files: [exportHtmlPath]
 				}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
-			} else {
-				message.author.send(t('discord.export.channel_log_password_link', {
-					channelName,
-					password: rplyVal.discordExportHtml[1],
-					url: link + rplyVal.discordExportHtml[0] + '.html'
-				})).catch(error => console.error('Failed to send DM with HTML link:', error));
 			}
 		} else if (message.user && message.isInteraction) {
-			try {
-				if (!message.deferred && !message.replied) {
-					await message.deferReply({ flags: MessageFlags.Ephemeral });
-				}
-				if (!link || !mongo) {
-					await message.user.send({
-						content: passwordContent,
-						files: [exportHtmlPath]
-					});
-				} else {
-					await message.user.send(t('discord.export.channel_log_password_link', {
-						channelName,
-						password: rplyVal.discordExportHtml[1],
-						url: link + rplyVal.discordExportHtml[0] + '.html'
-					}));
-				}
-				await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
-			} catch (error) {
-				console.error('Failed to send DM with exported HTML file:', error);
-				if (message.deferred && !message.replied) {
-					await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-				} else if (!message.deferred && !message.replied) {
-					await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-				}
+			const dmPayload = htmlLinkDm
+				? { content: htmlLinkDm }
+				: { content: passwordContent, files: [exportHtmlPath] };
+			const dmOk = await sendExportInteractionDm(message, dmPayload, replyFlags, t);
+			if (dmOk) {
+				delete rplyVal.text;
 			}
 		}
 	}
@@ -5364,11 +5397,12 @@ async function __handlingInteractionMessage(message) {
 					console.error('Command processing error:', error);
 					const errorT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
 					const errorText = errorT('common.errors.command_error');
+					const errorFlags = interactionReplyFlagPayload(message);
 					try {
 						if (message.deferred && !message.replied) {
-							await message.editReply({ content: errorText, flags: MessageFlags.Ephemeral });
+							await message.editReply({ content: errorText, ...errorFlags });
 						} else if (!message.replied) {
-							await message.reply({ content: errorText, flags: MessageFlags.Ephemeral });
+							await message.reply({ content: errorText, ...errorFlags });
 						}
 					} catch (replyError) {
 						if (isDiscordUnknownInteraction(replyError)) {

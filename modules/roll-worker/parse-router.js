@@ -145,12 +145,25 @@ function remoteOnlySilentFailResult(extras = {}) {
 	return { text: '', type: 'text', ...extras };
 }
 
+function shouldSkipEnsureWorkersInTest() {
+	// Unit tests mock client.isEnabled() → ensurePrimaryWorker waitHealth(~5s) on a
+	// dead URL, which times out Jest and leaves isolateModulesAsync nested/broken.
+	// Live spawn suites must set ROLL_WORKER_SPAWN=true to opt in.
+	if (process.env.NODE_ENV !== 'test') return false;
+	if (process.env.ROLL_WORKER_MODE === 'true') return true;
+	const spawn = (process.env.ROLL_WORKER_SPAWN || '').trim().toLowerCase();
+	return spawn !== 'true' && spawn !== '1' && spawn !== 'on';
+}
+
 /**
  * Auto-frame primary + local Workers once per Gateway process (no-op on Worker).
  */
 function ensureWorkersReady(logger = console) {
 	if (process.env.ROLL_WORKER_MODE === 'true') {
 		return Promise.resolve(null);
+	}
+	if (shouldSkipEnsureWorkersInTest()) {
+		return Promise.resolve({ ok: false, skipped: true, testHarness: true });
 	}
 	if (!workersReadyPromise) {
 		workersReadyPromise = (async () => {

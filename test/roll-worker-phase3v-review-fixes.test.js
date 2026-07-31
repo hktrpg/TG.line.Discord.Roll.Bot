@@ -27,7 +27,7 @@ describe('Phase 3v export workerError must not re-run locally', () => {
 		});
 	});
 
-	it('export + worker timeout → system_busy and zero local parseInput calls', async () => {
+	it('export + worker timeout → silent empty and zero local parseInput calls', async () => {
 		await jest.isolateModulesAsync(async () => {
 			const parseInput = jest.fn(async () => ({ text: 'SHOULD-NOT-RUN', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
@@ -71,7 +71,7 @@ describe('Phase 3v export workerError must not re-run locally', () => {
 			}, { keepProof: true });
 
 			expect(parseInput).not.toHaveBeenCalled();
-			expect(result.text).toBe('BUSY_NO_EXPORT_RERUN');
+			expect(result.text).toBe('');
 			expect(result.type).toBe('text');
 		});
 	});

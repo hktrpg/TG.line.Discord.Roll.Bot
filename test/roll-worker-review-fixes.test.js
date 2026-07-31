@@ -105,4 +105,16 @@ describe('review fixes (defer enqueue fail + mutator silent)', () => {
 		expect(result.text).not.toBe('SYSTEM_BUSY_I18N');
 		expect(deferQueue.size()).toBe(0);
 	});
+
+	it('ensureWorkersReady skips health wait in Jest (avoids isolateModules hang)', async () => {
+		const prevSpawn = process.env.ROLL_WORKER_SPAWN;
+		delete process.env.ROLL_WORKER_SPAWN;
+		parseRouter.resetWorkersReadyForTests();
+		const started = Date.now();
+		const out = await parseRouter.ensureWorkersReady({ info() {}, warn() {}, error() {} });
+		expect(Date.now() - started).toBeLessThan(200);
+		expect(out?.testHarness || out?.skipped).toBeTruthy();
+		if (prevSpawn === undefined) delete process.env.ROLL_WORKER_SPAWN;
+		else process.env.ROLL_WORKER_SPAWN = prevSpawn;
+	});
 });

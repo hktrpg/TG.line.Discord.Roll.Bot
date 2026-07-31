@@ -154,7 +154,7 @@ describe('Phase 3x H2 fail-closed mutators behavioral', () => {
 		'z_Level_system',
 		'z_stop',
 		'z_DDR_darkRollingToGM',
-	])('%s workerError → system_busy and zero local parseInput', async (moduleName) => {
+	])('%s mid-flight timeout → silent empty and zero local parseInput', async (moduleName) => {
 		await jest.isolateModulesAsync(async () => {
 			const parseInput = jest.fn(async () => ({ text: 'SHOULD-NOT-RUN', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
@@ -191,8 +191,10 @@ describe('Phase 3x H2 fail-closed mutators behavioral', () => {
 				groupid: 'g',
 			}, { keepProof: true });
 
+			// Mid-flight timeout: Worker may have committed — silent empty (not busy spam / no local).
 			expect(parseInput).not.toHaveBeenCalled();
-			expect(result.text).toBe('BUSY_FAIL_CLOSED');
+			expect(result.text).toBe('');
+			expect(result.type).toBe('text');
 		});
 	});
 });

@@ -283,7 +283,7 @@ describe('Phase 3w expanded fail-closed on workerError', () => {
 		});
 	});
 
-	it('openai + worker timeout → system_busy and zero local parseInput calls', async () => {
+	it('openai + worker timeout → silent empty and zero local parseInput calls', async () => {
 		await jest.isolateModulesAsync(async () => {
 			const parseInput = jest.fn(async () => ({ text: 'SHOULD-NOT-RUN', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
@@ -321,7 +321,8 @@ describe('Phase 3w expanded fail-closed on workerError', () => {
 			}, { keepProof: true });
 
 			expect(parseInput).not.toHaveBeenCalled();
-			expect(result.text).toBe('BUSY_NO_OPENAI_RERUN');
+			expect(result.text).toBe('');
+			expect(result.type).toBe('text');
 		});
 	});
 });

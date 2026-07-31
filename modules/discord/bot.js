@@ -6,6 +6,7 @@ const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-
 const Discord = require('discord.js');
 const WebSocket = require('ws');
 const isImageURL = require('../../utils/is-image-url.js');
+const { isEnvEnabled } = require('../../utils/env-flag.js');
 
 const candle = require('../misc/candleDays.js');
 const records = require('../db/records.js');
@@ -102,7 +103,7 @@ deferQueue.registerDeliverer('Discord', async (job, result) => {
 	});
 });
 const i18n = require('../i18n/i18n.js');
-const debugMode = !!process.env.DEBUG;
+const debugMode = isEnvEnabled('DEBUG');
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)(\s?)$/igm);
 const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
@@ -4921,7 +4922,7 @@ const connect = function () {
 		}
 	});
 };
-if (process.env.BROADCAST) connect();
+if (isEnvEnabled('BROADCAST')) connect();
 function handlingButtonCommand(message) {
 	// Safely check if component exists before accessing its label property
 	if (!message || !message.component) {

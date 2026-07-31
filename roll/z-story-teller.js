@@ -21,6 +21,28 @@ try {
 // In-memory fallback for runs when DB is not configured
 const memoryRuns = new Map();
 
+const STORY_ALIAS_RE = /^[A-Za-z0-9_-]{1,64}$/;
+const STORY_TELLER_DIR = path.resolve(__dirname, 'storyTeller');
+const STORY_TEST_DIR = path.resolve(__dirname, '..', 'test');
+
+function isValidStoryAlias(alias) {
+    return STORY_ALIAS_RE.test(String(alias || ''));
+}
+
+/**
+ * Resolve a story file path under storyTeller/ (or test/ in NODE_ENV=test).
+ * Rejects path traversal / invalid aliases.
+ * @returns {string|null}
+ */
+function resolveContainedStoryPath(alias, { extension = '.json', baseDir = STORY_TELLER_DIR } = {}) {
+    if (!isValidStoryAlias(alias)) return null;
+    const root = path.resolve(baseDir);
+    const outPath = path.resolve(root, `${alias}${extension}`);
+    const relative = path.relative(root, outPath);
+    if (relative.startsWith('..') || path.isAbsolute(relative)) return null;
+    return outPath;
+}
+
 const variables = {};
 
 const gameName = function (params = {}) {
@@ -251,16 +273,16 @@ async function loadStoryByAlias(ownerID, alias) {
         if (!doc && ownerID) doc = await db.story.findOne({ ownerID, alias }).lean();
         if (doc && doc.payload) return { storyDoc: doc, story: doc.payload };
     }
-    const fallbackPath = path.join(__dirname, 'storyTeller', alias + '.json');
-    if (fs.existsSync(fallbackPath)) {
+    const fallbackPath = resolveContainedStoryPath(alias);
+    if (fallbackPath && fs.existsSync(fallbackPath)) {
         const raw = fs.readFileSync(fallbackPath, 'utf8');
         return { storyDoc: null, story: JSON.parse(raw) };
     }
     // Test environment fallback: also look in test directory
     try {
         if (String(process.env.NODE_ENV).toLowerCase() === 'test') {
-            const testPath = path.join(__dirname, '..', 'test', alias + '.json');
-            if (fs.existsSync(testPath)) {
+            const testPath = resolveContainedStoryPath(alias, { baseDir: STORY_TEST_DIR });
+            if (testPath && fs.existsSync(testPath)) {
                 const raw = fs.readFileSync(testPath, 'utf8');
                 return { storyDoc: null, story: JSON.parse(raw) };
             }
@@ -292,16 +314,16 @@ async function resolveStoryForStart({ ownerID, aliasOrTitle }) {
         if (!doc) doc = await db.story.findOne({ ownerID, title: key });
         if (doc && doc.payload) return { storyDoc: doc, story: doc.payload, alias: doc.alias };
     }
-    const fallbackPath = path.join(__dirname, 'storyTeller', key + '.json');
-    if (fs.existsSync(fallbackPath)) {
+    const fallbackPath = resolveContainedStoryPath(key);
+    if (fallbackPath && fs.existsSync(fallbackPath)) {
         const raw = fs.readFileSync(fallbackPath, 'utf8');
         return { storyDoc: null, story: JSON.parse(raw), alias: key };
     }
     // Test environment fallback: also look in test directory
     try {
         if (String(process.env.NODE_ENV).toLowerCase() === 'test') {
-            const testPath = path.join(__dirname, '..', 'test', key + '.json');
-            if (fs.existsSync(testPath)) {
+            const testPath = resolveContainedStoryPath(key, { baseDir: STORY_TEST_DIR });
+            if (testPath && fs.existsSync(testPath)) {
                 const raw = fs.readFileSync(testPath, 'utf8');
                 return { storyDoc: null, story: JSON.parse(raw), alias: key };
             }
@@ -1346,7 +1368,7 @@ const rollDiceCommand = async function ({
 
             // Normalize title/alias
             const alias = (aliasArg || filename.replace(/\.[^.]+$/, '') || 'untitled').trim();
-            if (!alias) {
+            if (!alias || !isValidStoryAlias(alias)) {
                 rply.text = translate('storyteller.alias_required');
                 return rply;
             }
@@ -1381,7 +1403,7 @@ const rollDiceCommand = async function ({
                     currentCount = await db.story.countDocuments({ ownerID: userid });
                 } else {
                     // filesystem fallback: count files owned by this user
-                    const dir = path.join(__dirname, 'storyTeller');
+                    const dir = STORY_TELLER_DIR;
                     const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /\.json$/i.test(f)) : [];
                     for (const f of files) {
                         try {
@@ -1428,7 +1450,11 @@ const rollDiceCommand = async function ({
                 await db.story.findOneAndUpdate(filter, update, { upsert: !existingDoc });
             }
             try {
-                const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
+                const outPath = resolveContainedStoryPath(alias);
+                if (!outPath) {
+                    rply.text = translate('storyteller.alias_required');
+                    return rply;
+                }
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
                 // Preserve filesystem allow settings (_meta) if file exists
                 try {
@@ -1456,14 +1482,15 @@ const rollDiceCommand = async function ({
             const alias = (mainMsg[2] || '').trim();
             const customTitle = (mainMsg.slice(3).join(' ') || '').trim();
             if (!alias) { rply.text = translate('storyteller.usage_update'); return rply; }
+            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             // Ensure alias exists and belongs to user
             if (db.story && typeof db.story.findOne === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
                 if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 if (String(doc.ownerID) !== String(userid)) { rply.text = translate('storyteller.no_permission_update'); return rply; }
             } else {
-                const p = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (!fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                const p = resolveContainedStoryPath(alias);
+                if (!p || !fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 try {
                     const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
                     if (obj && String(obj.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_update'); return rply; }
@@ -1530,7 +1557,11 @@ const rollDiceCommand = async function ({
                 if (!updated) { rply.text = translate('storyteller.update_not_found'); return rply; }
             }
             try {
-                const outPath = path.join(__dirname, 'storyTeller', alias + '.json');
+                const outPath = resolveContainedStoryPath(alias);
+                if (!outPath) {
+                    rply.text = translate('storyteller.alias_required');
+                    return rply;
+                }
                 fs.mkdirSync(path.dirname(outPath), { recursive: true });
                 // Preserve filesystem allow settings (_meta) if file exists
                 try {
@@ -1550,6 +1581,7 @@ const rollDiceCommand = async function ({
         case /^delete$/.test(sub): {
             const alias = (mainMsg[2] || '').trim();
             if (!alias) { rply.text = translate('storyteller.usage_delete'); return rply; }
+            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             // Verify ownership
             if (db.story && typeof db.story.findOne === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
@@ -1561,10 +1593,10 @@ const rollDiceCommand = async function ({
             }
             // Delete filesystem copy
             try {
-                const p1 = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (fs.existsSync(p1)) fs.unlinkSync(p1);
-                const p2 = path.join(__dirname, 'storyTeller', alias);
-                if (fs.existsSync(p2)) fs.unlinkSync(p2);
+                const p1 = resolveContainedStoryPath(alias);
+                if (p1 && fs.existsSync(p1)) fs.unlinkSync(p1);
+                const p2 = resolveContainedStoryPath(alias, { extension: '' });
+                if (p2 && fs.existsSync(p2)) fs.unlinkSync(p2);
             } catch { /* ignore */ }
             rply.text = translate('storyteller.delete_success', { alias });
             rply.buttonCreate = ['.st list'];
@@ -2072,8 +2104,8 @@ const rollDiceCommand = async function ({
                 }
             } else {
                 // Filesystem fallback: search in roll/storyTeller; in test env also search test/
-                const dirs = [path.join(__dirname, 'storyTeller')];
-                try { if (String(process.env.NODE_ENV).toLowerCase() === 'test') dirs.push(path.join(__dirname, '..', 'test')); } catch { /* ignore */ }
+                const dirs = [STORY_TELLER_DIR];
+                try { if (String(process.env.NODE_ENV).toLowerCase() === 'test') dirs.push(STORY_TEST_DIR); } catch { /* ignore */ }
                 const seen = new Set();
                 for (const dir of dirs) {
                     const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => /(\.json)$/i.test(f)) : [];
@@ -2134,6 +2166,7 @@ const rollDiceCommand = async function ({
             const arg3 = (mainMsg[3] || '').trim();
             const moreGroupIds = mainMsg.slice(3).filter(Boolean);
             if (!alias) { rply.text = translate('storyteller.usage_allow'); return rply; }
+            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
                 if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
@@ -2161,8 +2194,8 @@ const rollDiceCommand = async function ({
             }
             // files fallback
             try {
-                const p = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (!fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                const p = resolveContainedStoryPath(alias);
+                if (!p || !fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
                 if (obj && String(obj.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_settings'); return rply; }
                 obj._meta = obj._meta || {};
@@ -2183,6 +2216,7 @@ const rollDiceCommand = async function ({
             const alias = (mainMsg[2] || '').trim();
             const removeIds = mainMsg.slice(3).filter(Boolean);
             if (!alias) { rply.text = translate('storyteller.usage_disallow'); return rply; }
+            if (!isValidStoryAlias(alias)) { rply.text = translate('storyteller.alias_required'); return rply; }
             if (db.story && typeof db.story.findOneAndUpdate === 'function') {
                 const doc = await db.story.findOne({ alias }).lean();
                 if (!doc) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
@@ -2207,8 +2241,8 @@ const rollDiceCommand = async function ({
             }
             // files fallback
             try {
-                const p = path.join(__dirname, 'storyTeller', alias + '.json');
-                if (!fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
+                const p = resolveContainedStoryPath(alias);
+                if (!p || !fs.existsSync(p)) { rply.text = translate('storyteller.story_not_found', { alias }); return rply; }
                 const obj = JSON.parse(fs.readFileSync(p, 'utf8'));
                 if (obj && String(obj.ownerId) !== String(userid)) { rply.text = translate('storyteller.no_permission_settings'); return rply; }
                 obj._meta = obj._meta || {};
@@ -2792,5 +2826,9 @@ module.exports = {
     gameType,
     gameName,
     discordCommand,
-    webCommand
+    webCommand,
+    // Test / reuse helpers (path containment)
+    isValidStoryAlias,
+    resolveContainedStoryPath,
+    STORY_TELLER_DIR,
 };

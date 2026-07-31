@@ -1,8 +1,9 @@
 "use strict";
 const schema = require('../db/schema.js');
+const { isEnvEnabled } = require('../../utils/env-flag.js');
 // const checkMongodb = require('./db/watchdog.js');
 
-const DebugMode = Boolean(process.env.DEBUG);
+const DebugMode = isEnvEnabled('DEBUG');
 const CACHE_DURATION = 5 * 60 * 1000; // 5分鐘快取
 
 class VIPManager {

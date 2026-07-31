@@ -1,7 +1,11 @@
 "use strict";
 if (!process.env.WHATSAPP_SWITCH) return;
 
-if (process.env.BROADCAST) {
+// Must run before heavy whatsapp-web.js load (gateway broadcast fan-in).
+// eslint-disable-next-line import/order -- intentional early require for BROADCAST gate
+const { isEnvEnabled } = require('../utils/env-flag.js');
+
+if (isEnvEnabled('BROADCAST')) {
 	const WebSocket = require('ws');
 	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
 	const wsPort = process.env.WWW_WS_PORT || '53589';
@@ -195,8 +199,25 @@ async function startUp() {
 		client.on('qr', (qr) => {
 			if (!qrCodePrintedForSession) {
 				qrCodePrintedForSession = true;
-				console.log('[Whatsapp] QR RECEIVED');
-				qrcode.generate(qr, { small: true });
+				// Do not dump QR into application logs (often collected / forwarded).
+				// Persist for local scan tools; print ASCII only on an interactive TTY.
+				const qrPayloadPath = path.join(wwebjsAuthRoot, 'last-qr.txt');
+				const qrAsciiPath = path.join(wwebjsAuthRoot, 'last-qr.ascii');
+				try {
+					fs.mkdirSync(wwebjsAuthRoot, { recursive: true });
+					fs.writeFileSync(qrPayloadPath, String(qr || ''), 'utf8');
+				} catch (error) {
+					console.log(`[Whatsapp] QR RECEIVED (could not write ${qrPayloadPath}: ${error.message})`);
+				}
+				qrcode.generate(qr, { small: true }, (ascii) => {
+					try {
+						fs.writeFileSync(qrAsciiPath, String(ascii || ''), 'utf8');
+					} catch { /* ignore */ }
+					if (process.stdout.isTTY) {
+						console.log(ascii);
+					}
+				});
+				console.log(`[Whatsapp] QR RECEIVED — scan ${qrAsciiPath} (or ${qrPayloadPath}); QR not written to application logs`);
 			} else {
 				console.log('[Whatsapp] QR code refreshed (new code active). Full QR omitted to reduce log/notify spam. Scan a previous QR from this session if still waiting.');
 			}
@@ -424,7 +445,7 @@ async function processMessage(msg, groupInfo, client) {
 	}
 	if (!target && privatemsg == 0) return null;
 	let userid, displayname, channelid, channelKeyword = '';
-	let userrole = 3;
+	let userrole = 1;
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];

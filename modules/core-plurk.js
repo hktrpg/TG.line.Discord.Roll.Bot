@@ -127,7 +127,7 @@ Plurk_Client.on('new_plurk', async response => {
         userid = response.user_id,
         displayname = "",
         channelid = response.owner_id,
-        userrole = (response.owner_id == response.user_id) ? 3 : 1,
+        userrole = 1,
         message = response.content_raw,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
@@ -206,7 +206,7 @@ Plurk_Client.on('new_response', async response => {
         userid = response.response.user_id,
         displayname = response.user[userid].display_name,
         channelid = response.plurk.owner_id,
-        userrole = (response.plurk.owner_id == response.response.user_id) ? 3 : 1,
+        userrole = 1,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
     let target = true;

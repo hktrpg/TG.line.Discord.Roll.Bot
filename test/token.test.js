@@ -43,9 +43,19 @@ jest.mock('axios', () => {
   };
 });
 
+jest.mock('../modules/roll-worker/safe-fetch', () => ({
+  safeFetchBuffer: jest.fn().mockResolvedValue({
+    buffer: Buffer.from('fake-image-data'),
+    contentType: 'image/png',
+  }),
+}));
+
 jest.mock('fs', () => ({
   unlinkSync: jest.fn(),
-  existsSync: jest.fn().mockReturnValue(true)
+  existsSync: jest.fn().mockReturnValue(true),
+  mkdirSync: jest.fn(),
+  writeFileSync: jest.fn(),
+  readFileSync: jest.fn().mockReturnValue(Buffer.from('fake-image-data')),
 }));
 
 jest.mock('geopattern', () => ({
@@ -126,7 +136,7 @@ describe('Token Module Tests', () => {
     const mockDiscordMessage = {
       type: 0,
       attachments: new Map([
-        ['1', { contentType: 'image/png', url: 'https://example.com/image.png' }]
+        ['1', { contentType: 'image/png', url: 'https://cdn.discordapp.com/attachments/1/2/image.png' }]
       ])
     };
 
@@ -146,7 +156,7 @@ describe('Token Module Tests', () => {
     const mockDiscordMessage = {
       type: 0,
       attachments: new Map([
-        ['1', { contentType: 'image/png', url: 'https://example.com/image.png' }]
+        ['1', { contentType: 'image/png', url: 'https://cdn.discordapp.com/attachments/1/2/image.png' }]
       ])
     };
 
@@ -167,7 +177,7 @@ describe('Token Module Tests', () => {
     const mockDiscordMessage = {
       type: 0,
       attachments: new Map([
-        ['1', { contentType: 'image/png', url: 'https://example.com/image.png' }]
+        ['1', { contentType: 'image/png', url: 'https://cdn.discordapp.com/attachments/1/2/image.png' }]
       ])
     };
 
@@ -189,7 +199,7 @@ describe('Token Module Tests', () => {
     const mockDiscordMessage = {
       type: 0,
       attachments: new Map([
-        ['1', { contentType: 'image/png', url: 'https://example.com/image.png' }]
+        ['1', { contentType: 'image/png', url: 'https://cdn.discordapp.com/attachments/1/2/image.png' }]
       ])
     };
 

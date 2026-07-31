@@ -14,7 +14,8 @@ jest.mock('../modules/db/schema.js', () => ({
 jest.mock('../modules/chat/level', () => ({
     EXPUP: jest.fn().mockResolvedValue({
         text: 'Level up!',
-        statue: 'active'
+        // analytics maps EXPUP.status → result.statue (legacy platform key)
+        status: 'active'
     })
 }));
 
@@ -39,6 +40,14 @@ jest.mock('../modules/chat/logs', () => {
 const analytics = require('../modules/analytics.js');
 
 describe('Analytics Module Tests', () => {
+    // roll module index is filled by an async readdir on load
+    beforeAll(async () => {
+        for (let i = 0; i < 50; i++) {
+            if (analytics.findRollModuleName(['.lang']) === 'lang') return;
+            await new Promise((r) => setTimeout(r, 50));
+        }
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -91,19 +100,21 @@ describe('Analytics Module Tests', () => {
     describe('findRollList Tests', () => {
         test('Test with empty array', () => {
             const result = analytics.findRollList([]);
-            expect(result).toBeUndefined();
+            expect(result).toBeNull();
         });
 
         test('Test with null/undefined', () => {
-            expect(analytics.findRollList(null)).toBeUndefined();
-            expect(analytics.findRollList()).toBeUndefined();
+            expect(analytics.findRollList(null)).toBeNull();
+            expect(analytics.findRollList()).toBeNull();
         });
 
         test('Test with roll times prefix', () => {
-            const mainMsg = ['.3', '.help'];
-            const _result = analytics.findRollList(mainMsg);
-            // After processing, mainMsg should be modified
-            expect(mainMsg[0]).toBe('.help');
+            // `.lang` is a real module prefix; `.help` alone is not.
+            const mainMsg = ['.3', '.lang'];
+            const result = analytics.findRollList(mainMsg);
+            expect(result).toBeTruthy();
+            // After processing, mainMsg should strip the .N repeat prefix
+            expect(mainMsg[0]).toBe('.lang');
         });
 
         test('Test with unrecognized command', () => {

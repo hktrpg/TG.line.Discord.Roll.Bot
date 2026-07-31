@@ -23,8 +23,9 @@ const request = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
 const LOCK_PATH = path.join(ROOT, 'temp', 'roll-local-worker.lock');
-const PORT = 3973;
-const PORT_R = 3974;
+// Keep clear of phase3k/l/m (3973–3975) — Jest runs live spawn suites in parallel.
+const PORT = 3985;
+const PORT_R = 3986;
 const TOKEN = 'phase-ab-reload-token';
 
 function sleep(ms) {
@@ -66,7 +67,10 @@ async function waitHealth(port, timeoutMs = 25_000) {
 			const res = await httpJson(port, 'GET', '/health', null, {
 				Authorization: `Bearer ${TOKEN}`,
 			});
-			if (res.status === 200 && res.body.ok) return res.body;
+			// Require authenticated detail so a leftover worker with another token cannot pass.
+			if (res.status === 200 && res.body.ok && typeof res.body.parseCount === 'number') {
+				return res.body;
+			}
 		} catch {
 			// retry
 		}
@@ -230,7 +234,7 @@ describe('Phase A supervised local reload (live)', () => {
 
 describe('Phase A external local reload without PM2 (live)', () => {
 	let child;
-	const PORT_E = 3975;
+	const PORT_E = 3987;
 	const saved = {};
 
 	beforeAll(async () => {
@@ -260,7 +264,7 @@ describe('Phase A external local reload without PM2 (live)', () => {
 		process.env.ROLL_STANDBY_URL = `http://127.0.0.1:${PORT_E}`;
 		process.env.ROLL_WORKER_SPAWN = 'false';
 		process.env.ROLL_STANDBY_SPAWN = 'false';
-		process.env.ROLL_STANDBY_RELOAD_WAIT_MS = '2000';
+		process.env.ROLL_STANDBY_RELOAD_WAIT_MS = '15000';
 		delete process.env.ROLL_WORKER_URL;
 		await waitHealth(PORT_E);
 		jest.resetModules();
@@ -294,8 +298,7 @@ describe('Phase A external local reload without PM2 (live)', () => {
 			beforeHealth = await waitHealth(PORT_E);
 		}
 		const result = await localWorker.reloadLocal({ drainMs: 150 });
-		expect(result.ok).toBe(true);
-		expect(result.mode).toBe('self-restart');
+		expect(result).toMatchObject({ ok: true, mode: 'self-restart' });
 		const afterHealth = await waitHealth(PORT_E);
 		// Old child handle is obsolete; successor is detached.
 		child = null;

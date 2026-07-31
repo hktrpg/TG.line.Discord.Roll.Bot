@@ -31,10 +31,13 @@ const deploy = require('../modules/discord/deploy-commands.js');
 const { viplevelCheckUser, viplevelCheckGroup } = require('../modules/patreon/veryImportantPerson.js');
 const dbProtectionLayer = require('../modules/db/protection-layer.js');
 const clusterProtection = require('../modules/runtime/cluster-protection.js');
+const buildInfo = require('../modules/runtime/build-info.js');
 const patreonTiers = require('../modules/patreon/patreon-tiers.js');
 const patreonSync = require('../modules/patreon/patreon-sync.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const scheduleModule = require('../modules/runtime/schedule.js');
+const { adminSubNeedsLiveDiscord } = require('../modules/roll-worker/admin-remote.js');
+const { formatRootRestartText, formatRootStopText } = require('../modules/roll-worker/restart-reply.js');
 const SCHEDULE_DOC_KEY = scheduleModule.SCHEDULE_DOC_KEY || 'default';
 const AGENDA_TIMEZONE = scheduleModule.AGENDA_TIMEZONE || process.env.AGENDA_TIMEZONE || 'Asia/Hong_Kong';
 const gameName = function (params = {}) {
@@ -172,19 +175,38 @@ const discordCommand = [
         data: new SlashCommandBuilder()
             .setName('root')
             .setDescription('【🔐系統管理員專用】')
-            // System restart
+            // System restart / stop
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('respawn')
-                    .setDescription('重啟指定ID的服務')
+                    .setName('restart')
+                    .setDescription('Restart Primary / Standby / Discord / Gateway')
                     .addStringOption(option =>
-                        option.setName('id')
-                            .setDescription('服務ID')
-                            .setRequired(true)))
+                        option.setName('target')
+                            .setDescription('primary | standby | discord | gateway | all')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'primary - Primary (:3950)', value: 'primary' },
+                                { name: 'standby - Standby (:3951)', value: 'standby' },
+                                { name: 'discord - Discord clusters', value: 'discord' },
+                                { name: 'gateway - platform Gateway', value: 'gateway' },
+                                { name: 'all - standby → primary → gateway', value: 'all' }
+                            ))
+                    .addStringOption(option =>
+                        option.setName('cluster_id')
+                            .setDescription('Required when target=discord: all | <clusterId>')
+                            .setRequired(false)))
             .addSubcommand(subcommand =>
                 subcommand
-                    .setName('respawnall')
-                    .setDescription('重啟所有服務'))
+                    .setName('stop')
+                    .setDescription('Stop Primary or Standby (until restart)')
+                    .addStringOption(option =>
+                        option.setName('target')
+                            .setDescription('primary | standby')
+                            .setRequired(true)
+                            .addChoices(
+                                { name: 'primary - Primary (:3950)', value: 'primary' },
+                                { name: 'standby - Standby (:3951)', value: 'standby' }
+                            )))
             .addSubcommand(subcommand =>
                 subcommand
                     .setName('mem')
@@ -192,7 +214,7 @@ const discordCommand = [
             .addSubcommandGroup(group =>
                 group
                     .setName('schedule')
-                    .setDescription('排程自動 respawn（需手動開啟）')
+                    .setDescription('排程自動 restart discord（需手動開啟）')
                     .addSubcommand(subcommand =>
                         subcommand
                             .setName('show')
@@ -412,14 +434,19 @@ const discordCommand = [
                 }
             }
 
-            // System restart
+            // System restart / stop
             switch (subcommand) {
-            case 'respawn': {
-                const id = interaction.options.getString('id');
-                return `.root respawn ${id}`;
+            case 'restart': {
+                const target = interaction.options.getString('target') || 'standby';
+                const clusterId = interaction.options.getString('cluster_id');
+                if (target === 'discord' && clusterId) {
+                    return `.root restart discord ${clusterId}`;
+                }
+                return `.root restart ${target}`;
             }
-            case 'respawnall': {
-                return '.root respawnall';
+            case 'stop': {
+                const target = interaction.options.getString('target') || 'standby';
+                return `.root stop ${target}`;
             }
             case 'mem': {
                 return '.root mem';
@@ -564,6 +591,11 @@ const rollDiceCommand = async function ({
     titleName,
     discordClient,
     discordMessage,
+    clusterHealthMeta,
+    clusterMemMeta,
+    csvAttachmentMeta,
+    fixShardMeta,
+    slashDeployMeta,
     locale,
     t
 }) {
@@ -592,6 +624,22 @@ const rollDiceCommand = async function ({
             rply.text = translate('admin.root_admin_only');
             return rply;
         }
+    }
+
+    // Roll Worker: only a small subset needs live Discord / missing prefetch meta.
+    if (
+        process.env.ROLL_WORKER_MODE === 'true'
+        && !discordClient
+        && adminSubNeedsLiveDiscord(mainMsg[0], mainMsg[1], {
+            clusterHealthMeta,
+            clusterMemMeta,
+            csvAttachmentMeta,
+            fixShardMeta,
+            slashDeployMeta,
+            mainMsg2: mainMsg[2],
+        })
+    ) {
+        return { needsLocal: true, moduleName: 'z_admin' };
     }
 
     // Handle different functions based on command type
@@ -637,12 +685,20 @@ const rollDiceCommand = async function ({
             case /^clusterhealth$/i.test(mainMsg[1]): {
                 if (!isAdminUser(userid)) return rply;
                 try {
-                    // Import the health report function from discord_bot.js
-                    const healthReport = globalThis.getClusterHealthReport();
-                    const dbStatus = dbProtectionLayer.getStatusReport();
-                    const clusterProtectionStatus = clusterProtection.getStatusReport();
+                    let healthReport;
+                    let dbStatus;
+                    let clusterProtectionStatus;
+                    if (clusterHealthMeta?.healthReport) {
+                        healthReport = clusterHealthMeta.healthReport;
+                        dbStatus = clusterHealthMeta.dbStatus || {};
+                        clusterProtectionStatus = clusterHealthMeta.clusterProtectionStatus || {};
+                    } else {
+                        healthReport = globalThis.getClusterHealthReport();
+                        dbStatus = dbProtectionLayer.getStatusReport();
+                        clusterProtectionStatus = clusterProtection.getStatusReport();
+                    }
 
-                    const clusterDetails = healthReport.clusters.map(c => translate('admin.clusterhealth_detail_line', {
+                    const clusterDetails = (healthReport.clusters || []).map(c => translate('admin.clusterhealth_detail_line', {
                         id: c.id,
                         ready: c.ready ? '✅' : '❌',
                         alive: c.alive ? '🟢' : '🔴',
@@ -656,7 +712,7 @@ const rollDiceCommand = async function ({
                         cache_size: dbStatus.cacheSize,
                         pending_sync: dbStatus.pendingSyncOperations,
                         unhealthy_clusters: clusterProtectionStatus.unhealthyCount,
-                        health_timeout: clusterProtectionStatus.healthTimeout / 1000,
+                        health_timeout: (clusterProtectionStatus.healthTimeout || 0) / 1000,
                         max_retries: clusterProtectionStatus.maxRetries,
                         total_clusters: healthReport.summary.totalClusters,
                         active_clusters: healthReport.summary.activeClusters,
@@ -945,18 +1001,50 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             case /^registeredGlobal$/i.test(mainMsg[1]):
+                if (slashDeployMeta?.text) {
+                    rply.text = slashDeployMeta.text;
+                    return rply;
+                }
+                if (slashDeployMeta?.deferred) {
+                    // Gateway applies deploy once via gatewayAction (like fixshard).
+                    rply.gatewayAction = {
+                        type: 'slashDeploy',
+                        action: 'registeredglobal',
+                        locale,
+                    };
+                    rply.text = '…';
+                    return rply;
+                }
                 rply.text = await deploy.registeredGlobalSlashCommands(locale);
                 return rply;
             case /^testRegistered$/i.test(mainMsg[1]): {
+                if (slashDeployMeta?.text) {
+                    rply.text = slashDeployMeta.text;
+                    return rply;
+                }
                 const targetId = mainMsg[2] || groupid;
                 if (!targetId) {
                     rply.text = translate('admin.error_missing_target_id');
+                    return rply;
+                }
+                if (slashDeployMeta?.deferred) {
+                    rply.gatewayAction = {
+                        type: 'slashDeploy',
+                        action: 'testregistered',
+                        targetId,
+                        locale,
+                    };
+                    rply.text = '…';
                     return rply;
                 }
                 rply.text = await deploy.testRegisteredSlashCommands(targetId, locale);
                 return rply;
             }
             case /^removeSlashCommands$/i.test(mainMsg[1]): {
+                if (slashDeployMeta?.text) {
+                    rply.text = slashDeployMeta.text;
+                    return rply;
+                }
                 const targetId = mainMsg[2] || groupid;
                 console.log('[Admin] .root removeSlashCommands called', {
                     rawInput: inputStr,
@@ -966,6 +1054,16 @@ const rollDiceCommand = async function ({
                 });
                 if (!targetId) {
                     rply.text = translate('admin.error_missing_target_id');
+                    return rply;
+                }
+                if (slashDeployMeta?.deferred) {
+                    rply.gatewayAction = {
+                        type: 'slashDeploy',
+                        action: 'removeslashcommands',
+                        targetId,
+                        locale,
+                    };
+                    rply.text = '…';
                     return rply;
                 }
                 try {
@@ -978,90 +1076,246 @@ const rollDiceCommand = async function ({
                 }
                 return rply;
             }
-            case /^respawn$/i.test(mainMsg[1]):
-                if (mainMsg[2] === null) return rply;
-                discordClient.cluster.send({
-                    respawn: true,
-                    id: mainMsg[2],
-                    meta: {
-                        source: 'admin_command',
-                        trigger: '.root respawn',
-                        targetClusterId: mainMsg[2],
-                        userid,
-                        groupid,
-                        channelid
+            case /^restart$/i.test(mainMsg[1]): {
+                const target = (mainMsg[2] || '').toLowerCase();
+                const clusterId = mainMsg[3];
+                const valid = ['primary', 'standby', 'discord', 'gateway', 'all'];
+                if (!valid.includes(target)) {
+                    rply.text = translate('admin.restart_usage');
+                    return rply;
+                }
+                try {
+                    if (target === 'primary' || target === 'standby') {
+                        const localWorker = require('../modules/roll-worker/local-worker');
+                        const result = await localWorker.restart(target);
+                        rply.text = formatRootRestartText(translate, target, result);
+                        rply.quotes = true;
+                        return rply;
                     }
-                });
-                return rply;
-            case /^respawnall$/i.test(mainMsg[1]):
-                discordClient.cluster.send({
-                    respawnall: true,
-                    meta: {
-                        source: 'admin_command',
-                        trigger: '.root respawnall',
-                        userid,
-                        groupid,
-                        channelid
+                    if (target === 'discord') {
+                        const spec = String(clusterId || '').trim().toLowerCase();
+                        // Foolproof: bare `.root restart discord` must not restart every cluster.
+                        if (!spec) {
+                            rply.text = translate('admin.restart_discord_need_selector');
+                            rply.quotes = true;
+                            return rply;
+                        }
+                        if (spec === 'all') {
+                            // Always defer IPC: Discord must editReply before respawnall
+                            // (else slash stays on "thinking…" while clusters die).
+                            rply.clusterIpc = {
+                                respawnall: true,
+                                meta: {
+                                    source: 'admin_command',
+                                    trigger: '.root restart discord all',
+                                    userid,
+                                    groupid,
+                                    channelid,
+                                },
+                            };
+                            rply.text = translate('admin.restart_discord_all_sent');
+                            rply.quotes = true;
+                            return rply;
+                        }
+                        rply.clusterIpc = {
+                            respawn: true,
+                            id: clusterId,
+                            meta: {
+                                source: 'admin_command',
+                                trigger: '.root restart discord',
+                                targetClusterId: clusterId,
+                                userid,
+                                groupid,
+                                channelid,
+                            },
+                        };
+                        rply.text = translate('admin.restart_discord_one_sent', { id: clusterId });
+                        rply.quotes = true;
+                        return rply;
                     }
-                });
+                    if (target === 'gateway') {
+                        const bot = String(botname || '').toLowerCase();
+                        if (bot === 'discord' && discordClient?.cluster) {
+                            // Defer IPC until after Discord reply (same as restart discord).
+                            rply.clusterIpc = {
+                                respawnall: true,
+                                meta: {
+                                    source: 'admin_command',
+                                    trigger: '.root restart gateway',
+                                    userid,
+                                    groupid,
+                                    channelid,
+                                },
+                            };
+                            rply.text = translate('admin.restart_gateway_discord_sent');
+                            rply.quotes = true;
+                            return rply;
+                        }
+                        rply.text = translate('admin.restart_gateway_process_sent');
+                        rply.quotes = true;
+                        setImmediate(() => {
+                            try {
+                                process.kill(process.pid, 'SIGTERM');
+                            } catch (error) {
+                                console.error('[Admin] gateway SIGTERM failed:', error);
+                            }
+                        });
+                        return rply;
+                    }
+                    // all: standby → primary → gateway
+                    const localWorker = require('../modules/roll-worker/local-worker');
+                    const standby = await localWorker.restart('standby');
+                    const primary = await localWorker.restart('primary');
+                    const parts = [
+                        translate('admin.restart_all_header'),
+                        '',
+                        formatRootRestartText(translate, 'standby', standby),
+                        '',
+                        formatRootRestartText(translate, 'primary', primary),
+                        '',
+                    ];
+                    const bot = String(botname || '').toLowerCase();
+                    if (bot === 'discord' && discordClient?.cluster) {
+                        rply.clusterIpc = {
+                            respawnall: true,
+                            meta: {
+                                source: 'admin_command',
+                                trigger: '.root restart all',
+                                userid,
+                                groupid,
+                                channelid,
+                            },
+                        };
+                        parts.push(translate('admin.restart_gateway_discord_sent'));
+                    } else {
+                        parts.push(translate('admin.restart_gateway_process_sent'));
+                        setImmediate(() => {
+                            try {
+                                process.kill(process.pid, 'SIGTERM');
+                            } catch (error) {
+                                console.error('[Admin] gateway SIGTERM failed:', error);
+                            }
+                        });
+                    }
+                    rply.text = parts.join('\n');
+                    rply.quotes = true;
+                } catch (error) {
+                    console.error('[Admin] .root restart error:', error);
+                    rply.text = translate('admin.restart_failed', {
+                        message: error?.message || String(error),
+                    });
+                }
                 return rply;
+            }
+            case /^stop$/i.test(mainMsg[1]): {
+                const target = (mainMsg[2] || '').toLowerCase();
+                if (!['primary', 'standby'].includes(target)) {
+                    rply.text = translate('admin.stop_usage');
+                    return rply;
+                }
+                try {
+                    const localWorker = require('../modules/roll-worker/local-worker');
+                    const result = await localWorker.stop(target);
+                    rply.text = formatRootStopText(translate, target, result);
+                    rply.quotes = true;
+                } catch (error) {
+                    console.error('[Admin] .root stop error:', error);
+                    rply.text = translate('admin.stop_failed', {
+                        message: error?.message || String(error),
+                    });
+                }
+                return rply;
+            }
             case /^mem$/i.test(mainMsg[1]): {
-                if (!discordClient || !discordClient.cluster) {
+                if (!clusterMemMeta?.rows && (!discordClient || !discordClient.cluster)) {
                     rply.text = translate('admin.mem_discord_only');
                     return rply;
                 }
                 try {
-                    const results = await clusterProtection.safeBroadcastEval(
-                        discordClient,
-                        (client) => {
-                            const v8mod = require('node:v8');
-                            const mem = process.memoryUsage();
-                            const heapStats = v8mod.getHeapStatistics();
-                            return {
-                                clusterId: (client.cluster && client.cluster.id != null) ? client.cluster.id : -1,
-                                rss: mem.rss,
-                                heapUsed: mem.heapUsed,
-                                heapTotal: mem.heapTotal,
-                                external: mem.external,
-                                heapSizeLimit: heapStats.heap_size_limit,
-                                uptime: Math.floor(process.uptime())
-                            };
-                        },
-                        { timeout: 10_000 }
-                    );
-                    const rows = (Array.isArray(results) ? results : [results])
-                        .filter(Boolean)
-                        .sort((a, b) => a.clusterId - b.clusterId);
+                    let rows;
+                    let hostTotal;
+                    let hostFree;
+                    let heapLimit;
+                    if (clusterMemMeta?.rows) {
+                        rows = clusterMemMeta.rows;
+                        hostTotal = clusterMemMeta.hostTotal;
+                        hostFree = clusterMemMeta.hostFree;
+                        heapLimit = clusterMemMeta.heapSizeLimit || v8.getHeapStatistics().heap_size_limit;
+                    } else {
+                        const results = await clusterProtection.safeBroadcastEval(
+                            discordClient,
+                            (client) => {
+                                const v8mod = require('node:v8');
+                                const mem = process.memoryUsage();
+                                const heapStats = v8mod.getHeapStatistics();
+                                return {
+                                    clusterId: (client.cluster && client.cluster.id != null) ? client.cluster.id : -1,
+                                    rss: mem.rss,
+                                    heapUsed: mem.heapUsed,
+                                    heapTotal: mem.heapTotal,
+                                    external: mem.external,
+                                    heapSizeLimit: heapStats.heap_size_limit,
+                                    uptime: Math.floor(process.uptime())
+                                };
+                            },
+                            { timeout: 10_000 }
+                        );
+                        rows = (Array.isArray(results) ? results : [results])
+                            .filter(Boolean)
+                            .sort((a, b) => a.clusterId - b.clusterId);
+                        hostTotal = os.totalmem();
+                        hostFree = os.freemem();
+                        heapLimit = rows[0]?.heapSizeLimit || v8.getHeapStatistics().heap_size_limit;
+                    }
                     if (rows.length === 0) {
                         rply.text = translate('admin.mem_no_data');
                         return rply;
                     }
                     const toMb = (bytes) => (bytes / (1024 * 1024)).toFixed(1);
-                    const lines = rows.map((row) => translate('admin.mem_line', {
-                        id: row.clusterId,
-                        rss: toMb(row.rss),
-                        heap: toMb(row.heapUsed),
-                        heap_total: toMb(row.heapTotal),
-                        external: toMb(row.external),
-                        uptime: row.uptime
-                    }));
+                    const makeBar = (pct, width = 10) => {
+                        const clamped = Math.max(0, Math.min(100, Number(pct) || 0));
+                        const filled = Math.round((clamped / 100) * width);
+                        return `${'█'.repeat(filled)}${'░'.repeat(width - filled)}`;
+                    };
+                    const lines = rows.map((row) => {
+                        const heapPct = row.heapTotal > 0
+                            ? Math.round((row.heapUsed / row.heapTotal) * 100)
+                            : 0;
+                        return translate('admin.mem_line', {
+                            id: row.clusterId,
+                            rss: toMb(row.rss),
+                            bar: makeBar(heapPct),
+                            heap_pct: String(heapPct),
+                        });
+                    });
                     const totalRss = rows.reduce((sum, row) => sum + (row.rss || 0), 0);
-                    const hostTotal = os.totalmem();
-                    const hostFree = os.freemem();
                     const hostUsed = hostTotal - hostFree;
-                    const hostPercent = ((hostUsed / hostTotal) * 100).toFixed(1);
-                    const heapLimit = rows[0].heapSizeLimit || v8.getHeapStatistics().heap_size_limit;
+                    const hostPercentNum = hostTotal > 0 ? (hostUsed / hostTotal) * 100 : 0;
+                    const hostPercent = hostPercentNum.toFixed(1);
+                    const warnAt = '85';
+                    const criticalAt = '95';
+                    const hostLine = translate('admin.mem_host_line', {
+                        host_percent: hostPercent,
+                        bar: makeBar(hostPercentNum),
+                        warn_at: warnAt,
+                        critical_at: criticalAt,
+                    });
+                    const versionInfo = buildInfo.getPublic();
+                    const versionRole = versionInfo.role === 'roll-worker' ? 'primary' : (versionInfo.role || 'gateway');
                     rply.text = translate('admin.mem_report', {
                         count: rows.length,
                         total_rss: toMb(totalRss),
                         lines: lines.join('\n'),
+                        host_line: hostLine,
                         host_total: toMb(hostTotal),
                         host_used: toMb(hostUsed),
                         host_free: toMb(hostFree),
-                        host_percent: hostPercent,
                         heap_limit: toMb(heapLimit),
-                        warn_at: '85',
-                        critical_at: '95'
+                        version: translate('admin.mem_version', {
+                            role: versionRole,
+                            display: versionInfo.display,
+                            node: versionInfo.node,
+                        }),
                     });
                     rply.quotes = true;
                 } catch (error) {
@@ -1429,14 +1683,22 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             case /^importpatreon$/i.test(mainMsg[1]): {
-                if (!discordMessage?.attachments?.size) {
-                    rply.text = translate('admin.import_csv_attachment_required');
-                    return rply;
-                }
-                const attachments = [...discordMessage.attachments.values()];
-                const csvFiles = attachments.filter(a => (a.name || '').toLowerCase().endsWith('.csv'));
+                const prefetchedCsv = csvAttachmentMeta?.url
+                    ? {
+                        url: csvAttachmentMeta.url,
+                        name: csvAttachmentMeta.name || csvAttachmentMeta.filename || 'import.csv',
+                        size: csvAttachmentMeta.size || 0,
+                        contentType: csvAttachmentMeta.contentType || '',
+                    }
+                    : null;
+                const liveAttachments = discordMessage?.attachments?.size
+                    ? [...discordMessage.attachments.values()]
+                    : [];
+                const csvFiles = prefetchedCsv
+                    ? [prefetchedCsv]
+                    : liveAttachments.filter(a => (a.name || '').toLowerCase().endsWith('.csv'));
                 if (csvFiles.length === 0) {
-                    rply.text = translate('admin.import_csv_upload_required');
+                    rply.text = translate('admin.import_csv_attachment_required');
                     return rply;
                 }
                 if (csvFiles.length > 1) {
@@ -1469,9 +1731,11 @@ const rollDiceCommand = async function ({
 
                 let csvContent;
                 try {
-                    const response = await fetch(attachment.url);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    csvContent = await response.text();
+                    const { safeFetchText } = require('../modules/roll-worker/safe-fetch');
+                    const downloaded = await safeFetchText(attachment.url, {
+                        maxBytes: MAX_CSV_SIZE_BYTES,
+                    });
+                    csvContent = downloaded.text;
                 } catch (error) {
                     rply.text = translate('admin.import_csv_read_failed', { message: error.message || error });
                     return rply;
@@ -1505,7 +1769,24 @@ const rollDiceCommand = async function ({
                             }
                             dmStatusText = translate('admin.import_dm_sent', { count: result.keyMessages.length });
                         } catch (error) {
-                            dmStatusText = translate('admin.import_dm_failed', { message: error.message });
+                            // On Worker: return DM payload for Gateway; otherwise report failure.
+                            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                                rply.adminDmChunks = [
+                                    [
+                                        translate('admin.import_dm_title'),
+                                        translate('admin.import_dm_mode', {
+                                            mode: keyMode === 'newonly'
+                                                ? translate('admin.import_mode_newonly')
+                                                : translate('admin.import_mode_allkeys')
+                                        }),
+                                        '',
+                                        ...result.keyMessages
+                                    ].join('\n')
+                                ];
+                                dmStatusText = translate('admin.import_dm_sent', { count: result.keyMessages.length });
+                            } else {
+                                dmStatusText = translate('admin.import_dm_failed', { message: error.message });
+                            }
                         }
                     }
 
@@ -1524,7 +1805,16 @@ const rollDiceCommand = async function ({
                             });
                             emailStatusText = translate('admin.import_email_sent');
                         } catch (error) {
-                            emailStatusText = translate('admin.import_email_failed', { message: error.message });
+                            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient) {
+                                rply.adminDmFiles = [{
+                                    content: translate('admin.import_email_title'),
+                                    name: 'patreon_emails.txt',
+                                    text: result.emailContent,
+                                }];
+                                emailStatusText = translate('admin.import_email_sent');
+                            } else {
+                                emailStatusText = translate('admin.import_email_failed', { message: error.message });
+                            }
                         }
                     }
 
@@ -1560,7 +1850,7 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             case /^fixshard$/i.test(mainMsg[1]): {
-                const action = mainMsg[2]?.toLowerCase();
+                const action = (fixShardMeta?.action || mainMsg[2] || '').toLowerCase();
 
                 if (!action) {
                     rply.text = translate('admin.fixshard_action_required');
@@ -1570,7 +1860,8 @@ const rollDiceCommand = async function ({
                 try {
                     switch (action) {
                         case 'check': {
-                            const healthReport = await globalThis.checkShardHealth();
+                            const healthReport = fixShardMeta?.report
+                                || await globalThis.checkShardHealth();
                             if (healthReport.error) {
                                 rply.text = translate('admin.fixshard_check_failed', { message: healthReport.error });
                             } else {
@@ -1588,7 +1879,11 @@ const rollDiceCommand = async function ({
                             break;
                         }
                         case 'start': {
-                            const result = globalThis.startShardFix();
+                            if (fixShardMeta?.deferred && !fixShardMeta?.result) {
+                                rply.gatewayAction = { type: 'fixshard', action: 'start' };
+                                break;
+                            }
+                            const result = fixShardMeta?.result || globalThis.startShardFix();
                             rply.text = result.inProgress ?
                                 translate('admin.fixshard_start_success', {
                                     count: result.unresponsiveShards.length,
@@ -1598,12 +1893,16 @@ const rollDiceCommand = async function ({
                             break;
                         }
                         case 'stop': {
-                            const result = globalThis.stopShardFix();
+                            if (fixShardMeta?.deferred && !fixShardMeta?.result) {
+                                rply.gatewayAction = { type: 'fixshard', action: 'stop' };
+                                break;
+                            }
+                            const result = fixShardMeta?.result || globalThis.stopShardFix();
                             rply.text = result.message;
                             break;
                         }
                         case 'status': {
-                            const status = globalThis.getShardFixStatus();
+                            const status = fixShardMeta?.status || globalThis.getShardFixStatus();
                             rply.text = translate('admin.fixshard_status', {
                                 in_progress: status.inProgress ? translate('admin.yes') : translate('admin.no'),
                                 unresponsive_shards: status.totalUnresponsive > 0
@@ -1838,6 +2137,7 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
+    adminSubNeedsLiveDiscord,
     discordCommand: discordCommand,
     generatePatreonKey
 };

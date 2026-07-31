@@ -10,19 +10,21 @@ const line = require('@line/bot-sdk');
 const candle = require('../modules/misc/candleDays.js');
 const mainLine = Boolean(process.env.DISCORD_CHANNEL_SECRET);
 const lineAgenda = Boolean(process.env.LINE_AGENDA)
+const agenda = require('../modules/runtime/schedule');
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
+const darkRolling = require('./roll-worker/dark-rolling');
 const EXPUP = require('./chat/level').EXPUP || function () {};
 
 const MESSAGE_SPLITOR = (/\S+/ig);
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
-const agenda = require('../modules/runtime/schedule');
 const rollText = require('./chat/getRoll').rollText;
 // create LINE SDK config from env variables
 const config = {
 	channelAccessToken: process.env.LINE_CHANNEL_ACCESSTOKEN,
 	channelSecret: process.env.LINE_CHANNEL_SECRET,
 };
-const TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const courtMessage = require('./chat/logs').courtMessage || function () {};
 // create LINE SDK client (CommonJS format for v10.x)
 const channelKeyword = process.env.DISCORD_CHANNEL_KEYWORD || "";
@@ -143,8 +145,10 @@ let handleEvent = async function (event) {
 		await nonDice(event);
 		return null;
 	}
-	let target = '';
-	if (inputStr) target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+	let target = true;
+	if (inputStr && !parseRouter.shouldSkipLocalFindRollList('Line')) {
+		target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+	}
 	if (!target) {
 		await nonDice(event);
 		return null;
@@ -172,9 +176,17 @@ let handleEvent = async function (event) {
 	const locale = await i18n.resolveLocale({ groupid: roomorgroupid, userid, botname: 'Line' });
 	const t = i18n.createTranslator(locale);
 	let rplyVal = {};
+	let didParse = false;
+	// replyToken expires quickly — drain uses Push API (SendToId), not replyToken.
+	const lineReplyTarget = {
+		botname: 'Line',
+		targetId: roomorgroupid || userid,
+		chatId: roomorgroupid || userid,
+		userid,
+	};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		//mainMsg.shift()
-		rplyVal = await exports.analytics.parseInput({
+		rplyVal = await parseRouter.parseInput({
 			inputStr: inputStr,
 			groupid: roomorgroupid,
 			userid: userid,
@@ -184,10 +196,11 @@ let handleEvent = async function (event) {
 			titleName: titleName,
 			locale,
 			t
-		})
+		}, { replyTarget: lineReplyTarget });
+		didParse = true;
 	} else {
 		if (channelKeyword == '') {
-			rplyVal = await exports.analytics.parseInput({
+			rplyVal = await parseRouter.parseInput({
 				inputStr: inputStr,
 				groupid: roomorgroupid,
 				userid: userid,
@@ -197,17 +210,25 @@ let handleEvent = async function (event) {
 				titleName: titleName,
 				locale,
 				t
-			});
+			}, { replyTarget: lineReplyTarget });
+			didParse = true;
 		}
 	}
+
+	if (rplyVal?.deferred) return;
 
 	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
 	//LevelUp功能
 	if (rplyVal.myspeck) {
 		return await __sendMeMessage({ event, rplyVal, roomorgroupid });
 	}
-	if (!rplyVal.text && !rplyVal.LevelUp)
+	if (!rplyVal.text && !rplyVal.LevelUp) {
+		// parseInput already runs EXPUP — only nonDice when keyword gate skipped parse.
+		if (!didParse) {
+			await nonDice(event);
+		}
 		return;
+	}
 	if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Line")) {
 		SendToId(userid, await newMessage.firstTimeMessage({
 			userid,
@@ -225,7 +246,7 @@ let handleEvent = async function (event) {
 	if (!rplyVal.text) {
 		return;
 	}
-	if (privatemsg > 1 && TargetGM) {
+	if (privatemsg > 1 && process.env.mongoURL) {
 		let groupInfo = await privateMsgFinder(roomorgroupid) || [];
 		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
@@ -480,7 +501,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 	agenda.agenda.define("scheduleAtMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, { botname: 'Line', groupid: data.groupid });
 		//SendToReply(ctx, text)
 		SendToId(
 			data.groupid, text
@@ -495,7 +516,7 @@ if (agenda && agenda.agenda && lineAgenda) {
 	agenda.agenda.define("scheduleCronMessageLine", async (job) => {
 		//指定時間一次	
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, { botname: 'Line', groupid: data.groupid });
 		//SendToReply(ctx, text)
 		SendToId(
 			data.groupid, text
@@ -542,12 +563,20 @@ function SendToId(targetid, Reply) {
 		}
 	});
 }
+
+deferQueue.registerDeliverer('Line', async (job, result) => {
+	const text = result?.text || '';
+	const levelUp = result?.LevelUp || '';
+	const targetId = job.replyTarget?.targetId
+		|| job.replyTarget?.chatId
+		|| job.params?.groupid
+		|| job.userid;
+	if (!targetId) return;
+	const body = levelUp && text ? `${levelUp}\n${text}` : (levelUp || text);
+	if (body) SendToId(targetId, body);
+});
 async function privateMsgFinder(channelid) {
-	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-		data.groupid == channelid
-	)
-	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
+	return darkRolling.getGroupGms(channelid);
 }
 async function nonDice(event) {
 	try {

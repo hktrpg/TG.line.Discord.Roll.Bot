@@ -50,6 +50,8 @@ function getRollModule(moduleName) {
 
 const schema = require('./db/schema.js');
 const i18n = require('./i18n/i18n.js');
+const buildInfo = require('./runtime/build-info');
+const { buildStateVersionSection } = require('./runtime/state-version');
 const debugMode = (process.env.DEBUG) ? true : false;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const courtMessage = require('./chat/logs').courtMessage || function () {};
@@ -70,8 +72,27 @@ class RollContext {
 		this.membercount = params.membercount || 0;
 		this.discordClient = params.discordClient || null;
 		this.discordMessage = params.discordMessage || null;
+		this.channelType = params.channelType ?? params.discordMessage?.channel?.type ?? null;
 		this.titleName = params.titleName || '';
 		this.tgDisplayname = params.tgDisplayname || '';
+		this.avatarUrl = params.avatarUrl || null;
+		this.attachmentsMeta = Array.isArray(params.attachmentsMeta) ? params.attachmentsMeta : null;
+		this.replyAttachmentsMeta = Array.isArray(params.replyAttachmentsMeta) ? params.replyAttachmentsMeta : null;
+		this.replyContent = params.replyContent || null;
+		this.storyAttachmentMeta = params.storyAttachmentMeta || null;
+		this.storyGroupNamesMeta = params.storyGroupNamesMeta || null;
+		this.forwardSourceMeta = params.forwardSourceMeta || null;
+		this.chatroomChannelMeta = params.chatroomChannelMeta || null;
+		this.exportMeta = params.exportMeta || null;
+		this.exportHistoryMeta = params.exportHistoryMeta || null;
+		this.clusterHealthMeta = params.clusterHealthMeta || null;
+		this.clusterMemMeta = params.clusterMemMeta || null;
+		this.csvAttachmentMeta = params.csvAttachmentMeta || null;
+		this.fixShardMeta = params.fixShardMeta || null;
+		this.slashDeployMeta = params.slashDeployMeta || null;
+		this.gatewayBuildInfo = params.gatewayBuildInfo || null;
+		this.standbyWorkerUrl = params.standbyWorkerUrl || null;
+		this.skipExp = Boolean(params.skipExp);
 		this.locale = params.locale || i18n.DEFAULT_LOCALE;
 		this.t = params.t || i18n.createTranslator(this.locale);
 		this.mainMsg = this.inputStr.replaceAll(/^\s/g, '').match(MESSAGE_SPLITOR);
@@ -91,8 +112,27 @@ class RollContext {
 			membercount: this.membercount,
 			discordClient: this.discordClient,
 			discordMessage: this.discordMessage,
+			channelType: this.channelType,
 			titleName: this.titleName,
 			tgDisplayname: this.tgDisplayname,
+			avatarUrl: this.avatarUrl,
+			attachmentsMeta: this.attachmentsMeta,
+			replyAttachmentsMeta: this.replyAttachmentsMeta,
+			replyContent: this.replyContent,
+			storyAttachmentMeta: this.storyAttachmentMeta,
+			storyGroupNamesMeta: this.storyGroupNamesMeta,
+			forwardSourceMeta: this.forwardSourceMeta,
+			chatroomChannelMeta: this.chatroomChannelMeta,
+			exportMeta: this.exportMeta,
+			exportHistoryMeta: this.exportHistoryMeta,
+			clusterHealthMeta: this.clusterHealthMeta,
+			clusterMemMeta: this.clusterMemMeta,
+			csvAttachmentMeta: this.csvAttachmentMeta,
+			fixShardMeta: this.fixShardMeta,
+			slashDeployMeta: this.slashDeployMeta,
+			gatewayBuildInfo: this.gatewayBuildInfo,
+			standbyWorkerUrl: this.standbyWorkerUrl,
+			skipExp: this.skipExp,
 			locale: this.locale,
 			t: this.t
 		};
@@ -106,14 +146,23 @@ const parseInput = async (params) => {
 	// and replies become the literal string "undefined" (e.g. COC `cc`).
 	await i18n.init();
 
-	if (!params.locale) {
-		const channelType = params.discordMessage?.channel?.type;
+	// Worker + chat platforms: re-resolve from DB so Discord/TG Gateway
+	// process-local locale caches cannot disagree (zh-tw vs en) for the same guild.
+	// WWW/Local/Api: trust params.locale (page UI language), not botLocale DB.
+	const channelType = params.channelType ?? params.discordMessage?.channel?.type;
+	const webBot = context.botname === 'WWW'
+		|| context.botname === 'Local'
+		|| context.botname === 'Api';
+	const onWorker = process.env.ROLL_WORKER_MODE === 'true';
+	if ((onWorker && !webBot) || !params.locale) {
 		context.locale = await i18n.resolveLocale({
 			groupid: context.groupid,
 			userid: context.userid,
 			channelType,
 			botname: context.botname
 		});
+	} else {
+		context.locale = i18n.normalizeLocale(params.locale);
 	}
 	// Recreate translator after init (params.t may have been built too early).
 	context.t = i18n.createTranslator(context.locale);
@@ -126,7 +175,7 @@ const parseInput = async (params) => {
 	};
 
 	// EXPUP 功能 + LevelUP 功能
-	if (context.groupid) {
+	if (context.groupid && !context.skipExp) {
 		let tempEXPUP = await EXPUP(
 			context.groupid,
 			context.userid,
@@ -138,7 +187,8 @@ const parseInput = async (params) => {
 			context.locale
 		);
 		result.LevelUp = tempEXPUP?.text || '';
-		result.statue = tempEXPUP?.statue || '';
+		// EXPUP fills `status`; platforms read `statue` (legacy key).
+		result.statue = tempEXPUP?.status || '';
 	}
 
 	// 檢查是不是要停止 z_stop 功能
@@ -149,6 +199,13 @@ const parseInput = async (params) => {
 	// rolldice 擲骰功能
 	try {
 		let rollDiceResult = await rolldice(context);
+		if (rollDiceResult?.needsLocal) {
+			return {
+				...rollDiceResult,
+				LevelUp: result.LevelUp,
+				statue: result.statue,
+			};
+		}
 		if (rollDiceResult) {
 			result = { ...result, ...rollDiceResult };
 		}
@@ -167,6 +224,19 @@ const parseInput = async (params) => {
 			...context.toParams(),
 			result
 		});
+		if (cmdFunctionResult?.needsLocal) {
+			return {
+				...cmdFunctionResult,
+				LevelUp: result.LevelUp,
+				statue: result.statue,
+				nestedNeedsLocal: true,
+				nestedInputStr: result.text,
+				parentResult: {
+					cmd: true,
+					text: result.text,
+				},
+			};
+		}
 		if (cmdFunctionResult) {
 			result = { ...result, ...cmdFunctionResult };
 		}
@@ -178,6 +248,21 @@ const parseInput = async (params) => {
 			...context.toParams(),
 			result
 		});
+		if (characterReRoll?.needsLocal) {
+			return {
+				...characterReRoll,
+				LevelUp: result.LevelUp,
+				statue: result.statue,
+				nestedNeedsLocal: true,
+				nestedInputStr: result.characterReRollItem || result.text,
+				parentResult: {
+					characterReRoll: true,
+					text: result.text,
+					characterName: result.characterName,
+					characterReRollName: result.characterReRollName,
+				},
+			};
+		}
 		const t = context.t;
 		if (result.text && characterReRoll.text) {
 			result.text = t('character.reroll_combined', {
@@ -194,13 +279,19 @@ const parseInput = async (params) => {
 		}
 	}
 
-	// state 功能
+	// state 功能 — pass Gateway build identity when Worker computes the report
 	if (result.state) {
-		result.text = await stateText(context.locale);
+		result.text = await stateText(context.locale, {
+			gatewayBuildInfo: context.gatewayBuildInfo || null,
+			standbyWorkerUrl: context.standbyWorkerUrl || null,
+		});
 	}
 
-	// courtMessage + saveLog
-	await courtMessage({ result, botname: context.botname, inputStr: context.inputStr });
+	// courtMessage + saveLog — skip on skipExp (workerError/needsLocal fallback / schedule)
+	// so fall-open dual-exec does not inflate platform roll metrics (L10).
+	if (!context.skipExp) {
+		await courtMessage({ result, botname: context.botname, inputStr: context.inputStr });
+	}
 	return result;
 }
 
@@ -208,8 +299,26 @@ const rolldice = async (context) => {
 	if (!context.groupid) {
 		context.groupid = '';
 	}
-	let target = findRollList(context.mainMsg);
+	const moduleName = findRollModuleName(context.mainMsg);
+	let target = moduleName ? getRollModule(moduleName) : null;
 	if (!target) return null;
+
+	// On Roll Worker, Discord-coupled modules cannot run without a live client.
+	if (
+		process.env.ROLL_WORKER_MODE === 'true'
+		&& context.botname === 'Discord'
+		&& !context.discordClient
+	) {
+		try {
+			const { isRemoteAllowed } = require('./roll-worker/route-table');
+			if (!isRemoteAllowed(moduleName, 'Discord')) {
+				return { needsLocal: true, moduleName };
+			}
+		} catch {
+			return { needsLocal: true, moduleName };
+		}
+	}
+
 	(debugMode) ? console.log('[analytics]            trigger:', context.inputStr) : '';
 
 	let rollTimes = context.inputStr.match(/^\.(\d{1,2})\s/);
@@ -226,12 +335,18 @@ const rolldice = async (context) => {
 	for (let index = 0; index < rollTimes; index++) {
 		if (rollTimes > 1 && /^dice|^funny/i.test(target.gameType())) {
 			let result = await target.rollDiceCommand(context.toParams());
+			if (result?.needsLocal) {
+				return result;
+			}
 			if (result && result.text) {
 				retext += `#${index + 1}： ${result.text.replaceAll('\n', '')}\n`;
 				tempsave = result;
 			}
 		} else {
 			let result = await target.rollDiceCommand(context.toParams());
+			if (result?.needsLocal) {
+				return result;
+			}
 			if (result) {
 				tempsave = result;
 			}
@@ -245,47 +360,54 @@ const rolldice = async (context) => {
 	return tempsave || {};
 }
 
-function findRollList(mainMsg) {
-	// Return early if mainMsg is null/undefined or empty
-	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return;
+function findRollModuleName(mainMsg) {
+	if (!mainMsg || !Array.isArray(mainMsg) || mainMsg.length === 0) return null;
 
-	// Check if first element matches pattern and shift if true
-	if (mainMsg[0] && /^\.(\d{1,2})$/.test(mainMsg[0])) {
-		mainMsg.shift();
+	const msg = [...mainMsg];
+	if (msg[0] && /^\.(\d{1,2})$/.test(msg[0])) {
+		msg.shift();
+	}
+	if (!msg[1]) msg[1] = '';
+
+	if (msg[0] && (msg[0].toLowerCase() === '.me' || msg[0].toLowerCase() === '.mee')) {
+		return 'z_myname';
 	}
 
-	// Set default empty string for mainMsg[1] if undefined
-	if (!mainMsg[1]) mainMsg[1] = '';
-
-	// Special handling for .me and .mee commands - make sure they go to z_myname
-	if (mainMsg[0] && (mainMsg[0].toLowerCase() === '.me' || mainMsg[0].toLowerCase() === '.mee')) {
-		const zMyname = getRollModule('z_myname');
-		if (zMyname) return zMyname;
-	}
-
-	// Iterate through available modules
-	for (const [moduleName] of rollModules) {
-		const module = getRollModule(moduleName);
+	for (const [moduleKey] of rollModules) {
+		const module = getRollModule(moduleKey);
 		if (!module || !module.prefixs || typeof module.prefixs !== 'function') continue;
 
 		const prefixList = module.prefixs();
 		if (!Array.isArray(prefixList)) continue;
 
 		const match = prefixList.some(prefix => {
-			// Check if mainMsg[0] exists and matches first prefix
-			if (!mainMsg || !mainMsg[0] || !prefix || !prefix.first) return false;
-			const firstMatch = mainMsg[0].match(prefix.first);
+			if (!msg[0] || !prefix || !prefix.first) return false;
+			const firstMatch = msg[0].match(prefix.first);
 			if (!firstMatch) return false;
-
-			// Check second prefix if it exists
 			if (prefix.second === null) return true;
-			return mainMsg[1] && mainMsg[1].match(prefix.second);
+			return msg[1] && msg[1].match(prefix.second);
 		});
 
-		if (match) return module;
+		if (match) {
+			const info = rollModules.get(moduleKey);
+			return info?.name || moduleKey;
+		}
 	}
 
 	return null;
+}
+
+function findRollList(mainMsg) {
+	const moduleName = findRollModuleName(mainMsg);
+	if (!moduleName) return null;
+
+	// Keep legacy mutation: strip .N repeat prefix from caller's mainMsg
+	if (mainMsg[0] && /^\.(\d{1,2})$/.test(mainMsg[0])) {
+		mainMsg.shift();
+	}
+	if (!mainMsg[1]) mainMsg[1] = '';
+
+	return getRollModule(moduleName);
 }
 
 /** HK calendar month bounds (UTC+8). `month` is 1–12. */
@@ -546,7 +668,7 @@ const ADMIN_STATE_CACHE_MS = Math.max(0, Number.parseInt(process.env.ADMIN_STATE
 let stateTextCache = {};
 let stateTextRefreshing = {};
 
-async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
+async function computeStateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	await i18n.init();
 	const t = i18n.createTranslator(locale);
 	let state = await getState() || '';
@@ -637,8 +759,17 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
 	const lmLabel = t('admin.state_report.month_label', { yy: hkLm.y % 100, m: hkLm.m });
 	const lyLabel = t('admin.state_report.month_label', { yy: hkLy.y % 100, m: hkLy.m });
 
+	const versionBlock = await buildStateVersionSection(t, {
+		...options,
+		debug: debugMode,
+	});
+
 	return [
 		t('admin.state_report.header'),
+		divTop,
+		t('admin.state_report.section_version'),
+		div,
+		...versionBlock,
 		divTop,
 		t('admin.state_report.section_time'),
 		div,
@@ -666,29 +797,41 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE) {
 	].join('\n');
 }
 
-async function refreshStateCache(locale = i18n.DEFAULT_LOCALE) {
+async function refreshStateCache(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	const normalized = i18n.normalizeLocale(locale);
-	if (stateTextRefreshing[normalized]) return;
-	const cache = stateTextCache[normalized];
+	const versionKey = [
+		options.gatewayBuildInfo?.display || '',
+		options.standbyWorkerUrl || '',
+		buildInfo.getDisplay(),
+	].join('|');
+	const cacheKey = `${normalized}::${versionKey}`;
+	if (stateTextRefreshing[cacheKey]) return;
+	const cache = stateTextCache[cacheKey];
 	// Skip recompute if cache is still fresh (e.g. timer fires after a recent user-triggered refresh)
 	if (ADMIN_STATE_CACHE_MS > 0 && cache?.text && Date.now() < cache.expiresAt) return;
-	stateTextRefreshing[normalized] = true;
+	stateTextRefreshing[cacheKey] = true;
 	try {
-		const text = await computeStateText(normalized);
+		const text = await computeStateText(normalized, options);
 		if (text) {
-			stateTextCache[normalized] = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
+			stateTextCache[cacheKey] = { text, expiresAt: Date.now() + ADMIN_STATE_CACHE_MS };
 		}
 	} catch (error) {
 		console.error('[Analytics] refreshStateCache error:', error.message);
 	} finally {
-		stateTextRefreshing[normalized] = false;
+		stateTextRefreshing[cacheKey] = false;
 	}
 }
 
-async function stateText(locale = i18n.DEFAULT_LOCALE) {
+async function stateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	const normalized = i18n.normalizeLocale(locale);
+	const versionKey = [
+		options.gatewayBuildInfo?.display || '',
+		options.standbyWorkerUrl || '',
+		buildInfo.getDisplay(),
+	].join('|');
+	const cacheKey = `${normalized}::${versionKey}`;
 	const now = Date.now();
-	const cache = stateTextCache[normalized] || { text: '', expiresAt: 0 };
+	const cache = stateTextCache[cacheKey] || { text: '', expiresAt: 0 };
 
 	// Cache valid → return immediately
 	if (cache.text && now < cache.expiresAt) {
@@ -697,13 +840,13 @@ async function stateText(locale = i18n.DEFAULT_LOCALE) {
 
 	// Cache stale but exists → return stale immediately, refresh in background
 	if (cache.text) {
-		refreshStateCache(normalized);
+		refreshStateCache(normalized, options);
 		return cache.text;
 	}
 
 	// Cache empty (first call) → must wait
-	await refreshStateCache(normalized);
-	return stateTextCache[normalized]?.text || '';
+	await refreshStateCache(normalized, options);
+	return stateTextCache[cacheKey]?.text || '';
 }
 
 // Pre-warm cache after startup to avoid first-call delay
@@ -766,3 +909,5 @@ function z_stop(mainMsg, groupid) {
 module.exports.debugMode = debugMode;
 module.exports.parseInput = parseInput;
 module.exports.findRollList = findRollList;
+module.exports.findRollModuleName = findRollModuleName;
+module.exports.buildStateVersionSection = buildStateVersionSection;

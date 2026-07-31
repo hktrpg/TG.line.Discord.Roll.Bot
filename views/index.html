@@ -3122,43 +3122,57 @@
                         lang: getPageLocale()
                     };
 
-                    // 個人小屋：本地處理，不送往伺服器
+                    // 個人小屋：本地顯示；骰組打 /api/local（Worker 離線 deferred 時背景重試，不鎖 UI）
                     if (chatroomManager.currentRoom === CONFIG.PERSONAL_ROOM) {
+                        const userName = nameInput.value;
                         const userMessage = {
                             time: new Date(),
                             msg: '\n' + plainMsg,
-                            name: nameInput.value,
+                            name: userName,
                             roomNumber: CONFIG.PERSONAL_ROOM
                         };
                         await uiManager.addMessageToBox(userMessage);
 
-                        try {
-                            const res = await fetch(`/api/local?msg=${encodeURIComponent(plainMsg)}&lang=${encodeURIComponent(getPageLocale())}`);
-                            const data = await res.json();
-                            const reply = (data && data.message) ? data.message.toString() : '';
-                            if (reply) {
-                                // 分段顯示，以符合介面一致性
-                                const parts = reply.match(/[\s\S]{1,2000}/g) || [];
-                                const baseTime = Date.now();
-                                for (let i = 0; i < parts.length; i++) {
-                                    const botMessage = {
-                                        time: new Date(baseTime + 1 + i),
-                                        msg: parts[i],
-                                        name: 'HKTRPG -> ' + nameInput.value,
-                                        roomNumber: CONFIG.PERSONAL_ROOM
-                                    };
-                                    await uiManager.addMessageToBox(botMessage);
-                                }
-                            }
-                        } catch (err) {
-                            console.error('Local bot error:', err);
-                        }
-
-                        utils.setLocalStorage("name", nameInput.value);
+                        utils.setLocalStorage("name", userName);
                         msgInput.value = '';
-                        
-                        // 🔒 Security: 完成提交
+                        uiManager.autoResizeTextarea();
+                        uiManager.updateCharCount();
+                        // Release submit lock before any Worker retry — never block the input box.
                         securityManager.setSubmitting(false);
+
+                        const lang = encodeURIComponent(getPageLocale());
+                        const msgQ = encodeURIComponent(plainMsg);
+                        // Fire-and-forget: retry while Worker is deferred (max ~10m).
+                        (async () => {
+                            const maxWaitMs = 600_000;
+                            const retryMs = 3000;
+                            const started = Date.now();
+                            let data = { message: '' };
+                            try {
+                                while (Date.now() - started < maxWaitMs) {
+                                    const res = await fetch(`/api/local?msg=${msgQ}&lang=${lang}`);
+                                    data = await res.json().catch(() => ({ message: '' }));
+                                    if (!data || !data.deferred) break;
+                                    await new Promise((r) => setTimeout(r, retryMs));
+                                }
+                            } catch (err) {
+                                console.error('Local bot error:', err);
+                                return;
+                            }
+                            const reply = (data && data.message) ? data.message.toString() : '';
+                            if (!reply) return;
+                            const parts = reply.match(/[\s\S]{1,2000}/g) || [];
+                            const baseTime = Date.now();
+                            for (let i = 0; i < parts.length; i++) {
+                                await uiManager.addMessageToBox({
+                                    time: new Date(baseTime + 1 + i),
+                                    msg: parts[i],
+                                    name: 'HKTRPG -> ' + userName,
+                                    roomNumber: CONFIG.PERSONAL_ROOM
+                                });
+                            }
+                        })();
+
                         return;
                     }
 

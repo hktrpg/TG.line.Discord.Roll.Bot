@@ -5,6 +5,7 @@
       "no_response": "指令没有得到回应，请检查内容",
       "no_response_prefix": "{{prefix}}指令没有得到回应，请检查内容",
       "command_error": "处理命令时发生错误，请稍后再试。",
+      "system_busy": "系统忙碌中，请稍后再试。",
       "partial_translation_banner": "ℹ️ 部分指令仍为繁体中文，翻译持续更新中。"
     },
     "zh_only_notice": "（繁中）",
@@ -2265,6 +2266,19 @@
         "mem": {
           "description": "显示各集群 RSS 内存"
         },
+        "reload": {
+          "description": "重启 Primary / Standby 计算进程（不重启各平台 Gateway）",
+          "options": {
+            "target": {
+              "description": "local=Standby / remote=Primary / all（默认 local）",
+              "choices": {
+                "local": "local - Standby（:3951 备援）",
+                "remote": "remote - Primary（:3950 优先）",
+                "all": "all - Standby 再 Primary"
+              }
+            }
+          }
+        },
         "schedule": {
           "description": "排程自动 respawn（需手动开启）",
           "options": {
@@ -3414,6 +3428,7 @@
     "at_delete_usage": "移除定时讯息指令为 .at delete (序号) \n 如 .at delete 1",
     "at_not_found": "找不到该序号，请使用最新 .at show 的序号",
     "at_deleted": "已删除序号#{{serial}} \n{{content}}",
+    "at_save_error": "新增排程时发生错误，请稍后再试",
     "at_delete_error": "删除时发生错误，请稍后再试",
     "at_limit_reached": ".at 整个群组上限{{limit}}个\n支援及解锁上限 https://www.patreon.com/HKTRPG\n",
     "cron_limit_reached": ".cron 整个群组上限{{limit}}个\n支援及解锁上限 https://www.patreon.com/HKTRPG\n",
@@ -3427,6 +3442,7 @@
     "cron_delete_usage": "移除定时讯息指令为 .cron delete (序号) \n 如 .cron delete 1",
     "cron_not_found": "找不到该序号，请使用最新 .cron show 的序号",
     "cron_deleted": "已删除序号#{{serial}} \n{{content}} ",
+    "cron_save_error": "新增循环排程时发生错误，请稍后再试",
     "cron_delete_error": "删除时发生错误，请稍后再试",
     "no_content": "未有内容",
     "at_list_group": "【本群组 .at 列表】\n{{list}}",
@@ -3455,7 +3471,8 @@
     "help": "【同步聊天】.chatroom\n    .chatroom create\n    .chatroom join\n",
     "create_success": "已把{{guild}} - {{channel}}新增到聊天室",
     "join_success": "已把{{guild}} - {{channel}}新增到聊天室，想把其他频道加入，请输入 .join {{multiId}} (其他频道的ID)",
-    "exit_success": "已移除聊天室"
+    "exit_success": "已移除聊天室",
+    "permission_denied": "你没有管理此频道的权限，无法使用同步聊天指令。"
   },
   "edit": {
     "game_name": "【旧信息修改功能】Discord限定",
@@ -3678,6 +3695,7 @@
     "mylist_groups_header": "    【指定群组】：\n",
     "mylist_groups_empty": "      （未设定）\n",
     "mylist_group_line": "      {{line}}\n",
+    "mylist_group_unknown": "(未命名频道) - {{id}}",
     "mylist_completed": "  - 完成次数：{{count}}\n",
     "mylist_endings_header": "  - 结局统计：\n",
     "mylist_ending_line": "    • {{id}}：{{count}}\n",
@@ -3953,7 +3971,7 @@
     "glossary_header": "\n\n----- 名词对照表 (Glossary) -----\n"
   },
   "admin": {
-    "help": "【⚙️管理员工具箱】\n╭────── 🔍系统监控 ──────\n│ 状态查询:\n│ 　• .admin state\n│ 　  - 检视Rollbot运行状态\n│ 　  - 显示系统资源使用\n│\n│ ID查询:\n│ 　• .admin id 或 .patreon id\n│ 　  - 自动显示你的用户ID\n│ 　  - 自动显示当前群组ID\n│ 　  - 所有平台皆可使用\n│\n│ Patreon / VIP 等级:\n│ 　• .patreon level\n│ 　  - 查询自己与当前群组的 VIP（Patreon）等级\n│\n│ 除错功能:\n│ 　• .admin debug\n│ 　  - 取得群组详细资料\n│ 　  - 显示设定状态\n│\n│ 资料库状态:\n│ 　• .admin mongod\n│ 　  - 检视MongoDB连接状态\n│\n│ 系统保护状态:\n│ 　• .admin clusterhealth\n│ 　  - 检视数据库与分流保护层状态\n│ 　  - 显示降级模式与集群健康统计\n│\n├────── 👤帐号管理 ──────\n│ 网页版角色卡设定:\n│ 　• .admin account [使用者名称] [密码]\n│\n│ 使用者名称规则:\n│ 　• 长度: 4-16字元\n│ 　• 允许: 中文、英文\n│\n│ 密码规则:\n│ 　• 长度: 6-16字元\n│ 　• 允许: 英文字母\n│ 　• 特殊符号: !@#$%^&*\n│ \n│ 需要与HKTRPG独立聊天设定，\n│ 禁止在群组中使用\n│\n│ 频道注册:\n│ 　• .admin registerChannel\n│ 　  - 注册当前频道\n│ 　• .admin unregisterChannel\n│ 　  - 取消注册当前频道\n│\n│ 掷骰权限:\n│ 　• .admin allowrolling\n│ 　  - 允许频道使用网页掷骰\n│ 　• .admin disallowrolling\n│ 　  - 取消频道网页掷骰权限\n│\n├────── 📢更新通知 ──────\n│ 开启通知:\n│ 　• .admin news on\n│ 　  接收HKTRPG更新资讯\n│\n│ 关闭通知:\n│ 　• .admin news off\n│ 　  停止接收更新资讯\n│\n├────── 🔐系统管理员专用 ──────\n│ 系统重启:\n│ 　• .root respawn [ID]\n│ 　  - 重启指定ID的服务\n│ 　• .root respawnall\n│ 　  - 重啟所有服務\n│ 　• .root mem\n│ 　  - 顯示各 Cluster RSS 記憶體\n│\n│ 自動 Respawn 排程（預設關閉，需手動開啟）:\n│ 　• .root schedule\n│ 　  - 查看目前排程\n│ 　• .root schedule set <星期> <HH:MM>\n│ 　  - 設定星期與時間（例: 日 04:55 / mon 05:00）\n│ 　• .root schedule on\n│ 　  - 開啟排程\n│ 　• .root schedule off\n│ 　  - 關閉排程\n│\n│ VIP管理:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP群组\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP用户\n│\n│ Patreon 会员:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - 新增时产生 KEY；更新时只改 TIER/备注/状态，KEY 不变\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - 重新产生 KEY，旧 KEY 即时失效\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - 开启该会员状态\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - 关闭该会员状态 (并收回其已分配的 VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - 上传 .csv 自动同步会员。allkeys=全KEY，newonly=新KEY。-email=产生电邮内容档\n│\n│ 指令注册:\n│ 　• .root registeredGlobal\n│ 　  - 注册全局指令\n│ 　• .root testRegistered [ID]\n│ 　  - 测试指令注册状态\n│ 　• .root removeSlashCommands [ID]\n│ 　  - 移除指定群组的 Slash 指令（未给 ID 则使用目前群组）\n│\n│ 加密功能:\n│ 　• .root decrypt [加密文字]\n│ 　  - 解密文字\n│\n│ Shard 修复:\n│ 　• .root fixshard check\n│ 　  - 检查所有 shard 状态\n│ 　• .root fixshard start\n│ 　  - 开始自动修复 unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - 停止自动修复\n│ 　• .root fixshard status\n│ 　  - 查看修复状态\n\n│ 发送通知:\n│ 　• .root send News [讯息]\n│ 　  - 发送更新通知\n╰──────────────",
+    "help": "【⚙️管理员工具箱】\n╭────── 🔍系统监控 ──────\n│ 状态查询:\n│ 　• .admin state\n│ 　  - 检视Rollbot运行状态\n│ 　  - 显示系统资源使用\n│\n│ ID查询:\n│ 　• .admin id 或 .patreon id\n│ 　  - 自动显示你的用户ID\n│ 　  - 自动显示当前群组ID\n│ 　  - 所有平台皆可使用\n│\n│ Patreon / VIP 等级:\n│ 　• .patreon level\n│ 　  - 查询自己与当前群组的 VIP（Patreon）等级\n│\n│ 除错功能:\n│ 　• .admin debug\n│ 　  - 取得群组详细资料\n│ 　  - 显示设定状态\n│\n│ 资料库状态:\n│ 　• .admin mongod\n│ 　  - 检视MongoDB连接状态\n│\n│ 系统保护状态:\n│ 　• .admin clusterhealth\n│ 　  - 检视数据库与分流保护层状态\n│ 　  - 显示降级模式与集群健康统计\n│\n├────── 👤帐号管理 ──────\n│ 网页版角色卡设定:\n│ 　• .admin account [使用者名称] [密码]\n│\n│ 使用者名称规则:\n│ 　• 长度: 4-16字元\n│ 　• 允许: 中文、英文\n│\n│ 密码规则:\n│ 　• 长度: 6-16字元\n│ 　• 允许: 英文字母\n│ 　• 特殊符号: !@#$%^&*\n│ \n│ 需要与HKTRPG独立聊天设定，\n│ 禁止在群组中使用\n│\n│ 频道注册:\n│ 　• .admin registerChannel\n│ 　  - 注册当前频道\n│ 　• .admin unregisterChannel\n│ 　  - 取消注册当前频道\n│\n│ 掷骰权限:\n│ 　• .admin allowrolling\n│ 　  - 允许频道使用网页掷骰\n│ 　• .admin disallowrolling\n│ 　  - 取消频道网页掷骰权限\n│\n├────── 📢更新通知 ──────\n│ 开启通知:\n│ 　• .admin news on\n│ 　  接收HKTRPG更新资讯\n│\n│ 关闭通知:\n│ 　• .admin news off\n│ 　  停止接收更新资讯\n│\n├────── 🔐系统管理员专用 ──────\n│ 系统重启:\n│ 　• .root restart discord [ID]\n│ 　  - 重启指定ID的服务\n│ 　• .root restart discord all\n│ 　  - 重啟所有服務\n│ 　• .root mem\n│ 　  - 顯示各 Cluster RSS 記憶體\n│\n│ 自動 Respawn 排程（預設關閉，需手動開啟）:\n│ 　• .root schedule\n│ 　  - 查看目前排程\n│ 　• .root schedule set <星期> <HH:MM>\n│ 　  - 設定星期與時間（例: 日 04:55 / mon 05:00）\n│ 　• .root schedule on\n│ 　  - 開啟排程\n│ 　• .root schedule off\n│ 　  - 關閉排程\n│\n│ VIP管理:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP群组\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - 新增VIP用户\n│\n│ Patreon 会员:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - 新增时产生 KEY；更新时只改 TIER/备注/状态，KEY 不变\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - 重新产生 KEY，旧 KEY 即时失效\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - 开启该会员状态\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - 关闭该会员状态 (并收回其已分配的 VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - 上传 .csv 自动同步会员。allkeys=全KEY，newonly=新KEY。-email=产生电邮内容档\n│\n│ 指令注册:\n│ 　• .root registeredGlobal\n│ 　  - 注册全局指令\n│ 　• .root testRegistered [ID]\n│ 　  - 测试指令注册状态\n│ 　• .root removeSlashCommands [ID]\n│ 　  - 移除指定群组的 Slash 指令（未给 ID 则使用目前群组）\n│\n│ 加密功能:\n│ 　• .root decrypt [加密文字]\n│ 　  - 解密文字\n│\n│ Shard 修复:\n│ 　• .root fixshard check\n│ 　  - 检查所有 shard 状态\n│ 　• .root fixshard start\n│ 　  - 开始自动修复 unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - 停止自动修复\n│ 　• .root fixshard status\n│ 　  - 查看修复状态\n\n│ 发送通知:\n│ 　• .root send News [讯息]\n│ 　  - 发送更新通知\n╰──────────────",
     "game_name": "【Admin Tool】.admin debug state account news on",
     "slash_invalid_command": "无效的指令",
     "error_missing_target_id": "错误：未提供ID且无法获取当前群组ID",
@@ -4104,6 +4122,11 @@
     "invalid_root_command": "无效的系统管理员指令",
     "state_report": {
       "header": "【 📊 HKTRPG · 系统状态报告 】",
+      "section_version": "🏷 版本",
+      "version_gateway": "Gateway  {{display}}  role=gateway",
+      "version_worker": "Primary  {{display}}  role=primary  link={{link}}",
+      "version_local": "Standby  {{display}}  role=standby  link={{link}}",
+      "version_unreachable": "unreachable",
       "section_time": "⏰ 时间资讯",
       "earliest_record": "🗓 最早纪录 {{time}}",
       "current_time": "🕐 现在时间 {{time}} ",
@@ -4119,7 +4142,8 @@
       "users": "👤 使用者总数 {{count}}",
       "section_rng": "⚙️ 随机数生成工具",
       "rng_tools": "🔹 random-js　·　nodeCrypto",
-      "month_label": "{{yy}}年{{m}}月"
+      "month_label": "{{yy}}年{{m}}月",
+      "version_stopped": "已停止"
     },
     "store_missing_user_id": "缺少用户ID (-i 参数)",
     "store_missing_group_id": "缺少群组ID (-g 参数)",
@@ -4129,19 +4153,21 @@
     "mem_discord_only": "此指令仅限 Discord 使用",
     "mem_no_data": "无法取得集群内存资料",
     "mem_failed": "内存查询失败：{{message}}",
-    "mem_line": "• 集群 {{id}}：RSS {{rss}} MB｜Heap {{heap}}/{{heap_total}} MB｜Ext {{external}} MB｜运行 {{uptime}} 秒",
-    "mem_report": "📊 **集群内存**\n• 集群数：{{count}}\n• RSS 合计：{{total_rss}} MB\n• 主机 RAM：{{host_used}} / {{host_total}} MB（{{host_percent}}%，剩余 {{host_free}} MB）\n• 警戒／危急：{{warn_at}}%／{{critical_at}}%\n• 单进程 Heap 上限：约 {{heap_limit}} MB\n\n{{lines}}",
+    "mem_line": "C{{id}} RSS {{rss}}MB {{bar}} {{heap_pct}}% heap",
+    "mem_host_line": "HOST     {{host_percent}}% {{bar}} warn@{{warn_at}} crit@{{critical_at}}",
+    "mem_report": "📊 **集群内存**\n• 集群数：{{count}}\n• RSS 合计：{{total_rss}} MB\n• 主机 RAM：{{host_used}} / {{host_total}} MB（剩余 {{host_free}} MB）\n• 单进程 Heap 上限：约 {{heap_limit}} MB\n\n{{lines}}\n{{host_line}}\n\n{{version}}",
+    "mem_version": "版本 {{role}} {{display}} · Node {{node}}",
     "schedule_set_usage": "用法：\n.root schedule set <星期> <HH:MM>\n.root schedule on|off\n.root schedule\n/root schedule show|set|on|off\n\n星期可用：0-6 / sun-sat / 日-六\n例：.root schedule set 日 04:55\n　　.root schedule set mon 05:00\n※ set 只储存设定，需再 .root schedule on 才会启用\n时区：Asia/Hong_Kong（可用 AGENDA_TIMEZONE 覆写）",
     "schedule_invalid_day": "无效的星期。请用 0-6、sun-sat 或 日/一/二/三/四/五/六",
     "schedule_invalid_time": "无效的时间。请用 HH:MM（24 小时制），例如 04:55",
     "schedule_db_unavailable": "资料库未启用，无法使用排程功能",
     "schedule_set_success": "已储存排程：每{{weekday}} {{time}}（{{timezone}}）\n目前状态：{{enabled}}\n※ 若尚未开启，请再输入 .root schedule on",
     "schedule_on_need_set": "尚未设定星期与时间。请先：\n.root schedule set <星期> <HH:MM>\n再输入 .root schedule on",
-    "schedule_on_success": "已开启自动 respawn：每{{weekday}} {{time}}（{{timezone}}）",
-    "schedule_off_success": "已关闭自动 respawn 排程",
+    "schedule_on_success": "已开启自动 restart discord：每{{weekday}} {{time}}（{{timezone}}）",
+    "schedule_off_success": "已关闭自动 restart discord 排程",
     "schedule_failed": "排程操作失败：{{message}}",
-    "schedule_show_empty": "自动 respawn 排程：未设定\n状态：关闭（需手动开启）\n时区：{{timezone}}\n\n设定：.root schedule set <星期> <HH:MM>\n开启：.root schedule on",
-    "schedule_show": "自动 respawn 排程\n• 状态：{{enabled}}\n• 时间：每{{weekday}} {{time}}\n• 时区：{{timezone}}\n• Cron：{{cron}}",
+    "schedule_show_empty": "自动 restart discord 排程：未设定\n状态：关闭（需手动开启）\n时区：{{timezone}}\n\n设定：.root schedule set <星期> <HH:MM>\n开启：.root schedule on",
+    "schedule_show": "自动 restart discord 排程\n• 状态：{{enabled}}\n• 时间：每{{weekday}} {{time}}\n• 时区：{{timezone}}\n• Cron：{{cron}}",
     "schedule_status_on": "开启",
     "schedule_status_off": "关闭",
     "weekday_0": "星期日",
@@ -4150,7 +4176,55 @@
     "weekday_3": "星期三",
     "weekday_4": "星期四",
     "weekday_5": "星期五",
-    "weekday_6": "星期六"
+    "weekday_6": "星期六",
+    "restart_usage": "用法：.root restart primary|standby|discord|gateway|all\n\n• primary — Primary（:3950）\n• standby — Standby（:3951）\n• discord all — 重启全部 Discord cluster（必须写 all）\n• discord <clusterId> — 只重启指定 cluster\n• gateway — 平台 Gateway（Discord=全部 cluster；其他=进程 SIGTERM）\n• all — standby → primary → gateway\n\n停止算力：.root stop primary|standby\nEmbedded 无独立开关，请用 restart gateway。",
+    "restart_ok_header": "【.root restart {{target}}】成功",
+    "restart_fail_header": "【.root restart {{target}}】失败",
+    "restart_all_header": "【.root restart all】合并结果",
+    "restart_scope_line": "• 目标范围：{{scope}}",
+    "restart_scope_standby": "Standby（备援 HTTP 掷骰；ROLL_STANDBY_URL / ROLL_STANDBY_SPAWN，默认 :3951）",
+    "restart_scope_primary": "Primary（优先 HTTP 掷骰；ROLL_WORKER_URL，默认 :3950）",
+    "restart_line_mode": "• 执行模式：{{mode}}\n　→ {{mode_detail}}",
+    "restart_line_url": "• URL：{{url}}",
+    "restart_line_pid": "• 进程 PID：{{pid}}",
+    "restart_line_http_status": "• HTTP 状态：{{status}}",
+    "restart_line_warning": "• 警告：{{warning}}",
+    "restart_line_reason": "• 失败原因：{{reason}}",
+    "restart_line_hint": "• 建议作法：{{hint}}",
+    "restart_line_note": "• 说明：{{note}}",
+    "restart_line_note_ok": "• 影响：只重启 Primary/Standby。Gateway 连线维持。\n• 限制：needsLocal / Embedded 需 restart gateway。",
+    "restart_line_note_fail": "• 影响：目标未成功重启。Gateway 连线不受影响。",
+    "restart_line_vs_gateway": "• 对照：restart gateway/discord 动平台连线；restart primary|standby 只动计算。",
+    "restart_mode_supervised_respawn": "Gateway 监督的子进程已 shutdown 并重新 spawn；健康检查通过。",
+    "restart_mode_self_restart": "已自我重启：关旧监听、拉起新进程绑回同一 port；健康检查通过。",
+    "restart_mode_ensure_spawn": "进程原本离线，已 ensure/spawn；健康检查通过。",
+    "restart_mode_stopped": "已停止（shutdown），直到 .root restart。",
+    "restart_mode_reload_uncertain": "已送出 self-reload，但无法确认旧进程是否退出。",
+    "restart_mode_reload_sent": "已送出 self-reload，但等待时间内 /health 未恢复。",
+    "restart_mode_unknown": "模式「{{mode}}」（请对照 log）",
+    "restart_reason_standby_unset": "尚未有 Standby（URL 未设且自动 SPAWN 关闭）。",
+    "restart_hint_standby_unset": "设 ROLL_STANDBY_URL 或 ROLL_STANDBY_SPAWN=true，再 .root restart standby。",
+    "restart_reason_primary_unset": "尚未有 Primary（URL 未设且自动 SPAWN 关闭）。",
+    "restart_hint_primary_unset": "设 ROLL_WORKER_URL 或允许 ROLL_WORKER_SPAWN（默认开），再 .root restart primary。",
+    "restart_reason_busy": "另一个 restart/stop 正在进行。",
+    "restart_hint_busy": "稍等数秒后再试。",
+    "restart_reason_still_up": "已送出 admin 请求，但 /health 仍正常。",
+    "restart_hint_still_up": "检查 Primary/Standby log、是否非 loopback 被拒（403）。",
+    "restart_reason_not_back": "进程已停止，但等待时间内 /health 未恢复。",
+    "restart_hint_not_back": "在主机手动 yarn start:roll-worker:primary（:3950；或 PM2/docker），再 .root restart。纯 start:roll-worker 默认 :3952。",
+    "restart_reason_unknown": "未分类错误。",
+    "restart_hint_generic": "查看 Gateway 与 Primary/Standby log。",
+    "restart_failed": "【.root restart】执行例外。\n• 错误：{{message}}",
+    "restart_discord_one_sent": "【.root restart discord {{id}}】已送出\n• 重启指定 Discord cluster；期间该丛集短暂断线重连。",
+    "restart_discord_all_sent": "【.root restart discord all】已送出\n• 重启全部 Discord cluster；Bot 会短暂掉线后重连。",
+    "restart_gateway_discord_sent": "【.root restart gateway】已送出（Discord clusters）\n• 等同 restart discord（全部 cluster）。",
+    "restart_gateway_process_sent": "【.root restart gateway】已送出\n• 本进程即将 SIGTERM；请确认 PM2/docker 会自动拉起。",
+    "stop_usage": "用法：.root stop primary|standby\n\n停止后路由落到下一层，直到 .root restart。无 stop gateway。",
+    "stop_ok_header": "【.root stop {{target}}】成功",
+    "stop_fail_header": "【.root stop {{target}}】失败",
+    "stop_line_note_ok": "• 影响：目标已 stop；parse 会跳过该层。用 .root restart 恢复。",
+    "stop_failed": "【.root stop】执行例外。\n• 错误：{{message}}",
+    "restart_discord_need_selector": "【防呆】.root restart discord 必须指定范围：\n• .root restart discord all — 重启全部 Discord cluster（会短暂掉线）\n• .root restart discord <clusterId> — 只重启指定 cluster（例如 0）\n\n单独写 .root restart discord 不会执行任何重启。"
   },
   "patreon": {
     "tier_label_1": "Tier A: 调查员",

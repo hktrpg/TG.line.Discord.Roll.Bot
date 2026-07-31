@@ -1,8 +1,7 @@
 "use strict";
 let variables = {};
 const fs = require('fs');
-const { execFile } = require('node:child_process');
-const { promisify } = require('node:util');
+const https = require('node:https');
 const { SlashCommandBuilder } = require('discord.js');
 const axiosRetry = require('axios-retry').default;
 const { tify: chineseTify } = require('chinese-conv');
@@ -11,7 +10,6 @@ const cheerio = require('cheerio');
 const wiki = require('wikijs').default;
 const NodeCache = require('node-cache');
 const schedule = require('node-schedule');
-const execFileAsync = promisify(execFile);
 
 const identity = 'HKTRPG (https://www.hktrpg.com; admin@hktrpg.com) wiki.js';
 const lunisolar = require('lunisolar');
@@ -30,6 +28,9 @@ const gameName = function (params = {}) {
 }
 
 axiosRetry(axios, { retries: 3 });
+
+/** click108 uses a chain Node/OpenSSL may reject; match former curl --insecure. */
+const astroHttpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 /**
  * DailyCache class - Manages caching for all daily data
@@ -105,7 +106,7 @@ class DailyCache {
 			}
 			this.cache.set(`astro_${date}`, astroData);
 		} catch (error) {
-			console.error(`Failed to update astro cache for ${date}:`, error);
+			console.warn(`[Funny] Astro cache update failed for ${date}: ${error.message || error}`);
 		}
 	}
 
@@ -623,21 +624,26 @@ class TwelveAstro {
 			error?.code === 'SELF_SIGNED_CERT_IN_CHAIN';
 	}
 
-	async fetchAstroHtmlWithCurl(url) {
-		const curlCommand = process.platform === 'win32' ? 'curl.exe' : 'curl';
-		const args = [
-			'--silent',
-			'--show-error',
-			'--location',
-			'--max-time', '15',
-			'--insecure',
-			url
-		];
-		const { stdout } = await execFileAsync(curlCommand, args, { maxBuffer: 5 * 1024 * 1024 });
-		if (!stdout || !stdout.trim()) {
-			throw new Error('curl returned empty response body');
+	/**
+	 * Fetch click108 HTML via axios (not curl.exe — Windows spawn often fails with 0xC0000142).
+	 */
+	async fetchAstroHtml(url) {
+		const response = await axios.get(url, {
+			timeout: 15_000,
+			httpsAgent: astroHttpsAgent,
+			responseType: 'text',
+			headers: {
+				'User-Agent': identity,
+				Accept: 'text/html,application/xhtml+xml',
+			},
+			// Site sometimes returns non-2xx with usable body; still prefer 2xx.
+			validateStatus: (status) => status >= 200 && status < 400,
+		});
+		const html = typeof response.data === 'string' ? response.data : String(response.data || '');
+		if (!html.trim()) {
+			throw new Error('astro fetch returned empty response body');
 		}
-		return stdout;
+		return html;
 	}
 
 	/**
@@ -786,7 +792,7 @@ class TwelveAstro {
 
 	async updateAstro(code, date) {
 		const url = `https://astro.click108.com.tw/daily_${code}.php?iAstro=${code}&iType=0&iAcDay=${date}`;
-		const html = await this.fetchAstroHtmlWithCurl(url);
+		const html = await this.fetchAstroHtml(url);
 
 		const $ = cheerio.load(html);
 
@@ -2346,5 +2352,6 @@ module.exports = {
 	prefixs,
 	gameType,
 	gameName,
-	discordCommand
+	discordCommand,
+	TwelveAstro,
 };

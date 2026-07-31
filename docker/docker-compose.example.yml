@@ -1,3 +1,12 @@
+# Example multi-gateway + shared Primary Roll Worker.
+# Secrets live in .env* files (never commit real tokens).
+#
+# Recommended topology when you run Discord AND TG/LINE/WA as separate containers:
+#   roll-primary  ← one shared HTTP dice process
+#   discord-bot / non-discord-bot  ← Gateways with ROLL_WORKER_SPAWN=false
+#
+# See docs/DOCKER_SETUP.md for upgrade / permissions notes.
+
 services:
   mongodb:
     image: mongo:8.2
@@ -13,6 +22,38 @@ services:
       MONGO_INITDB_ROOT_USERNAME: hktrpgadmin
       MONGO_INITDB_ROOT_PASSWORD: change-this-password
       TZ: Asia/Taipei
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Shared Primary — keep :3950 on the compose network only (no public ports).
+  roll-primary:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.non-discord
+    container_name: roll-primary
+    restart: unless-stopped
+    user: node
+    command: ["node", "roll-worker.js"]
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    env_file:
+      - .env.roll-primary
+    environment:
+      TZ: Asia/Taipei
+      ROLL_WORKER_MODE: "true"
+      ROLL_WORKER_HOST: "0.0.0.0"
+      ROLL_WORKER_PORT: "3950"
+      ROLL_WORKER_SPAWN: "false"
+    volumes:
+      - roll-primary-log:/app/log
+      - roll-primary-modules-log:/app/modules/log
+      - roll-primary-temp:/app/temp
+      - export-data:/app/export
 
   discord-bot:
     build:
@@ -20,14 +61,21 @@ services:
       dockerfile: docker/Dockerfile.discord
     container_name: discord-bot
     restart: unless-stopped
+    user: node
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
+      roll-primary:
+        condition: service_started
     env_file:
       - .env.discord
     environment:
       TZ: Asia/Taipei
+      ROLL_WORKER_URL: http://roll-primary:3950
+      ROLL_WORKER_SPAWN: "false"
     volumes:
       - discord-log:/app/log
+      - discord-modules-log:/app/modules/log
       - discord-export:/app/export
       - discord-temp:/app/temp
 
@@ -37,14 +85,21 @@ services:
       dockerfile: docker/Dockerfile.non-discord
     container_name: non-discord-bot
     restart: unless-stopped
+    user: node
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
+      roll-primary:
+        condition: service_started
     env_file:
       - .env.non-discord
     environment:
       TZ: Asia/Taipei
+      ROLL_WORKER_URL: http://roll-primary:3950
+      ROLL_WORKER_SPAWN: "false"
     volumes:
       - non-discord-log:/app/log
+      - non-discord-modules-log:/app/modules/log
       - non-discord-export:/app/export
       - non-discord-temp:/app/temp
       - whatsapp-session:/app/.wwebjs_auth
@@ -52,10 +107,16 @@ services:
 volumes:
   mongodb-data:
   mongodb-config:
+  export-data:
+  roll-primary-log:
+  roll-primary-modules-log:
+  roll-primary-temp:
   discord-log:
+  discord-modules-log:
   discord-export:
   discord-temp:
   non-discord-log:
+  non-discord-modules-log:
   non-discord-export:
   non-discord-temp:
   whatsapp-session:

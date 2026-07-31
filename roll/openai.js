@@ -1,5 +1,6 @@
 "use strict";
-if (!process.env.OPENAI_SWITCH) return;
+// Load when AI is enabled, or on Roll Worker so Discord help/routing can resolve the module.
+if (!process.env.OPENAI_SWITCH && process.env.ROLL_WORKER_MODE !== 'true') return;
 
 const SYSTEM_PROMPT = `你是HKTRPG TRPG助手，專業的桌上角色扮演遊戲顧問，可以回答TRPG相關問題，也可以回答非TRPG相關問題。你優先使用正體中文回答所有問題，除非對方使用其他語言，請你使用正體中文回答。如果對方使用其他語言，除非是簡體中文，否則不可使用簡體中文回答。
 
@@ -76,10 +77,56 @@ const TRANSLATION_SYSTEM_PROMPT = `
 const fs = require('fs').promises;
 const fs2 = require('fs');
 const { encode } = require('gpt-tokenizer');
+
+/** Hard cap aligned with FILE_PROCESSING_LIMITS.MAX_FILE_SIZE.PDF (50MB). */
+const OPENAI_ATTACHMENT_MAX_BYTES = 50 * 1024 * 1024;
+
+/**
+ * Discord CDN fetch with SSRF allowlist + hard byte cap (no unbounded buffering).
+ * Returns a Response-like shim so existing .text()/.buffer()/body.getReader() call sites work.
+ */
+async function fetchDiscordAttachment(url, { maxBytes = OPENAI_ATTACHMENT_MAX_BYTES } = {}) {
+	const { safeFetchBuffer } = require('../modules/roll-worker/safe-fetch');
+	const downloaded = await safeFetchBuffer(url, { maxBytes });
+	const buffer = downloaded.buffer;
+	return {
+		ok: true,
+		status: 200,
+		statusText: 'OK',
+		headers: {
+			get(name) {
+				return String(name).toLowerCase() === 'content-type'
+					? (downloaded.contentType || null)
+					: null;
+			},
+		},
+		async buffer() {
+			return buffer;
+		},
+		async text() {
+			return buffer.toString('utf8');
+		},
+		async arrayBuffer() {
+			return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+		},
+		body: {
+			getReader() {
+				let done = false;
+				return {
+					async read() {
+						if (done) {
+							return { done: true, value: undefined };
+						}
+						done = true;
+						return { done: false, value: new Uint8Array(buffer) };
+					},
+				};
+			},
+		},
+	};
+}
 const OpenAIApi = require('openai');
 const dotenv = require('dotenv');
-// eslint-disable-next-line n/no-extraneous-require
-const fetch = require('node-fetch');
 const { SlashCommandBuilder } = require('discord.js');
 // File processing libraries
 let pdfParse = null;
@@ -109,7 +156,19 @@ const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
 const { getPool } = require('../modules/db/pool');
 const imagePool = getPool('image');
-dotenv.config({ override: true, quiet: true });
+(() => {
+	const preserveKeys = [
+		'ROLL_WORKER_URL', 'ROLL_WORKER_TOKEN', 'ROLL_WORKER_TIMEOUT_MS', 'ROLL_WORKER_MODE',
+		'ROLL_WORKER_HOST', 'ROLL_WORKER_PORT', 'ROLL_WORKER_REMOTE_ONLY', 'ROLL_WORKER_DEFER_BUSY',
+		'ADMIN_SECRET',
+	];
+	const preserved = {};
+	for (const key of preserveKeys) {
+		if (process.env[key] !== undefined) preserved[key] = process.env[key];
+	}
+	dotenv.config({ override: true, quiet: true });
+	Object.assign(process.env, preserved);
+})();
 const VIP = require('../modules/patreon/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
@@ -569,7 +628,7 @@ class OpenAI {
         fs2.watch('.env', (eventType) => {
             if (eventType === 'change') {
                 try {
-                    let tempEnv = dotenv.config({ override: false })
+                    let tempEnv = dotenv.config({ override: false, quiet: true })
                     if (tempEnv.parsed) {
                         // Only update OpenAI-related environment variables to avoid breaking cluster manager
                         const openaiPrefixes = ['OPENAI_', 'AI_MODEL_', 'OPENROUTER_'];
@@ -1110,7 +1169,7 @@ class TranslateAi extends OpenAI {
         try {
             debugLog(`[CHUNK_PROCESS] Starting chunked processing for ${attachment.name} (${fileType})`);
 
-            const response = await fetch(attachment.url);
+            const response = await fetchDiscordAttachment(attachment.url);
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
@@ -2018,9 +2077,22 @@ class TranslateAi extends OpenAI {
         debugLog(`[GLOSSARY_DEBUG] Sample terms:`, Object.entries(aggregated).slice(0, 5).map(([k, v]) => `${k} -> ${v}`).join(', '));
         return aggregated;
     }
-    async getText(str, mode, discordMessage, discordClient, userid = null) {
+    async getText(str, mode, discordMessage, discordClient, userid = null, assetOptions = {}) {
         let text = [];
         let textLength = 0;
+        // Prefetched serializable attachments (Gateway → Worker) — avoid live discordClient.
+        const attachmentsMeta = assetOptions.attachmentsMeta || [];
+        const replyAttachmentsMeta = assetOptions.replyAttachmentsMeta || [];
+        if ((!discordMessage || !discordClient) && (attachmentsMeta.length > 0 || replyAttachmentsMeta.length > 0)) {
+            const { fakeAttachmentCollection } = require('../modules/roll-worker/discord-prefetch');
+            const merged = [...attachmentsMeta, ...replyAttachmentsMeta];
+            discordMessage = {
+                type: 0,
+                attachments: fakeAttachmentCollection(merged),
+            };
+            // Skip reply-message fetch path; meta already merged into type 0.
+            discordClient = null;
+        }
         // Handle LOW tier with multiple models: use MIN token across models that will actually be used for translation (TOKEN >= 10000)
         let splitLength;
         if (mode.models && Array.isArray(mode.models) && mode.models.length > 0) {
@@ -2136,12 +2208,12 @@ class TranslateAi extends OpenAI {
                     } else {
                         // Check if it's a text file (original behavior for small files)
                         if (attachment.contentType?.match(/text/i) || fileType === 'TEXT') {
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const data = await response.text();
                             extractedText = data;
                         } else if (fileType) {
                             // Process PDF, DOCX, and image files (original method for smaller files)
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const buffer = await response.buffer();
                             extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
                         } else {
@@ -2211,12 +2283,12 @@ class TranslateAi extends OpenAI {
                     } else {
                         // Check if it's a text file (original behavior for small files)
                         if (attachment.contentType?.match(/text/i) || fileType === 'TEXT') {
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const data = await response.text();
                             extractedText = data;
                         } else if (fileType) {
                             // Process PDF, DOCX, and image files (original method for smaller files)
-                            const response = await fetch(attachment.url);
+                            const response = await fetchDiscordAttachment(attachment.url);
                             const buffer = await response.buffer();
                             extractedText = await this.processAttachmentFile(buffer, filename, attachment.contentType, discordMessage, userid);
                         } else {
@@ -2254,11 +2326,13 @@ class TranslateAi extends OpenAI {
     }
     async createFile(data) {
         try {
+            const { getTempFilePath } = require('../modules/roll-worker/artifacts');
             const d = new Date();
             let time = d.getTime();
-            let name = `translated_${time}.txt`
-            await fs.writeFile(`./temp/${name}`, data, { encoding: 'utf8' });
-            return `./temp/${name}`;
+            let name = `translated_${time}.txt`;
+            const filepath = getTempFilePath(name);
+            await fs.writeFile(filepath, data, { encoding: 'utf8' });
+            return filepath;
         } catch (error) {
             console.error(error);
         }
@@ -2445,13 +2519,13 @@ class TranslateAi extends OpenAI {
         return response;
 
     }
-    async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW') {
+    async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW', assetOptions = {}) {
         let lv = await VIP.viplevelCheckUser(userid);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
 
         let translateScript, textLength;
         try {
-            const result = await this.getText(inputStr, mode, discordMessage, discordClient, userid);
+            const result = await this.getText(inputStr, mode, discordMessage, discordClient, userid, assetOptions);
             translateScript = result.translateScript;
             textLength = result.textLength;
         } catch (error) {
@@ -2822,26 +2896,46 @@ class CommandHandler {
         translateAi._locale = resolvedLocale;
         imageAi._locale = resolvedLocale;
 
-        let replyMessage = "";
-        // Only try to get reply content if using Discord
-        if (botname === "Discord" && discordMessage) {
+        let replyMessage = params.replyContent || "";
+        // Only try to get reply content if using Discord and not prefetched
+        if (!replyMessage && botname === "Discord" && discordMessage) {
             replyMessage = await handleMessage.getReplyContent(discordMessage);
         }
 
         const hasArg = !!mainMsg[1];
         const hasReply = !!(replyMessage && replyMessage.trim().length > 0);
 
-        // Check if there are attachments
-        const hasAttachments = discordMessage && discordMessage.attachments && discordMessage.attachments.size > 0;
-        const hasReplyAttachments = discordMessage && discordMessage.type === 19 && discordMessage.reference;
+        // Attachments: live Discord or Gateway-prefetched meta for Roll Worker
+        const hasAttachments = Boolean(
+            (params.attachmentsMeta && params.attachmentsMeta.length > 0)
+            || (discordMessage && discordMessage.attachments && discordMessage.attachments.size > 0)
+        );
+        const hasReplyAttachments = Boolean(
+            (params.replyAttachmentsMeta && params.replyAttachmentsMeta.length > 0)
+            || (discordMessage && discordMessage.type === 19 && discordMessage.reference)
+        );
 
         const command = mainMsg[0].toLowerCase().replace(/^\./, '');
 
         if (!hasArg && hasReply) {
             params.inputStr = `${replyMessage}`;
-        } else if (mainMsg[1] === 'help' || (!hasArg && !hasReply && !hasAttachments && !hasReplyAttachments)) {
+        } else if (mainMsg[1] === 'help') {
+            return { text: getHelpMessage(i18nParams), quotes: true };
+        } else if (!hasArg && !hasReply && !hasAttachments && !hasReplyAttachments) {
+            // Bare Discord .ai* (no help/arg/reply/attachments) on Worker → Gateway live context.
+            if (
+                botname === 'Discord'
+                && !discordMessage
+                && !discordClient
+                && process.env.ROLL_WORKER_MODE === 'true'
+            ) {
+                return { needsLocal: true, moduleName: 'openai' };
+            }
             return { text: getHelpMessage(i18nParams), quotes: true };
         }
+
+        // Text-only and prefetched-attachment flows run on Worker.
+        // (Progress channel messages are skipped when discordMessage is null.)
 
         if (this.commands[command]) {
             return await this.commands[command](params);
@@ -2851,7 +2945,8 @@ class CommandHandler {
     }
 
     async handleTranslateCommand(params) {
-        const { inputStr, mainMsg, discordMessage, discordClient, userid, botname, locale, t } = params;
+        const { inputStr, mainMsg, discordMessage, discordClient, userid, botname, locale, t,
+            attachmentsMeta, replyAttachmentsMeta } = params;
         const translate = getT({ locale, t });
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
 
@@ -2899,7 +2994,8 @@ class CommandHandler {
 
         try {
             const { filetext, sendfile, text } = await translateAi.handleTranslate(
-                inputStr, discordMessage, discordClient, userid, modelConfig, modelType
+                inputStr, discordMessage, discordClient, userid, modelConfig, modelType,
+                { attachmentsMeta, replyAttachmentsMeta }
             );
 
             filetext && (rply.fileText = filetext);
@@ -2940,7 +3036,8 @@ class CommandHandler {
     }
 
     async handleChatCommand(params) {
-        const { inputStr, mainMsg, userid, botname, discordMessage, discordClient, locale, t } = params;
+        const { inputStr, mainMsg, userid, botname, discordMessage, discordClient, locale, t,
+            attachmentsMeta, replyAttachmentsMeta } = params;
         const translate = getT({ locale, t });
         const rply = { default: 'on', type: 'text', text: '', quotes: true };
 
@@ -2960,11 +3057,15 @@ class CommandHandler {
             modelType = 'HIGH';
         }
         let processedInput = inputStr;
-        // Only process Discord-specific logic if we're on Discord
-        if (botname === "Discord" && discordMessage) {
+        // Discord live message OR prefetched attachment meta on Roll Worker
+        const assetOptions = { attachmentsMeta, replyAttachmentsMeta };
+        const hasPrefetch = (attachmentsMeta?.length > 0) || (replyAttachmentsMeta?.length > 0);
+        if ((botname === "Discord" && discordMessage) || (botname === "Discord" && hasPrefetch)) {
             try {
                 const currentModel = chatAi.getCurrentModel(modelType);
-                const result = await translateAi.getText(inputStr, currentModel, discordMessage, discordClient, userid);
+                const result = await translateAi.getText(
+                    inputStr, currentModel, discordMessage, discordClient, userid, assetOptions
+                );
                 if (result.translateScript && result.translateScript.length > 0) {
                     processedInput = result.translateScript.join('\n');
                 }
@@ -3124,7 +3225,9 @@ module.exports = {
     gameType,
     gameName,
     discordCommand,
-    webCommand
+    webCommand,
+    fetchDiscordAttachment,
+    OPENAI_ATTACHMENT_MAX_BYTES,
 };
 
 /**

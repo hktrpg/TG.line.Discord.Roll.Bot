@@ -192,11 +192,20 @@ const rollDiceCommand = async function ({
 }
 
 
+async function reloadFromDb() {
+    try {
+        save.save = await records.get('block');
+    } catch (error) {
+        console.error('[z_stop] Failed to reload block data:', error);
+    }
+}
+
 module.exports = {
     rollDiceCommand: rollDiceCommand,
     initialize: initialize,
     getHelpMessage: getHelpMessage,
     prefixs: prefixs,
     gameType: gameType,
-    gameName: gameName
+    gameName: gameName,
+    reloadFromDb,
 };

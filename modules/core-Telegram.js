@@ -8,6 +8,27 @@ const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
 const rollText = require('./chat/getRoll').rollText;
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
+const darkRolling = require('./roll-worker/dark-rolling');
+
+deferQueue.registerDeliverer('Telegram', async (job, result) => {
+	const text = result?.text || '';
+	const levelUp = result?.LevelUp || '';
+	const chatId = job.replyTarget?.chatId || job.params?.groupid || job.userid;
+	if (!chatId) return;
+	if (levelUp) {
+		const display = job.params?.displayname || '';
+		const statue = result?.statue ? ` ${result.statue}` : '';
+		await SendToId(chatId, `@${display}${statue}\n\t\t${levelUp}`);
+	}
+	if (text) {
+		const opts = job.replyTarget?.messageId
+			? { reply_to_message_id: job.replyTarget.messageId }
+			: undefined;
+		await SendToId(chatId, text, opts);
+	}
+});
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const TGclient = new Bot(process.env.TELEGRAM_CHANNEL_SECRET);
 const newMessage = require('./chat/message');
@@ -18,7 +39,6 @@ const MESSAGE_SPLITOR = (/\S+/ig);
 let robotName = ""
 
 
-let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 const EXPUP = require('./chat/level').EXPUP || function () { };
 const courtMessage = require('./chat/logs').courtMessage || function () { };
 
@@ -73,10 +93,13 @@ TGclient.on('message:text', (ctx) => {
             }
         })();
 
-        let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
-        if (!target) {
-            await nonDice(ctx);
-            return;
+        let target = true;
+        if (!parseRouter.shouldSkipLocalFindRollList('Telegram')) {
+            target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+            if (!target) {
+                await nonDice(ctx);
+                return;
+            }
         }
 
         let displayname = '',
@@ -107,12 +130,19 @@ TGclient.on('message:text', (ctx) => {
         const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Telegram' });
         const t = i18n.createTranslator(locale);
         let rplyVal = {};
+        let didParse = false;
 
         // After message arrives, automatically jump to analytics.js for dice group analysis
         // If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
+        const tgReplyTarget = {
+            botname: 'Telegram',
+            chatId: groupid || ctx.chat?.id || userid,
+            messageId: ctx.message?.message_id || null,
+            userid,
+        };
         if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
             mainMsg.shift();
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: inputStr,
                 groupid: groupid,
                 userid: userid,
@@ -125,10 +155,11 @@ TGclient.on('message:text', (ctx) => {
                 tgDisplayname: tgDisplayname,
                 locale,
                 t
-            })
+            }, { replyTarget: tgReplyTarget });
+            didParse = true;
         } else {
             if (channelKeyword == '') {
-                rplyVal = await exports.analytics.parseInput({
+                rplyVal = await parseRouter.parseInput({
                     inputStr: inputStr,
                     groupid: groupid,
                     userid: userid,
@@ -141,17 +172,25 @@ TGclient.on('message:text', (ctx) => {
                     tgDisplayname: tgDisplayname,
                     locale,
                     t
-                })
+                }, { replyTarget: tgReplyTarget });
+                didParse = true;
             }
         }
+
+        if (rplyVal?.deferred) return;
 
         if (rplyVal.sendNews) sendNewstoAll(rplyVal);
         // Handle .me messages
         if (rplyVal.myspeck) {
             return await __sendMeMessage({ ctx, rplyVal, userid });
         }
-        if (!rplyVal.text && !rplyVal.LevelUp)
+        if (!rplyVal.text && !rplyVal.LevelUp) {
+            // parseInput already runs EXPUP — only nonDice when keyword gate skipped parse.
+            if (!didParse) {
+                await nonDice(ctx);
+            }
             return;
+        }
         if (process.env.mongoURL && rplyVal.text && await newMessage.newUserChecker(userid, "Telegram")) {
             // Send welcome message in the same chat instead of trying to DM the user
             // Telegram bots cannot initiate conversations with users, so we send welcome in context
@@ -201,7 +240,7 @@ TGclient.on('message:text', (ctx) => {
             return;
         }
         //TGcountroll++;
-        if (privatemsg > 1 && TargetGM) {
+        if (privatemsg > 1 && process.env.mongoURL) {
             let groupInfo = await privateMsgFinder(groupid) || [];
             for (const item of groupInfo) {
                 TargetGMTempID.push(item.userid);
@@ -405,18 +444,14 @@ TGclient.on('channel_post', async (ctx) => {
 })
 
 async function privateMsgFinder(groupid) {
-    if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-    let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-        data.groupid == groupid
-    )
-    return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
+    return darkRolling.getGroupGms(groupid);
 }
 
 if (agenda && agenda.agenda) {
     agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
         //指定時間一次
         let data = job.attrs.data;
-        let text = await rollText(data.replyText);
+        let text = await rollText(data.replyText, { botname: 'Telegram', groupid: data.groupid });
         //SendToReply(ctx, text)
         SendToId(
             data.groupid, text
@@ -431,7 +466,7 @@ if (agenda && agenda.agenda) {
     agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
         //指定時間
         let data = job.attrs.data;
-        let text = await rollText(data.replyText);
+        let text = await rollText(data.replyText, { botname: 'Telegram', groupid: data.groupid });
         //SendToReply(ctx, text)
         SendToId(
             data.groupid, text

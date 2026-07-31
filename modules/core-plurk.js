@@ -11,6 +11,21 @@ const SIX_MINUTES = 360_000;
 const MESSAGE_SPLITOR = (/\S+/ig);
 const Plurk_Client = new PlurkClient(process.env.PLURK_APPKEY, process.env.PLURK_APPSECRET, process.env.PLURK_TOKENKEY, process.env.PLURK_TOKENSECRET);
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
+
+deferQueue.registerDeliverer('Plurk', async (job, result) => {
+	const plurkId = job.replyTarget?.plurkId || job.replyTarget?.chatId;
+	if (!plurkId) return;
+	let rplyText = '';
+	const display = job.params?.displayname || '';
+	if (display) rplyText += `${display}\n`;
+	if (result?.text) rplyText += `${result.text}\n`;
+	if (result?.LevelUp) rplyText += `${result.LevelUp}`;
+	if (!rplyText.trim()) return;
+	await sendMessage(plurkId, rplyText);
+});
+
 Plurk_Client.request('Users/me')
     .then(profile => {
         console.log(`[Plurk] Plurk 名稱: ${profile.full_name}`);
@@ -116,7 +131,10 @@ Plurk_Client.on('new_plurk', async response => {
         message = response.content_raw,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
-    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    let target = true;
+    if (!parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+        target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    }
 
     if (!target) {
         await nonDice(groupid, userid, displayname, response.plurk_id)
@@ -126,16 +144,33 @@ Plurk_Client.on('new_plurk', async response => {
     if (!message) return;
     let mainMsg = message.match(MESSAGE_SPLITOR); // 定義輸入字串
     if (mainMsg && mainMsg.length > 1) {
-        if (!/@HKTRPG/i.test(mainMsg[0])) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) {
+            // Worker mode skips findRollList — still award EXP for non-mention chatter.
+            if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+                await nonDice(groupid, userid, displayname, response.plurk_id);
+            }
+            return;
+        }
         mainMsg.shift();
     }
-    else return;
+    else {
+        if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+            await nonDice(groupid, userid, displayname, response.plurk_id);
+        }
+        return;
+    }
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
     const t = i18n.createTranslator(locale);
-    let rplyVal = await exports.analytics.parseInput({
+    const plurkReplyTarget = {
+        botname: 'Plurk',
+        plurkId: response.plurk_id,
+        chatId: response.plurk_id,
+        userid,
+    };
+    let rplyVal = await parseRouter.parseInput({
         inputStr: message.replace(/^\s*@hktrpg\s+/i, ''),
         groupid: groupid,
         userid: userid,
@@ -145,7 +180,8 @@ Plurk_Client.on('new_plurk', async response => {
         channelid: channelid,
         locale,
         t
-    });
+    }, { replyTarget: plurkReplyTarget });
+    if (rplyVal?.deferred) return;
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
     }
@@ -173,7 +209,10 @@ Plurk_Client.on('new_response', async response => {
         userrole = (response.plurk.owner_id == response.response.user_id) ? 3 : 1,
         inputStr = message.replace(/^\s*@hktrpg\s+/i, '');
 
-    let target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    let target = true;
+    if (!parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+        target = await exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+    }
 
     if (!target) {
         await nonDice(groupid, userid, displayname, response.plurk_id)
@@ -184,17 +223,33 @@ Plurk_Client.on('new_response', async response => {
 
 
     if (mainMsg && mainMsg.length > 1) {
-        if (!/@HKTRPG/i.test(mainMsg[0])) return;
+        if (!/@HKTRPG/i.test(mainMsg[0])) {
+            if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+                await nonDice(groupid, userid, displayname, response.plurk.plurk_id);
+            }
+            return;
+        }
         mainMsg.shift();
     }
-    else return;
+    else {
+        if (parseRouter.shouldSkipLocalFindRollList('Plurk')) {
+            await nonDice(groupid, userid, displayname, response.plurk.plurk_id);
+        }
+        return;
+    }
 
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Plurk' });
     const t = i18n.createTranslator(locale);
-    let rplyVal = await exports.analytics.parseInput({
+    const plurkReplyTarget = {
+        botname: 'Plurk',
+        plurkId: response.plurk.plurk_id,
+        chatId: response.plurk.plurk_id,
+        userid,
+    };
+    let rplyVal = await parseRouter.parseInput({
         inputStr: inputStr,
         groupid: groupid,
         userid: userid,
@@ -204,7 +259,8 @@ Plurk_Client.on('new_response', async response => {
         channelid: channelid,
         locale,
         t
-    });
+    }, { replyTarget: plurkReplyTarget });
+    if (rplyVal?.deferred) return;
     if (!rplyVal.text && !rplyVal.LevelUp) {
         return;
     }

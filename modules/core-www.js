@@ -21,8 +21,10 @@ const {
 } = require('socket.io');
 const candle = require('../modules/misc/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
-const mainCharacter = require('../roll/z_character').mainCharacter;
 const security = require('../utils/security.js');
+const rollWorkerClient = require('./roll-worker/client');
+const { runCharacterAction } = require('./roll-worker/character-action');
+const deferQueue = require('./roll-worker/defer-queue');
 const { buildBusEtaShortcut } = require('./www/bus-shortcut.js');
 const i18n = require('./i18n/i18n.js');
 const patreonTiers = require('./patreon/patreon-tiers.js');
@@ -32,6 +34,74 @@ const {
     safeSocketHandler,
     createRateLimitReject
 } = security;
+
+function tryDeferCharacterAction({ reason, doc, item, locale, botname, replyTarget }) {
+    if (!deferQueue.isDeferBusyActive() || !replyTarget) return null;
+    deferQueue.startDrainMonitor();
+    const enq = deferQueue.enqueue({
+        reason,
+        jobType: 'characterAction',
+        params: { doc, item, locale, botname },
+        replyTarget,
+    });
+    if (!enq.ok) return null;
+    return {
+        characterResult: null,
+        rplyVal: { deferred: true, text: '', type: 'text' },
+    };
+}
+
+/**
+ * Character card item roll via Worker when enabled, else local.
+ * ROLL_WORKER_REMOTE_ONLY=true never runs local character-action.
+ * @param {object} [replyTarget] - defer-busy socket target (REMOTE_ONLY)
+ */
+async function resolveCharacterAction({ doc, item, locale, botname = 'WWW', replyTarget = null } = {}) {
+    const remoteOnly = process.env.ROLL_WORKER_REMOTE_ONLY === 'true';
+    if (rollWorkerClient.isEnabled()) {
+        try {
+            return await rollWorkerClient.characterAction({ doc, item, locale, botname });
+        } catch (error) {
+            // Only defer clear pre-flight connect failures. Timeouts may have nested-parsed (M1).
+            const hay = String(error?.message || error || '').toLowerCase();
+            const connectDown = /econnrefused|enotfound|econnreset|eai_again|socket hang up|network error/
+                .test(hay);
+            if (connectDown) {
+                const deferred = tryDeferCharacterAction({
+                    reason: 'transport', doc, item, locale, botname, replyTarget,
+                });
+                if (deferred) return deferred;
+            }
+            console.error('[Web Server] character-action worker failed (no local retry):', error?.message || error);
+            // Defer-busy on: never surface system_busy (silent if not queued).
+            if (deferQueue.isDeferBusyActive()) {
+                return { characterResult: null, rplyVal: { text: '', type: 'text' } };
+            }
+            const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+            return {
+                characterResult: null,
+                rplyVal: { text: t('common.errors.system_busy'), type: 'text' },
+            };
+        }
+    }
+    if (remoteOnly) {
+        const deferred = tryDeferCharacterAction({
+            reason: 'remoteOnlyMisconfig',
+            doc, item, locale, botname, replyTarget,
+        });
+        if (deferred) return deferred;
+        console.error('[Web Server] ROLL_WORKER_REMOTE_ONLY requires ROLL_WORKER_URL for character-action');
+        if (deferQueue.isDeferBusyActive()) {
+            return { characterResult: null, rplyVal: { text: '', type: 'text' } };
+        }
+        const t = i18n.createTranslator(locale || i18n.DEFAULT_LOCALE);
+        return {
+            characterResult: null,
+            rplyVal: { text: t('common.errors.system_busy'), type: 'text' },
+        };
+    }
+    return runCharacterAction({ doc, item, locale, botname });
+}
 
 const www = express();
 const isHttpUrl = (value) => /^https?:\/\//i.test(String(value || '').trim());
@@ -218,6 +288,7 @@ const records = require('./db/records.js');
 const port = process.env.WWWPORT || 20_721;
 const channelKeyword = '';
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
 
 // ============= Web Server Creation =============
 function createWebServer(options = {}, www) {
@@ -357,13 +428,25 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
     if (mainMsg && mainMsg[0])
         trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+    // Same findRollList gate as WWW socket / Line/TG: chatter must not hit Worker / parse EXP.
+    if (!parseRouter.shouldSkipLocalFindRollList('Api')) {
+        const target = await exports.analytics.findRollList(
+            req.query.msg ? req.query.msg.match(MESSAGE_SPLITOR) : null
+        );
+        if (!target) {
+            res.writeHead(200, { 'Content-type': 'application/json' });
+            res.end(String.raw`{"message":""}`);
+            return;
+        }
+    }
+
     const locale = resolveWwwLocale(req);
     const t = i18n.createTranslator(locale);
 
     // 訊息來到後, 會自動跳到analytics.js進行骰組分析
     // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
     if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-        rplyVal = await exports.analytics.parseInput({
+        rplyVal = await parseRouter.parseInput({
             inputStr: mainMsg.join(' '),
             botname: "Api",
             locale,
@@ -371,7 +454,7 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
         });
     } else {
         if (channelKeyword == '') {
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "Api",
                 locale,
@@ -380,6 +463,11 @@ async function handleApiRequest(req, res, { skipIpLimit = false } = {}) {
         }
     }
 
+    if (rplyVal?.deferred) {
+        res.writeHead(200, { 'Content-type': 'application/json' });
+        res.end(String.raw`{"message":"","deferred":true}`);
+        return;
+    }
     if (!rplyVal || !rplyVal.text) rplyVal.text = '';
     res.writeHead(200, { 'Content-type': 'application/json' });
     res.end(`{"message":"${jsonEscape(rplyVal.text)}"}`);
@@ -470,14 +558,30 @@ www.get('/api/local', async (req, res) => {
         const mainMsg = q.match(MESSAGE_SPLITOR);
         let rplyVal = {};
         if (mainMsg && mainMsg.length > 0) {
+            // Same findRollList gate as /api + WWW socket — skip Worker/EXP for non-commands.
+            if (!parseRouter.shouldSkipLocalFindRollList('Local')) {
+                const target = await exports.analytics.findRollList(
+                    q.match(MESSAGE_SPLITOR)
+                );
+                if (!target) {
+                    res.writeHead(200, { 'Content-type': 'application/json' });
+                    res.end(String.raw`{"message":""}`);
+                    return;
+                }
+            }
             const processedInput = mainMsg.join(' ');
             const locale = resolveWwwLocale(req);
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: processedInput,
                 botname: "Local",
                 locale,
                 t: i18n.createTranslator(locale)
             });
+        }
+        if (rplyVal?.deferred) {
+            res.writeHead(200, { 'Content-type': 'application/json' });
+            res.end(String.raw`{"message":"","deferred":true}`);
+            return;
         }
         if (!rplyVal || !rplyVal.text) rplyVal = { text: '' };
         res.writeHead(200, { 'Content-type': 'application/json' });
@@ -2049,40 +2153,50 @@ if (io) {
         socket.on('publicRolling', safeSocketHandler('publicRolling', async message => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             if (!message.item || !message.doc) return;
-            let rplyVal = {}
-            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
-            if (result && result.characterReRoll) {
-                rplyVal = await exports.analytics.parseInput({
-                    inputStr: result.characterReRollItem,
-                    botname: "WWW",
-                    locale: socket._hktrpgLocale,
-                    t: getSocketT(socket)
-                })
-            }
+            const { characterResult: result, rplyVal } = await resolveCharacterAction({
+                doc: message.doc,
+                item: message.item,
+                locale: socket._hktrpgLocale,
+                botname: 'WWW',
+                replyTarget: {
+                    botname: 'WWW',
+                    kind: 'characterAction',
+                    eventName: 'publicRolling',
+                    includeCandle: false,
+                    userid: socket.id,
+                    socket,
+                },
+            });
 
             // 訊息來到後, 會自動跳到analytics.js進行骰組分析
             // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-            if (rplyVal && rplyVal.text) {
+            if (rplyVal?.deferred) return;
+            if (rplyVal && rplyVal.text && result) {
                 socket.emit('publicRolling', result.characterReRollName + '：\n' + rplyVal.text)
             }
         }))
         socket.on('rolling', safeSocketHandler('rolling', async message => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
             if (!message.item || !message.doc) return;
-            let rplyVal = {}
-            let result = await mainCharacter(message.doc, ['', message.item], `.ch ${message.item}`, getSocketT(socket))
-            if (result && result.characterReRoll) {
-                rplyVal = await exports.analytics.parseInput({
-                    inputStr: result.characterReRollItem,
-                    botname: "WWW",
-                    locale: socket._hktrpgLocale,
-                    t: getSocketT(socket)
-                })
-            }
+            const { characterResult: result, rplyVal } = await resolveCharacterAction({
+                doc: message.doc,
+                item: message.item,
+                locale: socket._hktrpgLocale,
+                botname: 'WWW',
+                replyTarget: {
+                    botname: 'WWW',
+                    kind: 'characterAction',
+                    eventName: 'rolling',
+                    includeCandle: true,
+                    userid: socket.id,
+                    socket,
+                },
+            });
 
             // 訊息來到後, 會自動跳到analytics.js進行骰組分析
             // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
-            if (rplyVal && rplyVal.text) {
+            if (rplyVal?.deferred) return;
+            if (rplyVal && rplyVal.text && result) {
                 socket.emit('rolling', result.characterReRollName + '：\n' + rplyVal.text + candle.checker())
 
                 // If a selectedGroupId is provided, use it as the target for the roll
@@ -2445,29 +2559,53 @@ records.on("new_message", async (message) => {
         if (mainMsg && mainMsg[0])
             trigger = mainMsg[0].toString().toLowerCase(); // 指定啟動詞在第一個詞&把大階強制轉成細階
 
+        // Same findRollList gate as Line/TG/WA/Plurk: chatter must not hit Worker / parse EXP.
+        // Pass a fresh match so findRollList mutation cannot alter mainMsg used below.
+        if (!parseRouter.shouldSkipLocalFindRollList('WWW')) {
+            const target = await exports.analytics.findRollList(
+                message.msg ? message.msg.match(MESSAGE_SPLITOR) : null
+            );
+            if (!target) {
+                return;
+            }
+        }
+
         const locale = i18n.normalizeLocale(message.locale || i18n.DEFAULT_LOCALE);
         const t = i18n.createTranslator(locale);
+        const wwwReplyTarget = {
+            botname: 'WWW',
+            kind: 'chat',
+            userid: message.userid || message.name || message.roomNumber || 'www',
+            wwwMessage: {
+                name: message.name,
+                time: message.time,
+                roomNumber: message.roomNumber,
+            },
+        };
 
         // 訊息來到後, 會自動跳到analytics.js進行骰組分析
         // 如希望增加修改骰組,只要修改analytics.js的條件式 和ROLL內的骰組檔案即可,然後在HELP.JS 增加說明.
         if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
-            rplyVal = await exports.analytics.parseInput({
+            rplyVal = await parseRouter.parseInput({
                 inputStr: mainMsg.join(' '),
                 botname: "WWW",
+                userid: wwwReplyTarget.userid,
                 locale,
                 t
-            })
+            }, { replyTarget: wwwReplyTarget });
 
         } else {
             if (channelKeyword == '') {
-                rplyVal = await exports.analytics.parseInput({
+                rplyVal = await parseRouter.parseInput({
                     inputStr: mainMsg.join(' '),
                     botname: "WWW",
+                    userid: wwwReplyTarget.userid,
                     locale,
                     t
-                })
+                }, { replyTarget: wwwReplyTarget });
             }
         }
+        if (rplyVal?.deferred) return;
         if (rplyVal && rplyVal.text) {
             rplyVal.text = '\n' + rplyVal.text
             loadb(io, records, rplyVal, message);
@@ -2568,6 +2706,45 @@ async function loadb(io, records, rplyVal, message) {
         io.emit(message.roomNumber, botMessage);
         records.chatRoomPush(botMessage);
     }
+}
+
+if (io) {
+    deferQueue.setCharacterReplayFn(async (job) => {
+        const p = job.params || {};
+        try {
+            return await rollWorkerClient.characterAction({
+                doc: p.doc,
+                item: p.item,
+                locale: p.locale,
+                botname: p.botname || 'WWW',
+            });
+        } catch (error) {
+            if (deferQueue.isTransportSafeError(error)) return { deferred: true };
+            return { busy: true };
+        }
+    });
+
+    deferQueue.registerDeliverer('WWW', async (job, result) => {
+        const rt = job.replyTarget || {};
+        if (rt.kind === 'characterAction' || job.jobType === 'characterAction') {
+            const socket = rt.socket;
+            const rply = result?.rplyVal || result;
+            const characterResult = result?.characterResult;
+            const text = rply?.text || '';
+            if (!socket || !text || !characterResult) {
+                if (!socket?.connected) throw new Error('WWW socket gone');
+                return;
+            }
+            let out = `${characterResult.characterReRollName}：\n${text}`;
+            if (rt.includeCandle) out += candle.checker();
+            socket.emit(rt.eventName || 'rolling', out);
+            return;
+        }
+        const wwwMessage = rt.wwwMessage;
+        const text = result?.text || '';
+        if (!wwwMessage || !text || !io) return;
+        await loadb(io, records, { text: `\n${text}` }, wwwMessage);
+    });
 }
 async function limitRaterChatRoom(address) {
     return await checkRateLimit('chatRoom', address);

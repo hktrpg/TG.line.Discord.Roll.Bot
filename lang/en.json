@@ -5,6 +5,7 @@
       "no_response": "No response from command. Please check your input.",
       "no_response_prefix": "{{prefix}}No response from command. Please check your input.",
       "command_error": "An error occurred while processing the command. Please try again later.",
+      "system_busy": "The system is busy. Please try again later.",
       "partial_translation_banner": "ℹ️ Some commands are still in Traditional Chinese; translation is in progress."
     },
     "zh_only_notice": "(Traditional Chinese)",
@@ -2264,6 +2265,19 @@
         "mem": {
           "description": "Show RSS memory per cluster"
         },
+        "reload": {
+          "description": "Reload Primary / Standby compute (does not restart platform Gateways)",
+          "options": {
+            "target": {
+              "description": "local=Standby / remote=Primary / all (default local)",
+              "choices": {
+                "local": "local - Standby (:3951 fallback)",
+                "remote": "remote - Primary (:3950 preferred)",
+                "all": "all - Standby then Primary"
+              }
+            }
+          }
+        },
         "schedule": {
           "description": "Schedule auto-respawn (opt-in)",
           "options": {
@@ -3413,6 +3427,7 @@
     "at_delete_usage": "Usage: .at delete (serial)\n e.g. .at delete 1",
     "at_not_found": "Serial not found. Use latest .at show list.",
     "at_deleted": "Removed #{{serial}}\n{{content}}",
+    "at_save_error": "Failed to save scheduled message, please try again later",
     "at_delete_error": "Delete failed. Try again later.",
     "at_limit_reached": ".at limit: {{limit}} per group.\nSupport: https://www.patreon.com/HKTRPG\n",
     "cron_limit_reached": ".cron limit: {{limit}} per group.\nSupport: https://www.patreon.com/HKTRPG\n",
@@ -3426,6 +3441,7 @@
     "cron_delete_usage": "Usage: .cron delete (serial)\n e.g. .cron delete 1",
     "cron_not_found": "Serial not found. Use latest .cron show list.",
     "cron_deleted": "Removed #{{serial}}\n{{content}} ",
+    "cron_save_error": "Failed to save recurring schedule, please try again later",
     "cron_delete_error": "Delete failed. Try again later.",
     "no_content": "Missing content",
     "at_list_group": "【Group .at jobs】\n{{list}}",
@@ -3454,7 +3470,8 @@
     "help": "【Synced Chat】.chatroom\n    .chatroom create [channelId]\n    .chatroom join [multiId] [channelId]\n    .chatroom exit\n",
     "create_success": "Added {{guild}} - {{channel}} to synced chat room.",
     "join_success": "Added {{guild}} - {{channel}} to synced chat room. To add another channel: .join {{multiId}} (other channel ID)",
-    "exit_success": "Removed from synced chat room."
+    "exit_success": "Removed from synced chat room.",
+    "permission_denied": "You need Manage Channel permission to use synced chat commands."
   },
   "edit": {
     "game_name": "【Edit Old Messages】(Discord only)",
@@ -3677,6 +3694,7 @@
     "mylist_groups_header": "    【Allowed groups】:\n",
     "mylist_groups_empty": "      (not set)\n",
     "mylist_group_line": "      {{line}}\n",
+    "mylist_group_unknown": "(unnamed channel) - {{id}}",
     "mylist_completed": "  - Completed: {{count}}\n",
     "mylist_endings_header": "  - Endings:\n",
     "mylist_ending_line": "    • {{id}}: {{count}}\n",
@@ -3952,7 +3970,7 @@
     "glossary_header": "\n\n----- Glossary -----\n"
   },
   "admin": {
-    "help": "【⚙️ Admin Toolbox】\n╭────── 🔍 System Monitoring ──────\n│ Status check:\n│ 　• .admin state\n│ 　  - Check Rollbot runtime status\n│ 　  - Show system resource usage\n│\n│ ID lookup:\n│ 　• .admin id or .patreon id\n│ 　  - Show your user ID\n│ 　  - Show current group ID\n│ 　  - Works on all platforms\n│\n│ Patreon / VIP level:\n│ 　• .patreon level\n│ 　  - Check your and current group's VIP (Patreon) level\n│\n│ Debug:\n│ 　• .admin debug\n│ 　  - Show detailed group data\n│ 　  - Show setting status\n│\n│ Database status:\n│ 　• .admin mongod\n│ 　  - Check MongoDB connection status\n│\n│ System protection status:\n│ 　• .admin clusterhealth\n│ 　  - Check DB and cluster protection layers\n│ 　  - Show degraded mode and health stats\n│\n├────── 👤 Account Management ──────\n│ Web character card account:\n│ 　• .admin account [username] [password]\n│\n│ Username rules:\n│ 　• Length: 4-16 chars\n│ 　• Allowed: Chinese, English\n│\n│ Password rules:\n│ 　• Length: 6-16 chars\n│ 　• Allowed: letters\n│ 　• Symbols: !@#$%^&*\n│ \n│ Must be configured in direct chat with HKTRPG,\n│ do not use in group channels\n│\n│ Channel registration:\n│ 　• .admin registerChannel\n│ 　  - Register current channel\n│ 　• .admin unregisterChannel\n│ 　  - Unregister current channel\n│\n│ Rolling permission:\n│ 　• .admin allowrolling\n│ 　  - Allow web rolling in this channel\n│ 　• .admin disallowrolling\n│ 　  - Remove web rolling permission\n│\n├────── 📢 Update Notifications ──────\n│ Enable:\n│ 　• .admin news on\n│ 　  Receive HKTRPG updates\n│\n│ Disable:\n│ 　• .admin news off\n│ 　  Stop receiving updates\n│\n├────── 🔐 System Admin Only ──────\n│ Service restart:\n│ 　• .root respawn [ID]\n│ 　  - Restart the service by ID\n│ 　• .root respawnall\n│ 　  - Restart all services\n│ 　• .root mem  /  /root mem\n│ 　  - Show RSS memory per cluster\n│\n│ Auto-respawn schedule (off by default, opt-in):\n│ 　• /root schedule show|set|on|off\n│ 　• .root schedule\n│ 　  - Show current schedule\n│ 　• .root schedule set <weekday> <HH:MM>\n│ 　  - Set weekday and time (e.g. sun 04:55 / mon 05:00)\n│ 　• .root schedule on\n│ 　  - Enable schedule\n│ 　• .root schedule off\n│ 　  - Disable schedule\n│\n│ VIP management:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP group\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP user\n│\n│ Patreon members:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - Generate KEY on create; update only tier/notes/status, keep KEY\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - Regenerate KEY, old KEY expires immediately\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - Enable this member\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - Disable this member (and revoke assigned VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - Upload .csv to sync members. allkeys=all keys, newonly=new keys only. -email=generate email content file\n│\n│ Command registration:\n│ 　• .root registeredGlobal\n│ 　  - Register global commands\n│ 　• .root testRegistered [ID]\n│ 　  - Test command registration status\n│ 　• .root removeSlashCommands [ID]\n│ 　  - Remove Slash commands from target group (uses current group if ID missing)\n│\n│ Encryption:\n│ 　• .root decrypt [encrypted_text]\n│ 　  - Decrypt text\n│\n│ Shard fix:\n│ 　• .root fixshard check\n│ 　  - Check all shard status\n│ 　• .root fixshard start\n│ 　  - Start auto-fixing unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - Stop auto-fix\n│ 　• .root fixshard status\n│ 　  - Show fix status\n\n│ Send notifications:\n│ 　• .root send News [message]\n│ 　  - Send update notification\n╰──────────────",
+    "help": "【⚙️ Admin Toolbox】\n╭────── 🔍 System Monitoring ──────\n│ Status check:\n│ 　• .admin state\n│ 　  - Check Rollbot runtime status\n│ 　  - Show system resource usage\n│\n│ ID lookup:\n│ 　• .admin id or .patreon id\n│ 　  - Show your user ID\n│ 　  - Show current group ID\n│ 　  - Works on all platforms\n│\n│ Patreon / VIP level:\n│ 　• .patreon level\n│ 　  - Check your and current group's VIP (Patreon) level\n│\n│ Debug:\n│ 　• .admin debug\n│ 　  - Show detailed group data\n│ 　  - Show setting status\n│\n│ Database status:\n│ 　• .admin mongod\n│ 　  - Check MongoDB connection status\n│\n│ System protection status:\n│ 　• .admin clusterhealth\n│ 　  - Check DB and cluster protection layers\n│ 　  - Show degraded mode and health stats\n│\n├────── 👤 Account Management ──────\n│ Web character card account:\n│ 　• .admin account [username] [password]\n│\n│ Username rules:\n│ 　• Length: 4-16 chars\n│ 　• Allowed: Chinese, English\n│\n│ Password rules:\n│ 　• Length: 6-16 chars\n│ 　• Allowed: letters\n│ 　• Symbols: !@#$%^&*\n│ \n│ Must be configured in direct chat with HKTRPG,\n│ do not use in group channels\n│\n│ Channel registration:\n│ 　• .admin registerChannel\n│ 　  - Register current channel\n│ 　• .admin unregisterChannel\n│ 　  - Unregister current channel\n│\n│ Rolling permission:\n│ 　• .admin allowrolling\n│ 　  - Allow web rolling in this channel\n│ 　• .admin disallowrolling\n│ 　  - Remove web rolling permission\n│\n├────── 📢 Update Notifications ──────\n│ Enable:\n│ 　• .admin news on\n│ 　  Receive HKTRPG updates\n│\n│ Disable:\n│ 　• .admin news off\n│ 　  Stop receiving updates\n│\n├────── 🔐 System Admin Only ──────\n│ Service restart:\n│ 　• .root restart discord [ID]\n│ 　  - Restart the service by ID\n│ 　• .root restart discord all\n│ 　  - Restart all services\n│ 　• .root mem  /  /root mem\n│ 　  - Show RSS memory per cluster\n│\n│ Auto-restart discord schedule (off by default, opt-in):\n│ 　• /root schedule show|set|on|off\n│ 　• .root schedule\n│ 　  - Show current schedule\n│ 　• .root schedule set <weekday> <HH:MM>\n│ 　  - Set weekday and time (e.g. sun 04:55 / mon 05:00)\n│ 　• .root schedule on\n│ 　  - Enable schedule\n│ 　• .root schedule off\n│ 　  - Disable schedule\n│\n│ VIP management:\n│ 　• .root addVipGroup -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP group\n│ 　• .root addVipUser -i ID -l LV -n NAME -no NOTES -s SWITCH\n│ 　  - Add VIP user\n│\n│ Patreon members:\n│ 　• .root addpatreon PATREON_NAME tier=A|B|C|D|E|F [-no NOTES] [-s on|off]\n│ 　  - Generate KEY on create; update only tier/notes/status, keep KEY\n│ 　• .root regenkeypatreon PATREON_NAME\n│ 　  - Regenerate KEY, old KEY expires immediately\n│ 　• .root onpatreon PATREON_NAME\n│ 　  - Enable this member\n│ 　• .root offpatreon PATREON_NAME\n│ 　  - Disable this member (and revoke assigned VIP)\n│ 　• .root importpatreon [allkeys|newonly] [-email]\n│ 　  - Upload .csv to sync members. allkeys=all keys, newonly=new keys only. -email=generate email content file\n│\n│ Command registration:\n│ 　• .root registeredGlobal\n│ 　  - Register global commands\n│ 　• .root testRegistered [ID]\n│ 　  - Test command registration status\n│ 　• .root removeSlashCommands [ID]\n│ 　  - Remove Slash commands from target group (uses current group if ID missing)\n│\n│ Encryption:\n│ 　• .root decrypt [encrypted_text]\n│ 　  - Decrypt text\n│\n│ Shard fix:\n│ 　• .root fixshard check\n│ 　  - Check all shard status\n│ 　• .root fixshard start\n│ 　  - Start auto-fixing unresponsive shards\n│ 　• .root fixshard stop\n│ 　  - Stop auto-fix\n│ 　• .root fixshard status\n│ 　  - Show fix status\n\n│ Send notifications:\n│ 　• .root send News [message]\n│ 　  - Send update notification\n╰──────────────",
     "game_name": "【Admin Tool】.admin debug state account news on",
     "slash_invalid_command": "Invalid command",
     "error_missing_target_id": "Error: ID not provided and current group ID is unavailable",
@@ -4103,6 +4121,11 @@
     "invalid_root_command": "Invalid system admin command",
     "state_report": {
       "header": "【 📊 HKTRPG · System Status 】",
+      "section_version": "🏷 Version",
+      "version_gateway": "Gateway  {{display}}  role=gateway",
+      "version_worker": "Primary  {{display}}  role=primary  link={{link}}",
+      "version_local": "Standby  {{display}}  role=standby  link={{link}}",
+      "version_unreachable": "unreachable",
       "section_time": "⏰ Time",
       "earliest_record": "🗓 Earliest record {{time}}",
       "current_time": "🕐 Current time {{time}} ",
@@ -4118,7 +4141,8 @@
       "users": "👤 Total users {{count}}",
       "section_rng": "⚙️ Random number tools",
       "rng_tools": "🔹 random-js　·　nodeCrypto",
-      "month_label": "{{m}}/{{yy}}"
+      "month_label": "{{m}}/{{yy}}",
+      "version_stopped": "stopped"
     },
     "store_missing_user_id": "Missing user ID (-i parameter)",
     "store_missing_group_id": "Missing group ID (-g parameter)",
@@ -4128,19 +4152,21 @@
     "mem_discord_only": "This command is Discord-only",
     "mem_no_data": "No cluster memory data available",
     "mem_failed": "Memory query failed: {{message}}",
-    "mem_line": "• Cluster {{id}}: RSS {{rss}} MB | Heap {{heap}}/{{heap_total}} MB | Ext {{external}} MB | uptime {{uptime}}s",
-    "mem_report": "📊 **Cluster Memory**\n• Clusters: {{count}}\n• Total RSS: {{total_rss}} MB\n• Host RAM: {{host_used}} / {{host_total}} MB ({{host_percent}}%, free {{host_free}} MB)\n• Warn / Critical: {{warn_at}}% / {{critical_at}}%\n• Per-process heap limit: ~{{heap_limit}} MB\n\n{{lines}}",
+    "mem_line": "C{{id}} RSS {{rss}}MB {{bar}} {{heap_pct}}% heap",
+    "mem_host_line": "HOST     {{host_percent}}% {{bar}} warn@{{warn_at}} crit@{{critical_at}}",
+    "mem_report": "📊 **Cluster Memory**\n• Clusters: {{count}}\n• Total RSS: {{total_rss}} MB\n• Host RAM: {{host_used}} / {{host_total}} MB (free {{host_free}} MB)\n• Per-process heap limit: ~{{heap_limit}} MB\n\n{{lines}}\n{{host_line}}\n\n{{version}}",
+    "mem_version": "version {{role}} {{display}} · Node {{node}}",
     "schedule_set_usage": "Usage:\n.root schedule set <weekday> <HH:MM>\n.root schedule on|off\n.root schedule\n/root schedule show|set|on|off\n\nWeekday: 0-6 / sun-sat / 日-六\ne.g. .root schedule set sun 04:55\n     .root schedule set mon 05:00\n※ set only saves config; run .root schedule on to enable\nTimezone: Asia/Hong_Kong (override with AGENDA_TIMEZONE)",
     "schedule_invalid_day": "Invalid weekday. Use 0-6, sun-sat, or 日/一/二/三/四/五/六",
     "schedule_invalid_time": "Invalid time. Use HH:MM (24h), e.g. 04:55",
     "schedule_db_unavailable": "Database unavailable; schedule feature disabled",
     "schedule_set_success": "Schedule saved: every {{weekday}} at {{time}} ({{timezone}})\nStatus: {{enabled}}\n※ If still off, run .root schedule on",
     "schedule_on_need_set": "Weekday/time not set yet. First run:\n.root schedule set <weekday> <HH:MM>\nthen .root schedule on",
-    "schedule_on_success": "Auto-respawn enabled: every {{weekday}} at {{time}} ({{timezone}})",
-    "schedule_off_success": "Auto-respawn schedule disabled",
+    "schedule_on_success": "Auto-restart discord enabled: every {{weekday}} at {{time}} ({{timezone}})",
+    "schedule_off_success": "Auto-restart discord schedule disabled",
     "schedule_failed": "Schedule operation failed: {{message}}",
-    "schedule_show_empty": "Auto-respawn schedule: not set\nStatus: off (opt-in)\nTimezone: {{timezone}}\n\nSet: .root schedule set <weekday> <HH:MM>\nEnable: .root schedule on",
-    "schedule_show": "Auto-respawn schedule\n• Status: {{enabled}}\n• When: every {{weekday}} at {{time}}\n• Timezone: {{timezone}}\n• Cron: {{cron}}",
+    "schedule_show_empty": "Auto-restart discord schedule: not set\nStatus: off (opt-in)\nTimezone: {{timezone}}\n\nSet: .root schedule set <weekday> <HH:MM>\nEnable: .root schedule on",
+    "schedule_show": "Auto-restart discord schedule\n• Status: {{enabled}}\n• When: every {{weekday}} at {{time}}\n• Timezone: {{timezone}}\n• Cron: {{cron}}",
     "schedule_status_on": "ON",
     "schedule_status_off": "OFF",
     "weekday_0": "Sunday",
@@ -4149,7 +4175,55 @@
     "weekday_3": "Wednesday",
     "weekday_4": "Thursday",
     "weekday_5": "Friday",
-    "weekday_6": "Saturday"
+    "weekday_6": "Saturday",
+    "restart_usage": "Usage: .root restart primary|standby|discord|gateway|all\n\n• primary — Primary (:3950)\n• standby — Standby (:3951)\n• discord all — every Discord cluster (must type all)\n• discord <clusterId> — one cluster only\n• gateway — platform Gateway (Discord=all clusters; else process SIGTERM)\n• all — standby → primary → gateway\n\nStop compute: .root stop primary|standby\nEmbedded has no switch — use restart gateway.",
+    "restart_ok_header": "[.root restart {{target}}] OK",
+    "restart_fail_header": "[.root restart {{target}}] failed",
+    "restart_all_header": "[.root restart all] combined",
+    "restart_scope_line": "• Scope: {{scope}}",
+    "restart_scope_standby": "Standby (fallback HTTP dice; ROLL_STANDBY_URL / ROLL_STANDBY_SPAWN, default :3951)",
+    "restart_scope_primary": "Primary (preferred HTTP dice; ROLL_WORKER_URL, default :3950)",
+    "restart_line_mode": "• Mode: {{mode}}\n  → {{mode_detail}}",
+    "restart_line_url": "• URL: {{url}}",
+    "restart_line_pid": "• PID: {{pid}}",
+    "restart_line_http_status": "• HTTP status: {{status}}",
+    "restart_line_warning": "• Warning: {{warning}}",
+    "restart_line_reason": "• Reason: {{reason}}",
+    "restart_line_hint": "• Hint: {{hint}}",
+    "restart_line_note": "• Note: {{note}}",
+    "restart_line_note_ok": "• Impact: Primary/Standby compute only. Platform Gateways stay up.\n• Limit: needsLocal / Embedded need restart gateway.",
+    "restart_line_note_fail": "• Impact: target did not restart. Gateways unaffected.",
+    "restart_line_vs_gateway": "• Contrast: restart gateway/discord touches platform links; restart primary|standby is compute only.",
+    "restart_mode_supervised_respawn": "Gateway-supervised child shut down and restart discorded; health OK.",
+    "restart_mode_self_restart": "Self-restarted on same port; health OK.",
+    "restart_mode_ensure_spawn": "Was down; ensure/spawn completed; health OK.",
+    "restart_mode_stopped": "Stopped until .root restart.",
+    "restart_mode_reload_uncertain": "Self-reload sent; could not confirm exit.",
+    "restart_mode_reload_sent": "Self-reload sent; /health did not return in time.",
+    "restart_mode_unknown": "Mode \"{{mode}}\" (see logs)",
+    "restart_reason_standby_unset": "No Standby (URL unset and auto SPAWN off).",
+    "restart_hint_standby_unset": "Set ROLL_STANDBY_URL or ROLL_STANDBY_SPAWN=true, then .root restart standby.",
+    "restart_reason_primary_unset": "No Primary (URL unset and auto SPAWN off).",
+    "restart_hint_primary_unset": "Set ROLL_WORKER_URL or allow ROLL_WORKER_SPAWN (default on), then .root restart primary.",
+    "restart_reason_busy": "Another restart/stop is in progress.",
+    "restart_hint_busy": "Wait a few seconds and retry.",
+    "restart_reason_still_up": "Admin request sent but /health still OK.",
+    "restart_hint_still_up": "Check Primary/Standby logs or loopback 403.",
+    "restart_reason_not_back": "Process stopped but /health did not return.",
+    "restart_hint_not_back": "Start yarn start:roll-worker:primary on :3950 (or PM2/docker), then .root restart. Plain start:roll-worker uses :3952.",
+    "restart_reason_unknown": "Unclassified error.",
+    "restart_hint_generic": "Check Gateway and Primary/Standby logs.",
+    "restart_failed": "[.root restart] exception.\n• Error: {{message}}",
+    "restart_discord_one_sent": "[.root restart discord {{id}}] sent\n• Restart one Discord cluster (brief disconnect).",
+    "restart_discord_all_sent": "[.root restart discord all] sent\n• Restart all Discord clusters; bot briefly goes offline then reconnects.",
+    "restart_gateway_discord_sent": "[.root restart gateway] sent (Discord clusters)\n• Same as restart discord (all).",
+    "restart_gateway_process_sent": "[.root restart gateway] sent\n• This process will SIGTERM; ensure PM2/docker relaunches it.",
+    "stop_usage": "Usage: .root stop primary|standby\n\nRouting skips the layer until .root restart. No stop gateway.",
+    "stop_ok_header": "[.root stop {{target}}] OK",
+    "stop_fail_header": "[.root stop {{target}}] failed",
+    "stop_line_note_ok": "• Impact: stopped; parse skips this layer until .root restart.",
+    "stop_failed": "[.root stop] exception.\n• Error: {{message}}",
+    "restart_discord_need_selector": "[Safety] .root restart discord requires a selector:\n• .root restart discord all — every Discord cluster (brief offline)\n• .root restart discord <clusterId> — one cluster (e.g. 0)\n\nBare .root restart discord does nothing."
   },
   "patreon": {
     "tier_label_1": "Tier A: Investigator",

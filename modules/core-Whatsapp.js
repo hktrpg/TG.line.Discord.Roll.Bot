@@ -38,7 +38,6 @@ const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
-let TargetGM = (process.env.mongoURL) ? require('../roll/z_DDR_darkRollingToGM').initialize() : '';
 // const schema = require('../modules/db/schema.js');
 // const opt = {
 // 	upsert: true,
@@ -163,6 +162,9 @@ const newMessage = require('./chat/message');
 const i18n = require('./i18n/i18n.js');
 
 exports.analytics = require('./analytics');
+const parseRouter = require('./roll-worker/parse-router');
+const deferQueue = require('./roll-worker/defer-queue');
+const darkRolling = require('./roll-worker/dark-rolling');
 
 let whatsappClient = null;
 const rollText = require('./chat/getRoll').rollText;
@@ -283,7 +285,7 @@ async function startUp() {
 
 				// 分析訊息內容
 				const result = await processMessage(msg, groupInfo, client);
-				if (!result) return;
+				if (!result || result.deferred) return;
 
 				// 發送回覆
 				await handleReply(result, msg, client);
@@ -329,7 +331,7 @@ function setupAgenda(client) {
 	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
 		try {
 			const { groupid, replyText } = job.attrs.data;
-			const text = await rollText(replyText);
+			const text = await rollText(replyText, { botname: 'Whatsapp', groupid });
 			await SendToId(groupid, { text: text }, client);
 			await job.remove();
 		} catch (error) {
@@ -340,7 +342,7 @@ function setupAgenda(client) {
 	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
 		try {
 			const { groupid, replyText, createAt } = job.attrs.data;
-			const text = await rollText(replyText);
+			const text = await rollText(replyText, { botname: 'Whatsapp', groupid });
 			await SendToId(groupid, { text: text }, client);
 			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
 				await job.remove();
@@ -416,7 +418,10 @@ async function processMessage(msg, groupInfo, client) {
 	}
 	privateMsg();
 
-	let target = exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+	let target = true;
+	if (!parseRouter.shouldSkipLocalFindRollList('Whatsapp')) {
+		target = exports.analytics.findRollList(inputStr.match(MESSAGE_SPLITOR));
+	}
 	if (!target && privatemsg == 0) return null;
 	let userid, displayname, channelid, channelKeyword = '';
 	let userrole = 3;
@@ -457,9 +462,14 @@ async function processMessage(msg, groupInfo, client) {
 	}
 	const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' });
 	const t = i18n.createTranslator(locale);
+	const waReplyTarget = {
+		botname: 'Whatsapp',
+		chatId: msg.from || groupid || userid,
+		userid,
+	};
 	if (channelKeyword != '' && trigger == channelKeyword.toString().toLowerCase()) {
 		mainMsg.shift();
-		rplyVal = await exports.analytics.parseInput({
+		rplyVal = await parseRouter.parseInput({
 			inputStr: inputStr,
 			groupid: groupid,
 			userid: userid,
@@ -470,10 +480,10 @@ async function processMessage(msg, groupInfo, client) {
 			membercount: membercount,
 			locale,
 			t
-		})
+		}, { replyTarget: waReplyTarget });
 	} else {
 		if (channelKeyword == '') {
-			rplyVal = await exports.analytics.parseInput({
+			rplyVal = await parseRouter.parseInput({
 				inputStr: inputStr,
 				groupid: groupid,
 				userid: userid,
@@ -484,9 +494,11 @@ async function processMessage(msg, groupInfo, client) {
 				membercount: membercount,
 				locale,
 				t
-			})
+			}, { replyTarget: waReplyTarget });
 		}
 	}
+
+	if (rplyVal?.deferred) return { deferred: true };
 
 	if (groupid && rplyVal && rplyVal.LevelUp) {
 		let text = `@${displayname}${(rplyVal.statue) ? ' ' + rplyVal.statue : ''}${(candle.checker(userid)) ? ' ' + candle.checker(userid) : ''}
@@ -505,8 +517,8 @@ async function processMessage(msg, groupInfo, client) {
 	}
 
 
-	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = privateMsgFinder(groupid) || [];
+	if (privatemsg > 1 && process.env.mongoURL) {
+		let groupInfo = await privateMsgFinder(groupid) || [];
 		for (const item of groupInfo) {
 			TargetGMTempID.push(item.userid);
 			TargetGMTempdiyName.push(item.diyName);
@@ -657,12 +669,8 @@ async function SendToReply(msg, rplyVal, userid) {
 	}
 }
 
-function privateMsgFinder(channelid) {
-	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-		data.groupid == channelid
-	)
-	return groupInfo && groupInfo.trpgDarkRollingfunction ? groupInfo.trpgDarkRollingfunction : [];
+async function privateMsgFinder(channelid) {
+	return darkRolling.getGroupGms(channelid);
 }
 
 async function SendToId(targetid, rplyVal, client) {
@@ -702,6 +710,21 @@ async function SendToId(targetid, rplyVal, client) {
 		console.error('[WhatsApp] SendToId general error:', error.message);
 	}
 }
+
+deferQueue.registerDeliverer('Whatsapp', async (job, result) => {
+	const client = whatsappClient;
+	if (!client) throw new Error('WhatsApp client not ready');
+	const text = result?.text || '';
+	const levelUp = result?.LevelUp || '';
+	const targetId = job.replyTarget?.chatId || job.params?.groupid || job.userid;
+	if (!targetId) return;
+	if (levelUp) {
+		const display = job.params?.displayname || '';
+		const statue = result?.statue ? ` ${result.statue}` : '';
+		await client.sendMessage(targetId, `@${display}${statue}\n\t\t${levelUp}`);
+	}
+	if (text) await SendToId(targetId, { text }, client);
+});
 
 // Unhandled rejections are handled by the main application error handler in index.js
 

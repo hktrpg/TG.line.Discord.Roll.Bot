@@ -142,8 +142,20 @@ if (process.env.mongoURL) {
                 }
             }
 
+            // Roll Worker must not process Agenda jobs (platform Send handlers live on gateways).
+            // Still await Agenda Mongo ready — z_schedule.schedule()/jobs() need _collection.
+            if (process.env.ROLL_WORKER_MODE === 'true') {
+                try {
+                    await agenda._ready;
+                    // Silent on success — Agenda API-only ready is expected on every Worker boot.
+                } catch (error) {
+                    console.error('[Schedule] ROLL_WORKER_MODE: Agenda DB ready failed:', error?.message || error);
+                }
+                return;
+            }
+
             await agenda.start();
-            // Opt-in only: cancel legacy hardcoded daily job, then sync from DB if enabled.
+            // Silent on success — Agenda processor start is expected on every Gateway boot.
             await syncDiscordMaintenanceSchedule();
         } catch (error) {
             console.error(`[Schedule] Agenda start error:`, error);
@@ -163,8 +175,24 @@ if (process.env.mongoURL) {
     });
 }
 
+/**
+ * Wait until Agenda's Mongo collection is usable (schedule/jobs/create).
+ * Safe on Gateway (after start) and Roll Worker (API-only, no processor).
+ */
+async function ensureAgendaReady() {
+    if (!agenda) {
+        throw new Error('Agenda is not configured (mongoURL missing)');
+    }
+    await agenda._ready;
+    if (!agenda._collection) {
+        throw new Error('Agenda Mongo collection is not ready');
+    }
+    return agenda;
+}
+
 module.exports = {
     agenda,
+    ensureAgendaReady,
     JOB_NAME,
     AGENDA_TIMEZONE,
     SCHEDULE_DOC_KEY,

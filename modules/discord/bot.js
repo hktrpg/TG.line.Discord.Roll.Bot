@@ -16,6 +16,91 @@ const dbConnector = require('../db/connector.js');
 const checkMongodb = require('../db/watchdog.js');
 
 exports.analytics = require('../analytics');
+const parseRouter = require('../roll-worker/parse-router');
+const deferQueue = require('../roll-worker/defer-queue');
+const { assertArtifactReadable } = require('../roll-worker/artifacts');
+// ParseMode banner: only once across Gateway processes (see parse-router claim).
+parseRouter.logParseMode(console);
+
+const { deliverDiscordDeferred } = require('../roll-worker/discord-defer-deliver');
+
+async function clearDeferredDiscordInteraction(interaction) {
+	if (!interaction) return;
+	try {
+		if (interaction.deferred || interaction.replied) {
+			await interaction.deleteReply();
+		}
+	} catch (error) {
+		if (!isDiscordUnknownInteraction(error)) {
+			console.error('[DeferQueue] Discord deleteReply:', error.message);
+		}
+	}
+}
+
+/**
+ * Drain deliverer: prefer full Discord finalize+send (same as online path) when a live
+ * message/interaction ref exists — covers quotes/buttons/files/myNames/exports/etc.
+ * Thin deliverDiscordDeferred remains as fallback if the live ref is gone.
+ */
+deferQueue.registerDeliverer('Discord', async (job, result) => {
+	const target = job.replyTarget || {};
+	const message = target.message || target.interaction;
+	if (message && typeof finalizeDiscordParseResult === 'function') {
+		const sendResult = await finalizeDiscordParseResult(message, result, {
+			privatemsg: target.privatemsg || 0,
+			displaynameDiscord: target.displaynameDiscord
+				|| job.params?.displaynameDiscord
+				|| '',
+		});
+		// Side-effect-only / empty text: still clear slash "thinking…" ephemeral.
+		if (!sendResult) {
+			if (message.isInteraction) await clearDeferredDiscordInteraction(message);
+			return;
+		}
+		if (message.isInteraction || sendResult.webhookOnly || sendResult.interactionHandled) {
+			await replilyMessage(message, sendResult);
+			return;
+		}
+		if (sendResult.text) {
+			await handlingSendMessage(sendResult);
+		}
+		return;
+	}
+	await deliverDiscordDeferred(job, result, {
+		repeatMessages,
+		sendMeMessage: __sendMeMessage,
+		sendToReplyChannel: SendToReplychannel,
+		clearInteraction: clearDeferredDiscordInteraction,
+		fetchChannel: (channelId) => client.channels.fetch(channelId),
+		formatDisplayPrefix: (deliverJob, body) => {
+			const uid = deliverJob.replyTarget?.userid || deliverJob.userid;
+			if (!uid) return body;
+			return `<@${uid}>${candle.checker(uid)}\n${body}`;
+		},
+		replyInteraction: async (interaction, { text, quotes }) => {
+			const chunks = String(text || '').match(/[\s\S]{1,2000}/g) || ['\u200B'];
+			const first = chunks[0];
+			const payload = quotes
+				? { embeds: await convQuotes(first) }
+				: { content: first || '\u200B' };
+			if (interaction.deferred && !interaction.replied) {
+				await interaction.editReply(payload);
+			} else if (!interaction.replied) {
+				await interaction.reply(payload);
+			} else if (typeof interaction.followUp === 'function') {
+				await interaction.followUp(payload);
+			}
+			for (let i = 1; i < chunks.length && i < 4; i++) {
+				const follow = quotes
+					? { embeds: await convQuotes(chunks[i]) }
+					: { content: chunks[i] };
+				if (typeof interaction.followUp === 'function') {
+					await interaction.followUp(follow);
+				}
+			}
+		},
+	});
+});
 const i18n = require('../i18n/i18n.js');
 const debugMode = !!process.env.DEBUG;
 const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
@@ -519,7 +604,7 @@ loginWithErrorHandling();
 const MESSAGE_SPLITOR = (/\S+/ig);
 const link = process.env.WEB_LINK;
 const mongo = process.env.mongoURL;
-let TargetGM = (process.env.mongoURL) ? require('../../roll/z_DDR_darkRollingToGM').initialize() : '';
+const darkRolling = process.env.mongoURL ? require('../roll-worker/dark-rolling') : null;
 const EXPUP = require('../chat/level').EXPUP || function () { };
 const courtMessage = require('../chat/logs').courtMessage || function () { };
 
@@ -1008,74 +1093,81 @@ client.on('clientReady', async () => {
 
 async function replilyMessage(message, result) {
 	const displayname = (message.member && message.member.id) ? `<@${message.member.id}>${candle.checker(message.member.id)}\n` : '';
-	if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
-		if (result.webhookOnly) {
+	// Busy-queue: leave Discord "thinking…" until drain editReply.
+	if (result?.deferred) return;
+	try {
+		if (result && (result.webhookOnly || result.interactionHandled) && message.isInteraction) {
+			// webhookOnly: /me /mee sent via webhook. interactionHandled: webhook failed but
+			// interaction was acknowledged — always drop the deferred ephemeral.
 			try {
 				if (message.deferred || message.replied) {
 					await message.deleteReply();
 				}
 			} catch (error) {
 				if (!isDiscordUnknownInteraction(error)) {
-					console.error('replilyMessage deleteReply (webhookOnly):', error.message);
+					console.error('replilyMessage deleteReply (webhook/me):', error.message);
 				}
 			}
-		}
-		return;
-	}
-	if (result && result.text) {
-		result.text = `${displayname}${result.text}`
-		await __handlingReplyMessage(message, result);
-	}
-	else {
-		const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
-		const noResponseText = t('common.errors.no_response_prefix', { prefix: displayname });
-		try {
-			// For interactions, check status and respond appropriately
-			if (message.isInteraction) {
-				if (!message.deferred && !message.replied) {
-					// Defer the reply if we haven't responded yet
-					await message.deferReply({ flags: MessageFlags.Ephemeral });
-					await message.editReply({ content: noResponseText, flags: MessageFlags.Ephemeral });
-				} else if (message.deferred && !message.replied) {
-					// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
-					// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
-					const noResponseEdit = { content: noResponseText };
-					if (message.ephemeral) {
-						noResponseEdit.flags = MessageFlags.Ephemeral;
-					}
-					await message.editReply(noResponseEdit);
-				} else if (!message.replied) {
-					// Last resort - try a direct reply
-					await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral })
-						.catch(error => console.error('Failed to reply to interaction:', error.message));
-				}
-			} else {
-				// For regular messages
-				return await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral });
-			}
-		} catch (error) {
-			if (isDiscordUnknownInteraction(error)) {
-				warnInteraction10062('replily_no_result', message);
-				return;
-			}
-			if (message.isInteraction && error.code === 50_027) {
-				const fallbackSent = await replyInteractionPrivate(
-					message,
-					noResponseText
-				);
-				if (fallbackSent) return;
-				if (message.channel && typeof message.channel.send === 'function') {
-					try {
-						await message.channel.send(noResponseText);
-						return;
-					} catch (fallbackError) {
-						console.error('replilyMessage fallback channel.send:', fallbackError.message);
-					}
-				}
-			}
-			console.error('replilyMessage error:', error);
 			return;
 		}
+		if (result && result.text) {
+			result.text = `${displayname}${result.text}`
+			await __handlingReplyMessage(message, result);
+		}
+		else {
+			const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+			const noResponseText = t('common.errors.no_response_prefix', { prefix: displayname });
+			try {
+				// For interactions, check status and respond appropriately
+				if (message.isInteraction) {
+					if (!message.deferred && !message.replied) {
+						// Defer the reply if we haven't responded yet
+						await message.deferReply({ flags: MessageFlags.Ephemeral });
+						await message.editReply({ content: noResponseText, flags: MessageFlags.Ephemeral });
+					} else if (message.deferred && !message.replied) {
+						// Match ephemeral flag to how __handlingInteractionMessage deferred (public vs ephemeral).
+						// Forcing Ephemeral on edit after a public defer can break the interaction webhook (e.g. 50027).
+						const noResponseEdit = { content: noResponseText };
+						if (message.ephemeral) {
+							noResponseEdit.flags = MessageFlags.Ephemeral;
+						}
+						await message.editReply(noResponseEdit);
+					} else if (!message.replied) {
+						// Last resort - try a direct reply
+						await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral })
+							.catch(error => console.error('Failed to reply to interaction:', error.message));
+					}
+				} else {
+					// For regular messages
+					await message.reply({ content: noResponseText, flags: MessageFlags.Ephemeral });
+					return;
+				}
+			} catch (error) {
+				if (isDiscordUnknownInteraction(error)) {
+					warnInteraction10062('replily_no_result', message);
+					return;
+				}
+				if (message.isInteraction && error.code === 50_027) {
+					const fallbackSent = await replyInteractionPrivate(
+						message,
+						noResponseText
+					);
+					if (fallbackSent) return;
+					if (message.channel && typeof message.channel.send === 'function') {
+						try {
+							await message.channel.send(noResponseText);
+							return;
+						} catch (fallbackError) {
+							console.error('replilyMessage fallback channel.send:', fallbackError.message);
+						}
+					}
+				}
+				console.error('replilyMessage error:', error);
+				return;
+			}
+		}
+	} finally {
+		flushPendingClusterIpc(result?._pendingClusterIpc);
 	}
 }
 
@@ -1156,13 +1248,8 @@ async function convQuotes(text = "") {
 }
 
 async function privateMsgFinder(channelid) {
-	if (!TargetGM || !TargetGM.trpgDarkRollingfunction) return;
-	let groupInfo = TargetGM.trpgDarkRollingfunction.find(data =>
-		data.groupid == channelid
-	)
-	if (groupInfo && groupInfo.trpgDarkRollingfunction)
-		return groupInfo.trpgDarkRollingfunction
-	else return [];
+	if (!darkRolling || typeof darkRolling.getGroupGms !== 'function') return [];
+	return darkRolling.getGroupGms(channelid);
 }
 async function sendMessage({ target, replyText, quotes = false, components = null }) {
 	if (!target) return;
@@ -1232,7 +1319,10 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		}
 	}
 
-	if (!channel) return;
+	if (!channel) {
+		console.warn(`[Schedule] SendToReplychannel: channel not found | channelid=${channelid} | groupid=${groupid || ''}`);
+		return;
+	}
 
 	// If we have button components, send each set separately
 	if (buttonCreate && Array.isArray(buttonCreate) && buttonCreate.length > 0) {
@@ -2455,14 +2545,24 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		console.log(`[Schedule] fire scheduleAtMessageDiscord | serial=${data?.serial ?? '?'} | channel=${data?.channelid || ''} | pid=${process.pid}`);
+		let text = await rollText(data.replyText, {
+			botname: 'Discord',
+			groupid: data.groupid,
+			channelid: data.channelid,
+		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
-		if (!data.imageLink && !data.roleName)
-			SendToReplychannel(
-				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
-			)
-		else {
-			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
+		try {
+			if (!data.imageLink && !data.roleName) {
+				await SendToReplychannel(
+					{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
+				);
+			} else {
+				await sendCronWebhook({ channelid: data.channelid, replyText: text, data });
+			}
+		} catch (error) {
+			console.error('[Schedule] scheduleAtMessageDiscord send failed:', error?.message || error);
+			throw error;
 		}
 		try {
 			await job.remove();
@@ -2477,21 +2577,30 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
-		let text = await rollText(data.replyText);
+		let text = await rollText(data.replyText, {
+			botname: 'Discord',
+			groupid: data.groupid,
+			channelid: data.channelid,
+		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
-		if (!data.imageLink && !data.roleName)
-			SendToReplychannel(
-				{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
-			)
-		else {
-			await sendCronWebhook({ channelid: data.channelid, replyText: text, data })
+		try {
+			if (!data.imageLink && !data.roleName) {
+				await SendToReplychannel(
+					{ replyText: text, channelid: data.channelid, quotes: quotes, groupid: data.groupid }
+				);
+			} else {
+				await sendCronWebhook({ channelid: data.channelid, replyText: text, data });
+			}
+		} catch (error) {
+			console.error('[Schedule] scheduleCronMessageDiscord send failed:', error?.message || error);
+			throw error;
 		}
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
 				const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Discord' });
 				const cronT = i18n.createTranslator(cronLocale);
-				SendToReplychannel(
+				await SendToReplychannel(
 					{ replyText: cronT('discord.schedule.six_month_remove'), channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)
 			}
@@ -2550,7 +2659,7 @@ async function repeatMessages(discord, message) {
 
 		for (let index = 0; index < message.myNames.length; index++) {
 			const element = message.myNames[index];
-			let text = await rollText(element.content);
+			let text = await rollText(element.content, { botname: 'Discord' });
 			let pair = (webhook && webhook.isThread) ? { threadId: discord.channel.id } : {};
 			const chunks = typeof text === 'string'
 				? text.match(/[\s\S]{1,2000}/g) || ['']
@@ -3562,7 +3671,12 @@ async function handlingResponMessage(message, answer = '') {
 
 		const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
 		const displayname = (message.member && message.member.user && message.member.user.tag) || (message.user && message.user.username) || '';
-		const displaynameDiscord = (message.member && message.member.user && message.member.user.username) ? message.member.user.username : '';
+		// Prefer guild displayName for remoted LevelUp `{user.displayName}` (Worker has no discordMessage).
+		const displaynameDiscord = message.member?.displayName
+			|| message.user?.displayName
+			|| message.member?.user?.username
+			|| message.author?.username
+			|| '';
 		const membercount = (message.guild) ? message.guild.memberCount : 0;
 		const titleName = ((message.guild && message.guild.name) ? message.guild.name + ' ' : '') + ((message.channel && message.channel.name) ? message.channel.name : '');
 		const channelid = (message.channelId) ? message.channelId : '';
@@ -3588,7 +3702,7 @@ async function handlingResponMessage(message, answer = '') {
 		// After message arrives, automatically jump to analytics.js for dice group analysis
 		// If you want to add or modify dice groups, just modify the conditions in analytics.js and the dice group files in ROLL, then add explanations in HELP.JS.
 
-		rplyVal = await exports.analytics.parseInput({
+		rplyVal = await parseRouter.parseInput({
 			inputStr: inputStr,
 			groupid: groupid,
 			userid: userid,
@@ -3601,224 +3715,33 @@ async function handlingResponMessage(message, answer = '') {
 			discordClient: client,
 			discordMessage: message,
 			titleName: titleName,
+			channelType: message?.channel?.type,
 			locale: message?._hktrpgLocale,
 			t: message?._hktrpgT
+		}, {
+			replyTarget: {
+				botname: 'Discord',
+				channelId: channelid,
+				messageId: message?.id || null,
+				guildId: groupid || null,
+				userid,
+				isInteraction: Boolean(message?.isInteraction),
+				interaction: message?.isInteraction ? message : null,
+				// Live message for defer drain full finalize (same process only).
+				message,
+				privatemsg: checkPrivateMsg.privatemsg,
+				displaynameDiscord,
+			},
 		});
 
-		// Ensure isInteraction flag is preserved
-		if (message.isInteraction) {
-			rplyVal.isInteraction = true;
-		}
-		// (poll is created later when sending message content to preserve order)
-		if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
-		if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
-		if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate)
-		if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal, message)
-		if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal)
-		if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal)
-		if (rplyVal.myspeck) {
-			await __sendMeMessage({ message, rplyVal, groupid });
-			if (message.isInteraction && groupid) return { webhookOnly: true };
-			return;
-		}
-		if (rplyVal.myNames) {
-			const webhookSent = await repeatMessages(message, rplyVal);
-			if (message.isInteraction) {
-				if (webhookSent) return { webhookOnly: true };
-				return { interactionHandled: true };
-			}
+		if (rplyVal?.deferred) {
+			return { deferred: true };
 		}
 
-
-		if (rplyVal.sendNews) sendNewstoAll(rplyVal);
-
-		if (rplyVal.sendImage) await sendBufferImage(message, rplyVal, userid)
-		if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal)
-		if (rplyVal.fileLink?.length > 0) await sendFiles(message, rplyVal, userid)
-		if (rplyVal.respawn) {
-			const timestamp = new Date().toISOString();
-			console.error('[User Command] ========== USER COMMAND RESPAWN TRIGGERED ==========');
-			console.error(`[User Command] Timestamp: ${timestamp}`);
-			console.error(`[User Command] Reason: User command triggered respawn (rplyVal.respawn = true)`);
-			console.error(`[User Command] User ID: ${userid}`);
-			console.error(`[User Command] Channel ID: ${channelid}`);
-			console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
-			console.error('[User Command] ==========================================');
-			respawnCluster2({
-				source: 'user_command',
-				trigger: 'rplyVal.respawn',
-				userid,
-				channelid
-			});
-		}
-		if (!rplyVal.text && !rplyVal.LevelUp) return;
-		if (process.env.mongoURL)
-			try {
-
-				const isNew = await newMessage.newUserChecker(userid, "Discord");
-				if (process.env.mongoURL && rplyVal.text && isNew) {
-					SendToId(userid, await newMessage.firstTimeMessage({
-						userid,
-						botname: 'Discord',
-						locale: message._hktrpgLocale
-					}), true);
-				}
-			} catch (error) {
-				console.error(`[Discord Bot] Error in message handling:`, (error && error.name && error.message));
-			}
-
-		if (rplyVal.state) {
-			const createdTs = message.createdTimestamp ?? Date.now();
-			const gatewayPingMs = getLocalGatewayPingMs();
-			const statsT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
-			const statsT0 = Date.now();
-			const [countResult, shardResult] = await Promise.all([
-				count(statsT),
-				getAllshardIds(statsT)
-			]);
-			const statsCollectMs = Date.now() - statsT0;
-			let e2eMs = Number(Date.now() - createdTs);
-			if (e2eMs < 0) {
-				e2eMs = Math.abs(e2eMs);
-			}
-			if (e2eMs > 10_000) {
-				e2eMs = 9999;
-			}
-
-			const gatewayLine = gatewayPingMs === null
-				? statsT('discord.stats.ws_none')
-				: statsT('discord.stats.ws_ping', { status: latencyStatusGateway(gatewayPingMs), ms: gatewayPingMs });
-			const statsLine = statsT('discord.stats.site_collect', { status: latencyStatusWork(statsCollectMs), ms: statsCollectMs });
-			const e2eLine = statsT('discord.stats.e2e', { status: latencyStatusWork(e2eMs), ms: e2eMs });
-
-			rplyVal.text += [
-				'',
-				statsT('discord.stats.header'),
-				statsT('discord.stats.section_usage'),
-				statsT('discord.stats.guild_data'),
-				`│ • ${countResult}`,
-				statsT('discord.stats.timing_header'),
-				gatewayLine,
-				statsLine,
-				e2eLine,
-				(shardResult || '').trim()
-			].join('\n');
-		}
-
-
-		if (groupid && rplyVal && rplyVal.LevelUp) {
-			await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
-		}
-
-		if (rplyVal.discordExport) {
-			const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
-			const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
-			const exportContent = t('discord.export.channel_log', { channelName });
-			if (message.author && typeof message.author.send === 'function') {
-				message.author.send({
-					content: exportContent,
-					files: [
-						new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
-					]
-				}).catch(error => console.error('Failed to send DM with exported file:', error));
-			} else if (message.user && message.isInteraction) {
-				try {
-					// Defer the reply first to acknowledge the interaction
-					if (!message.deferred && !message.replied) {
-						await message.deferReply({ flags: MessageFlags.Ephemeral });
-					}
-
-					await message.user.send({
-						content: exportContent,
-						files: [
-							new AttachmentBuilder("./export/" + rplyVal.discordExport + '.txt')
-						]
-					});
-
-					// Now that we've deferred, use editReply instead of followUp
-					await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
-				} catch (error) {
-					console.error('Failed to send DM with exported file:', error);
-					if (message.deferred && !message.replied) {
-						await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-					}
-				}
-			}
-		}
-
-		if (rplyVal.discordExportHtml) {
-			const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
-			const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
-			const passwordContent = t('discord.export.channel_log_password', {
-				channelName,
-				password: rplyVal.discordExportHtml[1]
-			});
-			if (message.author && typeof message.author.send === 'function') {
-				if (!link || !mongo) {
-					message.author.send(
-						{
-							content: passwordContent,
-							files: [
-								"./export/" + rplyVal.discordExportHtml[0] + '.html'
-							]
-						}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
-
-				} else {
-					message.author.send(t('discord.export.channel_log_password_link', {
-						channelName,
-						password: rplyVal.discordExportHtml[1],
-						url: link + rplyVal.discordExportHtml[0] + '.html'
-					})).catch(error => console.error('Failed to send DM with HTML link:', error));
-				}
-			} else if (message.user && message.isInteraction) {
-				try {
-					// Defer the reply first to acknowledge the interaction if not already done
-					if (!message.deferred && !message.replied) {
-						await message.deferReply({ flags: MessageFlags.Ephemeral });
-					}
-
-					if (!link || !mongo) {
-						await message.user.send({
-							content: passwordContent,
-							files: [
-								"./export/" + rplyVal.discordExportHtml[0] + '.html'
-							]
-						});
-					} else {
-						await message.user.send(t('discord.export.channel_log_password_link', {
-							channelName,
-							password: rplyVal.discordExportHtml[1],
-							url: link + rplyVal.discordExportHtml[0] + '.html'
-						}));
-					}
-
-					// Now use editReply instead of followUp
-					await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
-				} catch (error) {
-					console.error('Failed to send DM with exported HTML file:', error);
-					if (message.deferred && !message.replied) {
-						await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-					} else if (!message.deferred && !message.replied) {
-						await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
-					}
-				}
-			}
-		}
-		if (!rplyVal.text) {
-			return;
-		} else return {
-			privatemsg: checkPrivateMsg.privatemsg, channelid,
-			groupid,
-			userid,
-			text: rplyVal.text,
-			message,
-			statue: rplyVal.statue,
-			quotes: rplyVal.quotes,
-			buttonCreate: rplyVal.buttonCreate,
-			discordCreatePoll: rplyVal.discordCreatePoll
-		};
+		return finalizeDiscordParseResult(message, rplyVal, {
+			privatemsg: checkPrivateMsg.privatemsg,
+			displaynameDiscord,
+		});
 
 	} catch (error) {
 		console.error(`handlingResponMessage Error:
@@ -3828,22 +3751,369 @@ async function handlingResponMessage(message, answer = '') {
 		Input: ${inputStr}`);
 	}
 }
+/**
+ * Post-parse Discord side-effects + send payload (shared by online path and defer drain).
+ * @returns {Promise<object|undefined>} handlingSendMessage / replilyMessage input, or undefined
+ */
+async function finalizeDiscordParseResult(message, rplyVal, opts = {}) {
+	if (!message || !rplyVal || rplyVal.deferred) return;
+
+	const groupid = message.guildId || '';
+	const channelid = message.channelId || '';
+	const userid = (message.author && message.author.id) || (message.user && message.user.id) || '';
+	const displaynameDiscord = opts.displaynameDiscord
+		|| message.member?.displayName
+		|| message.user?.displayName
+		|| '';
+	const privatemsg = opts.privatemsg || 0;
+
+	if (message.isInteraction) {
+		rplyVal.isInteraction = true;
+	}
+	if (rplyVal.requestRollingCharacter) await handlingRequestRollingCharacter(message, rplyVal.requestRollingCharacter);
+	if (rplyVal.requestRolling) await handlingRequestRolling(message, rplyVal.requestRolling, displaynameDiscord);
+	if (rplyVal.buttonCreate) rplyVal.buttonCreate = await handlingButtonCreate(message, rplyVal.buttonCreate);
+	if (rplyVal.roleReactFlag) await roleReact(channelid, rplyVal, message);
+	if (rplyVal.newRoleReactFlag) await newRoleReact(message, rplyVal);
+	if (rplyVal.discordEditMessage) await handlingEditMessage(message, rplyVal);
+	if (rplyVal.myspeck) {
+		await __sendMeMessage({ message, rplyVal, groupid });
+		if (message.isInteraction && groupid) return { webhookOnly: true };
+		return;
+	}
+	if (rplyVal.myNames) {
+		const webhookSent = await repeatMessages(message, rplyVal);
+		if (message.isInteraction) {
+			if (webhookSent) return { webhookOnly: true };
+			return { interactionHandled: true };
+		}
+		// Channel .meN: webhook is the reply; do not fall through to plain text send.
+		return;
+	}
+
+	if (rplyVal.sendNews) sendNewstoAll(rplyVal);
+
+	if (rplyVal.sendImage) await sendBufferImage(message, rplyVal, userid);
+	if (rplyVal.dmFileLink?.length > 0) await sendDmFiles(message, rplyVal);
+	if (rplyVal.fileLink?.length > 0) await sendFiles(message, rplyVal, userid);
+	if (rplyVal.respawn) {
+		const timestamp = new Date().toISOString();
+		console.error('[User Command] ========== USER COMMAND RESPAWN TRIGGERED ==========');
+		console.error(`[User Command] Timestamp: ${timestamp}`);
+		console.error(`[User Command] Reason: User command triggered respawn (rplyVal.respawn = true)`);
+		console.error(`[User Command] User ID: ${userid}`);
+		console.error(`[User Command] Channel ID: ${channelid}`);
+		console.error(`[User Command] PID: ${process.pid}, PPID: ${process.ppid}`);
+		console.error('[User Command] ==========================================');
+		respawnCluster2({
+			source: 'user_command',
+			trigger: 'rplyVal.respawn',
+			userid,
+			channelid
+		});
+	}
+	// clusterIpc (e.g. .root restart gateway/discord): do NOT send here.
+	// Flush after Discord editReply/channel send — otherwise slash stays on "thinking…".
+	const pendingClusterIpc = rplyVal.clusterIpc || null;
+	if (rplyVal.clusterIpc) delete rplyVal.clusterIpc;
+	if (rplyVal.gatewayAction?.type === 'fixshard') {
+		applyFixShardGatewayAction(rplyVal, message);
+	}
+	if (rplyVal.gatewayAction?.type === 'slashDeploy') {
+		await applySlashDeployGatewayAction(rplyVal, message);
+	}
+	if (Array.isArray(rplyVal.adminDmChunks) && rplyVal.adminDmChunks.length > 0 && userid) {
+		try {
+			const adminUser = await client.users.fetch(userid);
+			for (const chunk of rplyVal.adminDmChunks) {
+				const pieces = String(chunk || '').match(/[\s\S]{1,1800}/g) || [];
+				for (const piece of pieces) {
+					await adminUser.send(piece);
+				}
+			}
+		} catch (error) {
+			console.error('[Discord] adminDmChunks failed:', error?.message || error);
+		}
+	}
+	if (Array.isArray(rplyVal.adminDmFiles) && rplyVal.adminDmFiles.length > 0 && userid) {
+		try {
+			const adminUser = await client.users.fetch(userid);
+			for (const file of rplyVal.adminDmFiles) {
+				await adminUser.send({
+					content: file.content || '',
+					files: [{
+						attachment: Buffer.from(file.text || '', 'utf8'),
+						name: file.name || 'file.txt',
+					}],
+				});
+			}
+		} catch (error) {
+			console.error('[Discord] adminDmFiles failed:', error?.message || error);
+		}
+	}
+	if (!rplyVal.text && !rplyVal.LevelUp) {
+		flushPendingClusterIpc(pendingClusterIpc);
+		return;
+	}
+	if (process.env.mongoURL) {
+		try {
+			const isNew = await newMessage.newUserChecker(userid, "Discord");
+			if (rplyVal.text && isNew) {
+				SendToId(userid, await newMessage.firstTimeMessage({
+					userid,
+					botname: 'Discord',
+					locale: message._hktrpgLocale
+				}), true);
+			}
+		} catch (error) {
+			console.error(`[Discord Bot] Error in message handling:`, (error && error.name && error.message));
+		}
+	}
+
+	if (rplyVal.state) {
+		const createdTs = message.createdTimestamp ?? Date.now();
+		const gatewayPingMs = getLocalGatewayPingMs();
+		const statsT = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		const statsT0 = Date.now();
+		const [countResult, shardResult] = await Promise.all([
+			count(statsT),
+			getAllshardIds(statsT)
+		]);
+		const statsCollectMs = Date.now() - statsT0;
+		let e2eMs = Number(Date.now() - createdTs);
+		if (e2eMs < 0) e2eMs = Math.abs(e2eMs);
+		if (e2eMs > 10_000) e2eMs = 9999;
+
+		const gatewayLine = gatewayPingMs === null
+			? statsT('discord.stats.ws_none')
+			: statsT('discord.stats.ws_ping', { status: latencyStatusGateway(gatewayPingMs), ms: gatewayPingMs });
+		const statsLine = statsT('discord.stats.site_collect', { status: latencyStatusWork(statsCollectMs), ms: statsCollectMs });
+		const e2eLine = statsT('discord.stats.e2e', { status: latencyStatusWork(e2eMs), ms: e2eMs });
+
+		rplyVal.text += [
+			'',
+			statsT('discord.stats.header'),
+			statsT('discord.stats.section_usage'),
+			statsT('discord.stats.guild_data'),
+			`│ • ${countResult}`,
+			statsT('discord.stats.timing_header'),
+			gatewayLine,
+			statsLine,
+			e2eLine,
+			(shardResult || '').trim()
+		].join('\n');
+	}
+
+	if (groupid && rplyVal.LevelUp) {
+		await SendToReplychannel({ replyText: `<@${userid}>\n${rplyVal.LevelUp}`, channelid });
+	}
+
+	if (rplyVal.discordExport) {
+		const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
+		const exportContent = t('discord.export.channel_log', { channelName });
+		const exportTxtPath = assertArtifactReadable(`export/${rplyVal.discordExport}.txt`);
+		if (!exportTxtPath) {
+			console.warn('[Discord] export txt artifact missing:', rplyVal.discordExport);
+			delete rplyVal.discordExport;
+		} else if (message.author && typeof message.author.send === 'function') {
+			message.author.send({
+				content: exportContent,
+				files: [new AttachmentBuilder(exportTxtPath)]
+			}).catch(error => console.error('Failed to send DM with exported file:', error));
+		} else if (message.user && message.isInteraction) {
+			try {
+				if (!message.deferred && !message.replied) {
+					await message.deferReply({ flags: MessageFlags.Ephemeral });
+				}
+				await message.user.send({
+					content: exportContent,
+					files: [new AttachmentBuilder(exportTxtPath)]
+				});
+				await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
+			} catch (error) {
+				console.error('Failed to send DM with exported file:', error);
+				if (message.deferred && !message.replied) {
+					await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
+				} else if (!message.deferred && !message.replied) {
+					await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
+				}
+			}
+		}
+	}
+
+	if (rplyVal.discordExportHtml) {
+		const t = message._hktrpgT || i18n.createTranslator(message._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		const channelName = message.channel ? message.channel.name : t('discord.export.default_channel');
+		const passwordContent = t('discord.export.channel_log_password', {
+			channelName,
+			password: rplyVal.discordExportHtml[1]
+		});
+		const exportHtmlPath = assertArtifactReadable(`export/${rplyVal.discordExportHtml[0]}.html`);
+		const needsLocalHtmlFile = !link || !mongo;
+		if (needsLocalHtmlFile && !exportHtmlPath) {
+			console.warn('[Discord] export html artifact missing:', rplyVal.discordExportHtml[0]);
+			delete rplyVal.discordExportHtml;
+		} else if (message.author && typeof message.author.send === 'function') {
+			if (!link || !mongo) {
+				message.author.send({
+					content: passwordContent,
+					files: [exportHtmlPath]
+				}).catch(error => console.error('Failed to send DM with exported HTML file:', error));
+			} else {
+				message.author.send(t('discord.export.channel_log_password_link', {
+					channelName,
+					password: rplyVal.discordExportHtml[1],
+					url: link + rplyVal.discordExportHtml[0] + '.html'
+				})).catch(error => console.error('Failed to send DM with HTML link:', error));
+			}
+		} else if (message.user && message.isInteraction) {
+			try {
+				if (!message.deferred && !message.replied) {
+					await message.deferReply({ flags: MessageFlags.Ephemeral });
+				}
+				if (!link || !mongo) {
+					await message.user.send({
+						content: passwordContent,
+						files: [exportHtmlPath]
+					});
+				} else {
+					await message.user.send(t('discord.export.channel_log_password_link', {
+						channelName,
+						password: rplyVal.discordExportHtml[1],
+						url: link + rplyVal.discordExportHtml[0] + '.html'
+					}));
+				}
+				await message.editReply({ content: t('discord.export.sent_dm'), flags: MessageFlags.Ephemeral });
+			} catch (error) {
+				console.error('Failed to send DM with exported HTML file:', error);
+				if (message.deferred && !message.replied) {
+					await message.editReply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
+				} else if (!message.deferred && !message.replied) {
+					await message.reply({ content: t('discord.export.dm_blocked'), flags: MessageFlags.Ephemeral });
+				}
+			}
+		}
+	}
+	if (!rplyVal.text) {
+		flushPendingClusterIpc(pendingClusterIpc);
+		return;
+	}
+	return {
+		privatemsg,
+		channelid,
+		groupid,
+		userid,
+		text: rplyVal.text,
+		message,
+		statue: rplyVal.statue,
+		quotes: rplyVal.quotes,
+		buttonCreate: rplyVal.buttonCreate,
+		discordCreatePoll: rplyVal.discordCreatePoll,
+		_pendingClusterIpc: pendingClusterIpc,
+	};
+}
+
+/**
+ * Send deferred clusterIpc after Discord reply is out (slash editReply first).
+ */
+function flushPendingClusterIpc(ipc) {
+	if (!ipc || !client?.cluster?.send) return;
+	try {
+		client.cluster.send(ipc);
+	} catch (error) {
+		console.error('[Discord] clusterIpc send failed:', error?.message || error);
+	}
+}
+
+/**
+ * Apply deferred .root slash deploy once on Gateway (Worker must not mutate Discord during prefetch).
+ */
+async function applySlashDeployGatewayAction(rplyVal, message) {
+	const action = String(rplyVal.gatewayAction?.action || '').toLowerCase();
+	const targetId = rplyVal.gatewayAction?.targetId;
+	const locale = rplyVal.gatewayAction?.locale || message?._hktrpgLocale;
+	try {
+		const { applySlashDeployMeta } = require('../roll-worker/admin-remote');
+		const text = await applySlashDeployMeta({ action, targetId, locale });
+		if (text) rplyVal.text = text;
+	} catch (error) {
+		console.error('[Discord] slashDeploy gatewayAction failed:', error?.message || error);
+	} finally {
+		delete rplyVal.gatewayAction;
+	}
+}
+
+/**
+ * Apply deferred .root fixshard start/stop once on Gateway (Worker must not mutate Discord shard state).
+ */
+function applyFixShardGatewayAction(rplyVal, message) {
+	const action = String(rplyVal.gatewayAction?.action || '').toLowerCase();
+	const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+	try {
+		if (action === 'start') {
+			if (typeof globalThis.startShardFix !== 'function') {
+				rplyVal.text = t('admin.fixshard_operation_failed', { message: 'startShardFix unavailable' });
+				return;
+			}
+			const result = globalThis.startShardFix();
+			rplyVal.text = result.inProgress
+				? t('admin.fixshard_start_success', {
+					count: result.unresponsiveShards.length,
+					shards: result.unresponsiveShards.join(', '),
+				})
+				: result.message;
+			return;
+		}
+		if (action === 'stop') {
+			if (typeof globalThis.stopShardFix !== 'function') {
+				rplyVal.text = t('admin.fixshard_operation_failed', { message: 'stopShardFix unavailable' });
+				return;
+			}
+			const result = globalThis.stopShardFix();
+			rplyVal.text = result.message;
+		}
+	} catch (error) {
+		console.error('[Discord] fixshard gatewayAction failed:', error?.message || error);
+		rplyVal.text = t('admin.fixshard_operation_failed', { message: error.message });
+	} finally {
+		delete rplyVal.gatewayAction;
+	}
+}
+
 const sendBufferImage = async (message, rplyVal, userid) => {
+	const resolved = assertArtifactReadable(rplyVal.sendImage);
+	if (!resolved) {
+		console.warn('[Discord] sendImage artifact missing (shared ROLL_ARTIFACT_ROOT / cwd?):', rplyVal.sendImage);
+		return;
+	}
 	const t = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
 	await message.channel.send({
 		content: `<@${userid}>\n${t('token.success')}`, files: [
-			new AttachmentBuilder(rplyVal.sendImage)
+			new AttachmentBuilder(resolved)
 		]
 	});
-	fs.unlinkSync(rplyVal.sendImage);
+	try {
+		fs.unlinkSync(resolved);
+	} catch (error) {
+		console.error('[Discord] unlink sendImage failed:', error?.message || error);
+	}
 	return;
 }
 const sendFiles = async (message, rplyVal, userid) => {
 	let text = rplyVal.fileText || '';
 	let files = [];
+	const resolvedPaths = [];
 	for (let index = 0; index < rplyVal.fileLink.length; index++) {
-		files.push(new AttachmentBuilder(rplyVal.fileLink[index]))
+		const resolved = assertArtifactReadable(rplyVal.fileLink[index]);
+		if (!resolved) {
+			console.warn('[Discord] fileLink artifact missing (shared ROLL_ARTIFACT_ROOT / cwd?):', rplyVal.fileLink[index]);
+			continue;
+		}
+		resolvedPaths.push(resolved);
+		files.push(new AttachmentBuilder(resolved));
 	}
+	if (files.length === 0) return;
 	try {
 		await message.channel.send({
 			content: `<@${userid}>\n${text}`, files
@@ -3851,12 +4121,12 @@ const sendFiles = async (message, rplyVal, userid) => {
 	} catch {
 		console.error;
 	}
-	for (let index = 0; index < rplyVal.fileLink.length; index++) {
+	for (const resolved of resolvedPaths) {
 		try {
-			fs.unlinkSync(rplyVal.fileLink[index]);
+			fs.unlinkSync(resolved);
 		}
 		catch (error) {
-			console.error('[Discord Bot] Error in file handling:', (error?.name, error?.message), rplyVal.fileLink[index]);
+			console.error('[Discord Bot] Error in file handling:', (error?.name, error?.message), resolved);
 		}
 
 	}
@@ -3867,9 +4137,17 @@ const sendFiles = async (message, rplyVal, userid) => {
 const sendDmFiles = async (message, rplyVal) => {
 	try {
 		const files = [];
+		const resolvedPaths = [];
 		for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
-			files.push(new AttachmentBuilder(rplyVal.dmFileLink[i]));
+			const resolved = assertArtifactReadable(rplyVal.dmFileLink[i]);
+			if (!resolved) {
+				console.warn('[Discord] dmFileLink artifact missing (shared ROLL_ARTIFACT_ROOT / cwd?):', rplyVal.dmFileLink[i]);
+				continue;
+			}
+			resolvedPaths.push(resolved);
+			files.push(new AttachmentBuilder(resolved));
 		}
+		if (files.length === 0) return;
 
 		// Prefer direct message to author/user
 		if (message.author && typeof message.author.send === 'function') {
@@ -3879,8 +4157,8 @@ const sendDmFiles = async (message, rplyVal) => {
 		}
 
 		// Cleanup local files
-		for (let i = 0; i < rplyVal.dmFileLink.length; i++) {
-			try { fs.unlinkSync(rplyVal.dmFileLink[i]); } catch { }
+		for (const resolved of resolvedPaths) {
+			try { fs.unlinkSync(resolved); } catch { }
 		}
 	} catch (error) {
 		console.error('sendDmFiles error:', error?.message);
@@ -3890,91 +4168,95 @@ const sendDmFiles = async (message, rplyVal) => {
 }
 
 async function handlingSendMessage(input) {
-	const privatemsg = input.privatemsg || 0;
-	const channelid = input.channelid;
-	const groupid = input.groupid
-	const userid = input.userid
-	let sendText = input.text
-	const statue = input.statue
-	const quotes = input.quotes
-	const buttonCreate = input.buttonCreate;
-	const pollPayload = input.discordCreatePoll;
-	const t = input.message?._hktrpgT || i18n.createTranslator(input.message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
-	let TargetGMTempID = [];
-	let TargetGMTempdiyName = [];
-	let TargetGMTempdisplayname = [];
-	if (privatemsg > 1 && TargetGM) {
-		let groupInfo = await privateMsgFinder(channelid) || [];
-		for (const item of groupInfo) {
-			TargetGMTempID.push(item.userid);
-			TargetGMTempdiyName.push(item.diyName);
-			TargetGMTempdisplayname.push(item.displayname);
+	try {
+		const privatemsg = input.privatemsg || 0;
+		const channelid = input.channelid;
+		const groupid = input.groupid
+		const userid = input.userid
+		let sendText = input.text
+		const statue = input.statue
+		const quotes = input.quotes
+		const buttonCreate = input.buttonCreate;
+		const pollPayload = input.discordCreatePoll;
+		const t = input.message?._hktrpgT || i18n.createTranslator(input.message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
+		let TargetGMTempID = [];
+		let TargetGMTempdiyName = [];
+		let TargetGMTempdisplayname = [];
+		if (privatemsg > 1 && darkRolling) {
+			let groupInfo = await privateMsgFinder(channelid) || [];
+			for (const item of groupInfo) {
+				TargetGMTempID.push(item.userid);
+				TargetGMTempdiyName.push(item.diyName);
+				TargetGMTempdisplayname.push(item.displayname);
+			}
 		}
-	}
-	switch (true) {
-		case privatemsg == 1:
-			// Input dr (command) private message to self
-			//
-			if (groupid) {
-				await SendToReplychannel(
-					{ replyText: t('discord.dark_roll.dr_self_notice', { userid }), channelid })
-			}
-			if (userid) {
-				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
-				SendToId(userid, sendText, true);
-			}
-			return;
-		case privatemsg == 2:
-			// Input ddr(command) private message to GM and self
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+		switch (true) {
+			case privatemsg == 1:
+				// Input dr (command) private message to self
+				//
+				if (groupid) {
+					await SendToReplychannel(
+						{ replyText: t('discord.dark_roll.dr_self_notice', { userid }), channelid })
 				}
-				await SendToReplychannel(
-					{ replyText: t('discord.dark_roll.ddr_in_progress_self', { userid, targets: targetGMNameTemp }), channelid });
-			}
-			if (userid) {
-				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText;
-			}
-			SendToId(userid, sendText);
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				if (userid != TargetGMTempID[i]) {
+				if (userid) {
+					sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
+					SendToId(userid, sendText, true);
+				}
+				return;
+			case privatemsg == 2:
+				// Input ddr(command) private message to GM and self
+				if (groupid) {
+					let targetGMNameTemp = "";
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						targetGMNameTemp = targetGMNameTemp + ", " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+					}
+					await SendToReplychannel(
+						{ replyText: t('discord.dark_roll.ddr_in_progress_self', { userid, targets: targetGMNameTemp }), channelid });
+				}
+				if (userid) {
+					sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText;
+				}
+				SendToId(userid, sendText);
+				for (let i = 0; i < TargetGMTempID.length; i++) {
+					if (userid != TargetGMTempID[i]) {
+						SendToId(TargetGMTempID[i], sendText);
+					}
+				}
+				return;
+			case privatemsg == 3:
+				// Input dddr(command) private message to GM
+				if (groupid) {
+					let targetGMNameTemp = "";
+					for (let i = 0; i < TargetGMTempID.length; i++) {
+						targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+					}
+					await SendToReplychannel(
+						{ replyText: t('discord.dark_roll.dddr_in_progress', { userid, targets: targetGMNameTemp }), channelid })
+				}
+				sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
+				for (let i = 0; i < TargetGMTempID.length; i++) {
 					SendToId(TargetGMTempID[i], sendText);
 				}
-			}
-			return;
-		case privatemsg == 3:
-			// Input dddr(command) private message to GM
-			if (groupid) {
-				let targetGMNameTemp = "";
-				for (let i = 0; i < TargetGMTempID.length; i++) {
-					targetGMNameTemp = targetGMNameTemp + " " + (TargetGMTempdiyName[i] || "<@" + TargetGMTempID[i] + ">")
+				return;
+			default:
+				if (userid) {
+					sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker(userid)}\n${sendText}`;
 				}
-				await SendToReplychannel(
-					{ replyText: t('discord.dark_roll.dddr_in_progress', { userid, targets: targetGMNameTemp }), channelid })
-			}
-			sendText = t('discord.dark_roll.dm_prefix', { userid }) + sendText
-			for (let i = 0; i < TargetGMTempID.length; i++) {
-				SendToId(TargetGMTempID[i], sendText);
-			}
-			return;
-		default:
-			if (userid) {
-				sendText = `<@${userid}> ${(statue) ? statue : ''}${candle.checker(userid)}\n${sendText}`;
-			}
-			if (groupid) {
-				// Prefer poll if present
-				if (pollPayload && Array.isArray(pollPayload.options)) {
-					await createStPollByChannel({ channelid, groupid, text: sendText, payload: pollPayload });
-					return;
+				if (groupid) {
+					// Prefer poll if present
+					if (pollPayload && Array.isArray(pollPayload.options)) {
+						await createStPollByChannel({ channelid, groupid, text: sendText, payload: pollPayload });
+						return;
+					}
+					await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
+				} else {
+					//SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
+					SendToId(userid, sendText, true);
 				}
-				await SendToReplychannel({ replyText: sendText, channelid, quotes: quotes, buttonCreate: buttonCreate });
-			} else {
-				//SendToReply({ replyText: sendText, message, quotes: quotes, buttonCreate: buttonCreate });
-				SendToId(userid, sendText, true);
-			}
-			return;
+				return;
+		}
+	} finally {
+		flushPendingClusterIpc(input?._pendingClusterIpc);
 	}
 }
 
@@ -4369,7 +4651,7 @@ async function tallyStPoll(messageId, fallbackData) {
 							return (run && run.starterID) ? String(run.starterID) : '';
 						} catch { return ''; }
 					})();
-					const rplyVal = await exports.analytics.parseInput({
+					const rplyVal = await parseRouter.parseInput({
 						inputStr: '.st pause',
 						groupid: data.groupid,
 						userid: starterId || '0',
@@ -4382,8 +4664,15 @@ async function tallyStPoll(messageId, fallbackData) {
 						discordClient: client,
 						discordMessage: null,
 						titleName: ''
+					}, {
+						replyTarget: {
+							botname: 'Discord',
+							channelId: data.channelid,
+							guildId: data.groupid || null,
+							userid: starterId || '0',
+						},
 					});
-					if (rplyVal && rplyVal.text) {
+					if (!rplyVal?.deferred && rplyVal?.text) {
 						await client.cluster.broadcastEval(
 							async (c, { channelId, content }) => {
 								try {
@@ -4468,7 +4757,7 @@ async function tallyStPoll(messageId, fallbackData) {
 						return (run && run.starterID) ? String(run.starterID) : '';
 					} catch { return ''; }
 				})();
-				const rplyVal = await exports.analytics.parseInput({
+				const rplyVal = await parseRouter.parseInput({
 					inputStr: nextCmd,
 					groupid: data.groupid,
 					userid: starterId || '0',
@@ -4481,8 +4770,15 @@ async function tallyStPoll(messageId, fallbackData) {
 					discordClient: client,
 					discordMessage: null,
 					titleName: ''
+				}, {
+					replyTarget: {
+						botname: 'Discord',
+						channelId: data.channelid,
+						guildId: data.groupid || null,
+						userid: starterId || '0',
+					},
 				});
-				if (rplyVal && rplyVal.text) {
+				if (!rplyVal?.deferred && rplyVal?.text) {
 					if (rplyVal.discordCreatePoll) {
 						await createStPollByChannel({ channelid: data.channelid, groupid: data.groupid, text: rplyVal.text, payload: rplyVal.discordCreatePoll });
 					} else {

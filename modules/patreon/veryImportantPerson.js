@@ -58,7 +58,13 @@ const viplevelCheckGroup = (groupID) =>
 const viplevelCheckUser = (userid) =>
     vipManager.checkVIPLevel(userid, 'user');
 
+function invalidateCache() {
+    vipManager.vipCache = null;
+    vipManager.lastUpdate = 0;
+}
+
 module.exports = {
     viplevelCheckGroup,
-    viplevelCheckUser
+    viplevelCheckUser,
+    invalidateCache,
 };

@@ -1,5 +1,5 @@
 "use strict";
-if (!process.env.DISCORD_CHANNEL_SECRET) {
+if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 let variables = {};
@@ -29,9 +29,13 @@ const stream = require('stream');
 const { promisify } = require('util');
 const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
-const path = require('path');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
+const { hasExportHistoryMessages } = require('../modules/roll-worker/export-history');
+const {
+	getExportDir,
+	truncateExportHistoryForDemo,
+} = require('../modules/roll-worker/artifacts');
 const { getPool } = require('../modules/db/pool');
 const htmlPool = getPool('html');
 const schema = require('../modules/db/schema.js');
@@ -70,7 +74,7 @@ const gameType = function () {
     return 'Tool:Export:hktrpg'
 }
 // Directory for exported Discord logs (HTML/txt), shared with web server
-const dir = path.join(__dirname, '..', 'export', path.sep);
+const dir = getExportDir();
 const prefixs = function () {
     return [{
         first: /^[.]discord$/i,
@@ -94,6 +98,9 @@ const rollDiceCommand = async function ({
     botname,
     userid,
     userrole,
+    exportMeta,
+    exportHistoryMeta,
+    exportWaitNoticeSent,
     locale,
     t
 }) {
@@ -111,7 +118,8 @@ const rollDiceCommand = async function ({
     let newRawDate = [];
     let newValue = "";
     let limit, checkUser, checkGP;
-    let channelName = discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '';
+    let channelName = exportMeta?.channelName
+        || (discordMessage && discordMessage.channel ? discordMessage.channel.name || '' : '');
     let date = new Date;
     let seconds = date.getSeconds();
     let minutes = date.getMinutes();
@@ -126,7 +134,9 @@ const rollDiceCommand = async function ({
         // For slash commands, set this flag to true
         discordMessage.isInteraction = true;
     }
-    if (groupid && discordMessage && discordMessage.channel && discordMessage.guild && discordMessage.guild.members && discordMessage.guild.members.me) {
+    if (typeof exportMeta?.hasReadPermission === 'boolean') {
+        hasReadPermission = exportMeta.hasReadPermission;
+    } else if (groupid && discordMessage && discordMessage.channel && discordMessage.guild && discordMessage.guild.members && discordMessage.guild.members.me) {
         hasReadPermission = discordMessage.channel.permissionsFor(discordMessage.guild.members.me).has(PermissionFlagsBits.ReadMessageHistory) || discordMessage.guild.members.me.permissions.has(PermissionFlagsBits.Administrator);
     }
 
@@ -364,6 +374,9 @@ const rollDiceCommand = async function ({
             rply.quotes = true;
             return rply;
         case /^html$/i.test(mainMsg[1]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !hasExportHistoryMessages(exportHistoryMeta)) {
+                return { needsLocal: true, moduleName: 'export' };
+            }
             if (!channelid || !groupid) {
                 rply.text = translate('export.channel_only');
                 return rply;
@@ -392,12 +405,14 @@ const rollDiceCommand = async function ({
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
-            try {
-                C = await discordClient.channels.fetch(channelid);
-            } catch (error) {
-                if (error) {
-                    rply.text = translate('export.error', { error });
-                    return rply;
+            if (!hasExportHistoryMessages(exportHistoryMeta)) {
+                try {
+                    C = await discordClient.channels.fetch(channelid);
+                } catch (error) {
+                    if (error) {
+                        rply.text = translate('export.error', { error });
+                        return rply;
+                    }
                 }
             }
             //<0 = DC 未過
@@ -440,10 +455,17 @@ const rollDiceCommand = async function ({
             }
 
 
-            await sendDiscordExportWaitNotice(discordMessage, userid, translate);
-            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
-                discordMessage.guild.members.cache.map(member => member) : [];
-            M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
+            // Gateway may already have sent wait notice before remoting (L13).
+            if (!exportWaitNoticeSent) {
+                await sendDiscordExportWaitNotice(discordMessage, userid, translate);
+            }
+            if (hasExportHistoryMessages(exportHistoryMeta)) {
+                M = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
+            } else {
+                const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
+                    discordMessage.guild.members.cache.map(member => member) : [];
+                M = await lots_of_messages_getter_HTML(C, demoMode, members, messageLimit);
+            }
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = translate('export.read_failed');
                 return rply;
@@ -517,12 +539,15 @@ const rollDiceCommand = async function ({
                 tempB
             ]
             rply.text += translate('export.success_dm', {
-                channel: discordMessage.channel.name,
+                channel: channelName || 'channel',
                 count: totalSize
             });
             return rply;
         }
         case /^txt$/i.test(mainMsg[1]): {
+            if (process.env.ROLL_WORKER_MODE === 'true' && !discordClient && !hasExportHistoryMessages(exportHistoryMeta)) {
+                return { needsLocal: true, moduleName: 'export' };
+            }
             rply.text = checkTools.permissionErrMsg({ locale,
                 flag: checkTools.flag.ChkBot,
                 gid: groupid,
@@ -551,12 +576,14 @@ const rollDiceCommand = async function ({
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
-            try {
-                C = await discordClient.channels.fetch(channelid);
-            } catch (error) {
-                if (error) {
-                    rply.text = translate('export.error', { error });
-                    return rply;
+            if (!hasExportHistoryMessages(exportHistoryMeta)) {
+                try {
+                    C = await discordClient.channels.fetch(channelid);
+                } catch (error) {
+                    if (error) {
+                        rply.text = translate('export.error', { error });
+                        return rply;
+                    }
                 }
             }
             //<0 = DC 未過
@@ -585,10 +612,29 @@ const rollDiceCommand = async function ({
             }
 
             console.log('USE EXPORT TXT')
-            await sendDiscordExportWaitNotice(discordMessage, userid, translate);
-            const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
-                discordMessage.guild.members.cache.map(member => member) : [];
-            M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
+            if (!exportWaitNoticeSent) {
+                await sendDiscordExportWaitNotice(discordMessage, userid, translate);
+            }
+            if (hasExportHistoryMessages(exportHistoryMeta)) {
+                // Prefetch may use HTML-shaped embeds/attachments; normalize for TXT join().
+                const limited = truncateExportHistoryForDemo(exportHistoryMeta, demoMode);
+                M = {
+                    totalSize: limited.totalSize ?? limited.sum_messages.length,
+                    sum_messages: limited.sum_messages.map((msg) => ({
+                        ...msg,
+                        embeds: (msg.embeds || []).map((e) => (typeof e === 'string'
+                            ? e
+                            : (e?.description || e?.title || JSON.stringify(e)))),
+                        attachments: (msg.attachments || []).map((a) => (typeof a === 'string'
+                            ? a
+                            : (a?.proxyURL || a?.url || ''))),
+                    })),
+                };
+            } else {
+                const members = discordMessage && discordMessage.guild && discordMessage.guild.members ?
+                    discordMessage.guild.members.cache.map(member => member) : [];
+                M = await lots_of_messages_getter_TXT(C, demoMode, members, messageLimit);
+            }
             if (!M || !M.sum_messages || M.sum_messages.length === 0) {
                 rply.text = translate('export.read_failed');
                 return rply;
@@ -664,7 +710,7 @@ const rollDiceCommand = async function ({
 
             rply.discordExport = channelid + '_' + hour + minutes + seconds;
             rply.text += translate('export.success_dm', {
-                channel: discordMessage.channel.name,
+                channel: channelName || 'channel',
                 count: totalSize
             });
             console.log('EXPORT TXT DONE')
@@ -805,5 +851,6 @@ module.exports = {
     prefixs: prefixs,
     gameType: gameType,
     gameName: gameName,
-    discordCommand
+    discordCommand,
+    sendDiscordExportWaitNotice,
 };

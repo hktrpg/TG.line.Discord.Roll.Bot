@@ -8,13 +8,6 @@ const { getT, resolveHelp, resolveGameName, isEnglish } = require('../modules/i1
 const i18n = require('../modules/i18n/i18n.js');
 const rollbase = require('./rollbase.js');
 
-function wrapCocZhContent(text, params = {}) {
-	if (!isEnglish(params)) {
-		return text;
-	}
-	return `${getT(params)('common.zh_only_notice')}\n${text}`;
-}
-
 function formatDpRecordDate(date, locale) {
 	const minutes = date.getMinutes() < 10 ? '0' + date.getMinutes() : String(date.getMinutes());
 	if (isEnglish({ locale })) {
@@ -405,10 +398,10 @@ const rollDiceCommand = async function ({
 		}
 
 		case /(^cc7版創角$)|(^[.]cc7build$)/i.test(mainMsg[0]): {
-			rply.text = wrapCocZhContent(
-				builder.build(mainMsg[1] || 'random', mainMsg[2], translate).replaceAll(/\*5/ig, ' * 5').trim(),
-				i18nParams
-			);
+			// Fully translated — do not prefix common.zh_only_notice (was wrong for en).
+			rply.text = builder.build(mainMsg[1] || 'random', mainMsg[2], translate)
+				.replaceAll(/\*5/ig, ' * 5')
+				.trim();
 			rply.quotes = true;
 			break;
 		}

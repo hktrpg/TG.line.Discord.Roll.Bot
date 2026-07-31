@@ -2,7 +2,8 @@
 if (!process.env.mongoURL) {
     return;
 }
-if (!process.env.DISCORD_CHANNEL_SECRET) {
+// Load on Discord gateway (secret) or Roll Worker (remote help/show/delete + needsLocal for create).
+if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
@@ -67,6 +68,7 @@ const rollDiceCommand = async function ({
     channelid,
     discordClient,
     discordMessage,
+    forwardSourceMeta,
     locale,
     t
 }) {
@@ -150,7 +152,13 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            if (!discordMessage || !discordClient) {
+            const hasPrefetch = Boolean(forwardSourceMeta?.messageContent !== undefined
+                && forwardSourceMeta?.sourceMessageId);
+            if (!hasPrefetch && (!discordMessage || !discordClient)) {
+                // Create path needs live Discord API or Gateway prefetch.
+                if (process.env.ROLL_WORKER_MODE === 'true') {
+                    return { needsLocal: true, moduleName: 'forward' };
+                }
                 rply.text = translate('forward.discord_only');
                 return rply;
             }
@@ -170,9 +178,26 @@ const rollDiceCommand = async function ({
 
             const messageLink = mainMsg[1];
             const matches = messageLink.match(/https:\/\/discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/);
-            const [, sourceGuildId, sourceChannelId, sourceMessageId] = matches;
+            const [, sourceGuildIdFromLink, sourceChannelIdFromLink, sourceMessageIdFromLink] = matches;
 
-            if (discordMessage.guildId !== sourceGuildId) {
+            let sourceGuildId = sourceGuildIdFromLink;
+            let sourceChannelId = sourceChannelIdFromLink;
+            let sourceMessageId = sourceMessageIdFromLink;
+            let messageContent = '';
+            let isMentioned = false;
+            let isInteractionUser = false;
+            const guildId = forwardSourceMeta?.guildId || discordMessage?.guildId;
+
+            if (hasPrefetch) {
+                sourceGuildId = forwardSourceMeta.sourceGuildId || sourceGuildId;
+                sourceChannelId = forwardSourceMeta.sourceChannelId || sourceChannelId;
+                sourceMessageId = forwardSourceMeta.sourceMessageId || sourceMessageId;
+                messageContent = forwardSourceMeta.messageContent || '';
+                isMentioned = Boolean(forwardSourceMeta.isMentioned);
+                isInteractionUser = Boolean(forwardSourceMeta.isInteractionUser);
+            }
+
+            if (guildId !== sourceGuildId) {
                 rply.text = translate('forward.cross_guild');
                 return rply;
             }
@@ -183,19 +208,39 @@ const rollDiceCommand = async function ({
             }
 
             try {
-                const sourceChannel = await discordClient.channels.fetch(sourceChannelId);
-                if (!sourceChannel) {
-                    rply.text = translate('forward.channel_not_found');
-                    return rply;
-                }
+                const {
+					shouldLiveResolveForwardOwnership,
+					resolveForwardOwnershipLive,
+				} = require('../modules/roll-worker/forward-ownership');
+				const ownershipPlan = shouldLiveResolveForwardOwnership({
+					hasPrefetch,
+					isMentioned,
+					isInteractionUser,
+					discordClient,
+					rollWorkerMode: process.env.ROLL_WORKER_MODE === 'true',
+				});
+				if (ownershipPlan.action === 'needsLocal') {
+					return { needsLocal: true, moduleName: 'forward' };
+				}
+				if (ownershipPlan.action === 'error') {
+					rply.text = translate(ownershipPlan.errorKey);
+					return rply;
+				}
+				if (ownershipPlan.action === 'liveFetch') {
+					const live = await resolveForwardOwnershipLive(discordClient, {
+						sourceChannelId,
+						sourceMessageId,
+						userid,
+					});
+					if (!live.ok) {
+						rply.text = translate(live.errorKey || 'forward.not_your_button');
+						return rply;
+					}
+					messageContent = live.messageContent;
+					isMentioned = live.isMentioned;
+					isInteractionUser = live.isInteractionUser;
+				}
 
-                const sourceMessage = await sourceChannel.messages.fetch(sourceMessageId);
-                if (!sourceMessage) {
-                    rply.text = translate('forward.message_not_found');
-                    return rply;
-                }
-
-                const messageContent = sourceMessage.content;
                 if (!messageContent || messageContent.trim() === '') {
                     rply.text = translate('forward.no_buttons');
                     return rply;
@@ -206,30 +251,6 @@ const rollDiceCommand = async function ({
                     !/要求擲骰\/點擊/.test(messageContent)) {
                     rply.text = translate('forward.invalid_button_type');
                     return rply;
-                }
-
-                let isMentioned = false;
-                let isInteractionUser = false;
-
-                if (sourceMessage.mentions && sourceMessage.mentions.users) {
-                    isMentioned = [...sourceMessage.mentions.users.entries()]
-                        .some(([userId]) => userId === userid);
-                }
-
-                if (sourceMessage.interaction && sourceMessage.interaction.user) {
-                    isInteractionUser = (sourceMessage.interaction.user.id === userid);
-                }
-
-                if (!isMentioned && !isInteractionUser) {
-                    if (sourceMessage.reference?.messageId) {
-                        const refMessage = await sourceChannel.messages.fetch(sourceMessage.reference.messageId);
-                        if (refMessage.author.id === userid) {
-                            isMentioned = true;
-                        }
-                    } else {
-                        rply.text = translate('forward.not_your_button');
-                        return rply;
-                    }
                 }
 
                 let buttonName = '';

@@ -1,6 +1,7 @@
 "use strict";
 
 require('dotenv').config({ override: true, quiet: true });
+process.env.DOTENV_CONFIG_QUIET = 'true';
 const fs = require('fs').promises;
 const path = require('path');
 
@@ -271,6 +272,11 @@ async function loadModules(moduleManager) {
         await Promise.all(modulePromises);
         const loaded = [...moduleManager.loadedModules];
         logger.info(`Loaded modules (${loaded.length}): ${loaded.join(', ')}`);
+        try {
+            require('./modules/roll-worker/parse-router').logParseMode(logger);
+        } catch (error) {
+            logger.warn(`ParseMode log skipped: ${error.message}`);
+        }
     } catch (error) {
         errorHandler(error, 'Reading modules directory');
         throw error;
@@ -375,6 +381,13 @@ async function gracefulShutdown(moduleManager) {
     isShuttingDown = true;
     
     logger.info('Starting graceful shutdown...');
+
+    try {
+        const localWorker = require('./modules/roll-worker/local-worker');
+        await localWorker.shutdown();
+    } catch (error) {
+        logger.warn(`Local worker shutdown skipped: ${error.message}`);
+    }
     
     // Unload all loaded modules in parallel
     const unloadPromises = [...moduleManager.loadedModules].map(moduleName => 

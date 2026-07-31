@@ -5,6 +5,10 @@
 #   roll-primary  ← one shared HTTP dice process
 #   discord-bot / non-discord-bot  ← Gateways with ROLL_WORKER_SPAWN=false
 #
+# CRITICAL: .wl / .token / export write files under /app/temp and /app/export on the
+# Worker. Gateways must mount the SAME volumes, or Discord will log
+# "fileLink/sendImage artifact missing".
+#
 # See docs/DOCKER_SETUP.md for upgrade / permissions notes.
 
 services:
@@ -49,11 +53,14 @@ services:
       ROLL_WORKER_HOST: "0.0.0.0"
       ROLL_WORKER_PORT: "3950"
       ROLL_WORKER_SPAWN: "false"
+      # Same root on all services that read Worker-written files:
+      ROLL_ARTIFACT_ROOT: "/app"
     volumes:
       - roll-primary-log:/app/log
       - roll-primary-modules-log:/app/modules/log
-      - roll-primary-temp:/app/temp
-      - export-data:/app/export
+      # Shared with Gateways (wheel GIF, token PNG, story export, …)
+      - shared-temp:/app/temp
+      - shared-export:/app/export
 
   discord-bot:
     build:
@@ -73,11 +80,12 @@ services:
       TZ: Asia/Taipei
       ROLL_WORKER_URL: http://roll-primary:3950
       ROLL_WORKER_SPAWN: "false"
+      ROLL_ARTIFACT_ROOT: "/app"
     volumes:
       - discord-log:/app/log
       - discord-modules-log:/app/modules/log
-      - discord-export:/app/export
-      - discord-temp:/app/temp
+      - shared-temp:/app/temp
+      - shared-export:/app/export
 
   non-discord-bot:
     build:
@@ -97,26 +105,23 @@ services:
       TZ: Asia/Taipei
       ROLL_WORKER_URL: http://roll-primary:3950
       ROLL_WORKER_SPAWN: "false"
+      ROLL_ARTIFACT_ROOT: "/app"
     volumes:
       - non-discord-log:/app/log
       - non-discord-modules-log:/app/modules/log
-      - non-discord-export:/app/export
-      - non-discord-temp:/app/temp
+      - shared-temp:/app/temp
+      - shared-export:/app/export
       - whatsapp-session:/app/.wwebjs_auth
 
 volumes:
   mongodb-data:
   mongodb-config:
-  export-data:
+  shared-temp:
+  shared-export:
   roll-primary-log:
   roll-primary-modules-log:
-  roll-primary-temp:
   discord-log:
   discord-modules-log:
-  discord-export:
-  discord-temp:
   non-discord-log:
   non-discord-modules-log:
-  non-discord-export:
-  non-discord-temp:
   whatsapp-session:

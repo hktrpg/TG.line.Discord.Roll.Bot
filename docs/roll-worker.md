@@ -62,6 +62,8 @@ When Discord and TG/LINE/WA are **separate containers**, run one shared **`roll-
 | `EACCES mkdir modules/log` | Create / mount writable `modules/log` (not only root `log/`) |
 | `.admin state` shows `detached · unknown` | `build-info` uses git `safe.directory=*` + `.git` file fallback (redeploy code) |
 | AI crash on Worker | Copy `OPENAI_*` / `AI_MODEL_*` into Primary env |
+| `fileLink` / `sendImage artifact missing` | Same `/app/temp` mount on Primary + Gateways (not `./discord-bot/temp` vs `./roll-primary/temp`). Zero-Discord-downtime fix: point Worker/TG at Discord’s existing temp, recreate only those services — [DOCKER_SETUP.md](./DOCKER_SETUP.md#shared-artifacts-wl--token--export) |
+| cwd differs across processes | Set the same `ROLL_ARTIFACT_ROOT` on Worker + Gateways |
 
 ## Quick start
 

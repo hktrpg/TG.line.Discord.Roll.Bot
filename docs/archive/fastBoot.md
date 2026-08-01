@@ -1,3 +1,9 @@
+# Archived (stale)
+
+> Historical notes only. Paths and advice may be outdated. Prefer current \`docs/\` and code.
+
+---
+
 zeteticl: @workspace  /help how to make the app boot more fast?
 
 

@@ -610,6 +610,7 @@ class OpenAI {
     }
 
     addApiKey() {
+        if (typeof window !== 'undefined') return;
         this.apiKeys = [];
         let base = 0;
         for (let index = 1; index < 100; index++) {
@@ -904,7 +905,7 @@ class OpenAI {
     generateErrorMessage(error, errorType, modelTier, inputText = '') {
         const t = this.getAiT();
         const commandType = inputText.match(/^\.(ai|ait|aimage)[mh]?/i)?.[0] || '.ai';
-        const cleanInput = inputText.replace(new RegExp(`^${commandType}`, 'i'), '');
+        const cleanInput = inputText.slice(commandType.length);
 
         if (error instanceof OpenAIApi.APIError) {
             if (errorType === 'RATE_LIMIT') {

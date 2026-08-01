@@ -91,9 +91,11 @@ describe('roll-worker HTTP server', () => {
 		expect(res.body.version.role).toBe('roll-worker');
 	});
 
-	it('health marks gateway peer up; CONNECTED log only when ROLL_WORKER_DEBUG', async () => {
+	it('health marks gateway peer up; CONNECTED always (standalone Worker)', async () => {
 		const prevDebug = process.env.ROLL_WORKER_DEBUG;
-		process.env.ROLL_WORKER_DEBUG = 'true';
+		const prevChild = process.env.ROLL_WORKER_GATEWAY_CHILD;
+		delete process.env.ROLL_WORKER_DEBUG;
+		delete process.env.ROLL_WORKER_GATEWAY_CHILD;
 		const lines = [];
 		const spy = jest.spyOn(console, 'info').mockImplementation((m) => lines.push(String(m)));
 		const res = await httpJson(port, 'GET', '/health', null, {
@@ -121,6 +123,24 @@ describe('roll-worker HTTP server', () => {
 
 		if (prevDebug === undefined) delete process.env.ROLL_WORKER_DEBUG;
 		else process.env.ROLL_WORKER_DEBUG = prevDebug;
+		if (prevChild === undefined) delete process.env.ROLL_WORKER_GATEWAY_CHILD;
+		else process.env.ROLL_WORKER_GATEWAY_CHILD = prevChild;
+	});
+
+	it('GATEWAY_CHILD suppresses Worker CONNECTED (parent owns link line)', async () => {
+		const prev = process.env.ROLL_WORKER_GATEWAY_CHILD;
+		process.env.ROLL_WORKER_GATEWAY_CHILD = 'true';
+		const lines = [];
+		const spy = jest.spyOn(console, 'info').mockImplementation((m) => lines.push(String(m)));
+		const res = await httpJson(port, 'GET', '/health', null, {
+			'X-Roll-Gateway': 'QuietGateway',
+		});
+		spy.mockRestore();
+		expect(res.status).toBe(200);
+		expect(res.body.peers.QuietGateway).toBe('up');
+		expect(lines.some((l) => /CONNECTED/.test(l))).toBe(false);
+		if (prev === undefined) delete process.env.ROLL_WORKER_GATEWAY_CHILD;
+		else process.env.ROLL_WORKER_GATEWAY_CHILD = prev;
 	});
 
 	it('POST /v1/parse returns analytics result with proof marker', async () => {

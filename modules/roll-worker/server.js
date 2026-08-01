@@ -37,11 +37,6 @@ function isLoopbackHost(host) {
 	return h === '127.0.0.1' || h === '::1' || h === 'localhost';
 }
 
-function workerBootVerbose() {
-	const flag = (process.env.ROLL_WORKER_DEBUG || '').trim().toLowerCase();
-	return flag === 'true' || flag === '1' || flag === 'on';
-}
-
 /** Express req.ip / remoteAddress may be IPv4-mapped (`::ffff:127.0.0.1`). */
 function isLoopbackRemoteAddress(addr) {
 	const a = String(addr || '').toLowerCase().replace(/^::ffff:/, '');
@@ -185,13 +180,15 @@ function createRollWorkerApp(options = {}) {
 		const prev = entry.state;
 		entry.state = 'up';
 		peers.set(gateway, entry);
-		if (workerBootVerbose()) {
-			console.info(
-				`[RollWorker] CONNECTED | gateway=${gateway}`
-				+ (bot ? ` | bot=${bot}` : '')
-				+ ` | peer=${from} | via=${via} | was=${prev}`
-			);
+		// Supervised Gateway child: parent prints [RollWorkerLink] CONNECTED once.
+		if (process.env.ROLL_WORKER_GATEWAY_CHILD === 'true') {
+			return;
 		}
+		console.info(
+			`[RollWorker] CONNECTED | gateway=${gateway}`
+			+ (bot ? ` | bot=${bot}` : '')
+			+ ` | peer=${from} | via=${via} | was=${prev}`
+		);
 	}
 
 	app.use((req, res, next) => {
@@ -458,15 +455,14 @@ function startRollWorkerServer() {
 
 	const app = createRollWorkerApp({ host });
 	const server = app.listen(port, host, () => {
-		if (workerBootVerbose()) {
-			console.log(`[RollWorker] Listening on http://${host}:${port}`
-				+ (token ? ' | auth=on' : ' | auth=off')
-				+ ` | jsonLimit=${getJsonBodyLimit()}`
-				+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
-		} else if (!process.env.ROLL_WORKER_PORT) {
-			// One-line hint when using manual default port (not Gateway-spawned).
-			console.info(`[RollWorker] manual :${port} (auto Primary uses :20612; set ROLL_WORKER_PORT to override)`);
+		// Supervised child: parent prints one Listening line (avoids IDE debugger ×2).
+		if (process.env.ROLL_WORKER_GATEWAY_CHILD === 'true') {
+			return;
 		}
+		console.info(`[RollWorker] Listening on http://${host}:${port}`
+			+ (token ? ' | auth=on' : ' | auth=off')
+			+ ` | jsonLimit=${getJsonBodyLimit()}`
+			+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
 	});
 	server.on('error', (error) => {
 		if (error?.code === 'EADDRINUSE') {

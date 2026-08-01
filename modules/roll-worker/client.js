@@ -35,9 +35,22 @@ const DEFAULT_URL = 'http://127.0.0.1:20612';
 // OpenAI / heavy export often exceed 30s; env still overrides.
 const DEFAULT_TIMEOUT_MS = 120_000;
 
+/** Quiet link logs under Jest (live suites call parse/health often). */
+function linkLogForEnv(logger) {
+	if (logger) return logger;
+	if (process.env.NODE_ENV === 'test') {
+		return { info() {}, warn() {}, error() {}, log() {} };
+	}
+	return console;
+}
+
 function noteTransportOk() {
 	const { url } = getConfig();
-	markWorkerUp({ url, detail: `request ok | gateway=${getGatewayLabel()}` });
+	markWorkerUp({
+		url,
+		detail: `request ok | gateway=${getGatewayLabel()}`,
+		logger: linkLogForEnv(),
+	});
 }
 
 function noteTransportDown(error) {
@@ -45,6 +58,7 @@ function noteTransportDown(error) {
 	markWorkerDown({
 		url,
 		reason: error?.message || String(error || 'unknown'),
+		logger: linkLogForEnv(),
 	});
 }
 
@@ -361,10 +375,6 @@ async function healthLocal() {
 	return response.data;
 }
 
-function quietLinkLogger(logger) {
-	return logger || { info() {}, warn: console.warn, error: console.error };
-}
-
 function beginLinkMonitor(options = {}) {
 	if (!isEnabled()) return;
 	ensureDeferConnectedHook();
@@ -372,7 +382,8 @@ function beginLinkMonitor(options = {}) {
 		healthFn: health,
 		getUrl: () => getConfig().url,
 		intervalMs: options.intervalMs,
-		logger: quietLinkLogger(options.logger),
+		// Default console so boot CONNECTED is visible; quiet under Jest.
+		logger: linkLogForEnv(options.logger),
 	});
 }
 
@@ -395,7 +406,7 @@ function beginStandbyLinkMonitor(options = {}) {
 		healthFn: healthLocal,
 		getUrl: () => getLocalConfig().url,
 		intervalMs: options.intervalMs,
-		logger: quietLinkLogger(options.logger),
+		logger: linkLogForEnv(options.logger),
 	});
 }
 

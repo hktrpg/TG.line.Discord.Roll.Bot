@@ -1,6 +1,5 @@
 "use strict";
 
-const path = require('node:path');
 const analytics = require('../analytics');
 const i18n = require('../i18n/i18n.js');
 const client = require('./client');
@@ -21,7 +20,6 @@ function getLifecycleFlags() {
 }
 
 const FALLBACK_LOG_INTERVAL_MS = 60_000;
-const PARSE_MODE_LOCK = path.join(__dirname, '..', '..', 'temp', 'parse-mode-announced.lock');
 let loggedModeOnce = false;
 let workersReadyPromise = null;
 let lastFallbackLogAt = 0;
@@ -29,40 +27,6 @@ let fallbackSinceLastLog = 0;
 let lastRemoteFailLogAt = 0;
 let remoteFailSinceLastLog = 0;
 let replayHookInstalled = false;
-
-function isPidAliveQuick(pid) {
-	if (!pid || !Number.isFinite(pid)) return false;
-	try {
-		process.kill(pid, 0);
-		return true;
-	} catch {
-		return false;
-	}
-}
-
-/**
- * Only one Gateway process prints the ParseMode banner (index + Discord clusters share host).
- * Still runs ensureWorkersReady in every process.
- */
-function claimParseModeBanner() {
-	const fs = require('node:fs');
-	try {
-		fs.mkdirSync(require('node:path').dirname(PARSE_MODE_LOCK), { recursive: true });
-		let existing = null;
-		try {
-			existing = JSON.parse(fs.readFileSync(PARSE_MODE_LOCK, 'utf8'));
-		} catch {
-			existing = null;
-		}
-		if (existing?.pid && isPidAliveQuick(existing.pid)) {
-			return false;
-		}
-		fs.writeFileSync(PARSE_MODE_LOCK, JSON.stringify({ pid: process.pid, at: Date.now() }));
-		return true;
-	} catch {
-		return true;
-	}
-}
 
 /**
  * Gateway switch: never run in-process analytics when remoting is configured.
@@ -179,18 +143,22 @@ function ensureWorkersReady(logger = console) {
 	return workersReadyPromise;
 }
 
-/** @internal Jest — clear cached auto-start promise between suites */
+/** @internal Jest — clear cached auto-start promise + ParseMode banner latch */
 function resetWorkersReadyForTests() {
 	workersReadyPromise = null;
+	loggedModeOnce = false;
 }
 
 /**
- * Log dice backends once per host (single [Gateway] line via console — not [System] logger).
+ * Frame Workers + optionally print [Gateway] banner; always start link monitors.
+ * @param {Console} [logger]
+ * @param {{ announceBanner?: boolean }} [options] - announceBanner=false: monitors only (Discord cluster ≠ 0)
  */
-async function logParseMode(logger = console) {
+async function logParseMode(logger = console, options = {}) {
 	if (loggedModeOnce) return;
 	loggedModeOnce = true;
 
+	const announceBanner = options.announceBanner !== false;
 	// Always console.info so the line is `[Gateway] …`, not `[System] …`.
 	const info = (msg) => console.info(msg);
 
@@ -199,24 +167,6 @@ async function logParseMode(logger = console) {
 	}
 
 	const started = await ensureWorkersReady(logger);
-	const announce = claimParseModeBanner();
-	if (!announce) {
-		if (client.isEnabled()) {
-			client.beginLinkMonitor({
-				logger: { info() {}, warn: console.warn, error: console.error },
-			});
-			if (typeof client.beginStandbyLinkMonitor === 'function' && client.isLocalEnabled()) {
-				client.beginStandbyLinkMonitor({
-					logger: { info() {}, warn: console.warn, error: console.error },
-				});
-			}
-			if (isRemoteOnlyMode() && deferQueue.isDeferBusyActive()) {
-				ensureDeferReplayHook();
-				deferQueue.startDrainMonitor();
-			}
-		}
-		return;
-	}
 
 	const primaryHow = started?.primary?.supervised
 		? `spawned${started.primary.pid ? ` pid=${started.primary.pid}` : ''}`
@@ -237,21 +187,22 @@ async function logParseMode(logger = console) {
 		const standbyPart = localUrl
 			? `Standby ${localUrl}`
 			: (started?.local?.pending ? 'Standby pending' : 'Standby off');
-		info(`[Gateway] Primary ${url}`
-			+ (primaryHow ? ` (${primaryHow})` : '')
-			+ ` | ${standbyPart}`
-			+ ` | fallback=${remoteOnly ? 'none (remote-only)' : 'Embedded'}`
-			+ ` | token=${token ? 'on' : 'off'}`
-			+ ` | timeout=${timeoutMs}ms`
-			+ (remoteOnly ? ` | defer=${deferOn ? 'on' : 'off'}` : ''));
-		// Link monitors: warn on disconnect only (boot line already shows backends).
-		client.beginLinkMonitor({
-			logger: { info() {}, warn: console.warn, error: console.error },
-		});
+		if (announceBanner) {
+			info(`[Gateway] Primary ${url}`
+				+ (primaryHow ? ` (${primaryHow})` : '')
+				+ ` | ${standbyPart}`
+				+ ` | fallback=${remoteOnly ? 'none (remote-only)' : 'Embedded'}`
+				+ ` | token=${token ? 'on' : 'off'}`
+				+ ` | timeout=${timeoutMs}ms`
+				+ (remoteOnly ? ` | defer=${deferOn ? 'on' : 'off'}` : ''));
+		}
+		// Monitors on every process; banner processes also show boot CONNECTED.
+		const linkLogger = announceBanner
+			? console
+			: { info() {}, warn: console.warn, error: console.error };
+		client.beginLinkMonitor({ logger: linkLogger });
 		if (localUrl && typeof client.beginStandbyLinkMonitor === 'function') {
-			client.beginStandbyLinkMonitor({
-				logger: { info() {}, warn: console.warn, error: console.error },
-			});
+			client.beginStandbyLinkMonitor({ logger: linkLogger });
 		}
 		if (deferOn) {
 			ensureDeferReplayHook();
@@ -259,6 +210,8 @@ async function logParseMode(logger = console) {
 		}
 		return;
 	}
+
+	if (!announceBanner) return;
 
 	if (isRemoteOnlyMode()) {
 		info('[Gateway] MISCONFIG | REMOTE_ONLY=on but ROLL_WORKER_URL unset');

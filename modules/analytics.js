@@ -864,9 +864,16 @@ async function stateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	return stateTextCache[cacheKey]?.text || '';
 }
 
-// Pre-warm cache after startup to avoid first-call delay
-if (ADMIN_STATE_CACHE_MS > 0) {
-	setTimeout(() => refreshStateCache(i18n.DEFAULT_LOCALE).catch(() => {}), 60_000);
+// Pre-warm cache after startup to avoid first-call delay.
+// Skip in Jest (avoids require-after-teardown + open-handle force-exit).
+if (ADMIN_STATE_CACHE_MS > 0 && process.env.NODE_ENV !== 'test') {
+	const warmTimer = setTimeout(
+		() => refreshStateCache(i18n.DEFAULT_LOCALE).catch(() => {}),
+		60_000
+	);
+	if (typeof warmTimer.unref === 'function') {
+		warmTimer.unref();
+	}
 }
 
 async function cmdfunction({ result, ...context }) {

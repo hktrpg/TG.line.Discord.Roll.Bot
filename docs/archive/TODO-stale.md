@@ -1,3 +1,9 @@
+# Archived (stale)
+
+> Historical notes only. Paths and advice may be outdated. Prefer current \`docs/\` and code.
+
+---
+
 
 1. 資料庫連線與錯誤處理 (/modules/db-connector.js)
 - 實作更穩定的資料庫連線機制

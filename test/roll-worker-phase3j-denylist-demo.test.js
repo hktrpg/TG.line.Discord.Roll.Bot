@@ -4,7 +4,7 @@
  * Phase 3j: Discord denylist routing ??matched modules remoted by default.
  * (demo.js is excluded from analytics loader ??prove via route-table + live allow-all path)
  */
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 const { spawn } = require('node:child_process');
 const http = require('node:http');
@@ -34,7 +34,7 @@ function getJson(urlPath) {
 	});
 }
 
-async function waitHealth(timeoutMs = 25_000) {
+async function waitHealth(timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

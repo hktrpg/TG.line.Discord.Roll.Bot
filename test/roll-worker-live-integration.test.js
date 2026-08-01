@@ -5,7 +5,7 @@
  * Strict: health.parseCount++ and body._rollWorker === true.
  * (Avoid requiring analytics inside Jest — logs.js top-level return breaks Babel.)
  */
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 const { spawn } = require('node:child_process');
 const http = require('node:http');
@@ -34,7 +34,7 @@ function getJson(urlPath) {
 	});
 }
 
-async function waitHealth(timeoutMs = 25_000) {
+async function waitHealth(timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

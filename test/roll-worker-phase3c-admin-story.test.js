@@ -3,7 +3,7 @@
 /**
  * Phase 3c: z_admin / z-story-teller help+safe remote; cluster/import needsLocal.
  */
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 const { spawn } = require('node:child_process');
 const http = require('node:http');
@@ -33,7 +33,7 @@ function getJson(urlPath) {
 	});
 }
 
-async function waitHealth(timeoutMs = 25_000) {
+async function waitHealth(timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

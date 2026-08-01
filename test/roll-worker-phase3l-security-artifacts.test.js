@@ -141,7 +141,7 @@ describe('Phase 3l live worker + gateway with token (spawned)', () => {
 
 		const start = Date.now();
 		let ready = false;
-		while (Date.now() - start < 25_000) {
+		while (Date.now() - start < 60_000) {
 			try {
 				const health = await client.health();
 				if (health?.ok) {

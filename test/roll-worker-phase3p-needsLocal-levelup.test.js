@@ -3,7 +3,7 @@
 /**
  * Phase 3p: client.parse must preserve LevelUp/statue from HTTP 503 needsLocal body.
  */
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 const http = require('node:http');
 const { spawn } = require('node:child_process');
@@ -66,7 +66,7 @@ describe('Phase 3p live worker 503 needsLocal carries LevelUp', () => {
 
 		const start = Date.now();
 		let ready = false;
-		while (Date.now() - start < 25_000) {
+		while (Date.now() - start < 60_000) {
 			try {
 				const health = await client.health();
 				if (health?.ok) {

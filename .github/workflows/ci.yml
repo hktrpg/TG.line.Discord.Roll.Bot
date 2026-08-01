@@ -39,7 +39,9 @@ jobs:
         run: yarn lint
 
       - name: Run tests
-        run: yarn test --coverage
+        # Cap workers: live roll-worker spawn suites cold-load analytics; under
+        # parallel coverage on ubuntu runners they otherwise miss the health wait.
+        run: yarn test --coverage --maxWorkers=2
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5

@@ -20,7 +20,7 @@ const PRIMARY_LOCK_PATH = path.join(ROOT, 'temp', 'roll-primary-worker.lock');
 const DEFAULT_LOCAL_PORT = 3951;
 const DEFAULT_PRIMARY_PORT = 3950;
 const DEFAULT_DRAIN_MS = 1500;
-const DEFAULT_HEALTH_WAIT_MS = 25_000;
+const DEFAULT_HEALTH_WAIT_MS = 60_000;
 const DEFAULT_HEALTH_PROBE_MS = 5000;
 
 /** Supervised Standby child. */

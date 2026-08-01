@@ -4,7 +4,7 @@
  * Phase 3b: openai / export / z_multi-server help remote + ops needsLocal.
  * Live spawn ??avoids requiring modules with top-level `return` (Jest/Babel).
  */
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 const { spawn } = require('node:child_process');
 const http = require('node:http');
@@ -34,7 +34,7 @@ function getJson(urlPath) {
 	});
 }
 
-async function waitHealth(timeoutMs = 25_000) {
+async function waitHealth(timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

@@ -1285,7 +1285,7 @@ class TranslateAi extends OpenAI {
             // Determine max characters based on user's VIP level
             let maxChars = TRANSLATE_LIMIT_PERSONAL[0]; // Default for non-VIP users
             if (userid) {
-                const lv = await VIP.viplevelCheckUser(userid);
+                const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
                 maxChars = TRANSLATE_LIMIT_PERSONAL[lv] || TRANSLATE_LIMIT_PERSONAL[0];
             }
 
@@ -2133,7 +2133,7 @@ class TranslateAi extends OpenAI {
 
         // Early validation of attachments before processing
         if (userid) {
-            const lv = await VIP.viplevelCheckUser(userid);
+            const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
 
             // Collect all attachments first
@@ -2228,7 +2228,7 @@ class TranslateAi extends OpenAI {
 
                         // Progressive limit check during processing
                         if (userid) {
-                            const lv = await VIP.viplevelCheckUser(userid);
+                            const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
                             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
                             if (textLength > limit) {
                                 throw new Error(this.getAiT()('openai.vip_file_over_limit', {
@@ -2303,7 +2303,7 @@ class TranslateAi extends OpenAI {
 
                         // Progressive limit check during processing
                         if (userid) {
-                            const lv = await VIP.viplevelCheckUser(userid);
+                            const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
                             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
                             if (textLength > limit) {
                                 throw new Error(this.getAiT()('openai.vip_reply_file_over_limit', {
@@ -2521,7 +2521,7 @@ class TranslateAi extends OpenAI {
 
     }
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW', assetOptions = {}) {
-        let lv = await VIP.viplevelCheckUser(userid);
+        let lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
 
         let translateScript, textLength;
@@ -2896,6 +2896,9 @@ class CommandHandler {
         chatAi._locale = resolvedLocale;
         translateAi._locale = resolvedLocale;
         imageAi._locale = resolvedLocale;
+        chatAi._vipPlatform = botname;
+        translateAi._vipPlatform = botname;
+        imageAi._vipPlatform = botname;
 
         let replyMessage = params.replyContent || "";
         // Only try to get reply content if using Discord and not prefetched
@@ -2959,7 +2962,7 @@ class CommandHandler {
 
         let modelType = 'LOW';
         if (/^.aitm$/i.test(mainMsg[0])) {
-            let lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
             if (lv < 1) {
                 rply.text = translate('openai.vip_required_translate');
                 return rply;
@@ -3044,7 +3047,7 @@ class CommandHandler {
 
         let modelType = 'LOW';
         if (/^.aim$/i.test(mainMsg[0])) {
-            let lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
             if (lv < 1) {
                 rply.text = translate('openai.vip_required_chat');
                 return rply;

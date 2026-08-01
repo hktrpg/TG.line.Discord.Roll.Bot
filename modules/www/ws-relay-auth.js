@@ -25,6 +25,20 @@ function isValidRelayToken(token) {
 	return timingSafeEqualString(token, expected);
 }
 
+/**
+ * Non-local WS relay must have a shared secret.
+ * @param {boolean} allowNonLocal
+ * @returns {{ ok: true } | { ok: false, error: string }}
+ */
+function assertRelayAuthForDeploy(allowNonLocal) {
+	if (!allowNonLocal) return { ok: true };
+	if (getWwwWsToken()) return { ok: true };
+	return {
+		ok: false,
+		error: 'WWW_WS_ALLOW_NON_LOCAL=true requires WWW_WS_TOKEN or ROLL_WORKER_TOKEN',
+	};
+}
+
 function buildRegisterPayload(botname) {
 	return JSON.stringify({
 		type: 'register',
@@ -82,6 +96,7 @@ function normalizeBotname(raw) {
 module.exports = {
 	getWwwWsToken,
 	isValidRelayToken,
+	assertRelayAuthForDeploy,
 	buildRegisterPayload,
 	parseGatewayInject,
 	normalizeBotname,

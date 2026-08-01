@@ -123,6 +123,7 @@ const rollDiceCommand = async function ({
     displayname,
     displaynameDiscord,
     membercount,
+    botname,
     locale,
     t
 }) {
@@ -243,7 +244,7 @@ const rollDiceCommand = async function ({
                 只限四張角色卡.
                 使用VIPCHECK
                 */
-                lv = await VIP.viplevelCheckGroup(groupid);
+                lv = await VIP.viplevelCheckGroup(groupid, botname);
                 limit = FUNCTION_LIMIT[lv];
                 if (!mainMsg[2]) rply.text += translate('random_ans.no_dice_name');
                 if (!mainMsg[3]) rply.text += translate('random_ans.no_dice_content');
@@ -524,7 +525,7 @@ const rollDiceCommand = async function ({
         case /(^[.](r|)rap(\d+|)$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^(?!(add|del|show)$)/ig.test(mainMsg[2]): {
                 //增加自定義關鍵字
                 // .rap[0] add[1] 標題[2] 隨機1[3] 隨機2[4] 
-                lv = await VIP.viplevelCheckUser(userid);
+                lv = await VIP.viplevelCheckUser(userid, botname);
                 limit = FUNCTION_LIMIT_PERSONAL[lv];
                 if (!mainMsg[2])
                     rply.text += translate('random_ans.no_dice_name');

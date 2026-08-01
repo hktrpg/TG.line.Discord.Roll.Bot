@@ -73,6 +73,7 @@ const rollDiceCommand = async function ({
     discordClient,
     discordMessage,
     forwardSourceMeta,
+    botname,
     locale,
     t
 }) {
@@ -164,8 +165,8 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            let userVipLevel = await VIP.viplevelCheckUser(userid);
-            let groupVipLevel = await VIP.viplevelCheckGroup(groupid);
+            let userVipLevel = await VIP.viplevelCheckUser(userid, botname);
+            let groupVipLevel = await VIP.viplevelCheckGroup(groupid, botname);
             let vipLevel = Math.max(userVipLevel, groupVipLevel);
             let limit = FUNCTION_LIMIT[vipLevel];
 

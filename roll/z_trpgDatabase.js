@@ -475,6 +475,7 @@ const rollDiceCommand = async function ({
     displayname,
     displaynameDiscord,
     membercount,
+    botname,
     locale,
     t
 }) {
@@ -510,7 +511,7 @@ const rollDiceCommand = async function ({
             }
 
             // 獲取VIP等級和限制
-            lv = await VIP.viplevelCheckGroup(groupid);
+            lv = await VIP.viplevelCheckGroup(groupid, botname);
             limit = FUNCTION_LIMIT[lv];
 
             // 獲取群組數據庫

@@ -42,6 +42,7 @@ const rollDiceCommand = async function ({
     mainMsg,
     groupid,
     userrole,
+    botname,
     locale,
     t
 }) {
@@ -75,7 +76,7 @@ const rollDiceCommand = async function ({
                 rply.text = translate('stop.keyword_too_short');
                 return rply;
             }
-            lv = await VIP.viplevelCheckGroup(groupid);
+            lv = await VIP.viplevelCheckGroup(groupid, botname);
             limit = FUNCTION_LIMIT[lv];
             let findVIP = save.save.find(function (item) {
                 return item._doc.groupid;

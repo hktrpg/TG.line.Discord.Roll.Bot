@@ -3,6 +3,7 @@
 const {
 	getWwwWsToken,
 	isValidRelayToken,
+	assertRelayAuthForDeploy,
 	buildRegisterPayload,
 	parseGatewayInject,
 	normalizeBotname,
@@ -61,5 +62,14 @@ describe('www ws-relay-auth', () => {
 
 	test('invalid JSON is rejected', () => {
 		expect(parseGatewayInject('not-json', 'Discord').ok).toBe(false);
+	});
+
+	test('non-local deploy requires token', () => {
+		delete process.env.WWW_WS_TOKEN;
+		delete process.env.ROLL_WORKER_TOKEN;
+		expect(assertRelayAuthForDeploy(false).ok).toBe(true);
+		expect(assertRelayAuthForDeploy(true).ok).toBe(false);
+		process.env.WWW_WS_TOKEN = 'secret';
+		expect(assertRelayAuthForDeploy(true).ok).toBe(true);
 	});
 });

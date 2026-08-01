@@ -393,7 +393,7 @@ const rollDiceCommand = async function ({
                 rply.text = translate('export.discord_only');
                 return rply;
             }
-            let lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
 
             let limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({
@@ -563,8 +563,8 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
-            let lv = await VIP.viplevelCheckUser(userid);
-            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
+            let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
             lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
             checkUser = await schema.exportUser.findOne({

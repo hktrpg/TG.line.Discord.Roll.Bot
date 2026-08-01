@@ -125,7 +125,7 @@ const rollDiceCommand = async function ({
             }
 
             //新增新的
-            let lv = await VIP.viplevelCheckGroup(groupid);
+            let lv = await VIP.viplevelCheckGroup(groupid, botname);
             let limit = FUNCTION_LIMIT[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error:', error.name, error.reason));
             if (myNamesLength >= limit) {
@@ -213,7 +213,7 @@ const rollDiceCommand = async function ({
                 rply.quotes = true;
                 return rply;
             }
-            let lv = await VIP.viplevelCheckGroup(groupid);
+            let lv = await VIP.viplevelCheckGroup(groupid, botname);
             let limit = FUNCTION_LIMIT[lv];
             let myNamesLength = await schema.roleReact.countDocuments({ groupid: groupid }).catch(error => console.error('role #141 mongoDB error: ', error.name, error.reason));
             if (myNamesLength >= limit) {
@@ -405,7 +405,7 @@ case /^\.roleInvites$/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]): {
         rply.quotes = true;
         return rply;
     }
-    const lv = await VIP.viplevelCheckGroup(groupid);
+    const lv = await VIP.viplevelCheckGroup(groupid, botname);
     const limit = FUNCTION_LIMIT[lv];
     const myNamesLength = await schema.roleInvites.countDocuments({ groupid: groupid })
     if (myNamesLength >= limit) {

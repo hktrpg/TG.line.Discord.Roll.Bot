@@ -183,8 +183,8 @@ const rollDiceCommand = async function ({
                 rply.text = translate('schedule.group_only');
                 return rply
             }
-            let lv = await VIP.viplevelCheckUser(userid);
-            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
+            let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
             lv = Math.max(gpLv, lv);
             let limit = FUNCTION_AT_LIMIT[lv];
             let check = {
@@ -349,8 +349,8 @@ const rollDiceCommand = async function ({
             if (!mainMsg[2]) rply.text += translate('schedule.no_content');
             if (rply.text) return rply;
 
-            let lv = await VIP.viplevelCheckUser(userid);
-            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
+            let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
             lv = Math.max(gpLv, lv);
             let limit = FUNCTION_CRON_LIMIT[lv];
             let check = {

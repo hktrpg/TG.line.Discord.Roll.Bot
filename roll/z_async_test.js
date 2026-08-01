@@ -43,7 +43,7 @@ const rollDiceCommand = async function ({
 	mainMsg,
 	groupid, // eslint-disable-line no-unused-vars
 	channelid, // eslint-disable-line no-unused-vars
-	botname, // eslint-disable-line no-unused-vars
+	botname, // eslint-disable-line no-unused-vars -- used when translate block is enabled
 	userrole, // eslint-disable-line no-unused-vars
 	locale,
 	t
@@ -102,7 +102,7 @@ const rollDiceCommand = async function ({
 				groupid: groupid,
 				switch: true
 			}).countDocuments().catch(error => console.error('translate #111 mongoDB error: ', error.name, error.reason));
-			let gpLv = await VIP.viplevelCheckGroup(groupid);
+			let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
 			let limit = FUNCTION_LIMIT[gpLv];
 			if (check.length >= limit) {
 				rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';

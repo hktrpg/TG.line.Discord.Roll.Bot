@@ -6,6 +6,11 @@ const { isEnvEnabled } = require('../../utils/env-flag.js');
 const DebugMode = isEnvEnabled('DEBUG');
 const CACHE_DURATION = 5 * 60 * 1000; // 5分鐘快取
 
+/** Normalize botname / platform for VIP row matching (Discord → discord). */
+function normalizeVipPlatform(platform) {
+    return String(platform || '').trim().toLowerCase();
+}
+
 class VIPManager {
     constructor() {
         this.vipCache = null;
@@ -25,7 +30,7 @@ class VIPManager {
     /**
      * @param {string} id
      * @param {'group'|'user'} [type]
-     * @param {string} [platform] - optional; when set, prefer matching platform (legacy empty platform still matches)
+     * @param {string} [platform] - botname or platform; when set, platform-tagged rows must match (legacy empty platform still matches)
      */
     async checkVIPLevel(id, type = 'group', platform) {
         if (!id) return 0;
@@ -43,7 +48,7 @@ class VIPManager {
 
         // 根據類型選擇查詢條件；同一 id 可能有多筆（手動 + Patreon），取最高 level
         const searchKey = type === 'group' ? 'gpid' : 'id';
-        const wantPlatform = String(platform || '').trim().toLowerCase();
+        const wantPlatform = normalizeVipPlatform(platform);
 
         const now = Date.now();
         const matches = (this.vipCache || []).filter(item => {
@@ -51,7 +56,7 @@ class VIPManager {
             const end = item.endDate ? new Date(item.endDate).getTime() : null;
             if (end != null && !Number.isNaN(end) && end < now) return false;
             if (wantPlatform) {
-                const rowPlatform = String(item.platform || '').trim().toLowerCase();
+                const rowPlatform = normalizeVipPlatform(item.platform);
                 // Legacy/manual rows (no platform) still apply; platform-tagged rows must match.
                 if (rowPlatform && rowPlatform !== wantPlatform) return false;
             }
@@ -64,11 +69,11 @@ class VIPManager {
 
 const vipManager = new VIPManager();
 
-const viplevelCheckGroup = (groupID) =>
-    vipManager.checkVIPLevel(groupID, 'group');
+const viplevelCheckGroup = (groupID, platform) =>
+    vipManager.checkVIPLevel(groupID, 'group', platform);
 
-const viplevelCheckUser = (userid) =>
-    vipManager.checkVIPLevel(userid, 'user');
+const viplevelCheckUser = (userid, platform) =>
+    vipManager.checkVIPLevel(userid, 'user', platform);
 
 function invalidateCache() {
     vipManager.vipCache = null;
@@ -78,5 +83,6 @@ function invalidateCache() {
 module.exports = {
     viplevelCheckGroup,
     viplevelCheckUser,
+    normalizeVipPlatform,
     invalidateCache,
 };

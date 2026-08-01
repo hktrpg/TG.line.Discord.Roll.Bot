@@ -33,7 +33,7 @@ services:
       retries: 5
       start_period: 30s
 
-  # Shared Primary — keep :3950 on the compose network only (no public ports).
+  # Shared Primary — keep :20612 on the compose network only (no public ports).
   roll-primary:
     build:
       context: ..
@@ -51,7 +51,7 @@ services:
       TZ: Asia/Taipei
       ROLL_WORKER_MODE: "true"
       ROLL_WORKER_HOST: "0.0.0.0"
-      ROLL_WORKER_PORT: "3950"
+      ROLL_WORKER_PORT: "20612"
       ROLL_WORKER_SPAWN: "false"
       # Same root on all services that read Worker-written files:
       ROLL_ARTIFACT_ROOT: "/app"
@@ -78,7 +78,7 @@ services:
       - .env.discord
     environment:
       TZ: Asia/Taipei
-      ROLL_WORKER_URL: http://roll-primary:3950
+      ROLL_WORKER_URL: http://roll-primary:20612
       ROLL_WORKER_SPAWN: "false"
       ROLL_ARTIFACT_ROOT: "/app"
     volumes:
@@ -103,7 +103,7 @@ services:
       - .env.non-discord
     environment:
       TZ: Asia/Taipei
-      ROLL_WORKER_URL: http://roll-primary:3950
+      ROLL_WORKER_URL: http://roll-primary:20612
       ROLL_WORKER_SPAWN: "false"
       ROLL_ARTIFACT_ROOT: "/app"
     volumes:

@@ -6,7 +6,7 @@
 jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(() => true),
 	isLocalEnabled: jest.fn(() => false),
-	getConfig: jest.fn(() => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 1000 })),
+	getConfig: jest.fn(() => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 1000 })),
 	getLocalConfig: jest.fn(() => ({ url: '', token: 't', timeoutMs: 1000 })),
 	parse: jest.fn(),
 	parseLocal: jest.fn(),
@@ -46,7 +46,7 @@ describe('review fixes (defer enqueue fail + mutator silent)', () => {
 			prev[key] = process.env[key];
 		}
 		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_WORKER_DEFER_BUSY;
 		process.env.ROLL_WORKER_DEFER_PER_USER = '1';
 		process.env.ROLL_WORKER_DEFER_MAX = '100';

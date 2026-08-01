@@ -5,22 +5,22 @@
 | Name | What it is | Env / port | Role |
 |------|------------|------------|------|
 | **Gateway** | Platform process (Discord / TG / LINE / WA / WWW / Plurk) | `yarn start` / docker | Receives messages; stays online |
-| **Primary** | Preferred HTTP dice (`roll-worker.js`) | `ROLL_WORKER_URL` → `:3950` | First choice for rolls |
-| **Standby** | Fallback HTTP dice (same binary) | `ROLL_STANDBY_URL` → `:3951` | Only if **Primary** fails |
+| **Primary** | Preferred HTTP dice (`roll-worker.js`) | `ROLL_WORKER_URL` → `:20612` | First choice for rolls |
+| **Standby** | Fallback HTTP dice (same binary) | `ROLL_STANDBY_URL` → `:20613` | Only if **Primary** fails |
 | **Embedded** | Same `analytics` + `roll/*` **inside Gateway** | (no URL) | Last resort / `needsLocal` — **not** a separate process |
 
 **Ports**
 
 | Who starts | Default port |
 |------------|--------------|
-| Gateway auto-Primary | `:3950` |
-| Standby (`SPAWN=true` / URL) | `:3951` |
-| `yarn start:roll-worker` (manual) | `:3952` |
-| `yarn start:roll-worker:primary` | `:3950` |
-| `yarn start:roll-worker:standby` | `:3951` |
+| Gateway auto-Primary | `:20612` |
+| Standby (`SPAWN=true` / URL) | `:20613` |
+| `yarn start:roll-worker` (manual) | `:20614` |
+| `yarn start:roll-worker:primary` | `:20612` |
+| `yarn start:roll-worker:standby` | `:20613` |
 
 ```text
-Gateway  →  Primary (:3950)  →  Standby (:3951)  →  Embedded
+Gateway  →  Primary (:20612)  →  Standby (:20613)  →  Embedded
               ↑ prefer             ↑ if Primary down      ↑ last / needsLocal
 ```
 
@@ -67,7 +67,7 @@ When Discord and TG/LINE/WA are **separate containers**, run one shared **`roll-
 
 ## Quick start
 
-**Default:** leave URLs unset. Gateway auto-discovers/spawns **Primary only** (`:3950`).
+**Default:** leave URLs unset. Gateway auto-discovers/spawns **Primary only** (`:20612`).
 
 **Standby** only if you set `ROLL_STANDBY_URL` and/or `ROLL_STANDBY_SPAWN=true`.
 
@@ -75,12 +75,12 @@ When `ROLL_STANDBY_URL` is set, Gateway pings Standby `/health` (~5s while down,
 
 `ROLL_WORKER_SPAWN=false` → no auto Primary (Embedded only unless `ROLL_WORKER_URL` is set).
 
-**Manual start:** `yarn start:roll-worker` binds **`:3952`** so it does not collide with auto-Primary. To run Primary yourself (`ROLL_WORKER_SPAWN=false` or after crash): `yarn start:roll-worker:primary`.
+**Manual start:** `yarn start:roll-worker` binds **`:20614`** so it does not collide with auto-Primary. To run Primary yourself (`ROLL_WORKER_SPAWN=false` or after crash): `yarn start:roll-worker:primary`.
 
 ```env
-ROLL_WORKER_URL=http://127.0.0.1:3950
+ROLL_WORKER_URL=http://127.0.0.1:20612
 # Optional Standby:
-# ROLL_STANDBY_URL=http://127.0.0.1:3951
+# ROLL_STANDBY_URL=http://127.0.0.1:20613
 # ROLL_STANDBY_SPAWN=true
 ROLL_WORKER_TOKEN=change-me-shared-secret
 # Pure Embedded only:

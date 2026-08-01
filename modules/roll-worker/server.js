@@ -426,9 +426,9 @@ function createRollWorkerApp(options = {}) {
 
 function startRollWorkerServer() {
 	const host = process.env.ROLL_WORKER_HOST || '127.0.0.1';
-	// Manual `yarn start:roll-worker` defaults to :3952 so it does not collide with
-	// Gateway auto-Primary (:3950) or Standby (:3951). Gateway spawn always sets PORT explicitly.
-	const port = Number.parseInt(process.env.ROLL_WORKER_PORT || '3952', 10);
+	// Manual `yarn start:roll-worker` defaults to :20614 so it does not collide with
+	// Gateway auto-Primary (:20612) or Standby (:20613). Gateway spawn always sets PORT explicitly.
+	const port = Number.parseInt(process.env.ROLL_WORKER_PORT || '20614', 10);
 	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true';
 
 	// Auto-generate + persist shared secret unless auth-off test mode is explicit.
@@ -465,15 +465,15 @@ function startRollWorkerServer() {
 				+ ' | wait Gateway (CONNECTED/DISCONNECTED)');
 		} else if (!process.env.ROLL_WORKER_PORT) {
 			// One-line hint when using manual default port (not Gateway-spawned).
-			console.info(`[RollWorker] manual :${port} (auto Primary uses :3950; set ROLL_WORKER_PORT to override)`);
+			console.info(`[RollWorker] manual :${port} (auto Primary uses :20612; set ROLL_WORKER_PORT to override)`);
 		}
 	});
 	server.on('error', (error) => {
 		if (error?.code === 'EADDRINUSE') {
 			console.error(
 				`[RollWorker] port ${host}:${port} already in use.`
-				+ (port === 3950
-					? ' Gateway auto-Primary may already own :3950 — use ROLL_WORKER_PORT=3952 (yarn start:roll-worker default) or stop the other process.'
+				+ (port === 20_612
+					? ' Gateway auto-Primary may already own :20612 — use ROLL_WORKER_PORT=20614 (yarn start:roll-worker default) or stop the other process.'
 					: ' Stop the other process or set ROLL_WORKER_PORT to a free port.')
 			);
 			// eslint-disable-next-line n/no-process-exit

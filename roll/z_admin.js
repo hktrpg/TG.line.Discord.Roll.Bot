@@ -185,8 +185,8 @@ const discordCommand = [
                             .setDescription('primary | standby | discord | gateway | all')
                             .setRequired(true)
                             .addChoices(
-                                { name: 'primary - Primary (:3950)', value: 'primary' },
-                                { name: 'standby - Standby (:3951)', value: 'standby' },
+                                { name: 'primary - Primary (:20612)', value: 'primary' },
+                                { name: 'standby - Standby (:20613)', value: 'standby' },
                                 { name: 'discord - Discord clusters', value: 'discord' },
                                 { name: 'gateway - platform Gateway', value: 'gateway' },
                                 { name: 'all - standby → primary → gateway', value: 'all' }
@@ -204,8 +204,8 @@ const discordCommand = [
                             .setDescription('primary | standby')
                             .setRequired(true)
                             .addChoices(
-                                { name: 'primary - Primary (:3950)', value: 'primary' },
-                                { name: 'standby - Standby (:3951)', value: 'standby' }
+                                { name: 'primary - Primary (:20612)', value: 'primary' },
+                                { name: 'standby - Standby (:20613)', value: 'standby' }
                             )))
             .addSubcommand(subcommand =>
                 subcommand

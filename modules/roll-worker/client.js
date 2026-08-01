@@ -31,7 +31,7 @@ function ensureDeferConnectedHook() {
 	onWorkerUp(() => deferQueue.onWorkerConnected());
 }
 
-const DEFAULT_URL = 'http://127.0.0.1:3950';
+const DEFAULT_URL = 'http://127.0.0.1:20612';
 // OpenAI / heavy export often exceed 30s; env still overrides.
 const DEFAULT_TIMEOUT_MS = 120_000;
 

@@ -32,7 +32,7 @@ describe('Phase 3v export workerError must not re-run locally', () => {
 			const parseInput = jest.fn(async () => ({ text: 'SHOULD-NOT-RUN', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => {
 					throw new Error('timeout of 30000ms exceeded');
 				}),
@@ -81,7 +81,7 @@ describe('Phase 3v export workerError must not re-run locally', () => {
 			const parseInput = jest.fn(async () => ({ text: 'local-export', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({
 					needsLocal: true,
 					moduleName: 'export',
@@ -122,7 +122,7 @@ describe('Phase 3v export workerError must not re-run locally', () => {
 			const parseInput = jest.fn(async () => ({ text: 'local-dice', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: '', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: '', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => {
 					throw new Error('ECONNREFUSED');
 				}),

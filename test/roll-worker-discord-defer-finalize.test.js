@@ -12,7 +12,7 @@ const deferQueue = require('../modules/roll-worker/defer-queue');
 describe('Discord defer full-finalize wiring', () => {
 	beforeEach(() => {
 		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_WORKER_DEFER_BUSY;
 		deferQueue.resetDeferQueue();
 	});

@@ -9,7 +9,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(() => true),
 	isLocalEnabled: jest.fn(() => false),
 	getConfig: jest.fn(() => ({
-		url: process.env.ROLL_WORKER_URL || 'http://127.0.0.1:3950',
+		url: process.env.ROLL_WORKER_URL || 'http://127.0.0.1:20612',
 		token: 'phase3ab',
 		timeoutMs: 5000,
 	})),
@@ -55,7 +55,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		jest.clearAllMocks();
 		for (const key of envKeys) prev[key] = process.env[key];
 		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_WORKER_DEFER_BUSY;
 		process.env.ROLL_WORKER_DEFER_MAX = '100';
 		process.env.ROLL_WORKER_DEFER_PER_USER = '10';
@@ -252,7 +252,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 
 	it('z_schedule pre-flight ECONNREFUSED enqueues under REMOTE_ONLY', async () => {
 		analytics.findRollModuleName.mockReturnValue('z_schedule');
-		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:20612'));
 		const result = await parseRouter.parseInput({
 			inputStr: '.at 1mins [[1d100]]',
 			botname: 'Discord',

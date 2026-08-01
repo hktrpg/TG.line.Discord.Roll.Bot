@@ -5,8 +5,8 @@
  */
 jest.mock('../modules/roll-worker/client', () => ({
 	isLocalEnabled: jest.fn(() => true),
-	getLocalConfig: jest.fn(() => ({ url: 'http://127.0.0.1:3951', token: 't', timeoutMs: 1000 })),
-	getConfig: jest.fn(() => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 1000 })),
+	getLocalConfig: jest.fn(() => ({ url: 'http://127.0.0.1:20613', token: 't', timeoutMs: 1000 })),
+	getConfig: jest.fn(() => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 1000 })),
 	isEnabled: jest.fn(() => true),
 	healthAt: jest.fn(),
 	requestAdminShutdown: jest.fn().mockResolvedValue({ ok: true }),
@@ -56,7 +56,7 @@ describe('stop flags', () => {
 	});
 
 	it('stopPrimary sets flag and ensurePrimaryWorker skips', async () => {
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		const stop = await localWorker.stopPrimary({ drainMs: 10 });
 		expect(stop.ok).toBe(true);
 		expect(localWorker.isPrimaryStopped()).toBe(true);
@@ -66,7 +66,7 @@ describe('stop flags', () => {
 	});
 
 	it('stopStandby sets flag and ensureLocalWorker skips', async () => {
-		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:20613';
 		const stop = await localWorker.stopStandby({ drainMs: 10 });
 		expect(stop.ok).toBe(true);
 		expect(localWorker.isStandbyStopped()).toBe(true);

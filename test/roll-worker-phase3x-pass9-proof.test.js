@@ -138,7 +138,7 @@ describe('Phase 3x M5 default timeout 120s', () => {
 			delete process.env.ROLL_WORKER_TIMEOUT_MS;
 			const { DEFAULT_TIMEOUT_MS, getConfig } = require('../modules/roll-worker/client');
 			expect(DEFAULT_TIMEOUT_MS).toBe(120_000);
-			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 			expect(getConfig().timeoutMs).toBe(120_000);
 			if (prev === undefined) delete process.env.ROLL_WORKER_TIMEOUT_MS;
 			else process.env.ROLL_WORKER_TIMEOUT_MS = prev;
@@ -159,7 +159,7 @@ describe('Phase 3x H2 fail-closed mutators behavioral', () => {
 			const parseInput = jest.fn(async () => ({ text: 'SHOULD-NOT-RUN', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => {
 					throw new Error('timeout of 30000ms exceeded');
 				}),
@@ -205,7 +205,7 @@ describe('Phase 3x M13 nested needsLocal re-runs nested only', () => {
 			const parseInput = jest.fn(async () => ({ text: 'NESTED_LOCAL', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({
 					needsLocal: true,
 					nestedNeedsLocal: true,
@@ -278,7 +278,7 @@ describe('Phase 3x H4 level invalidate clears sticky tempSwitchV2', () => {
 			const invalidateGroupConfig = jest.fn();
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({
 					text: 'level-on',
 					type: 'text',
@@ -366,7 +366,7 @@ describe('Phase 3x M7/M12 .bk / .cmd reload hooks', () => {
 			const reloadCmd = jest.fn(async () => {});
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn()
 					.mockResolvedValueOnce({
 						text: 'bk-ok', type: 'text', _rollWorker: true, _rollWorkerModule: 'z_stop',
@@ -461,7 +461,7 @@ describe('Phase 3x L11 VIP invalidate after remoted z_admin', () => {
 			const invalidateCache = jest.fn();
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({
 					text: 'admin-ok',
 					type: 'text',

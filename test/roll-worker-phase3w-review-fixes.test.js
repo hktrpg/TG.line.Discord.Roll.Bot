@@ -212,7 +212,7 @@ describe('Phase 3w OpenAI empty-array prefetch', () => {
 			}));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async (params) => ({
 					text: 'remote-ai',
 					type: 'text',
@@ -288,7 +288,7 @@ describe('Phase 3w expanded fail-closed on workerError', () => {
 			const parseInput = jest.fn(async () => ({ text: 'SHOULD-NOT-RUN', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => {
 					throw new Error('timeout of 30000ms exceeded');
 				}),
@@ -333,7 +333,7 @@ describe('Phase 3w workerError skipExp', () => {
 			const parseInput = jest.fn(async () => ({ text: 'local-after-error', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => {
 					throw new Error('timeout of 30000ms exceeded');
 				}),
@@ -376,7 +376,7 @@ describe('Phase 3w needsLocal skipExp', () => {
 			const parseInput = jest.fn(async () => ({ text: 'local-after-needsLocal', type: 'text' }));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({
 					needsLocal: true,
 					moduleName: 'token',

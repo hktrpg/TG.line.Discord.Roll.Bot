@@ -67,7 +67,7 @@ describe('Phase 3aa L10 courtMessage skipped when skipExp', () => {
 			}));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => {
 					throw new Error('timeout of 30000ms exceeded');
 				}),

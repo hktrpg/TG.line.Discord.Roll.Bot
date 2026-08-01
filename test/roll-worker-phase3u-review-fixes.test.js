@@ -75,7 +75,7 @@ describe('Phase 3u shouldSkipLocalFindRollList gate', () => {
 				createTranslator: () => (k) => k,
 			}));
 			const parseRouter = require('../modules/roll-worker/parse-router');
-			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+			process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 			expect(parseRouter.shouldSkipLocalFindRollList('Whatsapp')).toBe(false);
 			expect(parseRouter.shouldSkipLocalFindRollList('Telegram')).toBe(false);
 			expect(parseRouter.shouldSkipLocalFindRollList('Line')).toBe(false);
@@ -141,7 +141,7 @@ describe('Phase 3u export empty prefetch', () => {
 			});
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse,
 			}));
 			jest.doMock('../modules/roll-worker/route-table', () => ({

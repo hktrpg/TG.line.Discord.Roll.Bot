@@ -126,7 +126,7 @@ describe('local-worker unit', () => {
 	it('getSpawnPort avoids colliding with primary Worker port', () => {
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20613';
 		delete process.env.ROLL_STANDBY_PORT;
-		expect(localWorker.getSpawnPort()).toBe(20614);
+		expect(localWorker.getSpawnPort()).toBe(20_614);
 	});
 
 	it('startIfConfigured skips spawn when SPAWN=false but keeps existing primary URL', async () => {

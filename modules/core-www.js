@@ -1946,13 +1946,18 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
 www.get('/log/:id', async (req, res) => {
     if (await rejectIfApiRateLimited(req, res)) return;
     if (req.originalUrl.endsWith('html')) {
-        // Sanitize and validate the file path (reject sibling-dir prefix escapes)
+        // Sanitize and validate the file path (reject sibling-dir prefix escapes).
+        // Use CodeQL-recognized RelativePathStartsWithSanitizer shape:
+        // relative.startsWith(".." + path.sep) || relative === ".."
         const baseDir = path.resolve(exportBaseDir);
         const logPath = path.resolve(baseDir, req.params.id);
         const relative = path.relative(baseDir, logPath);
-        const escapesBase = relative.startsWith('..') || path.isAbsolute(relative);
+        if (relative.startsWith('..' + path.sep) || relative === '..' || path.isAbsolute(relative)) {
+            res.sendFile(process.cwd() + '/views/includes/error.html');
+            return;
+        }
 
-        if (escapesBase || !fs.existsSync(logPath)) {
+        if (!fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }

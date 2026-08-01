@@ -231,6 +231,7 @@ function ensureSharedToken() {
 function spawnChild({ port, token, role = 'local' }) {
 	const url = `http://127.0.0.1:${port}`;
 	const label = role === 'primary' ? 'Primary' : 'Standby';
+	// Opt-in only: piping duplicates IDE debugger child console (Listening/CONNECTED ×2).
 	const childLog = (process.env.ROLL_WORKER_CHILD_LOG || '').trim().toLowerCase();
 	const pipeChild = childLog === 'true' || childLog === '1' || childLog === 'on';
 	const child = spawn(process.execPath, [path.join(ROOT, 'roll-worker.js')], {
@@ -242,6 +243,8 @@ function spawnChild({ port, token, role = 'local' }) {
 			ROLL_WORKER_HOST: '127.0.0.1',
 			ROLL_WORKER_PORT: String(port),
 			ROLL_WORKER_TOKEN: token || process.env.ROLL_WORKER_TOKEN || '',
+			// Parent owns boot Listening / link lines — child stays quiet in shared consoles.
+			ROLL_WORKER_GATEWAY_CHILD: 'true',
 			// Child must not recurse into another local worker / primary URL.
 			ROLL_WORKER_URL: '',
 			ROLL_STANDBY_URL: '',
@@ -252,12 +255,16 @@ function spawnChild({ port, token, role = 'local' }) {
 	});
 	if (pipeChild) {
 		child.stdout?.on('data', (buf) => {
-			const line = String(buf).trim();
-			if (line) console.info(`[${label}:child] ${line}`);
+			const text = String(buf);
+			for (const line of text.split(/\r?\n/)) {
+				if (line) console.info(`[${label}:child] ${line}`);
+			}
 		});
 		child.stderr?.on('data', (buf) => {
-			const line = String(buf).trim();
-			if (line) console.warn(`[${label}:child] ${line}`);
+			const text = String(buf);
+			for (const line of text.split(/\r?\n/)) {
+				if (line) console.warn(`[${label}:child] ${line}`);
+			}
 		});
 	}
 	child.on('exit', (code, signal) => {
@@ -375,6 +382,10 @@ async function ensurePrimaryWorker(logger = console, options = {}) {
 	process.env.ROLL_WORKER_URL = url;
 	writePrimaryLock({ pid: child.pid, port, url });
 	await waitHealth(url);
+	// Single boot line in Gateway console (child is ROLL_WORKER_GATEWAY_CHILD=quiet).
+	console.info(`[RollWorker] Listening on ${url}`
+		+ ` | auth=${(process.env.ROLL_WORKER_TOKEN || '').trim() ? 'on' : 'off'}`
+		+ ` | supervised pid=${child.pid}`);
 	debugWorkerLog(`[Primary] spawned pid=${child.pid} url=${url}`);
 	return { ok: true, url, supervised: true, pid: child.pid };
 }
@@ -447,6 +458,9 @@ async function ensureLocalWorker(logger = console) {
 	process.env.ROLL_STANDBY_URL = url;
 	writeLock({ pid: child.pid, port, url });
 	await waitHealth(url);
+	console.info(`[RollWorker] Standby Listening on ${url}`
+		+ ` | auth=${(process.env.ROLL_WORKER_TOKEN || '').trim() ? 'on' : 'off'}`
+		+ ` | supervised pid=${child.pid}`);
 	debugWorkerLog(`[Standby] spawned pid=${child.pid} url=${url}`);
 	return { ok: true, url, supervised: true, pid: child.pid };
 }

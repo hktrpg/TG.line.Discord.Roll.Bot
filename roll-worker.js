@@ -17,6 +17,8 @@ process.env.ROLL_WORKER_MODE = 'true';
 		'ROLL_WORKER_PORT',
 		'ROLL_WORKER_REMOTE_ONLY',
 		'ROLL_WORKER_DEFER_BUSY',
+		// Supervised-by-Gateway: quiet boot (parent prints Listening / link once).
+		'ROLL_WORKER_GATEWAY_CHILD',
 		// Keep spawn-cleared Standby/Primary frame flags (do not let .env re-enable on Worker).
 		'ROLL_STANDBY_URL',
 		'ROLL_STANDBY_SPAWN',

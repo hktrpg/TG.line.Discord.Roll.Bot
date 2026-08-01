@@ -56,7 +56,7 @@ function createLinkTracker(tag) {
 			+ (meta.detail ? ` | ${meta.detail}` : '')
 			+ ` | was=${prev}`;
 		if (prev === 'down') {
-			// Recovery must stay visible even when boot CONNECTED info() is silenced.
+			// Recovery must stay visible even if a caller passes a quiet info logger.
 			console.info(line);
 		} else {
 			const info = typeof log.info === 'function' ? log.info.bind(log) : log.log.bind(log);

@@ -272,11 +272,6 @@ async function loadModules(moduleManager) {
         await Promise.all(modulePromises);
         const loaded = [...moduleManager.loadedModules];
         logger.info(`Loaded modules (${loaded.length}): ${loaded.join(', ')}`);
-        try {
-            require('./modules/roll-worker/parse-router').logParseMode(logger);
-        } catch (error) {
-            logger.warn(`ParseMode log skipped: ${error.message}`);
-        }
     } catch (error) {
         errorHandler(error, 'Reading modules directory');
         throw error;
@@ -421,7 +416,15 @@ async function init() {
     const moduleManager = new ModuleManager();
     
     try {
-        // Load modules
+        // Frame Primary Worker + print [Gateway]/[RollWorker] Listening before Discord clusters.
+        // Must await: fire-and-forget races "[Cluster] All clusters are ready".
+        try {
+            await require('./modules/roll-worker/parse-router').logParseMode(logger);
+        } catch (error) {
+            logger.warn(`ParseMode log skipped: ${error.message}`);
+        }
+
+        // Load modules (Discord clustering starts here)
         const loadStartTime = process.hrtime();
         await loadModules(moduleManager);
         const loadEndTime = process.hrtime(loadStartTime);

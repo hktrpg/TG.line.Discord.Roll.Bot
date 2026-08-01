@@ -361,10 +361,6 @@ async function healthLocal() {
 	return response.data;
 }
 
-function quietLinkLogger(logger) {
-	return logger || { info() {}, warn: console.warn, error: console.error };
-}
-
 function beginLinkMonitor(options = {}) {
 	if (!isEnabled()) return;
 	ensureDeferConnectedHook();
@@ -372,7 +368,8 @@ function beginLinkMonitor(options = {}) {
 		healthFn: health,
 		getUrl: () => getConfig().url,
 		intervalMs: options.intervalMs,
-		logger: quietLinkLogger(options.logger),
+		// Default console so boot CONNECTED is visible in every Gateway.
+		logger: options.logger || console,
 	});
 }
 
@@ -395,7 +392,7 @@ function beginStandbyLinkMonitor(options = {}) {
 		healthFn: healthLocal,
 		getUrl: () => getLocalConfig().url,
 		intervalMs: options.intervalMs,
-		logger: quietLinkLogger(options.logger),
+		logger: options.logger || console,
 	});
 }
 

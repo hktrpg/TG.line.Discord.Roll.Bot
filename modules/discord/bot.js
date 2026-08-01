@@ -21,8 +21,19 @@ const parseRouter = require('../roll-worker/parse-router');
 const deferQueue = require('../roll-worker/defer-queue');
 const { assertArtifactReadable } = require('../roll-worker/artifacts');
 const { matchForwardButtonContent } = require('../roll-worker/forward-button-content.js');
-// ParseMode banner: only once across Gateway processes (see parse-router claim).
-parseRouter.logParseMode(console);
+// Banner: Gateway parent (index.js) only — prints before Discord clusters spawn.
+// All Discord cluster workers (incl. 0): monitors on, no second [Gateway] banner.
+(() => {
+	let announceBanner = true;
+	try {
+		if (typeof getInfo()?.CLUSTER === 'number') {
+			announceBanner = false;
+		}
+	} catch {
+		/* keep banner */
+	}
+	parseRouter.logParseMode(console, { announceBanner });
+})();
 
 const { deliverDiscordDeferred } = require('../roll-worker/discord-defer-deliver');
 

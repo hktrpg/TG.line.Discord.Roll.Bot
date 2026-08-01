@@ -465,9 +465,8 @@ async function resolveWhatsappUserRole(msg, client, groupInfo) {
 		// Could not map sender to a participant → keep legacy admin.
 		if (!match) return 3;
 		return (match.isAdmin || match.isSuperAdmin) ? 3 : 1;
-	} catch (error) {
-		const errMsg = error && error.message ? error.message : String(error);
-		console.warn('[WhatsApp] resolveWhatsappUserRole failed, legacy admin fallback:', errMsg);
+	} catch {
+		// Role lookup failed (common with LID / client quirks); keep legacy admin silently.
 		return 3;
 	}
 }

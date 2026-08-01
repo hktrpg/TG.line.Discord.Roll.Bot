@@ -7,7 +7,7 @@ describe('build-info', () => {
 
 	beforeEach(() => {
 		for (const key of [
-			'GIT_BRANCH', 'GITHUB_REF_NAME', 'BRANCH_NAME', 'HEROKU_BRANCH',
+			'GIT_BRANCH', 'GITHUB_HEAD_REF', 'GITHUB_REF_NAME', 'BRANCH_NAME', 'HEROKU_BRANCH',
 			'GITHUB_SHA', 'SOURCE_VERSION', 'GIT_COMMIT', 'HEROKU_SLUG_COMMIT',
 			'BUILD_TIME', 'SOURCE_DATE', 'ROLL_WORKER_MODE',
 		]) {

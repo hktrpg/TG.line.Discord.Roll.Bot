@@ -4091,6 +4091,8 @@
     "patreon_import_add_error": "Add {{name}}: {{message}}",
     "patreon_import_update_error": "Update {{name}}: {{message}}",
     "patreon_import_reset_key_error": "Reset key {{name}}: {{message}}",
+    "patreon_import_crypto_secret_missing": "CRYPTO_SECRET is not configured — refuse import (would store unusable ciphertext)",
+    "patreon_import_key_unrecoverable": "Cannot decrypt KEY for {{name}} — skipped (never auto-regen; fix CRYPTO_SECRET or rotate explicitly)",
     "patreon_import_add_lifetime_report": "[New lifetime] {{name}} {{tier}} → KEY created (CSV Former, retained)",
     "patreon_import_add_lifetime_key": "[New lifetime] {{name}} {{tier}}",
     "patreon_import_former_honorary_on": "[Former patron] {{name}} → lifetime member, kept ON",

@@ -20,6 +20,7 @@ exports.analytics = require('../analytics');
 const parseRouter = require('../roll-worker/parse-router');
 const deferQueue = require('../roll-worker/defer-queue');
 const { assertArtifactReadable } = require('../roll-worker/artifacts');
+const { matchForwardButtonContent } = require('../roll-worker/forward-button-content.js');
 // ParseMode banner: only once across Gateway processes (see parse-router claim).
 parseRouter.logParseMode(console);
 
@@ -4882,26 +4883,24 @@ const connect = function () {
 		if (DEBUG_LOG) {
 			console.log(`[discord_bot] connected To core-www from discord! Shard#${shardid}`)
 		}
-		ws.send(`connected To core-www from discord! Shard#${shardid}`);
+		const { buildRegisterPayload } = require('../www/ws-relay-auth.js');
+		ws.send(buildRegisterPayload('Discord'));
 		isReconnecting = false; // Reset flag on successful connection
 	});
 	
 	ws.on('message', async function incoming(data) {
-		//if (shardid !== 0) return;
-		const object = JSON.parse(data);
-		if (object.botname !== 'Discord') return;
+		const { parseGatewayInject } = require('../www/ws-relay-auth.js');
+		const parsed = parseGatewayInject(data, 'Discord');
+		if (!parsed.ok) return;
 
 		try {
-			let channel = await client.channels.cache.get(object.message.target.id);
+			const channel = await client.channels.cache.get(parsed.targetId);
 			if (channel) {
-				await channel.send(object.message.text)
+				await channel.send(parsed.text);
 			}
+		} catch (error) {
+			console.error(`[Discord Bot] Error in WebSocket message handling:`, (error && error.name), (error && error.message), (error && error.reason));
 		}
-		catch (error) {
-			console.error(`[Discord Bot] Error in WebSocket message handling:`, (error && error.name), (error && error.message), (error && error.reason))
-		};
-		return;
-
 	});
 	
 	ws.on('error', (error) => {
@@ -5448,16 +5447,16 @@ async function __handlingInteractionMessage(message) {
 					const resultText = (result && result.text) || '';
 
 					const btnT = message?._hktrpgT || i18n.createTranslator(message?._hktrpgLocale || i18n.DEFAULT_LOCALE);
-					const cardSuffixPattern = /的角色卡$|(?:'s )?character card$/i;
+					// Derived from lang/*.json templates (all locales) — not hardcoded zh/en suffixes.
+					const buttonLabel = matchForwardButtonContent(messageContent);
 
 					// Handle character card buttons
-					if (cardSuffixPattern.test(messageContent)) {
+					if (buttonLabel?.kind === 'card') {
 						try {
 							if (resultText) {
-								const rollSuffix = messageContent.replace(cardSuffixPattern, '');
 								const rollContent = btnT('discord.character.rolling', {
 									displayname,
-									suffix: rollSuffix,
+									suffix: buttonLabel.name,
 									result: resultText
 								});
 								// Check for forwarding settings
@@ -5504,7 +5503,7 @@ async function __handlingInteractionMessage(message) {
 					}
 
 					// Handle character buttons
-					if (/的角色$|(?:'s )?character$/i.test(messageContent)) {
+					if (buttonLabel?.kind === 'char') {
 						try {
 							// Check for forwarding settings
 							const forwardSetting = await records.findForwardedMessage({

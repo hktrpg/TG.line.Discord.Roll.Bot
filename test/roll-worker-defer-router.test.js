@@ -9,7 +9,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 		timeoutMs: 30_000,
 	})),
 	getLocalConfig: jest.fn(() => ({ url: '', token: 't', timeoutMs: 1000 })),
-	healthAt: jest.fn(async () => ({ ok: true })),
+	healthAt: jest.fn(async () => ({ ok: true, role: 'roll-worker' })),
 	parse: jest.fn(),
 	beginLinkMonitor: jest.fn(),
 }));
@@ -50,7 +50,7 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 		deferQueue.resetDeferQueue();
 		parseRouter.resetWorkersReadyForTests();
 		client.isEnabled.mockReturnValue(true);
-		client.healthAt.mockResolvedValue({ ok: true });
+		client.healthAt.mockResolvedValue({ ok: true, role: 'roll-worker' });
 		analytics.findRollModuleName.mockReturnValue('0-advroll');
 	});
 

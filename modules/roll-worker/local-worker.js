@@ -186,8 +186,9 @@ async function waitHealth(url, timeoutMs = DEFAULT_HEALTH_WAIT_MS) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {
+			// Anonymous probe only — never send Bearer during discovery (M30).
 			const body = await client.healthAt(url);
-			if (body?.ok) return body;
+			if (body?.ok && body.role === 'roll-worker') return body;
 		} catch {
 			// retry
 		}

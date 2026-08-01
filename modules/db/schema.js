@@ -210,11 +210,15 @@ if (process.env.mongoURL) {
         name: String,
         notes: String,
         code: String,
+        /** Platform for Patreon slots (discord/telegram/…); empty for legacy/manual VIP */
+        platform: { type: String, default: '', index: true },
         switch: { type: Boolean, default: true }
     }, {
         indexes: [
             { gpid: 1, id: 1 },
-            { id: 1, gpid: 1 }
+            { id: 1, gpid: 1 },
+            { id: 1, notes: 1, platform: 1 },
+            { gpid: 1, notes: 1, platform: 1 }
         ]
     }));
 

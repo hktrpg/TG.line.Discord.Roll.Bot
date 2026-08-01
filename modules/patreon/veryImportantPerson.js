@@ -22,7 +22,12 @@ class VIPManager {
         }
     }
 
-    async checkVIPLevel(id, type = 'group') {
+    /**
+     * @param {string} id
+     * @param {'group'|'user'} [type]
+     * @param {string} [platform] - optional; when set, prefer matching platform (legacy empty platform still matches)
+     */
+    async checkVIPLevel(id, type = 'group', platform) {
         if (!id) return 0;
 
         // DIY模式直接返回最高權限
@@ -38,12 +43,18 @@ class VIPManager {
 
         // 根據類型選擇查詢條件；同一 id 可能有多筆（手動 + Patreon），取最高 level
         const searchKey = type === 'group' ? 'gpid' : 'id';
+        const wantPlatform = String(platform || '').trim().toLowerCase();
 
         const now = Date.now();
         const matches = (this.vipCache || []).filter(item => {
             if (item[searchKey] !== id || item.switch === false) return false;
             const end = item.endDate ? new Date(item.endDate).getTime() : null;
             if (end != null && !Number.isNaN(end) && end < now) return false;
+            if (wantPlatform) {
+                const rowPlatform = String(item.platform || '').trim().toLowerCase();
+                // Legacy/manual rows (no platform) still apply; platform-tagged rows must match.
+                if (rowPlatform && rowPlatform !== wantPlatform) return false;
+            }
             return true;
         });
         if (matches.length === 0) return 0;

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const schema = require('../db/schema.js');
 
@@ -7,6 +7,36 @@ const PATREON_NOTES_PREFIX = "patreon:";
 /** @param {string} keyHash - keyHash for notes identifier */
 function notesForKey(keyHash) {
     return PATREON_NOTES_PREFIX + (keyHash || '');
+}
+
+function normalizePlatform(platform) {
+    return String(platform || '').trim().toLowerCase();
+}
+
+/**
+ * VIP filter including platform so Discord/Telegram numeric IDs do not collide.
+ * @param {Object} slot
+ * @param {string} notes
+ */
+function vipFilterForSlot(slot, notes) {
+    const isChannel = slot.targetType === "channel";
+    const platform = normalizePlatform(slot.platform);
+    if (isChannel) {
+        return { gpid: slot.targetId, notes, platform };
+    }
+    return { id: slot.targetId, notes, platform };
+}
+
+function activeSlotKey(slot) {
+    const isChannel = slot.targetType === "channel";
+    const platform = normalizePlatform(slot.platform);
+    return `${isChannel ? 'g' : 'u'}:${slot.targetId}:${platform}`;
+}
+
+function vipRowKey(row) {
+    const platform = normalizePlatform(row.platform);
+    if (row.gpid) return `g:${row.gpid}:${platform}`;
+    return `u:${row.id}:${platform}`;
 }
 
 /**
@@ -55,12 +85,11 @@ async function syncSlotToVip(slot, level, keyHash, memberName, member) {
     if (!slot || !slot.targetId) return;
     const notes = notesForKey(keyHash);
     const isChannel = slot.targetType === "channel";
-    const filter = isChannel
-        ? { gpid: slot.targetId, notes }
-        : { id: slot.targetId, notes };
+    const platform = normalizePlatform(slot.platform);
+    const filter = vipFilterForSlot(slot, notes);
     const update = isChannel
-        ? { gpid: slot.targetId, level, name: slot.name || memberName, notes, switch: true }
-        : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true };
+        ? { gpid: slot.targetId, level, name: slot.name || memberName, notes, switch: true, platform }
+        : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true, platform };
 
     if (slot.switch !== false) {
         const $set = { ...update };
@@ -73,13 +102,29 @@ async function syncSlotToVip(slot, level, keyHash, memberName, member) {
             { upsert: true }
         );
     } else {
-        const filterOff = isChannel ? { gpid: slot.targetId, notes } : { id: slot.targetId, notes };
-        await schema.veryImportantPerson.updateMany(filterOff, { $set: { switch: false } });
+        await schema.veryImportantPerson.updateMany(filter, { $set: { switch: false } });
+    }
+}
+
+/**
+ * Disable Patreon VIP rows for this key that are no longer in the active slot set.
+ * @param {string} notes
+ * @param {Set<string>} activeKeys
+ */
+async function disableOrphanVipRows(notes, activeKeys) {
+    const rows = await schema.veryImportantPerson.find({ notes, switch: { $ne: false } }).lean();
+    for (const row of rows || []) {
+        if (activeKeys.has(vipRowKey(row))) continue;
+        const filter = row.gpid
+            ? { _id: row._id }
+            : { _id: row._id };
+        await schema.veryImportantPerson.updateOne(filter, { $set: { switch: false } });
     }
 }
 
 /**
  * Sync all slots of a patreon member document to veryImportantPerson.
+ * Also disables VIP rows for removed slots (same notes).
  * @param {Object} member - patreonMember doc with keyHash, level, name, slots
  */
 async function syncMemberSlotsToVip(member) {
@@ -87,30 +132,17 @@ async function syncMemberSlotsToVip(member) {
     const notes = notesForKey(member.keyHash);
     const level = member.level;
     const memberName = member.name || member.patreonName;
+    const activeKeys = new Set();
 
     for (const slot of member.slots || []) {
         if (!slot.targetId) continue;
-        const isChannel = slot.targetType === "channel";
-        const filter = isChannel
-            ? { gpid: slot.targetId, notes }
-            : { id: slot.targetId, notes };
         if (slot.switch !== false) {
-            const update = isChannel
-                ? { gpid: slot.targetId, level, name: slot.name || memberName, notes, switch: true }
-                : { id: slot.targetId, level, name: slot.name || memberName, notes, switch: true };
-            const $set = { ...update };
-            const extra = endDateOpsForMember(member, $set);
-            const payload = { $set, $setOnInsert: { startDate: new Date() } };
-            if (extra.$unset) payload.$unset = extra.$unset;
-            await schema.veryImportantPerson.findOneAndUpdate(
-                filter,
-                payload,
-                { upsert: true }
-            );
-        } else {
-            await schema.veryImportantPerson.updateMany(filter, { $set: { switch: false } });
+            activeKeys.add(activeSlotKey(slot));
         }
+        await syncSlotToVip(slot, level, member.keyHash, memberName, member);
     }
+
+    await disableOrphanVipRows(notes, activeKeys);
 }
 
 /**
@@ -128,6 +160,7 @@ async function clearVipEntriesByPatreonKey(member) {
 
 module.exports = {
     notesForKey,
+    normalizePlatform,
     applyVipGraceAfterCancellation,
     syncSlotToVip,
     syncMemberSlotsToVip,

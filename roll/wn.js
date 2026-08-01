@@ -40,6 +40,7 @@ const rollDiceCommand = async function ({ mainMsg, locale, t }) {
             if (mainMsg[1].replaceAll(/\d|[+]|[-]|[*]|[/]|[(]|[)]|[d]|[>]|[<]|[=]|[@]/ig, '')) return;
 
             rply.text = await WN(mainMsg[1]).then(async (result) => {
+                if (!result) return '';
                 return await WN2(result, mainMsg[2], translate)
             });
             return rply;
@@ -73,13 +74,17 @@ async function WN(message) {
     let regex1 = /^([@]|[d])/ig
     key[1] = tempmessage.match(regex1) || 'd'
     tempmessage = tempmessage.replaceAll(regex1, '')
-    let regex999 = /\d+d\d+/ig;
-    while (tempmessage.match(regex999) != null) {
-        // let totally = 0
-        let tempMatch = tempmessage.match(regex999)
-        if (tempMatch[1] > 1000 || tempMatch[1] <= 0) return
-        if (tempMatch[2] < 1 || tempMatch[2] > 9_000_000_000_000_000) return
-        tempmessage = tempmessage.replace(/\d+d\d+/i, await Dice(tempmessage.match(/\d+d\d+/i)));
+    // Capture groups required — bare /\d+d\d+/ leaves [1]/[2] undefined and skips bounds.
+    const WN_INLINE_DICE_MAX = 9999;
+    let regex999 = /(\d+)d(\d+)/i;
+    let inlineDice = tempmessage.match(regex999);
+    while (inlineDice != null) {
+        const diceCount = Number.parseInt(inlineDice[1], 10);
+        const diceSides = Number.parseInt(inlineDice[2], 10);
+        if (!Number.isFinite(diceCount) || diceCount > WN_INLINE_DICE_MAX || diceCount <= 0) return;
+        if (!Number.isFinite(diceSides) || diceSides < 1 || diceSides > 9_000_000_000_000_000) return;
+        tempmessage = tempmessage.replace(regex999, await Dice(inlineDice[0]));
+        inlineDice = tempmessage.match(regex999);
     }
 
     let regex2 = /d/ig

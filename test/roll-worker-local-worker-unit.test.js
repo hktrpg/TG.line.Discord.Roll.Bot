@@ -137,7 +137,7 @@ describe('local-worker unit', () => {
 			token: 't',
 			timeoutMs: 1000,
 		});
-		client.healthAt.mockResolvedValue({ ok: true });
+		client.healthAt.mockResolvedValue({ ok: true, role: 'roll-worker' });
 		process.env.ROLL_WORKER_SPAWN = 'false';
 		process.env.ROLL_STANDBY_SPAWN = 'false';
 		delete process.env.ROLL_STANDBY_URL;
@@ -178,7 +178,7 @@ describe('local-worker unit', () => {
 		delete process.env.ROLL_WORKER_SPAWN;
 		delete process.env.ROLL_STANDBY_SPAWN;
 		const result = await localWorker.startIfConfigured();
-		// Primary URL set but unhealthy + SPAWN off in Jest → pending (not fake existing).
+		// Primary URL set but unhealthy + SPAWN off in Jest ??pending (not fake existing).
 		expect(result.primary.pending).toBe(true);
 		expect(result.primary.ok).toBe(false);
 		expect(result.pending).toBe(true);
@@ -212,7 +212,7 @@ describe('local-worker unit', () => {
 		});
 		client.healthAt.mockImplementation(async (url) => {
 			if (String(url).includes('3990')) throw new Error('down');
-			if (String(url).includes('3950')) return { ok: true };
+			if (String(url).includes('3950')) return { ok: true, role: 'roll-worker' };
 			throw new Error('down');
 		});
 		process.env.ROLL_WORKER_SPAWN = 'false';
@@ -235,7 +235,7 @@ describe('local-worker unit', () => {
 		client.requestAdminShutdown.mockResolvedValue({ ok: true });
 		client.healthAt.mockImplementation(async (url) => {
 			if (String(url).includes('3990')) throw new Error('down');
-			if (String(url).includes('3950')) return { ok: true };
+			if (String(url).includes('3950')) return { ok: true, role: 'roll-worker' };
 			throw new Error('down');
 		});
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3990';
@@ -290,7 +290,7 @@ describe('local-worker unit', () => {
 		process.env.ROLL_STANDBY_SPAWN = 'true';
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
 		delete process.env.ROLL_STANDBY_URL;
-		client.healthAt.mockResolvedValue({ ok: true });
+		client.healthAt.mockResolvedValue({ ok: true, role: 'roll-worker' });
 
 		const result = await localWorker.ensureLocalWorker();
 		expect(result.ok).toBe(true);
@@ -355,7 +355,7 @@ describe('local-worker unit', () => {
 		client.healthAt.mockImplementation(async () => {
 			calls += 1;
 			if (calls === 1) throw new Error('down');
-			return { ok: true };
+			return { ok: true, role: 'roll-worker' };
 		});
 		process.env.ROLL_WORKER_RELOAD_WAIT_MS = '2000';
 
@@ -397,7 +397,7 @@ describe('local-worker unit', () => {
 				});
 			})
 		);
-		// After reload: unhealthy immediately; then stay down → reload-sent.
+		// After reload: unhealthy immediately; then stay down ??reload-sent.
 		client.healthAt.mockRejectedValue(new Error('down'));
 
 		const first = localWorker.reloadLocal({ drainMs: 10 });

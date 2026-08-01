@@ -885,20 +885,19 @@ class Records extends EventEmitter {
         }
     }
 
+    /**
+     * Ensure the unique (userId, fixedId) index exists.
+     * Never dropIndexes() — that is a DoS vector if called from user commands.
+     */
     async recreateForwardedMessageIndex() {
         try {
-            // Drop the existing index
-            await this.dbOperations.forwardedMessage.schema.collection.dropIndexes();
-
-            // Create the new compound index
             await this.dbOperations.forwardedMessage.schema.collection.createIndex(
                 { userId: 1, fixedId: 1 },
                 { unique: true }
             );
-
             return true;
         } catch (error) {
-            console.error(`[ERROR] Failed to recreate forwardedMessage index:`, error);
+            console.error(`[ERROR] Failed to ensure forwardedMessage index:`, error);
             return false;
         }
     }

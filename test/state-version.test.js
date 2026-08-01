@@ -99,7 +99,7 @@ describe('buildStateVersionSection', () => {
 		expect(text).toContain('Distributed- · 2026-07-30 · standby1');
 		expect(text).toContain('link=up');
 		expect(text).not.toMatch(/Parse\s+/);
-		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951');
+		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951', { withAuth: true });
 	});
 
 	it('on Primary without prefetch shows Gateway unreachable', async () => {
@@ -140,7 +140,7 @@ describe('buildStateVersionSection', () => {
 		expect(text).toContain('Distributed- · 2026-07-30 · local001');
 		expect(text).not.toMatch(/Parse\s+/);
 		expect(rollWorkerClient.health).toHaveBeenCalled();
-		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951');
+		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951', { withAuth: true });
 	});
 
 	it('on Gateway marks Primary unreachable when health fails', async () => {

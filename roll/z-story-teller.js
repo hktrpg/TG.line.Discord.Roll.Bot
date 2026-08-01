@@ -1695,7 +1695,8 @@ const rollDiceCommand = async function ({
                         rply.buttonCreate = ['.st end', '.st pause'];
                         return rply;
                     }
-                    // Same story: continue
+                    // Same story: continue (still enforce ALONE / participant policy)
+                    if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                     const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
                     const story = cur.story;
                     if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
@@ -1830,6 +1831,7 @@ const rollDiceCommand = async function ({
                 }
                 // If the requested id is the same as the active run, just re-render current output without changing state
                 if (activeRun && String(activeRun._id) === String(id)) {
+                    if (!userCanActOnRun(activeRun, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                     const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
                     if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
                     const text = renderPageText(story, activeRun, activeRun.currentPageId, translate);

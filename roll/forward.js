@@ -10,6 +10,10 @@ const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const records = require('../modules/db/records.js');
 const VIP = require('../modules/patreon/veryImportantPerson');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const {
+    classifyForwardButtonContent,
+    extractForwardButtonName,
+} = require('../modules/roll-worker/forward-button-content.js');
 const FUNCTION_LIMIT = [4, 20, 20, 30, 30, 99, 99, 99];
 
 const gameName = function (params = {}) {
@@ -103,8 +107,6 @@ const rollDiceCommand = async function ({
 
         case /^delete$/i.test(mainMsg[1]): {
             try {
-                await records.recreateForwardedMessageIndex();
-
                 if (!mainMsg[2]) {
                     records.clearUserForwardedMessageCache(userid);
 
@@ -132,7 +134,6 @@ const rollDiceCommand = async function ({
                 }
 
                 records.clearUserForwardedMessageCache(userid);
-                await records.recreateForwardedMessageIndex();
 
                 rply.text = translate('forward.delete_success', {
                     id: forwardId,
@@ -162,8 +163,6 @@ const rollDiceCommand = async function ({
                 rply.text = translate('forward.discord_only');
                 return rply;
             }
-
-            await records.recreateForwardedMessageIndex();
 
             let userVipLevel = await VIP.viplevelCheckUser(userid);
             let groupVipLevel = await VIP.viplevelCheckGroup(groupid);
@@ -246,21 +245,13 @@ const rollDiceCommand = async function ({
                     return rply;
                 }
 
-                if (!messageContent.endsWith('的角色') &&
-                    !messageContent.endsWith('的角色卡') &&
-                    !/要求擲骰\/點擊/.test(messageContent)) {
+                const buttonKind = classifyForwardButtonContent(messageContent);
+                if (!buttonKind) {
                     rply.text = translate('forward.invalid_button_type');
                     return rply;
                 }
 
-                let buttonName = '';
-                if (messageContent.endsWith('的角色')) {
-                    buttonName = messageContent.replace(/的角色$/, '').trim();
-                } else if (messageContent.endsWith('的角色卡')) {
-                    buttonName = messageContent.replace(/的角色卡$/, '').trim();
-                } else {
-                    buttonName = translate('forward.request_roll_button');
-                }
+                const buttonName = extractForwardButtonName(messageContent, buttonKind, translate);
 
                 if (!buttonName) {
                     rply.text = translate('forward.button_name_unknown');

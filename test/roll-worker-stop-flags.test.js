@@ -43,7 +43,7 @@ describe('stop flags', () => {
 			if (localWorker.isPrimaryStopped() || localWorker.isStandbyStopped()) {
 				throw new Error('down');
 			}
-			return { ok: true };
+			return { ok: true, role: 'roll-worker' };
 		});
 		client.parseLocal.mockResolvedValue({ text: 'from-standby', type: 'text' });
 		analytics.parseInput.mockResolvedValue({ text: 'embedded', type: 'text' });

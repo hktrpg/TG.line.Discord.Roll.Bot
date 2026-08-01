@@ -7,22 +7,20 @@ const { isEnvEnabled } = require('../utils/env-flag.js');
 
 if (isEnvEnabled('BROADCAST')) {
 	const WebSocket = require('ws');
+	const { buildRegisterPayload, parseGatewayInject } = require('./www/ws-relay-auth.js');
 	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
 	const wsPort = process.env.WWW_WS_PORT || '53589';
 	const wsUrl = `ws://${wsHost}:${wsPort}`;
 	const ws = new WebSocket(wsUrl);
 	ws.on('open', function open() {
-		console.log('[Whatsapp] connected To core-www from Whatsapp!')
-		ws.send('connected To core-www from Whatsapp!');
+		console.log('[Whatsapp] connected To core-www from Whatsapp!');
+		ws.send(buildRegisterPayload('Whatsapp'));
 	});
 	ws.on('message', async function incoming(data) {
-		let object = JSON.parse(data);
-		if (object.botname == 'Whatsapp') {
-			if (!object.message.text) return;
-			console.log('[Whatsapp] connect To core-www from Whatsapp!')
-			await SendToId(object.message.target.id, object.message.text);
-			return;
-		}
+		const parsed = parseGatewayInject(data, 'Whatsapp');
+		if (!parsed.ok) return;
+		console.log('[Whatsapp] relay inject from core-www');
+		await SendToId(parsed.targetId, parsed.text);
 	});
 }
 

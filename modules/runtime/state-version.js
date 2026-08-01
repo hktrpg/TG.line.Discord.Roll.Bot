@@ -97,7 +97,7 @@ async function buildStateVersionSection(t, options = {}) {
 			}));
 		} else {
 			try {
-				const body = await rollWorkerClient.healthAt(standbyUrl);
+				const body = await rollWorkerClient.healthAt(standbyUrl, { withAuth: true });
 				const display = body?.version?.display || '—';
 				const link = body?.ok ? 'up' : 'down';
 				lines.push(t('admin.state_report.version_local', { display, link }));

@@ -1316,10 +1316,12 @@ async function sendMessage({ target, replyText, quotes = false, components = nul
 	const chunksToSend = sendText.filter((_, i) =>
 		i === 0 || i === 1 || i === sendText.length - 1 || i === sendText.length - 2);
 
-	for (const chunk of chunksToSend) {
+	for (let chunkIndex = 0; chunkIndex < chunksToSend.length; chunkIndex++) {
+		const chunk = chunksToSend[chunkIndex];
 		try {
-			// Ensure components is either an array or null
-			const safeComponents = Array.isArray(components) ? components : null;
+			// Buttons only on the last chunk — avoid repeating the same rows on every split.
+			const isLastChunk = chunkIndex === chunksToSend.length - 1;
+			const safeComponents = (isLastChunk && Array.isArray(components)) ? components : null;
 
 			const messageOptions = quotes
 				? { embeds: await convQuotes(chunk), components: safeComponents }
@@ -1378,11 +1380,18 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 		return;
 	}
 
-	// If we have button components, send each set separately
+	// If we have button components, send each set separately.
+	// Only the first set carries the body text; later sets are button-only follow-ups
+	// (avoids re-sending a long split message for every ActionRow group).
 	if (buttonCreate && Array.isArray(buttonCreate) && buttonCreate.length > 0) {
 		for (let index = 0; index < buttonCreate.length; index++) {
 			if (Array.isArray(buttonCreate[index])) {
-				await sendMessage({ target: channel, replyText: replyText, quotes: quotes, components: buttonCreate[index] });
+				await sendMessage({
+					target: channel,
+					replyText: index === 0 ? replyText : '\u200B',
+					quotes: index === 0 ? quotes : false,
+					components: buttonCreate[index],
+				});
 			}
 		}
 	} else {

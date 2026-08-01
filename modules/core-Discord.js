@@ -481,7 +481,7 @@ manager.on('clusterCreate', shard => {
             console.error(`[Cluster ${shard.id}] ${event} runtime:`, getRuntimeMeta());
         }
         // Add retry logic (simplified as per attachment)
-        if (event === 'death') {
+        if (String(event).toLowerCase() === 'death') {
             setTimeout(async () => {
                 if (!isShuttingDown) {
                     if (DEBUG_LOG) {
@@ -542,7 +542,7 @@ manager.on('clusterCreate', shard => {
             killed: childProcess.killed
         };
         if (DEBUG_LOG) detail.runtime = getRuntimeMeta();
-        errorHandler('Death', detail);
+        errorHandler('death', detail);
     });
 
     shard.on('error', (error) => {

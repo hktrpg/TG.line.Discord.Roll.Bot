@@ -22,6 +22,7 @@ const {
 const candle = require('../modules/misc/candleDays.js');
 const cspConfig = require('../modules/config/csp.js');
 const security = require('../utils/security.js');
+const { isEnvEnabled } = require('../utils/env-flag.js');
 const rollWorkerClient = require('./roll-worker/client');
 const { runCharacterAction } = require('./roll-worker/character-action');
 const deferQueue = require('./roll-worker/defer-queue');
@@ -207,7 +208,7 @@ const privateKey = (process.env.KEY_PRIKEY) ? process.env.KEY_PRIKEY : null;
 const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
-const isMaster = (process.env.MASTER) ? process.env.MASTER : null;
+const isMaster = isEnvEnabled('MASTER');
 const wsPort = Number(process.env.WWW_WS_PORT) || 53_589;
 const wsAllowNonLocal = String(process.env.WWW_WS_ALLOW_NON_LOCAL || '').toLowerCase() === 'true';
 const salt = process.env.SALT;
@@ -1945,11 +1946,18 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
 www.get('/log/:id', async (req, res) => {
     if (await rejectIfApiRateLimited(req, res)) return;
     if (req.originalUrl.endsWith('html')) {
-        // Sanitize and validate the file path
-        const logPath = path.resolve(exportBaseDir, req.params.id);
+        // Sanitize and validate the file path (reject sibling-dir prefix escapes).
+        // Use CodeQL-recognized RelativePathStartsWithSanitizer shape:
+        // relative.startsWith(".." + path.sep) || relative === ".."
+        const baseDir = path.resolve(exportBaseDir);
+        const logPath = path.resolve(baseDir, req.params.id);
+        const relative = path.relative(baseDir, logPath);
+        if (relative.startsWith('..' + path.sep) || relative === '..' || path.isAbsolute(relative)) {
+            res.sendFile(process.cwd() + '/views/includes/error.html');
+            return;
+        }
 
-        // Ensure the resolved path is within the allowed directory and file exists
-        if (!logPath.startsWith(path.resolve(exportBaseDir)) || !fs.existsSync(logPath)) {
+        if (!fs.existsSync(logPath)) {
             res.sendFile(process.cwd() + '/views/includes/error.html');
             return;
         }

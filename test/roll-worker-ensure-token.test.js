@@ -61,6 +61,23 @@ describe('ensureRollWorkerToken', () => {
 		expect(fs.existsSync(envPath)).toBe(false);
 	});
 
+	it('does not log the token when .env write fails', () => {
+		const badPath = path.join(tmpDir, 'missing-dir', '.env');
+		const warns = [];
+		const token = ensureRollWorkerToken({
+			envPath: badPath,
+			generate: true,
+			logger: {
+				info: () => {},
+				warn: (m) => warns.push(String(m)),
+				log: () => {},
+			},
+		});
+		expect(token).toMatch(/^[a-f0-9]{64}$/);
+		expect(warns.some((m) => m.includes(token))).toBe(false);
+		expect(warns.some((m) => /in memory only/.test(m))).toBe(true);
+	});
+
 	it('upsert preserves other .env lines', () => {
 		fs.writeFileSync(envPath, '# keep\nMONGO=url\nROLL_WORKER_TOKEN=old\n', 'utf8');
 		upsertEnvToken('new-secret', envPath);

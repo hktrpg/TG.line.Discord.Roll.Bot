@@ -94,7 +94,7 @@ function ensureRollWorkerToken(options = {}) {
 		);
 	} catch (error) {
 		warn(`[RollWorker] Generated ROLL_WORKER_TOKEN in memory only (could not write .env: ${error.message})`);
-		warn(`[RollWorker] ROLL_WORKER_TOKEN=${token}`);
+		warn('[RollWorker] Set ROLL_WORKER_TOKEN manually on all gateways (token value not logged).');
 	}
 	process.env.ROLL_WORKER_TOKEN = token;
 	return token;

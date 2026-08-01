@@ -1,7 +1,11 @@
 "use strict";
 if (!process.env.WHATSAPP_SWITCH) return;
 
-if (process.env.BROADCAST) {
+// Must run before heavy whatsapp-web.js load (gateway broadcast fan-in).
+// eslint-disable-next-line import/order -- intentional early require for BROADCAST gate
+const { isEnvEnabled } = require('../utils/env-flag.js');
+
+if (isEnvEnabled('BROADCAST')) {
 	const WebSocket = require('ws');
 	const wsHost = process.env.WWW_WS_HOST || '127.0.0.1';
 	const wsPort = process.env.WWW_WS_PORT || '53589';
@@ -195,8 +199,25 @@ async function startUp() {
 		client.on('qr', (qr) => {
 			if (!qrCodePrintedForSession) {
 				qrCodePrintedForSession = true;
-				console.log('[Whatsapp] QR RECEIVED');
-				qrcode.generate(qr, { small: true });
+				// Do not dump QR into application logs (often collected / forwarded).
+				// Persist for local scan tools; print ASCII only on an interactive TTY.
+				const qrPayloadPath = path.join(wwebjsAuthRoot, 'last-qr.txt');
+				const qrAsciiPath = path.join(wwebjsAuthRoot, 'last-qr.ascii');
+				try {
+					fs.mkdirSync(wwebjsAuthRoot, { recursive: true });
+					fs.writeFileSync(qrPayloadPath, String(qr || ''), 'utf8');
+				} catch (error) {
+					console.log(`[Whatsapp] QR RECEIVED (could not write ${qrPayloadPath}: ${error.message})`);
+				}
+				qrcode.generate(qr, { small: true }, (ascii) => {
+					try {
+						fs.writeFileSync(qrAsciiPath, String(ascii || ''), 'utf8');
+					} catch { /* ignore */ }
+					if (process.stdout.isTTY) {
+						console.log(ascii);
+					}
+				});
+				console.log(`[Whatsapp] QR RECEIVED — scan ${qrAsciiPath} (or ${qrPayloadPath}); QR not written to application logs`);
 			} else {
 				console.log('[Whatsapp] QR code refreshed (new code active). Full QR omitted to reduce log/notify spam. Scan a previous QR from this session if still waiting.');
 			}
@@ -360,7 +381,7 @@ function setupAgenda(client) {
  * WA Web (Jul 2026) broke id._serialized -> id.$1; getChatById may throw "r: r".
  * @param {import('whatsapp-web.js').Message} msg
  * @param {import('whatsapp-web.js').Client} client
- * @returns {Promise<{id: string, memberCount?: number}|null>}
+ * @returns {Promise<{id: string, memberCount?: number, participants?: Array}|null>}
  */
 async function resolveGroupInfo(msg, client) {
 	const from = msg && msg.from;
@@ -375,6 +396,7 @@ async function resolveGroupInfo(msg, client) {
 			(chatDetail.id._serialized || chatDetail.id.$1 || from);
 		if (chatId) groupInfo.id = chatId;
 		if (chatDetail && Array.isArray(chatDetail.participants)) {
+			groupInfo.participants = chatDetail.participants;
 			groupInfo.memberCount = Math.max(0, chatDetail.participants.length - 1);
 		}
 	} catch (error) {
@@ -383,6 +405,75 @@ async function resolveGroupInfo(msg, client) {
 		console.warn('[WhatsApp] getChatById failed, using @g.us fallback:', errMsg);
 	}
 	return groupInfo;
+}
+
+/**
+ * Resolve WhatsApp group admin role when participant metadata is available.
+ * Returns 3 (admin) / 1 (user). If role cannot be determined, falls back to legacy admin (3).
+ * @param {import('whatsapp-web.js').Message} msg
+ * @param {import('whatsapp-web.js').Client} client
+ * @param {{id: string, participants?: Array}|null} groupInfo
+ * @returns {Promise<number>}
+ */
+async function resolveWhatsappUserRole(msg, client, groupInfo) {
+	// Private chat / unresolved group: keep previous always-admin behavior.
+	if (!groupInfo) return 3;
+
+	try {
+		let participants = Array.isArray(groupInfo.participants) ? groupInfo.participants : null;
+		if (!participants) {
+			const chatDetail = await client.getChatById(groupInfo.id);
+			if (chatDetail && Array.isArray(chatDetail.participants)) {
+				participants = chatDetail.participants;
+				groupInfo.participants = participants;
+			}
+		}
+		if (!participants || participants.length === 0) return 3;
+
+		const authorId = msg.author || msg.from;
+		const candidateIds = new Set();
+		const candidateUsers = new Set();
+		const addId = (value) => {
+			if (!value) return;
+			const s = String(value);
+			candidateIds.add(s);
+			const user = s.split('@')[0];
+			if (user) candidateUsers.add(user);
+		};
+		addId(authorId);
+
+		try {
+			const contact = (typeof msg.getContact === 'function')
+				? await msg.getContact()
+				: (authorId ? await client.getContactById(authorId) : null);
+			if (contact) {
+				if (contact.id) addId(contact.id._serialized || contact.id.$1);
+				if (contact.number) {
+					candidateUsers.add(String(contact.number));
+					addId(`${contact.number}@c.us`);
+				}
+			}
+		} catch {
+			// Contact lookup is best-effort (LID / phone mismatches).
+		}
+
+		const match = participants.find((p) => {
+			if (!p || !p.id) return false;
+			const pid = p.id._serialized || p.id.$1 || '';
+			const user = p.id.user ? String(p.id.user) : '';
+			if (pid && candidateIds.has(pid)) return true;
+			if (user && candidateUsers.has(user)) return true;
+			return false;
+		});
+
+		// Could not map sender to a participant → keep legacy admin.
+		if (!match) return 3;
+		return (match.isAdmin || match.isSuperAdmin) ? 3 : 1;
+	} catch (error) {
+		const errMsg = error && error.message ? error.message : String(error);
+		console.warn('[WhatsApp] resolveWhatsappUserRole failed, legacy admin fallback:', errMsg);
+		return 3;
+	}
 }
 
 async function processMessage(msg, groupInfo, client) {
@@ -424,12 +515,12 @@ async function processMessage(msg, groupInfo, client) {
 	}
 	if (!target && privatemsg == 0) return null;
 	let userid, displayname, channelid, channelKeyword = '';
-	let userrole = 3;
 	let TargetGMTempID = [];
 	let TargetGMTempdiyName = [];
 	let TargetGMTempdisplayname = [];
 
 	userid = msg.author || msg.from;
+	const userrole = await resolveWhatsappUserRole(msg, client, groupInfo);
 	let getContact;
 	displayname = '';
 	try {

@@ -426,6 +426,26 @@ async function countOpenRunsByStarter(starterID) {
     return cnt;
 }
 
+/** @returns {Promise<Array>} open (incl. paused) runs started by this user */
+async function listOpenRunsByStarter(starterID) {
+    try {
+        if (db.storyRun && typeof db.storyRun.find === 'function') {
+            const list = await db.storyRun.find({ starterID, isEnded: false })
+                .sort({ updatedAt: -1 })
+                .limit(20)
+                .lean();
+            return Array.isArray(list) ? list : [];
+        }
+    } catch { /* ignore */ }
+    const rows = [];
+    try {
+        for (const run of memoryRuns.values()) {
+            if (run && String(run.starterID) === String(starterID) && !run.isEnded) rows.push(run);
+        }
+    } catch { /* ignore */ }
+    return rows;
+}
+
 // Check for idle games and auto-pause them if they've been inactive for more than 1 hour
 async function checkAndPauseIdleGames(context) {
     const IDLE_TIMEOUT_HOURS = 1;
@@ -1305,7 +1325,15 @@ const rollDiceCommand = async function ({
         case !sub || /^help$/.test(sub): {
             rply.text = getHelpMessage({ locale, t });
             rply.quotes = true;
-            rply.buttonCreate = ['.st mylist', '.st list'];
+            rply.buttonCreate = [
+                '.st list',
+                '.st mylist',
+                '.st my',
+                '.st game',
+                '.st pause',
+                '.st continue',
+                '.st end',
+            ];
             return rply;
         }
         case /^importfile$/.test(sub): {
@@ -1691,9 +1719,26 @@ const rollDiceCommand = async function ({
                     let levelIndex = 0;
                     try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch { levelIndex = 0; }
                     const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
-                    const openCnt = await countOpenRunsByStarter(userid);
+                    const openRuns = await listOpenRunsByStarter(userid);
+                    const openCnt = openRuns.length > 0 ? openRuns.length : await countOpenRunsByStarter(userid);
                     if (openCnt >= limit) {
-                        rply.text = translate('storyteller.run_limit', { limit });
+                        let text = translate('storyteller.run_limit', { limit, count: openCnt });
+                        text += translate('storyteller.run_limit_list_header');
+                        const btns = ['.st game'];
+                        for (const openRun of openRuns) {
+                            if (!openRun) continue;
+                            const id = openRun._id ? String(openRun._id) : '';
+                            const alias = openRun.storyAlias || '-';
+                            if (openRun.isPaused) {
+                                text += translate('storyteller.run_limit_entry_paused', { id: id || '-', alias });
+                            } else {
+                                text += translate('storyteller.run_limit_entry_active', { id: id || '-', alias });
+                            }
+                            if (id) btns.push('.st end ' + id);
+                        }
+                        text += translate('storyteller.run_limit_howto');
+                        rply.text = text.trim();
+                        rply.buttonCreate = [...new Set(btns)].slice(0, 20);
                         return rply;
                     }
                 } catch { /* ignore and proceed */ }
@@ -1839,9 +1884,26 @@ const rollDiceCommand = async function ({
             return rply;
         }
         case /^end$/.test(sub): {
-            const run = await getActiveRun(ctx);
-            if (!run) { rply.text = translate('storyteller.no_active_story'); return rply; }
-            if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
+            const endId = (mainMsg[2] || '').trim();
+            let run = null;
+            if (endId) {
+                // End a specific open run by ID (starter only) — used by run-limit buttons
+                try {
+                    if (db.storyRun && typeof db.storyRun.findById === 'function') {
+                        run = await db.storyRun.findById(endId);
+                    } else {
+                        for (const r of memoryRuns.values()) {
+                            if (r && String(r._id) === String(endId)) { run = r; break; }
+                        }
+                    }
+                } catch { run = null; }
+                if (!run || run.isEnded) { rply.text = translate('storyteller.game_id_not_found'); return rply; }
+                if (String(run.starterID) !== String(userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
+            } else {
+                run = await getActiveRun(ctx);
+                if (!run) { rply.text = translate('storyteller.no_active_story'); return rply; }
+                if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
+            }
             const { story } = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
             // If on an ending page, capture endingId/text
             try {
@@ -2601,7 +2663,15 @@ const rollDiceCommand = async function ({
         default: {
             rply.text = this.getHelpMessage();
             rply.quotes = true;
-            rply.buttonCreate = ['.st mylist', '.st list'];
+            rply.buttonCreate = [
+                '.st list',
+                '.st mylist',
+                '.st my',
+                '.st game',
+                '.st pause',
+                '.st continue',
+                '.st end',
+            ];
             return rply;
         }
     }
@@ -2653,7 +2723,8 @@ const discordCommand = [
             .addSubcommand(sub =>
                 sub
                     .setName('end')
-                    .setDescription('結束目前故事')
+                    .setDescription('結束目前故事（可指定遊戲 ID）')
+                    .addStringOption(opt => opt.setName('runid').setDescription('遊戲 ID（可選）'))
             )
             .addSubcommand(sub =>
                 sub
@@ -2769,8 +2840,10 @@ const discordCommand = [
                     const runid = interaction.options.getString('runid');
                     return runid ? `.st continue ${runid}` : `.st continue`;
                 }
-                case 'end':
-                    return `.st end`;
+                case 'end': {
+                    const runid = interaction.options.getString('runid');
+                    return runid ? `.st end ${runid}` : `.st end`;
+                }
                 case 'goto': {
                     const page = interaction.options.getString('page');
                     return `.st goto ${page}`;

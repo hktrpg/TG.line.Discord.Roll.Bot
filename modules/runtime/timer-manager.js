@@ -32,6 +32,11 @@ class TimerManager {
             callback();
         }, delay);
 
+        // Allow process exit when only background monitors remain (Jest + graceful shutdown).
+        if (intervalId && typeof intervalId.unref === 'function') {
+            intervalId.unref();
+        }
+
         this.intervals.add(intervalId);
         return intervalId;
     }

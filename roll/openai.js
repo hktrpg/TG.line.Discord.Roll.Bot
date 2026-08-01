@@ -610,7 +610,7 @@ class OpenAI {
     }
 
     addApiKey() {
-        if (typeof window !== 'undefined') return;
+        if (globalThis.window !== undefined) return;
         this.apiKeys = [];
         let base = 0;
         for (let index = 1; index < 100; index++) {

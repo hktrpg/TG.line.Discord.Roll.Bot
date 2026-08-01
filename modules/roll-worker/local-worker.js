@@ -326,7 +326,9 @@ async function ensurePrimaryWorker(logger = console, options = {}) {
 		return { ok: false, skipped: true };
 	}
 
-	const port = getPrimarySpawnPort();
+	// Prefer port from ROLL_WORKER_URL so restart after stop does not adopt
+	// an unrelated healthy worker on the default :3950 (parallel Jest live tests).
+	const port = getPrimaryWorkerPort() || getPrimarySpawnPort();
 	const defaultUrl = `http://127.0.0.1:${port}`;
 
 	try {
@@ -340,14 +342,25 @@ async function ensurePrimaryWorker(logger = console, options = {}) {
 
 	const lock = readPrimaryLock();
 	if (lock?.url && isPidAlive(lock.pid)) {
+		let lockPort = null;
 		try {
-			await waitHealth(lock.url, probeMs);
-			process.env.ROLL_WORKER_URL = lock.url;
-			debugWorkerLog(`[Primary] reuse lock pid=${lock.pid} url=${lock.url}`);
-			return { ok: true, url: lock.url, supervised: false, reusedLock: true };
+			lockPort = Number.parseInt(new URL(lock.url).port, 10) || null;
 		} catch {
-			info(`[Primary] lock pid=${lock.pid} unhealthy — spawning replacement`);
-			clearPrimaryLockIfOurs(lock.pid);
+			lockPort = null;
+		}
+		// Ignore locks for a different port than the Primary we are restoring.
+		if (lockPort && lockPort !== port) {
+			debugWorkerLog(`[Primary] ignore lock url=${lock.url} (want port ${port})`);
+		} else {
+			try {
+				await waitHealth(lock.url, probeMs);
+				process.env.ROLL_WORKER_URL = lock.url;
+				debugWorkerLog(`[Primary] reuse lock pid=${lock.pid} url=${lock.url}`);
+				return { ok: true, url: lock.url, supervised: false, reusedLock: true };
+			} catch {
+				info(`[Primary] lock pid=${lock.pid} unhealthy — spawning replacement`);
+				clearPrimaryLockIfOurs(lock.pid);
+			}
 		}
 	}
 

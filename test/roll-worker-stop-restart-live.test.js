@@ -10,8 +10,10 @@ const path = require('node:path');
 const http = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
-const PORT_P = 3981;
-const PORT_S = 3982;
+// Unique ports per Jest worker/pid — avoid colliding with parallel live suites on :3950/:3981.
+const PORT_BASE = 41_000 + (Number(process.env.JEST_WORKER_ID || 0) * 20) + (process.pid % 17);
+const PORT_P = PORT_BASE;
+const PORT_S = PORT_BASE + 1;
 const TOKEN = 'live-stop-restart-token';
 
 function sleep(ms) {
@@ -137,7 +139,8 @@ describe('live stop / restart Primary + Standby', () => {
 		const restart = await localWorker.restartPrimary({ drainMs: 200 });
 		expect(restart.ok).toBe(true);
 		expect(localWorker.isPrimaryStopped()).toBe(false);
-		await waitHealth(PORT_P);
+		expect(String(restart.url || '')).toContain(`:${PORT_P}`);
+		await waitHealth(PORT_P, 40_000);
 	});
 
 	it('restart standby self-restarts on same port', async () => {

@@ -210,18 +210,23 @@ describe('local-worker unit', () => {
 			token: 't',
 			timeoutMs: 1000,
 		});
+		// Prefer URL port for rediscover (not ROLL_WORKER_PORT).
+		let probes = 0;
 		client.healthAt.mockImplementation(async (url) => {
-			if (String(url).includes('3990')) throw new Error('down');
-			if (String(url).includes('3950')) return { ok: true, role: 'roll-worker' };
-			throw new Error('down');
+			if (!String(url).includes('3990')) throw new Error('down');
+			probes += 1;
+			// First waitHealth (configured URL) must fully fail; then same-port rediscover.
+			if (probes <= 3) throw new Error('down');
+			return { ok: true, role: 'roll-worker' };
 		});
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3990';
 		process.env.ROLL_WORKER_SPAWN = 'false';
 		process.env.ROLL_WORKER_PORT = '3950';
 		const result = await localWorker.ensurePrimaryWorker(console, { forceSpawn: true });
 		expect(result.ok).toBe(true);
 		expect(result.discovered).toBe(true);
 		expect(result.existing).toBeUndefined();
-		expect(process.env.ROLL_WORKER_URL).toBe('http://127.0.0.1:3950');
+		expect(process.env.ROLL_WORKER_URL).toBe('http://127.0.0.1:3990');
 	}, 15_000);
 
 	it('restartPrimary after stop rediscovers instead of fake existing', async () => {
@@ -233,10 +238,13 @@ describe('local-worker unit', () => {
 			timeoutMs: 1000,
 		});
 		client.requestAdminShutdown.mockResolvedValue({ ok: true });
+		// waitHealth retries (~2/probe window): fail stop + restart + ensure, then rediscover.
+		let probes = 0;
 		client.healthAt.mockImplementation(async (url) => {
-			if (String(url).includes('3990')) throw new Error('down');
-			if (String(url).includes('3950')) return { ok: true, role: 'roll-worker' };
-			throw new Error('down');
+			if (!String(url).includes('3990')) throw new Error('down');
+			probes += 1;
+			if (probes <= 5) throw new Error('down');
+			return { ok: true, role: 'roll-worker' };
 		});
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3990';
 		process.env.ROLL_WORKER_SPAWN = 'false';
@@ -249,7 +257,7 @@ describe('local-worker unit', () => {
 		expect(localWorker.isPrimaryStopped()).toBe(false);
 		expect(restart.ok).toBe(true);
 		expect(restart.mode).toBe('ensure-spawn');
-		expect(restart.url).toBe('http://127.0.0.1:3950');
+		expect(restart.url).toBe('http://127.0.0.1:3990');
 	}, 15_000);
 
 	it('reloadRemote rejects concurrent reload', async () => {

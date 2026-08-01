@@ -134,7 +134,8 @@
   "jest": {
     "testEnvironment": "node",
     "setupFilesAfterEnv": [
-      "<rootDir>/test/setup-i18n.js"
+      "<rootDir>/test/setup-i18n.js",
+      "<rootDir>/test/setup-jest-cleanup.js"
     ],
     "testMatch": [
       "<rootDir>/test/**/*.test.js",

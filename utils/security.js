@@ -326,7 +326,8 @@ function validateCredentials(credentials) {
         return { valid: false, error: 'Invalid credentials format' };
     }
 
-    const userName = String(credentials.userName || '').trim();
+    // Match .admin account: usernames are stored lowercase
+    const userName = String(credentials.userName || '').trim().toLowerCase();
     if (!userName || userName.length < 3 || userName.length > 50) {
         return { valid: false, error: 'Invalid username length (3-50 characters)' };
     }
@@ -366,8 +367,9 @@ function validateJWTAuth(authData) {
             return { valid: false, error: 'Invalid or expired JWT token' };
         }
 
-        // 如果提供了userName，驗證是否匹配
-        if (authData.userName && decoded.userName !== authData.userName) {
+        // Username is case-insensitive (stored lowercase, same as .admin account)
+        const decodedUserName = String(decoded.userName || '').toLowerCase();
+        if (authData.userName && decodedUserName !== String(authData.userName).trim().toLowerCase()) {
             return { valid: false, error: 'Token user does not match provided username' };
         }
 
@@ -375,7 +377,7 @@ function validateJWTAuth(authData) {
             valid: true,
             data: {
                 userId: decoded.userId,
-                userName: decoded.userName,
+                userName: decodedUserName,
                 token: token
             }
         };
@@ -596,7 +598,8 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
             return false;
         }
         
-        console.log(`🔄 Upgrading password for user: ${userName}`);
+        const normalizedUserName = String(userName || '').trim().toLowerCase();
+        console.log(`🔄 Upgrading password for user: ${normalizedUserName}`);
         
         // 生成新的 bcrypt 密碼
         const newHash = await hashPassword(password);
@@ -604,7 +607,7 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
         // 更新數據庫
         const schema = require('../modules/db/schema.js');
         const result = await schema.accountPW.findOneAndUpdate(
-            { userName: userName },
+            { userName: normalizedUserName },
             { 
                 $set: { 
                     password: newHash,
@@ -615,11 +618,11 @@ async function upgradePasswordIfLegacy(userName, password, currentHash) {
         );
         
         if (result) {
-            console.log(`✅ Password upgraded for user: ${userName}`);
+            console.log(`✅ Password upgraded for user: ${normalizedUserName}`);
             console.log(`   Old hash backed up to legacyPassword field`);
             return true;
         } else {
-            console.error(`❌ Failed to upgrade password for user: ${userName}`);
+            console.error(`❌ Failed to upgrade password for user: ${normalizedUserName}`);
             return false;
         }
         

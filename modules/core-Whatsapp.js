@@ -397,10 +397,8 @@ async function resolveGroupInfo(msg, client) {
 			groupInfo.participants = chatDetail.participants;
 			groupInfo.memberCount = Math.max(0, chatDetail.participants.length - 1);
 		}
-	} catch (error) {
-		const errMsg = error && error.message ? error.message : String(error);
+	} catch {
 		// Keep handling the message; memberCount stays undefined.
-		console.warn('[WhatsApp] getChatById failed, using @g.us fallback:', errMsg);
 	}
 	return groupInfo;
 }

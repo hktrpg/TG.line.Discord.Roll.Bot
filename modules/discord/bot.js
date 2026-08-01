@@ -1376,7 +1376,6 @@ async function SendToReplychannel({ replyText = "", channelid = "", quotes = fal
 	}
 
 	if (!channel) {
-		console.warn(`[Schedule] SendToReplychannel: channel not found | channelid=${channelid} | groupid=${groupid || ''}`);
 		return;
 	}
 
@@ -2608,7 +2607,6 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
-		console.log(`[Schedule] fire scheduleAtMessageDiscord | serial=${data?.serial ?? '?'} | channel=${data?.channelid || ''} | pid=${process.pid}`);
 		let text = await rollText(data.replyText, {
 			botname: 'Discord',
 			groupid: data.groupid,

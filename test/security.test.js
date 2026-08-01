@@ -164,8 +164,17 @@ describe('Security Utilities', () => {
                 userPassword: 'testPassword123'
             });
             expect(result.valid).toBe(true);
-            expect(result.data.userName).toBe('testUser');
+            expect(result.data.userName).toBe('testuser');
             expect(result.data.userPassword).toBe('testPassword123');
+        });
+
+        test('should normalize username to lowercase', () => {
+            const result = security.validateCredentials({
+                userName: 'Apollo10',
+                userPassword: 'testPassword123'
+            });
+            expect(result.valid).toBe(true);
+            expect(result.data.userName).toBe('apollo10');
         });
 
         test('should reject short username', () => {

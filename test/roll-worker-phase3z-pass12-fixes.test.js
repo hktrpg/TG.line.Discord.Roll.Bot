@@ -207,7 +207,7 @@ describe('Phase 3z L13 Gateway export wait notice before remote', () => {
 			}));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async (params) => {
 					expect(params.exportWaitNoticeSent).toBe(true);
 					expect(sendDiscordExportWaitNotice).toHaveBeenCalled();

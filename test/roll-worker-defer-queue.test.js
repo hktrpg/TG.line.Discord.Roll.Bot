@@ -17,7 +17,7 @@ describe('roll-worker defer-queue', () => {
 			prev[key] = process.env[key];
 		}
 		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_WORKER_DEFER_BUSY;
 		process.env.ROLL_WORKER_DEFER_MAX = '5';
 		process.env.ROLL_WORKER_DEFER_PER_USER = '2';
@@ -110,13 +110,13 @@ describe('roll-worker defer-queue', () => {
 	});
 
 	it('isTransportSafeError detects connection failures', () => {
-		expect(deferQueue.isTransportSafeError(new Error('connect ECONNREFUSED 127.0.0.1:3950'))).toBe(true);
+		expect(deferQueue.isTransportSafeError(new Error('connect ECONNREFUSED 127.0.0.1:20612'))).toBe(true);
 		expect(deferQueue.isTransportSafeError(new Error('timeout of 120000ms exceeded'))).toBe(true);
 		expect(deferQueue.isTransportSafeError(new Error('Unauthorized'))).toBe(false);
 	});
 
 	it('isPreFlightConnectError excludes timeouts', () => {
-		expect(deferQueue.isPreFlightConnectError(new Error('connect ECONNREFUSED 127.0.0.1:3950'))).toBe(true);
+		expect(deferQueue.isPreFlightConnectError(new Error('connect ECONNREFUSED 127.0.0.1:20612'))).toBe(true);
 		expect(deferQueue.isPreFlightConnectError(new Error('getaddrinfo ENOTFOUND host'))).toBe(true);
 		expect(deferQueue.isPreFlightConnectError(new Error('timeout of 120000ms exceeded'))).toBe(false);
 		expect(deferQueue.isPreFlightConnectError(new Error('ETIMEDOUT'))).toBe(false);

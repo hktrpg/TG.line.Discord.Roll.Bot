@@ -29,7 +29,7 @@ describe('roll-worker client', () => {
 	it('isEnabled only when ROLL_WORKER_URL is set', () => {
 		delete process.env.ROLL_WORKER_URL;
 		expect(isEnabled()).toBe(false);
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		expect(isEnabled()).toBe(true);
 	});
 
@@ -37,27 +37,27 @@ describe('roll-worker client', () => {
 		delete process.env.ROLL_STANDBY_URL;
 		expect(isLocalEnabled()).toBe(false);
 		expect(getLocalConfig().url).toBe('');
-		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951/';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:20613/';
 		expect(isLocalEnabled()).toBe(true);
-		expect(getLocalConfig().url).toBe('http://127.0.0.1:3951');
+		expect(getLocalConfig().url).toBe('http://127.0.0.1:20613');
 	});
 
 	it('isLocalEnabled false when local URL equals primary URL', () => {
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
-		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3950/';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:20612/';
 		expect(isLocalEnabled()).toBe(false);
-		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:20613';
 		expect(isLocalEnabled()).toBe(true);
 	});
 
 	it('isLocalEnabled treats URL case as equal', () => {
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
-		process.env.ROLL_STANDBY_URL = 'HTTP://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
+		process.env.ROLL_STANDBY_URL = 'HTTP://127.0.0.1:20612';
 		expect(isLocalEnabled()).toBe(false);
 	});
 
 	it('normalizeWorkerBaseUrl strips trailing slash and lowercases', () => {
-		expect(normalizeWorkerBaseUrl('HTTP://127.0.0.1:3951/')).toBe('http://127.0.0.1:3951');
+		expect(normalizeWorkerBaseUrl('HTTP://127.0.0.1:20613/')).toBe('http://127.0.0.1:20613');
 		expect(normalizeWorkerBaseUrl('')).toBe('');
 	});
 
@@ -83,21 +83,21 @@ describe('roll-worker client', () => {
 		const savedMode = process.env.ROLL_WORKER_MODE;
 		const savedStandby = process.env.ROLL_STANDBY_URL;
 		delete process.env.ROLL_WORKER_MODE;
-		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:3951';
+		process.env.ROLL_STANDBY_URL = 'http://127.0.0.1:20613';
 		require('../modules/runtime/build-info').resetCache();
 		const fromGateway = toSerializableContext({ inputStr: '.admin state' });
 		expect(fromGateway.gatewayBuildInfo).toBeTruthy();
 		expect(typeof fromGateway.gatewayBuildInfo.display).toBe('string');
-		expect(fromGateway.standbyWorkerUrl).toBe('http://127.0.0.1:3951');
+		expect(fromGateway.standbyWorkerUrl).toBe('http://127.0.0.1:20613');
 
 		process.env.ROLL_WORKER_MODE = 'true';
 		const fromWorker = toSerializableContext({
 			inputStr: '.admin state',
 			gatewayBuildInfo: { display: 'master · 2026-01-01 · abcdef1', role: 'gateway' },
-			standbyWorkerUrl: 'http://127.0.0.1:3951',
+			standbyWorkerUrl: 'http://127.0.0.1:20613',
 		});
 		expect(fromWorker.gatewayBuildInfo.display).toBe('master · 2026-01-01 · abcdef1');
-		expect(fromWorker.standbyWorkerUrl).toBe('http://127.0.0.1:3951');
+		expect(fromWorker.standbyWorkerUrl).toBe('http://127.0.0.1:20613');
 
 		const missing = toSerializableContext({ inputStr: '.admin state' });
 		expect(missing.gatewayBuildInfo).toBeNull();
@@ -168,7 +168,7 @@ describe('roll-worker client', () => {
 		delete process.env.ROLL_WORKER_TOKEN;
 		delete process.env.ROLL_WORKER_TIMEOUT_MS;
 		const cfg = getConfig();
-		expect(cfg.url).toContain('127.0.0.1:3950');
+		expect(cfg.url).toContain('127.0.0.1:20612');
 		expect(cfg.timeoutMs).toBe(120_000);
 	});
 });

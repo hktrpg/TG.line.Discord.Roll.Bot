@@ -12,7 +12,7 @@ describe('Phase 3q non-Discord local fallback on worker outage', () => {
 			});
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: '', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: '', timeoutMs: 30_000 }),
 				parse,
 			}));
 			jest.doMock('../modules/analytics', () => ({

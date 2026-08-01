@@ -4,7 +4,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(),
 	isLocalEnabled: jest.fn(() => false),
 	getConfig: jest.fn(() => ({
-		url: 'http://127.0.0.1:3950',
+		url: 'http://127.0.0.1:20612',
 		token: '',
 		timeoutMs: 30_000,
 	})),

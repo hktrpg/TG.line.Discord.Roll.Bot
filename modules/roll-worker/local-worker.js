@@ -3,8 +3,8 @@
 /**
  * Gateway auto-frame helpers (Primary + Standby) + .root restart / stop.
  *
- * Default (ROLL_WORKER_SPAWN unset): Gateway auto-discovers/spawns **Primary only** (:3950).
- * Standby (:3951) only when ROLL_STANDBY_SPAWN=true, or ROLL_STANDBY_URL is set.
+ * Default (ROLL_WORKER_SPAWN unset): Gateway auto-discovers/spawns **Primary only** (:20612).
+ * Standby (:20613) only when ROLL_STANDBY_SPAWN=true, or ROLL_STANDBY_URL is set.
  * Opt-out Primary auto-frame: ROLL_WORKER_SPAWN=false → Embedded only (unless URL set).
  */
 
@@ -17,8 +17,9 @@ const { ensureRollWorkerToken } = require('./ensure-token');
 const ROOT = path.join(__dirname, '..', '..');
 const LOCK_PATH = path.join(ROOT, 'temp', 'roll-local-worker.lock');
 const PRIMARY_LOCK_PATH = path.join(ROOT, 'temp', 'roll-primary-worker.lock');
-const DEFAULT_LOCAL_PORT = 3951;
-const DEFAULT_PRIMARY_PORT = 3950;
+const DEFAULT_PRIMARY_PORT = 20_612;
+const DEFAULT_LOCAL_PORT = 20_613;
+const DEFAULT_MANUAL_PORT = 20_614;
 const DEFAULT_DRAIN_MS = 1500;
 const DEFAULT_HEALTH_WAIT_MS = 60_000;
 const DEFAULT_HEALTH_PROBE_MS = 5000;
@@ -95,7 +96,7 @@ function getSpawnPort() {
 	let port = Number.isFinite(n) && n > 0 ? n : DEFAULT_LOCAL_PORT;
 	const primaryPort = getPrimaryWorkerPort() || getPrimarySpawnPort();
 	if (primaryPort && port === primaryPort) {
-		port = primaryPort === DEFAULT_LOCAL_PORT ? 3952 : DEFAULT_LOCAL_PORT;
+		port = primaryPort === DEFAULT_LOCAL_PORT ? DEFAULT_MANUAL_PORT : DEFAULT_LOCAL_PORT;
 	}
 	return port;
 }
@@ -279,7 +280,7 @@ function spawnChild({ port, token, role = 'local' }) {
 }
 
 /**
- * Ensure ROLL_WORKER_URL: discover existing :3950, reuse lock, or auto-spawn.
+ * Ensure ROLL_WORKER_URL: discover existing :20612, reuse lock, or auto-spawn.
  */
 function isPrimaryStopped() {
 	return stoppedPrimary === true;
@@ -327,7 +328,7 @@ async function ensurePrimaryWorker(logger = console, options = {}) {
 	}
 
 	// Prefer port from ROLL_WORKER_URL so restart after stop does not adopt
-	// an unrelated healthy worker on the default :3950 (parallel Jest live tests).
+	// an unrelated healthy worker on the default :20612 (parallel Jest live tests).
 	const port = getPrimaryWorkerPort() || getPrimarySpawnPort();
 	const defaultUrl = `http://127.0.0.1:${port}`;
 
@@ -380,7 +381,7 @@ async function ensurePrimaryWorker(logger = console, options = {}) {
 
 /**
  * Ensure ROLL_STANDBY_URL (after primary is available).
- * Discover existing :3951 (manual yarn start:roll-worker:standby) before SPAWN.
+ * Discover existing :20613 (manual yarn start:roll-worker:standby) before SPAWN.
  */
 async function ensureLocalWorker(logger = console) {
 	const info = typeof logger.info === 'function'
@@ -917,6 +918,7 @@ async function shutdown() {
 module.exports = {
 	DEFAULT_LOCAL_PORT,
 	DEFAULT_PRIMARY_PORT,
+	DEFAULT_MANUAL_PORT,
 	startIfConfigured,
 	ensurePrimaryWorker,
 	ensureLocalWorker,

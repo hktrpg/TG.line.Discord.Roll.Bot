@@ -2256,8 +2256,8 @@
             "target": {
               "description": "local=Standby / remote=Primary / all（預設 local）",
               "choices": {
-                "local": "local - Standby（:3951 備援）",
-                "remote": "remote - Primary（:3950 優先）",
+                "local": "local - Standby（:20613 備援）",
+                "remote": "remote - Primary（:20612 優先）",
                 "all": "all - Standby 再 Primary"
               }
             }
@@ -4168,13 +4168,13 @@
     "weekday_4": "星期四",
     "weekday_5": "星期五",
     "weekday_6": "星期六",
-    "restart_usage": "用法：.root restart primary|standby|discord|gateway|all\n\n• primary — Primary（:3950）\n• standby — Standby（:3951）\n• discord all — 重啟全部 Discord cluster（必須寫 all）\n• discord <clusterId> — 只重啟指定 cluster\n• gateway — 平台 Gateway（Discord=全部 cluster；其他=進程 SIGTERM）\n• all — standby → primary → gateway\n\n停止算力：.root stop primary|standby\nEmbedded 無獨立開關，請用 restart gateway。",
+    "restart_usage": "用法：.root restart primary|standby|discord|gateway|all\n\n• primary — Primary（:20612）\n• standby — Standby（:20613）\n• discord all — 重啟全部 Discord cluster（必須寫 all）\n• discord <clusterId> — 只重啟指定 cluster\n• gateway — 平台 Gateway（Discord=全部 cluster；其他=進程 SIGTERM）\n• all — standby → primary → gateway\n\n停止算力：.root stop primary|standby\nEmbedded 無獨立開關，請用 restart gateway。",
     "restart_ok_header": "【.root restart {{target}}】成功",
     "restart_fail_header": "【.root restart {{target}}】失敗",
     "restart_all_header": "【.root restart all】合併結果",
     "restart_scope_line": "• 目標範圍：{{scope}}",
-    "restart_scope_standby": "Standby（備援 HTTP 擲骰；ROLL_STANDBY_URL / ROLL_STANDBY_SPAWN，預設 :3951）",
-    "restart_scope_primary": "Primary（優先 HTTP 擲骰；ROLL_WORKER_URL，預設 :3950）",
+    "restart_scope_standby": "Standby（備援 HTTP 擲骰；ROLL_STANDBY_URL / ROLL_STANDBY_SPAWN，預設 :20613）",
+    "restart_scope_primary": "Primary（優先 HTTP 擲骰；ROLL_WORKER_URL，預設 :20612）",
     "restart_line_mode": "• 執行模式：{{mode}}\n　→ {{mode_detail}}",
     "restart_line_url": "• URL：{{url}}",
     "restart_line_pid": "• 進程 PID：{{pid}}",
@@ -4202,7 +4202,7 @@
     "restart_reason_still_up": "已送出 admin 請求，但 /health 仍正常。",
     "restart_hint_still_up": "檢查 Primary/Standby log、是否非 loopback 被拒（403）。",
     "restart_reason_not_back": "進程已停止，但等待時間內 /health 未恢復。",
-    "restart_hint_not_back": "在主機手動 yarn start:roll-worker:primary（:3950；或 PM2/docker），再 .root restart。純 start:roll-worker 預設 :3952。",
+    "restart_hint_not_back": "在主機手動 yarn start:roll-worker:primary（:20612；或 PM2/docker），再 .root restart。純 start:roll-worker 預設 :20614。",
     "restart_reason_unknown": "未分類錯誤。",
     "restart_hint_generic": "查看 Gateway 與 Primary/Standby log。",
     "restart_failed": "【.root restart】執行例外。\n• 錯誤：{{message}}",

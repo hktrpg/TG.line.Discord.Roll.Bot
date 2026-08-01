@@ -36,12 +36,12 @@ describe('restart-reply', () => {
 		const text = formatRootRestartText(t, 'primary', {
 			ok: true,
 			mode: 'self-restart',
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			pid: 1234,
 		});
 		expect(text).toContain('【.root restart primary】成功');
 		expect(text).toContain('self-restart');
-		expect(text).toContain('3950');
+		expect(text).toContain('20612');
 		expect(text).toContain('1234');
 	});
 
@@ -49,7 +49,7 @@ describe('restart-reply', () => {
 		const text = formatRootStopText(t, 'standby', {
 			ok: true,
 			mode: 'stopped',
-			url: 'http://127.0.0.1:3951',
+			url: 'http://127.0.0.1:20613',
 			note: 'Standby stopped',
 		});
 		expect(text).toContain('【.root stop standby】成功');

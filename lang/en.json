@@ -2271,8 +2271,8 @@
             "target": {
               "description": "local=Standby / remote=Primary / all (default local)",
               "choices": {
-                "local": "local - Standby (:3951 fallback)",
-                "remote": "remote - Primary (:3950 preferred)",
+                "local": "local - Standby (:20613 fallback)",
+                "remote": "remote - Primary (:20612 preferred)",
                 "all": "all - Standby then Primary"
               }
             }
@@ -4183,13 +4183,13 @@
     "weekday_4": "Thursday",
     "weekday_5": "Friday",
     "weekday_6": "Saturday",
-    "restart_usage": "Usage: .root restart primary|standby|discord|gateway|all\n\n• primary — Primary (:3950)\n• standby — Standby (:3951)\n• discord all — every Discord cluster (must type all)\n• discord <clusterId> — one cluster only\n• gateway — platform Gateway (Discord=all clusters; else process SIGTERM)\n• all — standby → primary → gateway\n\nStop compute: .root stop primary|standby\nEmbedded has no switch — use restart gateway.",
+    "restart_usage": "Usage: .root restart primary|standby|discord|gateway|all\n\n• primary — Primary (:20612)\n• standby — Standby (:20613)\n• discord all — every Discord cluster (must type all)\n• discord <clusterId> — one cluster only\n• gateway — platform Gateway (Discord=all clusters; else process SIGTERM)\n• all — standby → primary → gateway\n\nStop compute: .root stop primary|standby\nEmbedded has no switch — use restart gateway.",
     "restart_ok_header": "[.root restart {{target}}] OK",
     "restart_fail_header": "[.root restart {{target}}] failed",
     "restart_all_header": "[.root restart all] combined",
     "restart_scope_line": "• Scope: {{scope}}",
-    "restart_scope_standby": "Standby (fallback HTTP dice; ROLL_STANDBY_URL / ROLL_STANDBY_SPAWN, default :3951)",
-    "restart_scope_primary": "Primary (preferred HTTP dice; ROLL_WORKER_URL, default :3950)",
+    "restart_scope_standby": "Standby (fallback HTTP dice; ROLL_STANDBY_URL / ROLL_STANDBY_SPAWN, default :20613)",
+    "restart_scope_primary": "Primary (preferred HTTP dice; ROLL_WORKER_URL, default :20612)",
     "restart_line_mode": "• Mode: {{mode}}\n  → {{mode_detail}}",
     "restart_line_url": "• URL: {{url}}",
     "restart_line_pid": "• PID: {{pid}}",
@@ -4217,7 +4217,7 @@
     "restart_reason_still_up": "Admin request sent but /health still OK.",
     "restart_hint_still_up": "Check Primary/Standby logs or loopback 403.",
     "restart_reason_not_back": "Process stopped but /health did not return.",
-    "restart_hint_not_back": "Start yarn start:roll-worker:primary on :3950 (or PM2/docker), then .root restart. Plain start:roll-worker uses :3952.",
+    "restart_hint_not_back": "Start yarn start:roll-worker:primary on :20612 (or PM2/docker), then .root restart. Plain start:roll-worker uses :20614.",
     "restart_reason_unknown": "Unclassified error.",
     "restart_hint_generic": "Check Gateway and Primary/Standby logs.",
     "restart_failed": "[.root restart] exception.\n• Error: {{message}}",

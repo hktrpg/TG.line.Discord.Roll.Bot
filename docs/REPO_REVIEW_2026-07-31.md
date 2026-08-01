@@ -1096,7 +1096,7 @@ VIP filter is `{ id/gpid, notes }` only. Same numeric ID on Discord vs Telegram 
 
 #### M30 — Health discovery token leak **Verified** (`local-worker.js` ~331–335, ~402–406; `client.js` `healthAt` ~278–288)
 
-1. Any local process binds `:3950`/`:3951` and returns `{ ok: true }` on `/health` (worker `/health` does **not** require Bearer for `ok`).  
+1. Any local process binds `:20612`/`:20613` and returns `{ ok: true }` on `/health` (worker `/health` does **not** require Bearer for `ok`).  
 2. Gateway `waitHealth` → `healthAt` **sends** `Authorization: Bearer <ROLL_WORKER_TOKEN>`.  
 3. Fake listener captures the token; Gateway adopts URL as discovered worker.
 

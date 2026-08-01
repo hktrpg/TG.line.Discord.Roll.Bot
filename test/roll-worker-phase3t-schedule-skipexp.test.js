@@ -66,7 +66,7 @@ describe('Phase 3t client serializes skipExp', () => {
 			data: { text: 'ok', type: 'text', _rollWorker: true },
 		});
 		const prevUrl = process.env.ROLL_WORKER_URL;
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		return client.parse({
 			inputStr: '1d3',
 			botname: 'Schedule',
@@ -74,7 +74,7 @@ describe('Phase 3t client serializes skipExp', () => {
 			skipExp: true,
 		}).then(() => {
 			expect(post).toHaveBeenCalledWith(
-				'http://127.0.0.1:3950/v1/parse',
+				'http://127.0.0.1:20612/v1/parse',
 				expect.objectContaining({ skipExp: true, groupid: 'g1' }),
 				expect.any(Object)
 			);

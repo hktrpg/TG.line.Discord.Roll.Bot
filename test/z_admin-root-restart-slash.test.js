@@ -198,7 +198,7 @@ describe('.root restart|stop text', () => {
 		localWorker.restart.mockResolvedValue({
 			ok: true,
 			mode: 'self-restart',
-			url: 'http://127.0.0.1:3951',
+			url: 'http://127.0.0.1:20613',
 			pid: 42,
 		});
 		const result = await adminModule.rollDiceCommand({
@@ -215,7 +215,7 @@ describe('.root restart|stop text', () => {
 		localWorker.stop.mockResolvedValue({
 			ok: true,
 			mode: 'stopped',
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 		});
 		const result = await adminModule.rollDiceCommand({
 			mainMsg: ['.root', 'stop', 'primary'],

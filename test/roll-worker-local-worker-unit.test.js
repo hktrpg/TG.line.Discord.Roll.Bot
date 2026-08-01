@@ -6,7 +6,7 @@
 jest.mock('../modules/roll-worker/client', () => ({
 	isLocalEnabled: jest.fn(() => false),
 	getLocalConfig: jest.fn(() => ({ url: '', token: 't', timeoutMs: 1000 })),
-	getConfig: jest.fn(() => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 1000 })),
+	getConfig: jest.fn(() => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 1000 })),
 	isEnabled: jest.fn(() => true),
 	healthAt: jest.fn(),
 	requestAdminShutdown: jest.fn(),
@@ -33,7 +33,7 @@ describe('local-worker unit', () => {
 
 	beforeEach(() => {
 		process.env.ROLL_WORKER_HEALTH_PROBE_MS = '300';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_WORKER_REMOTE_ONLY;
 		delete process.env.ROLL_WORKER_MODE;
 		delete process.env.ROLL_WORKER_SPAWN;
@@ -86,7 +86,7 @@ describe('local-worker unit', () => {
 	it('shouldSpawn stays off when ROLL_STANDBY_SPAWN unset even if primary URL set (Primary-only default)', () => {
 		delete process.env.ROLL_WORKER_SPAWN;
 		delete process.env.ROLL_STANDBY_SPAWN;
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		const prevNodeEnv = process.env.NODE_ENV;
 		process.env.NODE_ENV = 'production';
 		try {
@@ -99,7 +99,7 @@ describe('local-worker unit', () => {
 
 	it('shouldSpawn on when ROLL_STANDBY_SPAWN=true and primary URL set', () => {
 		process.env.ROLL_STANDBY_SPAWN = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		expect(localWorker.shouldSpawn()).toBe(true);
 	});
 
@@ -124,16 +124,16 @@ describe('local-worker unit', () => {
 		expect(localWorker.shouldAutoSpawnWorkers()).toBe(false);
 	});
 	it('getSpawnPort avoids colliding with primary Worker port', () => {
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3951';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20613';
 		delete process.env.ROLL_STANDBY_PORT;
-		expect(localWorker.getSpawnPort()).toBe(3952);
+		expect(localWorker.getSpawnPort()).toBe(20_614);
 	});
 
 	it('startIfConfigured skips spawn when SPAWN=false but keeps existing primary URL', async () => {
 		client.isLocalEnabled.mockReturnValue(false);
 		client.isEnabled.mockReturnValue(true);
 		client.getConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			token: 't',
 			timeoutMs: 1000,
 		});
@@ -164,7 +164,7 @@ describe('local-worker unit', () => {
 	it('startIfConfigured pending when URL unhealthy and SPAWN not explicit true', async () => {
 		client.isEnabled.mockReturnValue(true);
 		client.getConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			token: 't',
 			timeoutMs: 1000,
 		});
@@ -190,7 +190,7 @@ describe('local-worker unit', () => {
 		localWorker.resetStoppedFlagsForTests();
 		client.isEnabled.mockReturnValue(true);
 		client.getConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			token: 't',
 			timeoutMs: 1000,
 		});
@@ -221,7 +221,7 @@ describe('local-worker unit', () => {
 		});
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3990';
 		process.env.ROLL_WORKER_SPAWN = 'false';
-		process.env.ROLL_WORKER_PORT = '3950';
+		process.env.ROLL_WORKER_PORT = '20612';
 		const result = await localWorker.ensurePrimaryWorker(console, { forceSpawn: true });
 		expect(result.ok).toBe(true);
 		expect(result.discovered).toBe(true);
@@ -248,7 +248,7 @@ describe('local-worker unit', () => {
 		});
 		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3990';
 		process.env.ROLL_WORKER_SPAWN = 'false';
-		process.env.ROLL_WORKER_PORT = '3950';
+		process.env.ROLL_WORKER_PORT = '20612';
 
 		await localWorker.stopPrimary({ drainMs: 10 });
 		expect(localWorker.isPrimaryStopped()).toBe(true);
@@ -263,7 +263,7 @@ describe('local-worker unit', () => {
 	it('reloadRemote rejects concurrent reload', async () => {
 		client.isEnabled.mockReturnValue(true);
 		client.getConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			token: 't',
 			timeoutMs: 1000,
 		});
@@ -296,7 +296,7 @@ describe('local-worker unit', () => {
 		client.isEnabled.mockReturnValue(true);
 		client.isLocalEnabled.mockReturnValue(false);
 		process.env.ROLL_STANDBY_SPAWN = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_STANDBY_URL;
 		client.healthAt.mockResolvedValue({ ok: true, role: 'roll-worker' });
 
@@ -304,8 +304,8 @@ describe('local-worker unit', () => {
 		expect(result.ok).toBe(true);
 		expect(result.discovered).toBe(true);
 		expect(result.supervised).toBe(false);
-		expect(result.url).toBe('http://127.0.0.1:3951');
-		expect(process.env.ROLL_STANDBY_URL).toBe('http://127.0.0.1:3951');
+		expect(result.url).toBe('http://127.0.0.1:20613');
+		expect(process.env.ROLL_STANDBY_URL).toBe('http://127.0.0.1:20613');
 	});
 
 	it('waitUntilUnhealthy returns true when healthAt throws', async () => {
@@ -324,7 +324,7 @@ describe('local-worker unit', () => {
 	it('reloadRemote reports failure when health never returns after self-reload', async () => {
 		client.isEnabled.mockReturnValue(true);
 		client.getConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			token: 't',
 			timeoutMs: 1000,
 		});
@@ -349,7 +349,7 @@ describe('local-worker unit', () => {
 	it('reloadRemote succeeds when worker self-restarts', async () => {
 		client.isEnabled.mockReturnValue(true);
 		client.getConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3950',
+			url: 'http://127.0.0.1:20612',
 			token: 't',
 			timeoutMs: 1000,
 		});
@@ -376,13 +376,13 @@ describe('local-worker unit', () => {
 	it('getStatus reflects env', () => {
 		client.isLocalEnabled.mockReturnValue(true);
 		client.getLocalConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3951',
+			url: 'http://127.0.0.1:20613',
 			token: 't',
 			timeoutMs: 1000,
 		});
 		process.env.ROLL_STANDBY_SPAWN = 'true';
 		const status = localWorker.getStatus();
-		expect(status.localUrl).toBe('http://127.0.0.1:3951');
+		expect(status.localUrl).toBe('http://127.0.0.1:20613');
 		expect(status.localEnabled).toBe(true);
 		expect(status.spawn).toBe(true);
 	});
@@ -390,7 +390,7 @@ describe('local-worker unit', () => {
 	it('reloadLocal rejects concurrent reload', async () => {
 		process.env.ROLL_STANDBY_RELOAD_WAIT_MS = '200';
 		client.getLocalConfig.mockReturnValue({
-			url: 'http://127.0.0.1:3951',
+			url: 'http://127.0.0.1:20613',
 			token: 't',
 			timeoutMs: 1000,
 		});

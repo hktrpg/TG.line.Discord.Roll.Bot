@@ -10,7 +10,7 @@ const path = require('node:path');
 const http = require('node:http');
 
 const ROOT = path.join(__dirname, '..');
-// Unique ports per Jest worker/pid — avoid colliding with parallel live suites on :3950/:3981.
+// Unique ports per Jest worker/pid — avoid colliding with parallel live suites on :20612/:3981.
 const PORT_BASE = 41_000 + (Number(process.env.JEST_WORKER_ID || 0) * 20) + (process.pid % 17);
 const PORT_P = PORT_BASE;
 const PORT_S = PORT_BASE + 1;

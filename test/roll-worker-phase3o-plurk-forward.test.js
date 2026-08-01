@@ -29,7 +29,7 @@ describe('Phase 3o needsLocal preserves LevelUp', () => {
 		await jest.isolateModulesAsync(async () => {
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: '', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: '', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({
 					needsLocal: true,
 					moduleName: 'token',

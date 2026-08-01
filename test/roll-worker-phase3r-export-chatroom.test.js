@@ -107,7 +107,7 @@ describe('Phase 3r enrichParamsForRemote skips export prefetch on gate deny', ()
 			}));
 			jest.doMock('../modules/roll-worker/client', () => ({
 				isEnabled: () => true,
-				getConfig: () => ({ url: 'http://127.0.0.1:3950', token: 't', timeoutMs: 30_000 }),
+				getConfig: () => ({ url: 'http://127.0.0.1:20612', token: 't', timeoutMs: 30_000 }),
 				parse: jest.fn(async () => ({ text: 'ok', type: 'text', _rollWorker: true })),
 			}));
 			jest.doMock('../modules/analytics', () => ({

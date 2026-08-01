@@ -4,7 +4,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 	isEnabled: jest.fn(),
 	isLocalEnabled: jest.fn(() => false),
 	getConfig: jest.fn(() => ({
-		url: 'http://127.0.0.1:3950',
+		url: 'http://127.0.0.1:20612',
 		token: 't',
 		timeoutMs: 30_000,
 	})),
@@ -45,7 +45,7 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 			envPrev[key] = process.env[key];
 		}
 		process.env.ROLL_WORKER_REMOTE_ONLY = 'true';
-		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:3950';
+		process.env.ROLL_WORKER_URL = 'http://127.0.0.1:20612';
 		delete process.env.ROLL_WORKER_DEFER_BUSY;
 		deferQueue.resetDeferQueue();
 		parseRouter.resetWorkersReadyForTests();
@@ -147,7 +147,7 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 
 	it('mutator pre-flight ECONNREFUSED defers under REMOTE_ONLY', async () => {
 		analytics.findRollModuleName.mockReturnValue('z_schedule');
-		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:20612'));
 		const result = await parseRouter.parseInput({
 			inputStr: '.at 1mins [[1d100]]',
 			botname: 'Discord',
@@ -162,7 +162,7 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 
 	it('remote-fail log is rate-limited (not per message)', async () => {
 		parseRouter.resetOpsLogCounters();
-		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:3950'));
+		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:20612'));
 		const warns = [];
 		const spy = jest.spyOn(console, 'warn').mockImplementation((m) => warns.push(String(m)));
 		const target = { botname: 'Discord', channelId: 'c', userid: 'u-spam' };

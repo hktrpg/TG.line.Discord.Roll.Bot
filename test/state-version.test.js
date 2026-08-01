@@ -91,7 +91,7 @@ describe('buildStateVersionSection', () => {
 				display: 'Distributed- · 2026-07-30 · gateway1',
 				role: 'gateway',
 			},
-			standbyWorkerUrl: 'http://127.0.0.1:3951',
+			standbyWorkerUrl: 'http://127.0.0.1:20613',
 		});
 
 		const text = lines.join('\n');
@@ -99,7 +99,7 @@ describe('buildStateVersionSection', () => {
 		expect(text).toContain('Distributed- · 2026-07-30 · standby1');
 		expect(text).toContain('link=up');
 		expect(text).not.toMatch(/Parse\s+/);
-		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951', { withAuth: true });
+		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:20613', { withAuth: true });
 	});
 
 	it('on Primary without prefetch shows Gateway unreachable', async () => {
@@ -119,7 +119,7 @@ describe('buildStateVersionSection', () => {
 		buildInfo.resetCache();
 		rollWorkerClient.isEnabled.mockReturnValue(true);
 		rollWorkerClient.isLocalEnabled.mockReturnValue(true);
-		rollWorkerClient.getLocalConfig.mockReturnValue({ url: 'http://127.0.0.1:3951' });
+		rollWorkerClient.getLocalConfig.mockReturnValue({ url: 'http://127.0.0.1:20613' });
 		rollWorkerClient.health.mockResolvedValue({
 			ok: true,
 			version: { display: 'Distributed- · 2026-07-30 · worker01' },
@@ -140,7 +140,7 @@ describe('buildStateVersionSection', () => {
 		expect(text).toContain('Distributed- · 2026-07-30 · local001');
 		expect(text).not.toMatch(/Parse\s+/);
 		expect(rollWorkerClient.health).toHaveBeenCalled();
-		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:3951', { withAuth: true });
+		expect(rollWorkerClient.healthAt).toHaveBeenCalledWith('http://127.0.0.1:20613', { withAuth: true });
 	});
 
 	it('on Gateway marks Primary unreachable when health fails', async () => {

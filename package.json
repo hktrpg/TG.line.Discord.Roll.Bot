@@ -11,8 +11,8 @@
   "scripts": {
     "start": "node --max-old-space-size=3072 index.js",
     "start:roll-worker": "node roll-worker.js",
-    "start:roll-worker:primary": "node -e \"process.env.ROLL_WORKER_PORT=process.env.ROLL_WORKER_PORT||'3950';require('./roll-worker.js')\"",
-    "start:roll-worker:standby": "node -e \"process.env.ROLL_WORKER_PORT=process.env.ROLL_WORKER_PORT||'3951';require('./roll-worker.js')\"",
+    "start:roll-worker:primary": "node -e \"process.env.ROLL_WORKER_PORT=process.env.ROLL_WORKER_PORT||'20612';require('./roll-worker.js')\"",
+    "start:roll-worker:standby": "node -e \"process.env.ROLL_WORKER_PORT=process.env.ROLL_WORKER_PORT||'20613';require('./roll-worker.js')\"",
     "start:discord": "node --max-old-space-size=3072 index.js",
     "start:www": "node --max-old-space-size=2048 index.js",
     "start:platforms": "node --max-old-space-size=2048 index.js",

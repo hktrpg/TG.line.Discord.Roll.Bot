@@ -27,8 +27,8 @@ describe('roll-worker connection-status', () => {
 	it('logs CONNECTED only on edge up', () => {
 		const lines = [];
 		const logger = { info: (m) => lines.push(m), warn: () => {}, log: () => {} };
-		expect(markWorkerUp({ url: 'http://127.0.0.1:3950', logger })).toBe(true);
-		expect(markWorkerUp({ url: 'http://127.0.0.1:3950', logger })).toBe(false);
+		expect(markWorkerUp({ url: 'http://127.0.0.1:20612', logger })).toBe(true);
+		expect(markWorkerUp({ url: 'http://127.0.0.1:20612', logger })).toBe(false);
 		expect(getState()).toBe('up');
 		expect(lines).toHaveLength(1);
 		expect(lines[0]).toMatch(/CONNECTED/);
@@ -59,7 +59,7 @@ describe('roll-worker connection-status', () => {
 		};
 		await probeWorkerLink({
 			healthFn: async () => ({ ok: true, auth: 'required' }),
-			getUrl: () => 'http://127.0.0.1:3950',
+			getUrl: () => 'http://127.0.0.1:20612',
 			logger,
 		});
 		expect(getState()).toBe('up');
@@ -67,7 +67,7 @@ describe('roll-worker connection-status', () => {
 
 		await probeWorkerLink({
 			healthFn: async () => { throw new Error('connect ECONNREFUSED'); },
-			getUrl: () => 'http://127.0.0.1:3950',
+			getUrl: () => 'http://127.0.0.1:20612',
 			logger,
 		});
 		expect(getState()).toBe('down');
@@ -84,10 +84,10 @@ describe('roll-worker connection-status', () => {
 		};
 		const spy = jest.spyOn(console, 'info').mockImplementation((m) => infos.push(m));
 		try {
-			markStandbyDown({ url: 'http://127.0.0.1:3951', reason: 'ECONNREFUSED', logger });
+			markStandbyDown({ url: 'http://127.0.0.1:20613', reason: 'ECONNREFUSED', logger });
 			expect(warns.some((l) => /DISCONNECTED/.test(l))).toBe(true);
 			expect(markStandbyUp({
-				url: 'http://127.0.0.1:3951',
+				url: 'http://127.0.0.1:20613',
 				detail: 'health ok',
 				logger,
 			})).toBe(true);

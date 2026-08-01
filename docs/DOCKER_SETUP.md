@@ -22,15 +22,15 @@ Also see [roll-worker.md](./roll-worker.md) for Gateway / Primary / Standby nami
 When Discord and TG/LINE/WA run as **separate containers**, do **not** let each Gateway auto-spawn its own Primary.
 
 ```text
-[roll-primary]  :3950 on compose network only
+[roll-primary]  :20612 on compose network only
        ↑ shared ROLL_WORKER_TOKEN
 [discord-bot]   [non-discord-bot / tg-bot]
 ```
 
 | Service | Role | Key env |
 |---------|------|---------|
-| `roll-primary` | HTTP dice (`node roll-worker.js`) | `ROLL_WORKER_HOST=0.0.0.0`, `ROLL_WORKER_PORT=3950`, `mongoURL`, `ROLL_WORKER_TOKEN`, AI keys if needed |
-| Gateways | Platforms | `ROLL_WORKER_URL=http://roll-primary:3950`, same `ROLL_WORKER_TOKEN`, `ROLL_WORKER_SPAWN=false` |
+| `roll-primary` | HTTP dice (`node roll-worker.js`) | `ROLL_WORKER_HOST=0.0.0.0`, `ROLL_WORKER_PORT=20612`, `mongoURL`, `ROLL_WORKER_TOKEN`, AI keys if needed |
+| Gateways | Platforms | `ROLL_WORKER_URL=http://roll-primary:20612`, same `ROLL_WORKER_TOKEN`, `ROLL_WORKER_SPAWN=false` |
 
 `ROLL_WORKER_HOST` must be `0.0.0.0` inside the Primary container (default `127.0.0.1` is unreachable from other containers).
 
@@ -99,7 +99,7 @@ docker compose -f docker-compose.example.yml up --build -d
 Health check:
 
 ```bash
-docker exec roll-primary curl -sS http://127.0.0.1:3950/health
+docker exec roll-primary curl -sS http://127.0.0.1:20612/health
 # Expect: {"ok":true,"role":"roll-worker",...}
 ```
 
@@ -121,7 +121,7 @@ Prefer **one service at a time**:
 # 1) Primary first (shared)
 docker compose build roll-primary
 docker compose up -d roll-primary
-docker exec roll-primary curl -sS http://127.0.0.1:3950/health
+docker exec roll-primary curl -sS http://127.0.0.1:20612/health
 
 # 2) Non-Discord Gateway
 docker compose build non-discord-bot   # or tg-bot
@@ -140,7 +140,7 @@ docker compose up -d --force-recreate discord-bot
 
 Checklist after upgrade:
 
-- Log line: `[Gateway] Primary http://roll-primary:3950 (configured) | …`
+- Log line: `[Gateway] Primary http://roll-primary:20612 (configured) | …`
 - Platform smoke test (TG / Discord `1d100`)
 - Discord: wait until enough clusters show Ready (❓/⏳ right after recreate is normal)
 
@@ -151,4 +151,4 @@ Rollback: keep compose / `.env` backups; restore previous image tag or `git chec
 - `mongoURL` should use the compose service hostname `mongodb:27017`.
 - This repo may not track `yarn.lock`; Dockerfiles run `yarn install --non-interactive`.
 - Admin HTTP reload on Primary from another container may 403 (loopback-only); use `docker compose restart roll-primary` instead.
-- Do not publish Primary `:3950` on `0.0.0.0` public interfaces.
+- Do not publish Primary `:20612` on `0.0.0.0` public interfaces.

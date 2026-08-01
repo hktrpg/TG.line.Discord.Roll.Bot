@@ -19,11 +19,18 @@ class VIPManager {
 
     async refreshCache() {
         try {
+            if (!schema.veryImportantPerson || typeof schema.veryImportantPerson.find !== 'function') {
+                this.vipCache = [];
+                this.lastUpdate = Date.now();
+                return;
+            }
             this.vipCache = await schema.veryImportantPerson.find({});
             this.lastUpdate = Date.now();
         } catch (error) {
+            // Degrade to non-VIP when Mongo is unavailable (CI / offline Worker).
             console.error('VIP MongoDB error:', error);
-            throw new Error('Failed to fetch VIP data');
+            this.vipCache = [];
+            this.lastUpdate = Date.now();
         }
     }
 

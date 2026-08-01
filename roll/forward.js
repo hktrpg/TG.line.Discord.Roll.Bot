@@ -1,5 +1,6 @@
 "use strict";
-if (!process.env.mongoURL) {
+// Load when Mongo is configured, or on Roll Worker so Discord can remote/needsLocal-route.
+if (!process.env.mongoURL && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 // Load on Discord gateway (secret) or Roll Worker (remote help/show/delete + needsLocal for create).

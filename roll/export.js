@@ -43,6 +43,14 @@ const VIP = require('../modules/patreon/veryImportantPerson');
 const checkTools = require('../modules/chat/check.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 
+/** false when mongoURL unset (schema models not registered) — skip quota writes, still allow prefetched export. */
+function hasExportQuotaModels() {
+	return Boolean(
+		schema.exportUser && typeof schema.exportUser.findOne === 'function'
+		&& schema.exportGp && typeof schema.exportGp.findOne === 'function'
+	);
+}
+
 /**
  * Tell the user export has started. If the global handler already deferReply()'d the
  * slash command, we must editReply (not channel.send / reply) so the callback token stays valid.
@@ -393,15 +401,16 @@ const rollDiceCommand = async function ({
                 rply.text = translate('export.discord_only');
                 return rply;
             }
+            const canTrackQuota = hasExportQuotaModels();
             let lv = await VIP.viplevelCheckUser(userid, botname);
 
             let limit = FUNCTION_LIMIT[lv];
-            checkUser = await schema.exportUser.findOne({
-                userID: userid
-            });
-            checkGP = await schema.exportGp.findOne({
-                groupID: groupid
-            });
+            checkUser = canTrackQuota
+                ? await schema.exportUser.findOne({ userID: userid })
+                : null;
+            checkGP = canTrackQuota
+                ? await schema.exportGp.findOne({ groupID: groupid })
+                : null;
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -443,15 +452,17 @@ const rollDiceCommand = async function ({
              * 檢查
              */
             console.log('USE EXPORT HTML')
-            if (!checkGP) {
-                checkGP = await schema.exportGp.updateOne({
-                    groupID: groupid
-                }, {
-                    lastActiveAt: new Date()
-                }, opt);
-            } else {
-                checkGP.lastActiveAt = theTime;
-                await checkGP.save();
+            if (canTrackQuota) {
+                if (!checkGP) {
+                    checkGP = await schema.exportGp.updateOne({
+                        groupID: groupid
+                    }, {
+                        lastActiveAt: new Date()
+                    }, opt);
+                } else {
+                    checkGP.lastActiveAt = theTime;
+                    await checkGP.save();
+                }
             }
 
 
@@ -470,31 +481,33 @@ const rollDiceCommand = async function ({
                 rply.text = translate('export.read_failed');
                 return rply;
             }
-            if (!checkUser) {
-                checkUser = await schema.exportUser.updateOne({
-                    userID: userid
-                }, {
-                    lastActiveAt: new Date(),
-                    times: 1
-                }, opt);
-            } else {
-                if (userRemainingTime && userRemainingTime > 0) {
-                    update = {
-                        times: 1,
-                        lastActiveAt: new Date()
-                    }
-                } else {
-                    if (!demoMode)
-                        update = {
-                            $inc: {
-                                times: 1
-                            }
-                        }
-                }
-                if (update)
-                    await schema.exportUser.updateOne({
+            if (canTrackQuota) {
+                if (!checkUser) {
+                    checkUser = await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt);
+                    }, {
+                        lastActiveAt: new Date(),
+                        times: 1
+                    }, opt);
+                } else {
+                    if (userRemainingTime && userRemainingTime > 0) {
+                        update = {
+                            times: 1,
+                            lastActiveAt: new Date()
+                        }
+                    } else {
+                        if (!demoMode)
+                            update = {
+                                $inc: {
+                                    times: 1
+                                }
+                            }
+                    }
+                    if (update)
+                        await schema.exportUser.updateOne({
+                            userID: userid
+                        }, update, opt);
+                }
             }
             totalSize = M.totalSize;
             newRawDate = M.sum_messages;
@@ -563,16 +576,21 @@ const rollDiceCommand = async function ({
                 return rply;
             }
 
+            const canTrackQuota = hasExportQuotaModels();
             let lv = await VIP.viplevelCheckUser(userid, botname);
             let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
             lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
-            checkUser = await schema.exportUser.findOne({
-                userID: userid
-            }).catch(error => console.error('export #372 mongoDB error:', error.name, error.reason));
-            checkGP = await schema.exportGp.findOne({
-                groupID: groupid
-            }).catch(error => console.error('export #375 mongoDB error:', error.name, error.reason));
+            checkUser = canTrackQuota
+                ? await schema.exportUser.findOne({
+                    userID: userid
+                }).catch(error => console.error('export #372 mongoDB error:', error.name, error.reason))
+                : null;
+            checkGP = canTrackQuota
+                ? await schema.exportGp.findOne({
+                    groupID: groupid
+                }).catch(error => console.error('export #375 mongoDB error:', error.name, error.reason))
+                : null;
             gpLimitTime = (lv > 0) ? oneMinuts : oneMinuts * 120;
             gpRemainingTime = (checkGP) ? theTime - checkGP.lastActiveAt - gpLimitTime : 1;
             userRemainingTime = (checkUser) ? theTime - checkUser.lastActiveAt - sevenDay : 1;
@@ -600,15 +618,17 @@ const rollDiceCommand = async function ({
                 demoMode = true;
             }
 
-            if (!checkGP) {
-                checkGP = await schema.exportGp.updateOne({
-                    groupID: groupid
-                }, {
-                    lastActiveAt: new Date()
-                }, opt).catch(error => console.error('export #408 mongoDB error:', error.name, error.reason));
-            } else {
-                checkGP.lastActiveAt = theTime;
-                await checkGP.save();
+            if (canTrackQuota) {
+                if (!checkGP) {
+                    checkGP = await schema.exportGp.updateOne({
+                        groupID: groupid
+                    }, {
+                        lastActiveAt: new Date()
+                    }, opt).catch(error => console.error('export #408 mongoDB error:', error.name, error.reason));
+                } else {
+                    checkGP.lastActiveAt = theTime;
+                    await checkGP.save();
+                }
             }
 
             console.log('USE EXPORT TXT')
@@ -639,31 +659,33 @@ const rollDiceCommand = async function ({
                 rply.text = translate('export.read_failed');
                 return rply;
             }
-            if (!checkUser) {
-                checkUser = await schema.exportUser.updateOne({
-                    userID: userid
-                }, {
-                    lastActiveAt: new Date(),
-                    times: 1
-                }, opt).catch(error => console.error('export #428 mongoDB error:', error.name, error.reason));
-            } else {
-                if (userRemainingTime && userRemainingTime > 0) {
-                    update = {
-                        times: 1,
-                        lastActiveAt: new Date()
-                    }
-                } else {
-                    if (!demoMode)
-                        update = {
-                            $inc: {
-                                times: 1
-                            }
-                        }
-                }
-                if (update)
-                    await schema.exportUser.updateOne({
+            if (canTrackQuota) {
+                if (!checkUser) {
+                    checkUser = await schema.exportUser.updateOne({
                         userID: userid
-                    }, update, opt).catch(error => console.error('export #446 mongoDB error:', error.name, error.reason));
+                    }, {
+                        lastActiveAt: new Date(),
+                        times: 1
+                    }, opt).catch(error => console.error('export #428 mongoDB error:', error.name, error.reason));
+                } else {
+                    if (userRemainingTime && userRemainingTime > 0) {
+                        update = {
+                            times: 1,
+                            lastActiveAt: new Date()
+                        }
+                    } else {
+                        if (!demoMode)
+                            update = {
+                                $inc: {
+                                    times: 1
+                                }
+                            }
+                    }
+                    if (update)
+                        await schema.exportUser.updateOne({
+                            userID: userid
+                        }, update, opt).catch(error => console.error('export #446 mongoDB error:', error.name, error.reason));
+                }
             }
             totalSize = M.totalSize;
             M = M.sum_messages;

@@ -129,6 +129,8 @@ function tryGit(args) {
 function resolveBranch() {
 	const fromEnv = readEnvFirst(
 		'GIT_BRANCH',
+		// PR checkouts are detached HEAD; Actions exposes the source branch here.
+		'GITHUB_HEAD_REF',
 		'GITHUB_REF_NAME',
 		'BRANCH_NAME',
 		'HEROKU_BRANCH',

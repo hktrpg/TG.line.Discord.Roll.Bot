@@ -64,7 +64,7 @@ const rollDiceCommand = async function ({
             }
             try {
                 if (groupid) return;
-                let lv = await VIP.viplevelCheckUser(userid);
+                let lv = await VIP.viplevelCheckUser(userid, botname);
                 let limit = FUNCTION_LIMIT[lv];
                 if (limit <= 0) return;
 
@@ -129,7 +129,7 @@ const rollDiceCommand = async function ({
             }
             try {
                 if (groupid) return;
-                let lv = await VIP.viplevelCheckUser(userid);
+                let lv = await VIP.viplevelCheckUser(userid, botname);
                 let limit = FUNCTION_LIMIT[lv];
                 if (limit <= 0) return;
 

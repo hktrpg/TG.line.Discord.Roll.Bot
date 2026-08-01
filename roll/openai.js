@@ -595,14 +595,13 @@ class OpenAI {
             apiKey: this.apiKeys[0]?.apiKey,
             baseURL: this.apiKeys[0]?.baseURL,
         };
-        this.model = AI_CONFIG.MODELS.LOW.models[0].name;
-        if (this.apiKeys.length === 0) return;
-        this.openai = new OpenAIApi(this.configuration);
-        this.currentApiKeyIndex = 0;
-
-        // Initialize unified retry manager
+        // CI / Worker without AI_MODEL_* env: still load module for help / routing.
+        this.model = AI_CONFIG.MODELS.LOW.models?.[0]?.name || '';
         this.retryManager = new RetryManager();
         this._locale = i18n.DEFAULT_LOCALE;
+        this.currentApiKeyIndex = 0;
+        if (this.apiKeys.length === 0) return;
+        this.openai = new OpenAIApi(this.configuration);
     }
 
     getAiT() {
@@ -610,7 +609,7 @@ class OpenAI {
     }
 
     addApiKey() {
-        if (typeof window !== 'undefined') return;
+        if (globalThis.window !== undefined) return;
         this.apiKeys = [];
         let base = 0;
         for (let index = 1; index < 100; index++) {
@@ -626,33 +625,40 @@ class OpenAI {
     }
 
     watchEnvironment() {
-        fs2.watch('.env', (eventType) => {
-            if (eventType === 'change') {
-                try {
-                    let tempEnv = dotenv.config({ override: false, quiet: true })
-                    if (tempEnv.parsed) {
-                        // Only update OpenAI-related environment variables to avoid breaking cluster manager
-                        const openaiPrefixes = ['OPENAI_', 'AI_MODEL_', 'OPENROUTER_'];
-                        for (const [key, value] of Object.entries(tempEnv.parsed)) {
-                            if (openaiPrefixes.some(prefix => key.startsWith(prefix))) {
-                                process.env[key] = value;
+        // CI / Docker images often have no .env; fs.watch throws ENOENT and would
+        // prevent the whole openai module from loading on Roll Worker.
+        if (!fs2.existsSync('.env')) return;
+        try {
+            fs2.watch('.env', (eventType) => {
+                if (eventType === 'change') {
+                    try {
+                        let tempEnv = dotenv.config({ override: false, quiet: true })
+                        if (tempEnv.parsed) {
+                            // Only update OpenAI-related environment variables to avoid breaking cluster manager
+                            const openaiPrefixes = ['OPENAI_', 'AI_MODEL_', 'OPENROUTER_'];
+                            for (const [key, value] of Object.entries(tempEnv.parsed)) {
+                                if (openaiPrefixes.some(prefix => key.startsWith(prefix))) {
+                                    process.env[key] = value;
+                                }
                             }
+                            if (process.env.DEBUG) debugLog(`.env Changed - Updated OpenAI environment variables`)
+                            this.currentApiKeyIndex = 0;
+                            this.retryManager.resetCounters();
+                            this.addApiKey();
+                            if (this.apiKeys.length === 0) return;
+                            this.openai = new OpenAIApi({
+                                apiKey: this.apiKeys[0]?.apiKey,
+                                baseURL: this.apiKeys[0]?.baseURL,
+                            });
                         }
-                        if (process.env.DEBUG) debugLog(`.env Changed - Updated OpenAI environment variables`)
-                        this.currentApiKeyIndex = 0;
-                        this.retryManager.resetCounters();
-                        this.addApiKey();
-                        if (this.apiKeys.length === 0) return;
-                        this.openai = new OpenAIApi({
-                            apiKey: this.apiKeys[0]?.apiKey,
-                            baseURL: this.apiKeys[0]?.baseURL,
-                        });
+                    } catch (error) {
+                        console.error('Error reloading .env file:', error.message);
                     }
-                } catch (error) {
-                    console.error('Error reloading .env file:', error.message);
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error watching .env file:', error.message);
+        }
     }
 
     // OpenRouter provider routing prefs (e.g. ignore list for https://openrouter.ai/docs/guides/routing/provider-selection )
@@ -1285,7 +1291,7 @@ class TranslateAi extends OpenAI {
             // Determine max characters based on user's VIP level
             let maxChars = TRANSLATE_LIMIT_PERSONAL[0]; // Default for non-VIP users
             if (userid) {
-                const lv = await VIP.viplevelCheckUser(userid);
+                const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
                 maxChars = TRANSLATE_LIMIT_PERSONAL[lv] || TRANSLATE_LIMIT_PERSONAL[0];
             }
 
@@ -2133,7 +2139,7 @@ class TranslateAi extends OpenAI {
 
         // Early validation of attachments before processing
         if (userid) {
-            const lv = await VIP.viplevelCheckUser(userid);
+            const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
 
             // Collect all attachments first
@@ -2228,7 +2234,7 @@ class TranslateAi extends OpenAI {
 
                         // Progressive limit check during processing
                         if (userid) {
-                            const lv = await VIP.viplevelCheckUser(userid);
+                            const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
                             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
                             if (textLength > limit) {
                                 throw new Error(this.getAiT()('openai.vip_file_over_limit', {
@@ -2303,7 +2309,7 @@ class TranslateAi extends OpenAI {
 
                         // Progressive limit check during processing
                         if (userid) {
-                            const lv = await VIP.viplevelCheckUser(userid);
+                            const lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
                             const limit = TRANSLATE_LIMIT_PERSONAL[lv];
                             if (textLength > limit) {
                                 throw new Error(this.getAiT()('openai.vip_reply_file_over_limit', {
@@ -2521,7 +2527,7 @@ class TranslateAi extends OpenAI {
 
     }
     async handleTranslate(inputStr, discordMessage, discordClient, userid, mode, modelTier = 'LOW', assetOptions = {}) {
-        let lv = await VIP.viplevelCheckUser(userid);
+        let lv = await VIP.viplevelCheckUser(userid, this._vipPlatform);
         let limit = TRANSLATE_LIMIT_PERSONAL[lv];
 
         let translateScript, textLength;
@@ -2896,6 +2902,9 @@ class CommandHandler {
         chatAi._locale = resolvedLocale;
         translateAi._locale = resolvedLocale;
         imageAi._locale = resolvedLocale;
+        chatAi._vipPlatform = botname;
+        translateAi._vipPlatform = botname;
+        imageAi._vipPlatform = botname;
 
         let replyMessage = params.replyContent || "";
         // Only try to get reply content if using Discord and not prefetched
@@ -2959,7 +2968,7 @@ class CommandHandler {
 
         let modelType = 'LOW';
         if (/^.aitm$/i.test(mainMsg[0])) {
-            let lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
             if (lv < 1) {
                 rply.text = translate('openai.vip_required_translate');
                 return rply;
@@ -3044,7 +3053,7 @@ class CommandHandler {
 
         let modelType = 'LOW';
         if (/^.aim$/i.test(mainMsg[0])) {
-            let lv = await VIP.viplevelCheckUser(userid);
+            let lv = await VIP.viplevelCheckUser(userid, botname);
             if (lv < 1) {
                 rply.text = translate('openai.vip_required_chat');
                 return rply;
@@ -3095,6 +3104,18 @@ const rollDiceCommand = async function (params) {
     return await commandHandler.processCommand(params);
 };
 
+/** Discord slash addChoices rejects undefined name/value (no AI_MODEL_* env on CI). */
+function slashModelChoices(...tiers) {
+	return tiers
+		.map((tier) => ({ name: tier?.display, value: tier?.type }))
+		.filter((choice) => choice.name && choice.value);
+}
+
+function withOptionalModelChoices(option, choices) {
+	if (choices.length > 0) option.addChoices(...choices);
+	return option;
+}
+
 const discordCommand = [
     {
         data: new SlashCommandBuilder()
@@ -3109,14 +3130,16 @@ const discordCommand = [
                     .setDescription('要討論的檔案 (支援 .txt, .pdf, .docx, 圖像)')
                     .setRequired(false))
             .addStringOption(option =>
-                option.setName('model')
-                    .setDescription('AI模型選擇')
-                    .setRequired(false)
-                    .addChoices(
-                        { name: AI_CONFIG.MODELS.LOW.display, value: AI_CONFIG.MODELS.LOW.type },
-                        { name: AI_CONFIG.MODELS.MEDIUM.display, value: AI_CONFIG.MODELS.MEDIUM.type },
-                        { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
-                    )),
+                withOptionalModelChoices(
+                    option.setName('model')
+                        .setDescription('AI模型選擇')
+                        .setRequired(false),
+                    slashModelChoices(
+                        AI_CONFIG.MODELS.LOW,
+                        AI_CONFIG.MODELS.MEDIUM,
+                        AI_CONFIG.MODELS.HIGH
+                    )
+                )),
         async execute(interaction) {
             const t = getInteractionT(interaction);
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
@@ -3153,14 +3176,16 @@ const discordCommand = [
                     .setDescription('要翻譯的檔案 (支援 .txt, .pdf, .docx, 圖像)')
                     .setRequired(false))
             .addStringOption(option =>
-                option.setName('model')
-                    .setDescription('AI模型選擇')
-                    .setRequired(false)
-                    .addChoices(
-                        { name: AI_CONFIG.MODELS.LOW.display, value: AI_CONFIG.MODELS.LOW.type },
-                        { name: AI_CONFIG.MODELS.MEDIUM.display, value: AI_CONFIG.MODELS.MEDIUM.type },
-                        { name: AI_CONFIG.MODELS.HIGH.display, value: AI_CONFIG.MODELS.HIGH.type }
-                    )),
+                withOptionalModelChoices(
+                    option.setName('model')
+                        .setDescription('AI模型選擇')
+                        .setRequired(false),
+                    slashModelChoices(
+                        AI_CONFIG.MODELS.LOW,
+                        AI_CONFIG.MODELS.MEDIUM,
+                        AI_CONFIG.MODELS.HIGH
+                    )
+                )),
         async execute(interaction) {
             const t = getInteractionT(interaction);
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.LOW.type;
@@ -3193,13 +3218,15 @@ const discordCommand = [
                     .setDescription('圖像描述')
                     .setRequired(true))
             .addStringOption(option =>
-                option.setName('model')
-                    .setDescription('圖像模型選擇')
-                    .setRequired(false)
-                    .addChoices(
-                        { name: AI_CONFIG.MODELS.IMAGE_LOW.display, value: AI_CONFIG.MODELS.IMAGE_LOW.type },
-                        { name: AI_CONFIG.MODELS.IMAGE_HIGH.display, value: AI_CONFIG.MODELS.IMAGE_HIGH.type }
-                    )),
+                withOptionalModelChoices(
+                    option.setName('model')
+                        .setDescription('圖像模型選擇')
+                        .setRequired(false),
+                    slashModelChoices(
+                        AI_CONFIG.MODELS.IMAGE_LOW,
+                        AI_CONFIG.MODELS.IMAGE_HIGH
+                    )
+                )),
         async execute(interaction) {
             const modelType = interaction.options.getString('model') || AI_CONFIG.MODELS.IMAGE_LOW.type;
             const model = Object.values(AI_CONFIG.MODELS).find(m => m.type === modelType);

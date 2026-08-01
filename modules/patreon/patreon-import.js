@@ -11,6 +11,17 @@ const i18n = require('../i18n/i18n.js');
 const schema = require('../db/schema.js');
 const patreonTiers = require('./patreon-tiers.js');
 const patreonSync = require('./patreon-sync.js');
+const VIP = require('./veryImportantPerson.js');
+
+/** Encrypt or throw — never persist ENCRYPTION_ERROR:… as ciphertext (M29). */
+function encryptOrThrow(text) {
+    if (text == null || text === '') return '';
+    const enc = security.encryptWithCryptoSecret(String(text));
+    if (typeof enc === 'string' && enc.startsWith('ENCRYPTION_ERROR')) {
+        throw new Error(enc);
+    }
+    return enc;
+}
 
 /**
  * Parse a single CSV line into fields (handles quoted fields with commas).
@@ -178,6 +189,12 @@ key: ${key}`;
         return { report, keys, errors, summary, keyMessages, emailContent: null };
     }
 
+    if (!security.getCryptoSecretKey()) {
+        errors.push(t('admin.patreon_import_crypto_secret_missing'));
+        summary.errors = errors.length;
+        return { report, keys, errors, summary, keyMessages, emailContent: null };
+    }
+
     const { headers, rows } = parseCSV(csvContent);
     const headerError = validateCSVHeaders(headers, t);
     if (headerError) {
@@ -195,7 +212,7 @@ key: ${key}`;
     // Sort by Last Updated descending (newest first)
     rows.sort((a, b) => parseLastUpdated(b['Last Updated']) - parseLastUpdated(a['Last Updated']));
 
-    const encrypt = (text) => (text != null && text !== '') ? security.encryptWithCryptoSecret(String(text)) : '';
+    const encrypt = encryptOrThrow;
 
     /** Stats: active/former counts and by tier (CSV tier name) */
     let activeTotal = 0;
@@ -237,7 +254,7 @@ key: ${key}`;
                 try {
                     const normalized = (key || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                     const keyHash = security.hashPatreonKey(normalized);
-                    const keyEncrypted = security.encryptWithCryptoSecret(key);
+                    const keyEncrypted = encryptOrThrow(key);
                     const historyEntry = { at: new Date(), action: 'on', source: 'import', reason: 'honorary_lifetime_former_in_csv' };
                     const newDoc = await schema.patreonMember.create({
                         patreonName: name,
@@ -419,7 +436,7 @@ key: ${key}`;
             try {
                 const normalized = (key || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                 const keyHash = security.hashPatreonKey(normalized);
-                const keyEncrypted = security.encryptWithCryptoSecret(key);
+                const keyEncrypted = encryptOrThrow(key);
                 const historyEntry = { at: new Date(), action: 'on', source: 'import', reason: 'new_active_member' };
                 const newDoc = await schema.patreonMember.create({
                     patreonName: name,
@@ -560,35 +577,8 @@ key: ${key}`;
                     }
                 }
                 } else {
-                // If key cannot be decrypted, rotate to a fresh key so allkeys can still be delivered.
-                try {
-                    const zAdmin = require('../../roll/z_admin.js');
-                    const newKey = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
-                    if (!newKey) {
-                        throw new Error(t('admin.patreon_import_key_regen_failed'));
-                    }
-                    const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
-                    const keyHash = security.hashPatreonKey(normalized);
-                    const keyEncrypted = security.encryptWithCryptoSecret(newKey);
-                    await patreonSync.clearVipEntriesByPatreonKey(member);
-                    await schema.patreonMember.updateOne(
-                        { _id: member._id },
-                        { $set: { keyHash, keyEncrypted, key: keyHash }, $unset: { vipGraceUntil: 1 } }
-                    );
-                    const updated = await schema.patreonMember.findOne({ _id: member._id }).lean();
-                    await patreonSync.syncMemberSlotsToVip(updated);
-                    keys.push(newKey);
-                    keyMessages.push(`${t('admin.patreon_import_current_key', { name: member.patreonName, tier: tierLabel })}\n${newKey}`);
-                    if (generateEmail) {
-                        const email = member.emailEncrypted ? security.decryptWithCryptoSecret(member.emailEncrypted) : null;
-                        if (email) {
-                            emailBlocks.push(generateEmailBlock(member.patreonName, email, newKey));
-                        }
-                    }
-                    summary.updated++;
-                } catch (error) {
-                    errors.push(t('admin.patreon_import_reset_key_error', { name: member.patreonName, message: error.message }));
-                }
+                // Never auto-rotate keys (M26). Decrypt failure is unrecoverable without explicit admin action.
+                errors.push(t('admin.patreon_import_key_unrecoverable', { name: member.patreonName }));
             }
         }
     } else if (keyMode === 'newonly') {
@@ -617,6 +607,12 @@ key: ${key}`;
     summary.errors = errors.length;
 
     const emailContent = generateEmail ? emailBlocks.join('\n') : null;
+
+    try {
+        if (typeof VIP.invalidateCache === 'function') VIP.invalidateCache();
+    } catch {
+        // cache invalidation is best-effort
+    }
 
     return { report, keys, errors, summary, keyMessages, emailContent };
 }

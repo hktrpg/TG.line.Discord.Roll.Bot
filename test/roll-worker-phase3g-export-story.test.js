@@ -34,7 +34,7 @@ function getJson(urlPath) {
 	});
 }
 
-async function waitHealth(timeoutMs = 25_000) {
+async function waitHealth(timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

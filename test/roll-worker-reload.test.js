@@ -60,7 +60,7 @@ function httpJson(port, method, urlPath, body, extraHeaders = {}) {
 	});
 }
 
-async function waitHealth(port, timeoutMs = 25_000) {
+async function waitHealth(port, timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

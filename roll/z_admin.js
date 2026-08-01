@@ -978,8 +978,8 @@ const rollDiceCommand = async function ({
                 return rply;
             }
             case /^level$/i.test(mainMsg[1]): {
-                const userLevel = await viplevelCheckUser(userid);
-                const groupLevel = await viplevelCheckGroup(groupid || '');
+                const userLevel = await viplevelCheckUser(userid, botname);
+                const groupLevel = await viplevelCheckGroup(groupid || '', botname);
                 const userLabel = patreonTiers.getTierLabel(userLevel, locale) || (userLevel ? `Level ${userLevel}` : translate('admin.none'));
                 const groupLabel = patreonTiers.getTierLabel(groupLevel, locale) || (groupLevel ? `Level ${groupLevel}` : translate('admin.none'));
                 rply.text = translate('admin.patreon_level_report', {

@@ -264,10 +264,10 @@ async function canPrefetchExportHistory({ userid, groupid, userrole } = {}) {
 			? [99, 99, 99, 99, 99, 99, 99, 99]
 			: [1, 20, 40, 40, 40, 99, 99, 99];
 		const theTime = Date.now();
-		let lv = await VIP.viplevelCheckUser(userid);
+		let lv = await VIP.viplevelCheckUser(userid, 'discord');
 		if (groupid) {
 			try {
-				const gpLv = await VIP.viplevelCheckGroup(groupid);
+				const gpLv = await VIP.viplevelCheckGroup(groupid, 'discord');
 				lv = Math.max(gpLv, lv);
 			} catch {
 				// keep user lv

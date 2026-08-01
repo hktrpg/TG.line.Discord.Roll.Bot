@@ -41,7 +41,7 @@ const getHelpMessage = async function (params = {}) {
 }
 const initialize = () => trpgCommandData;
 
-const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole, locale, t }) => {
+const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole, locale, t, botname }) => {
     const translate = getT({ locale, t });
     let response = {
         default: 'on',
@@ -55,7 +55,7 @@ const rollDiceCommand = async ({ inputStr, mainMsg, groupid, userrole, locale, t
         role: userrole
     });
 
-    const vipLevel = await VIP.viplevelCheckGroup(groupid);
+    const vipLevel = await VIP.viplevelCheckGroup(groupid, botname);
     const limit = FUNCTION_LIMIT[vipLevel];
 
     switch (true) {

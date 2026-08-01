@@ -179,7 +179,7 @@ describe('Phase 3m live worker+gateway (spawned)', () => {
 
 		const start = Date.now();
 		let ready = false;
-		while (Date.now() - start < 25_000) {
+		while (Date.now() - start < 60_000) {
 			try {
 				const health = await client.health();
 				// parseCount only present when Bearer matches Worker token

@@ -51,7 +51,9 @@ class DBProtectionLayer extends EventEmitter {
      * Periodic cleanup: expire TTL entries and cap size (evict oldest non-permanent).
      */
     startCacheCleanupInterval() {
-        setInterval(() => {
+        // Jest: skip long-lived timers (keep workers from hanging after suites).
+        if (process.env.JEST_WORKER_ID !== undefined) return;
+        const id = setInterval(() => {
             const now = Date.now();
             const keysToDelete = [];
             for (const [key, cached] of this.memoryCache.entries()) {
@@ -73,6 +75,7 @@ class DBProtectionLayer extends EventEmitter {
             }
             for (const key of evictKeys) this.memoryCache.delete(key);
         }, 5 * 60 * 1000); // every 5 minutes
+        if (typeof id.unref === 'function') id.unref();
     }
 
     /**
@@ -97,9 +100,11 @@ class DBProtectionLayer extends EventEmitter {
      * 開始健康監控
      */
     startHealthMonitoring() {
-        setInterval(() => {
+        if (process.env.JEST_WORKER_ID !== undefined) return;
+        const id = setInterval(() => {
             this.performHealthCheck();
         }, this.healthCheckInterval);
+        if (typeof id.unref === 'function') id.unref();
     }
 
     /**

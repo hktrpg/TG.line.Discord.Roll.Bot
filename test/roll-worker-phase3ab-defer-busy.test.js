@@ -1,7 +1,7 @@
 "use strict";
 
 /**
- * Phase 3ab — REMOTE_ONLY defer-busy queue: silent enqueue + drain deliver.
+ * Phase 3ab - REMOTE_ONLY defer-busy queue: silent enqueue + drain deliver.
  * Strict proof that busy is not shown when defer is active.
  */
 
@@ -14,7 +14,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 		timeoutMs: 5000,
 	})),
 	getLocalConfig: jest.fn(() => ({ url: '', token: 't', timeoutMs: 1000 })),
-	healthAt: jest.fn(async () => ({ ok: true })),
+	healthAt: jest.fn(async () => ({ ok: true, role: 'roll-worker' })),
 	parse: jest.fn(),
 	beginLinkMonitor: jest.fn(),
 }));
@@ -63,7 +63,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		parseRouter.resetWorkersReadyForTests();
 		resetConnectionStatus();
 		client.isEnabled.mockReturnValue(true);
-		client.healthAt.mockResolvedValue({ ok: true });
+		client.healthAt.mockResolvedValue({ ok: true, role: 'roll-worker' });
 		analytics.findRollModuleName.mockReturnValue('0-advroll');
 		client.parse.mockReset();
 	});
@@ -77,7 +77,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		}
 	});
 
-	it('transport failure → deferred (no system_busy text, no local)', async () => {
+	it('transport failure -> deferred (no system_busy text, no local)', async () => {
 		client.parse.mockRejectedValue(new Error('connect ECONNREFUSED 127.0.0.1:1'));
 		const result = await parseRouter.parseInput({
 			inputStr: '1d100',
@@ -126,7 +126,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		expect(deferQueue.size()).toBe(0);
 	});
 
-	it('needsLocal under remote-only → deferred; drain with deferredReplay delivers local', async () => {
+	it('needsLocal under remote-only -> deferred; drain with deferredReplay delivers local', async () => {
 		client.parse.mockResolvedValue({
 			needsLocal: true,
 			moduleName: 'token',
@@ -153,7 +153,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 			delivered.push(result.text);
 		});
 
-		// Worker still returns needsLocal — deferredReplay allowLocal completes.
+		// Worker still returns needsLocal -> deferredReplay allowLocal completes.
 		client.parse.mockResolvedValue({
 			needsLocal: true,
 			moduleName: 'token',
@@ -186,7 +186,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 			delivered.push(result.text);
 		});
 
-		// CONNECTED flap / drain while Worker still refusing — must stay queued (no dup).
+		// CONNECTED flap / drain while Worker still refusing -> must stay queued (no dup).
 		const drain = await deferQueue.tryDrain({ batch: 5 });
 		expect(drain.drained).toBe(0);
 		expect(delivered).toHaveLength(0);
@@ -222,7 +222,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		expect(deferQueue.size()).toBe(0);
 	});
 
-	it('markWorkerUp notifies onWorkerUp listeners (link→drain wiring)', () => {
+	it('markWorkerUp notifies onWorkerUp listeners (link->drain wiring)', () => {
 		const { onWorkerUp } = require('../modules/roll-worker/connection-status');
 		let hit = 0;
 		onWorkerUp(() => { hit += 1; });
@@ -273,7 +273,7 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 			warn: () => {},
 			log: () => {},
 		});
-		// may already have logged once in process — force by reading source contract too
+		// may already have logged once in process - force by reading source contract too
 		const src = require('node:fs').readFileSync(
 			require('node:path').join(__dirname, '../modules/roll-worker/parse-router.js'),
 			'utf8'
@@ -313,18 +313,18 @@ describe('Phase 3ab REMOTE_ONLY defer-busy', () => {
 		};
 		deferQueue.setCharacterReplayFn(async () => ({
 			characterResult: { characterReRollName: 'Hero' },
-			rplyVal: { text: '1d100 → 42', type: 'text' },
+			rplyVal: { text: '1d100 -> 42', type: 'text' },
 		}));
 		deferQueue.registerDeliverer('WWW', async (job, result) => {
 			const rt = job.replyTarget;
 			const text = result?.rplyVal?.text || '';
 			const name = result?.characterResult?.characterReRollName || '';
-			rt.socket.emit(rt.eventName || 'rolling', `${name}：\n${text}`);
+			rt.socket.emit(rt.eventName || 'rolling', `${name}:\n${text}`);
 		});
 		const enq = deferQueue.enqueue({
 			reason: 'transport',
 			jobType: 'characterAction',
-			params: { doc: { a: 1 }, item: '攻擊', locale: 'zh-tw', botname: 'WWW' },
+			params: { doc: { a: 1 }, item: 'attack', locale: 'zh-tw', botname: 'WWW' },
 			replyTarget: {
 				botname: 'WWW',
 				kind: 'characterAction',

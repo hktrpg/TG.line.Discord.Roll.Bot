@@ -754,13 +754,18 @@ async function initializeConnection() {
     }
 }
 
-// Start initial connection - Execute only once
+// Start initial connection - Execute only once.
+// Under Jest, do not auto-connect: tests set stub mongoURL and would leave
+// retry timers / SCRAM handshakes running after the suite finishes.
 let initialized = false;
+const isJestWorker = process.env.JEST_WORKER_ID !== undefined;
 if (!initialized) {
     initialized = true;
-    initializeConnection().catch(error => {
-        console.error('Failed to initialize MongoDB connection:', error);
-    });
+    if (!isJestWorker) {
+        initializeConnection().catch(error => {
+            console.error('Failed to initialize MongoDB connection:', error);
+        });
+    }
 }
 
 

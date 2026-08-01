@@ -93,7 +93,7 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
             return await handleShow(mainMsg, userid, rply, translate);
         case /(^[.]char$)/i.test(mainMsg[0]) && /^add$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
         case /(^[.]char$)/i.test(mainMsg[0]) && /^edit$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
-            return await handleAddEdit(mainMsg, inputStr, userid, groupid, rply, translate);
+            return await handleAddEdit(mainMsg, inputStr, userid, groupid, botname, rply, translate);
         case /(^[.]char$)/i.test(mainMsg[0]) && /^use$/i.test(mainMsg[1]) && /^\S+$/.test(mainMsg[2]):
         case /(^[.]char$)/i.test(mainMsg[0]) && /^nonuse$/i.test(mainMsg[1]):
             return await handleUseNonuse(mainMsg, inputStr, userid, groupid, channelid, rply, translate);
@@ -173,7 +173,7 @@ async function handleShow(mainMsg, userid, rply, translate) {
     }
 }
 
-async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply, translate) {
+async function handleAddEdit(mainMsg, inputStr, userid, groupid, botname, rply, translate) {
     let Card = await analysicInputCharacterCard(inputStr);
     // Validate input: prohibit duplicate titles and overly long content
     const validationError = await validateCharacterCardInput(Card, translate);
@@ -185,8 +185,8 @@ async function handleAddEdit(mainMsg, inputStr, userid, groupid, rply, translate
         rply.text = translate('character.no_name_input');
         return rply;
     }
-    let lv = await VIP.viplevelCheckUser(userid);
-    let gpLv = await VIP.viplevelCheckGroup(groupid);
+    let lv = await VIP.viplevelCheckUser(userid, botname);
+    let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
     lv = Math.max(gpLv, lv);
     let limit = FUNCTION_LIMIT[lv];
     let check = await schema.characterCard.find({ id: userid }).lean();

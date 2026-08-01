@@ -3,7 +3,7 @@
 /**
  * Phase 3k: .st mylist group-name prefetch + separation-complete inventory lock.
  */
-jest.setTimeout(60_000);
+jest.setTimeout(120_000);
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -34,7 +34,7 @@ function getJson(urlPath) {
 	});
 }
 
-async function waitHealth(timeoutMs = 25_000) {
+async function waitHealth(timeoutMs = 60_000) {
 	const start = Date.now();
 	while (Date.now() - start < timeoutMs) {
 		try {

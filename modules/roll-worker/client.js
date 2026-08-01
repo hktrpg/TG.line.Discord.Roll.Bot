@@ -275,18 +275,32 @@ async function requestAdminReload(baseUrl, { drainMs = 500 } = {}) {
 	return response.data;
 }
 
-async function healthAt(baseUrl) {
+/**
+ * Probe /health without Bearer (safe for discovery — never leak ROLL_WORKER_TOKEN to strangers).
+ * Requires role === 'roll-worker' so a random local {ok:true} listener is not adopted.
+ * @param {string} baseUrl
+ * @param {{ withAuth?: boolean }} [options] - withAuth true sends Bearer (known worker / state report)
+ */
+async function healthAt(baseUrl, options = {}) {
 	const { token, timeoutMs } = getConfig();
 	const url = String(baseUrl || '').replace(/\/$/, '');
 	const headers = { ...gatewayRequestHeaders() };
-	if (token) {
+	const withAuth = options.withAuth === true;
+	if (withAuth && token) {
 		headers.Authorization = `Bearer ${token}`;
 	}
 	const response = await axios.get(`${url}/health`, {
 		headers,
 		timeout: Math.min(timeoutMs, 5000),
 	});
-	return response.data;
+	const body = response.data;
+	if (!withAuth && body && body.ok && body.role && body.role !== 'roll-worker') {
+		throw new Error(`unexpected health role: ${body.role}`);
+	}
+	if (!withAuth && body && body.ok && !body.role) {
+		throw new Error('health ok without roll-worker role');
+	}
+	return body;
 }
 
 async function characterAction({ doc, item, locale, botname = 'WWW' } = {}) {

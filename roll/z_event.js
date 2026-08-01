@@ -82,6 +82,7 @@ const rollDiceCommand = async function ({
     userid,
     displayname,
     displaynameDiscord,
+    botname,
     locale,
     t
 }) {
@@ -139,8 +140,8 @@ const rollDiceCommand = async function ({
             基本只限四次事件.
             使用VIPCHECK
             */
-            lv = await VIP.viplevelCheckUser(userid);
-            let gpLv = await VIP.viplevelCheckGroup(groupid);
+            lv = await VIP.viplevelCheckUser(userid, botname);
+            let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
             lv = Math.max(gpLv, lv);
             limit = FUNCTION_LIMIT[lv];
             check = await schema.eventList.find({

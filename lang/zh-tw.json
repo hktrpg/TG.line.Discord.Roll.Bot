@@ -4076,6 +4076,8 @@
     "patreon_import_add_error": "Add {{name}}: {{message}}",
     "patreon_import_update_error": "Update {{name}}: {{message}}",
     "patreon_import_reset_key_error": "Reset key {{name}}: {{message}}",
+    "patreon_import_crypto_secret_missing": "未設定 CRYPTO_SECRET — 拒絕匯入（避免寫入無法解密的密文）",
+    "patreon_import_key_unrecoverable": "無法解密 {{name}} 的 KEY — 已略過（絕不自動重生；請修正 CRYPTO_SECRET 或手動輪替）",
     "patreon_import_add_lifetime_report": "[新增 永久會員] {{name}} {{tier}} → 已建立 KEY（CSV 為 Former，仍予保留）",
     "patreon_import_add_lifetime_key": "[新增 永久會員] {{name}} {{tier}}",
     "patreon_import_former_honorary_on": "[Former patron] {{name}} → 永久會員，保持開啟狀態",

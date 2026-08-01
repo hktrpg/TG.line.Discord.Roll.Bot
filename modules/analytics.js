@@ -524,6 +524,7 @@ function objectIdAtTime(date, side) {
  * createdAt; that query then returns the earliest *among rows that have createdAt* only (e.g. 2026), ignoring older data.
  */
 async function rollingLogSnapshotOldest() {
+	if (!schema.RollingLog) return null;
 	try {
 		const rows = await schema.RollingLog.aggregate(rollingLogAggregateOldest());
 		if (rows[0]) return rows[0];
@@ -547,6 +548,7 @@ async function rollingLogSnapshotOldest() {
  * Last snapshot at/before bound. Tries createdAt index → _id range (always indexed) → aggregation fallback.
  */
 async function rollingLogSnapshotLastOnOrBefore(bound, strictBefore) {
+	if (!schema.RollingLog) return null;
 	const cmp = strictBefore ? { $lt: bound } : { $lte: bound };
 	// Fast path 1: createdAt index
 	try {
@@ -672,7 +674,19 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 	await i18n.init();
 	const t = i18n.createTranslator(locale);
 	let state = await getState() || '';
-	if (Object.keys(state).length === 0 || !state.LogTime) return '';
+	// No mongoURL / empty logs module: still produce a version-focused state report for .admin state.
+	if (Object.keys(state).length === 0 || !state.LogTime) {
+		const nowIso = new Date().toISOString();
+		state = {
+			LogTime: nowIso,
+			StartTime: nowIso,
+			LineCountRoll: 0,
+			DiscordCountRoll: 0,
+			TelegramCountRoll: 0,
+			WhatsappCountRoll: 0,
+			WWWCountRoll: 0,
+		};
+	}
 
 	/** Human-readable HK time for status UI (no suffix). */
 	const formatPrettyTimestamp = (input) => {
@@ -699,18 +713,19 @@ async function computeStateText(locale = i18n.DEFAULT_LOCALE, options = {}) {
 
 	// One shared "oldest snapshot" query for UI + both monthly delta runs (indexed find + aggregation fallback).
 	const oldestRollingPromise = rollingLogSnapshotOldest();
+	const countOrZero = (model, method, ...args) => (
+		(model && typeof model[method] === 'function')
+			? model[method](...args).catch(error => {
+				console.error('[Analytics] MongoDB error:', error.name, error.reason);
+				return 0;
+			})
+			: Promise.resolve(0)
+	);
 
 	const [levelSystemCount, characterCardCount, userCount, oldestRolling, lastMonthDelta, lastYearDelta] = await Promise.all([
-		schema.trpgLevelSystem.countDocuments({ Switch: '1' })
-			.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason)),
-		(schema.characterCard && typeof schema.characterCard.estimatedDocumentCount === 'function')
-			? schema.characterCard.estimatedDocumentCount()
-				.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
-			: Promise.resolve(0),
-		(schema.firstTimeMessage && typeof schema.firstTimeMessage.estimatedDocumentCount === 'function')
-			? schema.firstTimeMessage.estimatedDocumentCount()
-				.catch(error => console.error('[Analytics] MongoDB error:', error.name, error.reason))
-			: Promise.resolve(0),
+		countOrZero(schema.trpgLevelSystem, 'countDocuments', { Switch: '1' }),
+		countOrZero(schema.characterCard, 'estimatedDocumentCount'),
+		countOrZero(schema.firstTimeMessage, 'estimatedDocumentCount'),
 		oldestRollingPromise,
 		monthlyRollDeltas(hkLm.y, hkLm.m, 'lastMonth', oldestRollingPromise),
 		monthlyRollDeltas(hkLy.y, hkLy.m, 'lastYearSameMonth', oldestRollingPromise)

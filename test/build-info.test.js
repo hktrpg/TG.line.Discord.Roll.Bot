@@ -7,7 +7,7 @@ describe('build-info', () => {
 
 	beforeEach(() => {
 		for (const key of [
-			'GIT_BRANCH', 'GITHUB_REF_NAME', 'BRANCH_NAME', 'HEROKU_BRANCH',
+			'GIT_BRANCH', 'GITHUB_HEAD_REF', 'GITHUB_REF_NAME', 'BRANCH_NAME', 'HEROKU_BRANCH',
 			'GITHUB_SHA', 'SOURCE_VERSION', 'GIT_COMMIT', 'HEROKU_SLUG_COMMIT',
 			'BUILD_TIME', 'SOURCE_DATE', 'ROLL_WORKER_MODE',
 		]) {
@@ -72,10 +72,10 @@ describe('build-info', () => {
 
 	it('reads branch and sha from .git without env', () => {
 		const info = buildInfo.get();
-		// This repo checkout should expose a real branch/sha via git or FS fallback.
-		expect(info.gitBranch).not.toBe('detached');
+		// Sha should resolve via git or FS; branch may be "detached" on CI PR checkouts.
 		expect(info.gitSha).not.toBe('unknown');
 		expect(info.gitSha.length).toBeGreaterThanOrEqual(7);
+		expect(info.gitBranch).toBeTruthy();
 		expect(info.display).toMatch(/· \d{4}-\d{2}-\d{2} ·/);
 	});
 

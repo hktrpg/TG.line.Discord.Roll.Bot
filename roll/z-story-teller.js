@@ -1470,7 +1470,7 @@ const rollDiceCommand = async function ({
             } catch { /* ignore */ }
             if (!isUpdate) {
                 let levelIndex = 0;
-                try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch { levelIndex = 0; }
+                try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid, botname) : 0; } catch { levelIndex = 0; }
                 const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
                 if (currentCount >= limit) {
                     rply.text = translate('storyteller.story_limit', { limit });
@@ -1695,7 +1695,8 @@ const rollDiceCommand = async function ({
                         rply.buttonCreate = ['.st end', '.st pause'];
                         return rply;
                     }
-                    // Same story: continue
+                    // Same story: continue (still enforce ALONE / participant policy)
+                    if (!userCanActOnRun(run, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                     const cur = await loadStoryByAlias(run.storyOwnerID || userid, run.storyAlias);
                     const story = cur.story;
                     if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
@@ -1717,7 +1718,7 @@ const rollDiceCommand = async function ({
                 // Enforce per-user open runs limit (including paused) only when creating a new run
                 try {
                     let levelIndex = 0;
-                    try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid) : 0; } catch { levelIndex = 0; }
+                    try { levelIndex = (typeof VIP.viplevelCheckUser === 'function') ? await VIP.viplevelCheckUser(userid, botname) : 0; } catch { levelIndex = 0; }
                     const limit = STORY_LIMIT_BY_LEVEL[Math.max(0, Math.min(STORY_LIMIT_BY_LEVEL.length - 1, Number(levelIndex) || 0))];
                     const openRuns = await listOpenRunsByStarter(userid);
                     const openCnt = openRuns.length > 0 ? openRuns.length : await countOpenRunsByStarter(userid);
@@ -1830,6 +1831,7 @@ const rollDiceCommand = async function ({
                 }
                 // If the requested id is the same as the active run, just re-render current output without changing state
                 if (activeRun && String(activeRun._id) === String(id)) {
+                    if (!userCanActOnRun(activeRun, userid)) { rply.text = translate('storyteller.alone_only'); return rply; }
                     const { story } = await loadStoryByAlias(activeRun.storyOwnerID || userid, activeRun.storyAlias);
                     if (!story) { rply.text = translate('storyteller.story_content_missing'); return rply; }
                     const text = renderPageText(story, activeRun, activeRun.currentPageId, translate);

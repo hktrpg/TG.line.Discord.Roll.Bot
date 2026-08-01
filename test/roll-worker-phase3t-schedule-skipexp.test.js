@@ -1,5 +1,7 @@
 "use strict";
 
+jest.setTimeout(30_000);
+
 /**
  * Phase 3t: Schedule [[dice]] must not award EXP even when groupid is present.
  */

@@ -155,4 +155,14 @@ describe('Witch Hunting Night Module Tests', () => {
     expect(result.text).toMatch(/\[[\d, ]+\]/);
     expect(result.text).toContain('成功');
   });
+
+  test('rejects inline NdM above 9999 dice (R1)', async () => {
+    const rollbase = require('../roll/rollbase.js');
+    const result = await wnModule.rollDiceCommand({
+      mainMsg: ['.wn', '5d10000d6']
+    });
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('');
+    expect(rollbase.BuildRollDice).not.toHaveBeenCalled();
+  });
 }); 

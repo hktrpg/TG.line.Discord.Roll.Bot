@@ -10,7 +10,7 @@ jest.mock('../modules/roll-worker/client', () => ({
 	getLocalConfig: jest.fn(() => ({ url: '', token: 't', timeoutMs: 1000 })),
 	parse: jest.fn(),
 	parseLocal: jest.fn(),
-	healthAt: jest.fn(async () => ({ ok: true })),
+	healthAt: jest.fn(async () => ({ ok: true, role: 'roll-worker' })),
 	beginLinkMonitor: jest.fn(),
 }));
 
@@ -53,7 +53,7 @@ describe('review fixes (defer enqueue fail + mutator silent)', () => {
 		deferQueue.resetDeferQueue();
 		parseRouter.resetWorkersReadyForTests();
 		jest.clearAllMocks();
-		client.healthAt.mockResolvedValue({ ok: true });
+		client.healthAt.mockResolvedValue({ ok: true, role: 'roll-worker' });
 		analytics.findRollModuleName.mockReturnValue('0-advroll');
 		client.isLocalEnabled.mockReturnValue(false);
 	});

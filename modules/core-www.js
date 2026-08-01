@@ -1345,13 +1345,21 @@ function resolveBusPublicOrigin(req) {
         }
     }
 
+    // Never embed raw X-Forwarded-Host — rejects host@evil / credential spoofing.
     const forwardedHost = String(req.get('x-forwarded-host') || req.get('host') || '')
         .split(',')[0]
         .trim()
         .toLowerCase();
-    const hostname = forwardedHost.split(':')[0];
-    if (hostname && allowedHosts.has(hostname)) {
-        return `https://${forwardedHost}`;
+    if (forwardedHost && !forwardedHost.includes('@')) {
+        try {
+            const url = new URL(`https://${forwardedHost}`);
+            const hostname = String(url.hostname || '').toLowerCase();
+            if (hostname && allowedHosts.has(hostname) && !url.username && !url.password) {
+                return url.origin;
+            }
+        } catch {
+            // fall through to default
+        }
     }
 
     return 'https://bus.hktrpg.com';
@@ -2776,43 +2784,94 @@ async function limitRaterApi(address) {
 let sendTo;
 if (isMaster) {
     const WebSocket = require('ws');
-    const wss = new WebSocket.Server({
-        port: wsPort,
-        verifyClient: (info) => {
-            if (wsAllowNonLocal) {
-                return true;
-            }
-            const remote = info.req.socket.remoteAddress;
-            return remote === '::ffff:127.0.0.1' || remote === '127.0.0.1' || remote === '::1';
-        }
-    });
-
-    wss.on('connection', function connection(ws) {
-        ws.on('message', function incoming(message) {
-            try {
-                const text = String(message);
-                // Routine shard handshake is noisy on every cluster boot
-                if (!text.startsWith('connected To core-www')) {
-                    console.log('[www] received: %s', text);
+    const {
+        getWwwWsToken,
+        isValidRelayToken,
+        normalizeBotname,
+        assertRelayAuthForDeploy,
+    } = require('./www/ws-relay-auth.js');
+    const relayDeploy = assertRelayAuthForDeploy(wsAllowNonLocal);
+    if (!relayDeploy.ok) {
+        console.error(`[www] ${relayDeploy.error} — WebSocket relay not started`);
+    }
+    const relayTokenConfigured = Boolean(getWwwWsToken());
+    if (!relayTokenConfigured && relayDeploy.ok) {
+        console.warn('[www] WWW_WS_TOKEN / ROLL_WORKER_TOKEN unset — relay auth disabled (loopback only)');
+    }
+    if (relayDeploy.ok) {
+        const wss = new WebSocket.Server({
+            port: wsPort,
+            verifyClient: (info) => {
+                if (wsAllowNonLocal) {
+                    // Token required above via assertRelayAuthForDeploy.
+                    return true;
                 }
-            } catch (error) {
-                console.error('[Web Server] WebSocket message error:', error);
+                const remote = info.req.socket.remoteAddress;
+                return remote === '::ffff:127.0.0.1' || remote === '127.0.0.1' || remote === '::1';
             }
         });
 
-        sendTo = function (params) {
-            const payload = JSON.stringify({
-                botname: params.target.botname,
-                message: params
+        wss.on('connection', function connection(ws) {
+            ws.relayBotname = null;
+            ws.relayAuthed = !relayTokenConfigured;
+
+            ws.on('message', function incoming(message) {
+                try {
+                    const text = String(message);
+                    try {
+                        const obj = JSON.parse(text);
+                        if (obj && obj.type === 'register' && obj.botname) {
+                            if (relayTokenConfigured && !isValidRelayToken(obj.token)) {
+                                console.warn('[www] relay register rejected (bad token)');
+                                ws.close();
+                                return;
+                            }
+                            ws.relayBotname = normalizeBotname(obj.botname);
+                            ws.relayAuthed = true;
+                            return;
+                        }
+                    } catch {
+                        // legacy plain-text handshake: "connected To core-www from Discord!"
+                        if (text.startsWith('connected To core-www')) {
+                            if (relayTokenConfigured) {
+                                // Token required — ignore legacy handshake until JSON register
+                                return;
+                            }
+                            const match = text.match(/from\s+(\w+)/i);
+                            if (match) {
+                                ws.relayBotname = normalizeBotname(match[1]);
+                                ws.relayAuthed = true;
+                            }
+                            return;
+                        }
+                    }
+                    if (!text.startsWith('connected To core-www')) {
+                        console.log('[www] received: %s', text.slice(0, 200));
+                    }
+                } catch (error) {
+                    console.error('[Web Server] WebSocket message error:', error);
+                }
             });
 
-            for (const client of wss.clients) {
-                if (client.readyState === WebSocket.OPEN) {
+            // Route by registered botname — never fan-out every payload to all clients (M37).
+            sendTo = function (params) {
+                const botname = normalizeBotname(params?.target?.botname);
+                if (!botname) return;
+                const payload = JSON.stringify({
+                    botname,
+                    token: getWwwWsToken() || undefined,
+                    message: params
+                });
+
+                for (const client of wss.clients) {
+                    if (client.readyState !== WebSocket.OPEN) continue;
+                    if (!client.relayAuthed) continue;
+                    if (client.relayBotname && client.relayBotname !== botname) continue;
                     client.send(payload);
                 }
-            }
-        }
-    });
+            };
+        });
+    }
 }
 
 // Convert technical validation errors to user-friendly messages

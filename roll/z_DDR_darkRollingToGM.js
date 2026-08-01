@@ -44,15 +44,19 @@ if (!DB_READY) {
 const { findNextSerial, ensureSerials, findBySerial } = require('../modules/db/serial.js');
 const trpgDarkRollingfunction = {};
 
-// Initialize data asynchronously
-(async () => {
-    try {
-        trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
-    } catch (error) {
-        console.error('[z_DDR_darkRollingToGM] Failed to initialize trpgDarkRolling data:', error);
-        trpgDarkRollingfunction.trpgDarkRollingfunction = [];
-    }
-})();
+// Initialize data asynchronously (skip under Jest — avoids post-suite DB noise)
+if (process.env.JEST_WORKER_ID === undefined) {
+    (async () => {
+        try {
+            trpgDarkRollingfunction.trpgDarkRollingfunction = await records.get('trpgDarkRolling');
+        } catch (error) {
+            console.error('[z_DDR_darkRollingToGM] Failed to initialize trpgDarkRolling data:', error);
+            trpgDarkRollingfunction.trpgDarkRollingfunction = [];
+        }
+    })();
+} else {
+    trpgDarkRollingfunction.trpgDarkRollingfunction = [];
+}
 const gameName = function (params = {}) {
     return resolveGameName(params, 'ddr.game_name', '【暗骰GM功能】 .drgm (addgm del show) dr ddr dddr');
 }

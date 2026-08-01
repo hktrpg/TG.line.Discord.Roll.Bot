@@ -3,6 +3,8 @@
 const mockSchema = {
     veryImportantPerson: {
         updateMany: jest.fn(),
+        updateOne: jest.fn(),
+        find: jest.fn(() => ({ lean: jest.fn().mockResolvedValue([]) })),
         findOneAndUpdate: jest.fn()
     }
 };
@@ -14,6 +16,9 @@ const sync = require("../modules/patreon/patreon-sync.js");
 describe("patreon-sync", () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockSchema.veryImportantPerson.find.mockReturnValue({
+            lean: jest.fn().mockResolvedValue([])
+        });
     });
 
     test("notesForKey builds stable note prefix", () => {
@@ -21,9 +26,9 @@ describe("patreon-sync", () => {
         expect(sync.notesForKey("")).toBe("patreon:");
     });
 
-    test("syncSlotToVip upserts active user slot", async () => {
+    test("syncSlotToVip upserts active user slot with platform", async () => {
         await sync.syncSlotToVip(
-            { targetId: "u1", targetType: "user", name: "Tester", switch: true },
+            { targetId: "u1", targetType: "user", platform: "Discord", name: "Tester", switch: true },
             2,
             "hash1",
             "Fallback",
@@ -31,13 +36,14 @@ describe("patreon-sync", () => {
         );
 
         expect(mockSchema.veryImportantPerson.findOneAndUpdate).toHaveBeenCalledWith(
-            { id: "u1", notes: "patreon:hash1" },
+            { id: "u1", notes: "patreon:hash1", platform: "discord" },
             expect.objectContaining({
                 $set: expect.objectContaining({
                     id: "u1",
                     level: 2,
                     name: "Tester",
-                    switch: true
+                    switch: true,
+                    platform: "discord"
                 }),
                 $unset: { endDate: "" }
             }),
@@ -47,14 +53,37 @@ describe("patreon-sync", () => {
 
     test("syncSlotToVip disables inactive channel slot", async () => {
         await sync.syncSlotToVip(
-            { targetId: "c1", targetType: "channel", switch: false },
+            { targetId: "c1", targetType: "channel", platform: "telegram", switch: false },
             1,
             "hash2",
             "Fallback"
         );
 
         expect(mockSchema.veryImportantPerson.updateMany).toHaveBeenCalledWith(
-            { gpid: "c1", notes: "patreon:hash2" },
+            { gpid: "c1", notes: "patreon:hash2", platform: "telegram" },
+            { $set: { switch: false } }
+        );
+    });
+
+    test("syncMemberSlotsToVip disables orphan VIP rows", async () => {
+        mockSchema.veryImportantPerson.find.mockReturnValue({
+            lean: jest.fn().mockResolvedValue([
+                { _id: "orphan1", id: "old-user", notes: "patreon:hashX", platform: "discord", switch: true }
+            ])
+        });
+
+        await sync.syncMemberSlotsToVip({
+            keyHash: "hashX",
+            level: 2,
+            patreonName: "Pat",
+            slots: [
+                { targetId: "u-new", targetType: "user", platform: "discord", switch: true }
+            ]
+        });
+
+        expect(mockSchema.veryImportantPerson.findOneAndUpdate).toHaveBeenCalled();
+        expect(mockSchema.veryImportantPerson.updateOne).toHaveBeenCalledWith(
+            { _id: "orphan1" },
             { $set: { switch: false } }
         );
     });

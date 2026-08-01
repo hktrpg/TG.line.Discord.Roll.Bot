@@ -187,7 +187,7 @@ const rollDiceCommand = async function ({
             try {
                 const existingMyName = await schema.myName.findOne({ userID: userid, name: checkName.name }).lean();
                 if (!existingMyName) {
-                    const lv = await VIP.viplevelCheckUser(userid);
+                    const lv = await VIP.viplevelCheckUser(userid, botname);
                     const limit = limitAtArr[lv];
                     const myNamesLength = await schema.myName.countDocuments({ userID: userid });
                     if (myNamesLength >= limit) {

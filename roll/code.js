@@ -45,7 +45,10 @@ function pruneUserCooldown() {
     }
     for (const userid of toDelete) userCooldown.delete(userid);
 }
-setInterval(pruneUserCooldown, 15 * 60 * 1000); // every 15 minutes
+const pruneCooldownTimer = setInterval(pruneUserCooldown, 15 * 60 * 1000); // every 15 minutes
+if (typeof pruneCooldownTimer.unref === 'function') {
+	pruneCooldownTimer.unref();
+}
 
 const gameName = function (params = {}) {
     return resolveGameName(params, 'code.game_name', '【.code [語言] [指令]】');

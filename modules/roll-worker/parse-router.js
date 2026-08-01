@@ -143,9 +143,10 @@ function ensureWorkersReady(logger = console) {
 	return workersReadyPromise;
 }
 
-/** @internal Jest — clear cached auto-start promise between suites */
+/** @internal Jest — clear cached auto-start promise + ParseMode banner latch */
 function resetWorkersReadyForTests() {
 	workersReadyPromise = null;
+	loggedModeOnce = false;
 }
 
 /**

@@ -919,6 +919,11 @@ const rollDiceCommand = async function ({
                         returnDocument: 'after'
                     });
                 } catch (error) {
+                    // Race: another user claimed the same userName between findOne and upsert.
+                    if (error?.code === 11_000 || error?.codeName === 'DuplicateKey') {
+                        rply.text += translate('admin.account_username_duplicated');
+                        return rply;
+                    }
                     console.error('[Admin] Account error:', error);
                     rply.text += JSON.stringify(error);
                     return rply;

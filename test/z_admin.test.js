@@ -286,4 +286,21 @@ describe('Admin Module Tests', () => {
     expect(result.type).toBe('text');
     expect(result.text).toBe('重覆用戶名稱');
   });
+
+  test('Test account command maps unique-index race to duplicated message', async () => {
+    schema.accountPW.findOne.mockResolvedValueOnce(null);
+    const duplicateError = Object.assign(new Error('E11000 duplicate key'), {
+      code: 11_000,
+      codeName: 'DuplicateKey',
+    });
+    schema.accountPW.findOneAndUpdate.mockRejectedValueOnce(duplicateError);
+
+    const result = await adminModule.rollDiceCommand({
+      mainMsg: ['.admin', 'account', 'raceuser', 'password123'],
+      userid: 'test_user'
+    });
+
+    expect(result.type).toBe('text');
+    expect(result.text).toBe('重覆用戶名稱');
+  });
 }); 

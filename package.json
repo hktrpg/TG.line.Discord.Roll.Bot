@@ -97,7 +97,7 @@
     "mammoth": "^1.11.0",
     "mathjs": "^15.2.0",
     "moment": "^2.29.4",
-    "moment-timezone": "^0.5.35",
+    "moment-timezone": "^0.6.3",
     "mongoose": "^9.8.1",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",

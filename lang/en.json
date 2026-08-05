@@ -3898,6 +3898,7 @@
     "game_name": "【OpenAI】",
     "help": "【🤖 AI Assistant】\n╭────── Chat ──────\n│ .ai / .aim / .aih — LOW / VIP MEDIUM / admin HIGH\n│ Reply to a message for context\n│\n├────── Translate ──────\n│ .ait / .aitm / .aith — to Traditional Chinese\n│ Attach .txt, .pdf, .docx, images\n│\n├────── Image gen ──────\n│ .aimage / .aimageh — admin only\n│\n├────── Limits ──────\n│ General: 2500 chars; VIP: higher + MEDIUM model\n╰──────────────",
     "discord_only_translate": "Translation is only available on Discord.",
+    "api_keys_missing": "OpenAI API key is not configured; AI features are unavailable.",
     "discord_only_image": "Image generation is only available on Discord.",
     "vip_required_translate": "MEDIUM translation requires VIP membership.\nSupport HKTRPG: https://www.patreon.com/hktrpg",
     "vip_required_chat": "MEDIUM chat requires VIP membership.\nSupport HKTRPG: https://www.patreon.com/hktrpg",

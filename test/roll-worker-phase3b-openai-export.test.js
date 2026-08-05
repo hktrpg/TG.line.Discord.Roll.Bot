@@ -66,6 +66,8 @@ describe('Phase 3b openai/export/chatroom Worker contract (spawned)', () => {
 				ROLL_WORKER_URL: '',
 				// Ensure openai/export/chatroom modules load on worker
 				OPENAI_SWITCH: 'true',
+				// Contract path only — do not inherit live OPENAI_SECRET_* (retry hangs).
+				ROLL_WORKER_TEST_NO_OPENAI: 'true',
 				DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
 			},
 			stdio: ['ignore', 'pipe', 'pipe'],

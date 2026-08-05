@@ -65,6 +65,8 @@ describe('Phase 3d openai remote translate (spawned)', () => {
 				ROLL_WORKER_TOKEN: TOKEN,
 				ROLL_WORKER_URL: '',
 				OPENAI_SWITCH: 'true',
+				// Contract path only — do not inherit live OPENAI_SECRET_* (retry hangs).
+				ROLL_WORKER_TEST_NO_OPENAI: 'true',
 				DISCORD_CHANNEL_SECRET: process.env.DISCORD_CHANNEL_SECRET || 'proof-secret',
 			},
 			stdio: ['ignore', 'pipe', 'pipe'],

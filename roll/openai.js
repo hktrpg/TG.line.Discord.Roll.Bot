@@ -156,19 +156,8 @@ const mammoth = require('mammoth');
 const Tesseract = require('tesseract.js');
 const { getPool } = require('../modules/db/pool');
 const imagePool = getPool('image');
-(() => {
-	const preserveKeys = [
-		'ROLL_WORKER_URL', 'ROLL_WORKER_TOKEN', 'ROLL_WORKER_TIMEOUT_MS', 'ROLL_WORKER_MODE',
-		'ROLL_WORKER_HOST', 'ROLL_WORKER_PORT', 'ROLL_WORKER_REMOTE_ONLY', 'ROLL_WORKER_DEFER_BUSY',
-		'ADMIN_SECRET',
-	];
-	const preserved = {};
-	for (const key of preserveKeys) {
-		if (process.env[key] !== undefined) preserved[key] = process.env[key];
-	}
-	dotenv.config({ override: true, quiet: true });
-	Object.assign(process.env, preserved);
-})();
+const { loadDotenvPreserving, stripOpenAiSecrets } = require('../modules/roll-worker/dotenv-preserve');
+loadDotenvPreserving();
 const VIP = require('../modules/patreon/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
@@ -628,6 +617,8 @@ class OpenAI {
         // CI / Docker images often have no .env; fs.watch throws ENOENT and would
         // prevent the whole openai module from loading on Roll Worker.
         if (!fs2.existsSync('.env')) return;
+        // Contract tests strip secrets; do not let .env watch re-inject live keys.
+        if (process.env.ROLL_WORKER_TEST_NO_OPENAI === 'true') return;
         try {
             fs2.watch('.env', (eventType) => {
                 if (eventType === 'change') {
@@ -641,6 +632,7 @@ class OpenAI {
                                     process.env[key] = value;
                                 }
                             }
+                            stripOpenAiSecrets();
                             if (process.env.DEBUG) debugLog(`.env Changed - Updated OpenAI environment variables`)
                             this.currentApiKeyIndex = 0;
                             this.retryManager.resetCounters();
@@ -2963,6 +2955,12 @@ class CommandHandler {
         // If not using Discord, inform the user
         if (botname !== "Discord") {
             rply.text = translate('openai.discord_only_translate');
+            return rply;
+        }
+
+        // No keys (or test strip): fail fast — avoid handleApiError retry hangs.
+        if (!translateAi.apiKeys?.length || !translateAi.openai) {
+            rply.text = translate('openai.api_keys_missing');
             return rply;
         }
 

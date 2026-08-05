@@ -3899,6 +3899,7 @@
     "game_name": "【OpenAi】",
     "help": "【🤖AI助手】\n╭────── 🗣️对话功能 ──────\n│ • .ai / .aim / .aih — 低/中(VIP)/高(管理员)模型\n│ • 可回覆(Reply)要讨论的内容\n│\n├────── 📝翻译功能 ──────\n│ • .ait / .aitm / .aith — 翻译成正体中文\n│ • 支援 .txt, .pdf, .docx, 图像附件\n│\n├────── 🖼️图像生成 ──────\n│ • .aimage / .aimageh — 需管理员权限\n│\n├────── ⚠️使用限制 ──────\n│ 一般用户: 文字上限2500字\n│ VIP: 更高上限，可用中级模型\n╰──────────────",
     "discord_only_translate": "翻译功能目前仅支持在 Discord 平台使用。",
+    "api_keys_missing": "未设置 OpenAI API Key，无法使用 AI 功能。",
     "discord_only_image": "图像生成功能目前仅支持在 Discord 平台使用。",
     "vip_required_translate": "使用 MEDIUM 翻译模型需要 VIP 会员，\n支援 HKTRPG 及升级请到\nhttps://www.patreon.com/hktrpg",
     "vip_required_chat": "使用 MEDIUM 对话模型需要 VIP 会员，\n支援 HKTRPG 及升级请到\nhttps://www.patreon.com/hktrpg",

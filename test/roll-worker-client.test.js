@@ -7,6 +7,7 @@ const {
 	normalizeWorkerBaseUrl,
 	getConfig,
 	getLocalConfig,
+	isAxiosTimeoutError,
 } = require('../modules/roll-worker/client');
 
 describe('roll-worker client', () => {
@@ -59,6 +60,12 @@ describe('roll-worker client', () => {
 	it('normalizeWorkerBaseUrl strips trailing slash and lowercases', () => {
 		expect(normalizeWorkerBaseUrl('HTTP://127.0.0.1:20613/')).toBe('http://127.0.0.1:20613');
 		expect(normalizeWorkerBaseUrl('')).toBe('');
+	});
+
+	it('isAxiosTimeoutError detects client parse timeouts', () => {
+		expect(isAxiosTimeoutError(new Error('timeout of 120000ms exceeded'))).toBe(true);
+		expect(isAxiosTimeoutError({ code: 'ECONNABORTED', message: 'aborted' })).toBe(true);
+		expect(isAxiosTimeoutError(new Error('connect ECONNREFUSED'))).toBe(false);
 	});
 
 	it('strips non-serializable fields from context', () => {

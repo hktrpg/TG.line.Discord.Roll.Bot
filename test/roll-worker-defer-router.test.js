@@ -178,7 +178,7 @@ describe('parse-router defer under REMOTE_ONLY', () => {
 		const remoteFailLogs = warns.filter((w) => w.includes('OPS remote-fail'));
 		// First event logs once; remaining 4 in the 60s window are suppressed.
 		expect(remoteFailLogs).toHaveLength(1);
-		expect(remoteFailLogs[0]).toMatch(/deferred=yes/);
+		expect(remoteFailLogs[0]).toMatch(/outcome=deferred/);
 		expect(remoteFailLogs[0]).toMatch(/ECONNREFUSED/);
 	});
 });

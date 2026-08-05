@@ -62,6 +62,27 @@ function noteTransportDown(error) {
 	});
 }
 
+/** Axios client aborted waiting for /v1/parse — Worker may still be healthy (OpenAI slow). */
+function isAxiosTimeoutError(error) {
+	const code = String(error?.code || '');
+	const msg = String(error?.message || error || '');
+	return code === 'ECONNABORTED'
+		|| code === 'ETIMEDOUT'
+		|| /timeout of \d+ms exceeded/i.test(msg);
+}
+
+function noteParseTimeout(error) {
+	const { url, timeoutMs } = getConfig();
+	const log = linkLogForEnv();
+	const warn = typeof log.warn === 'function' ? log.warn.bind(log) : console.warn.bind(console);
+	warn(
+		`[RollWorkerLink] PARSE_TIMEOUT | ${url}`
+		+ ` | ${error?.message || error}`
+		+ ` | timeoutMs=${timeoutMs}`
+		+ ' | link stays up (Worker busy or upstream slow — often OpenAI)'
+	);
+}
+
 function getConfig() {
 	// When remoting is enabled, load/generate the shared secret from .env so
 	// Gateway matches Worker without manual copy-paste on a single machine.
@@ -183,7 +204,11 @@ async function parseWithUrl(baseUrl, params, options = {}) {
 			{ headers, timeout: timeoutMs, validateStatus: () => true }
 		);
 	} catch (error) {
-		if (trackPrimaryLink) noteTransportDown(error);
+		if (trackPrimaryLink) {
+			// Timeout ≠ dead Worker (OpenAI/upstream often exceeds ROLL_WORKER_TIMEOUT_MS).
+			if (isAxiosTimeoutError(error)) noteParseTimeout(error);
+			else noteTransportDown(error);
+		}
 		throw error;
 	}
 
@@ -450,4 +475,5 @@ module.exports = {
 	resetConnectionStatus,
 	resetStandbyConnectionStatus,
 	getGatewayLabel,
+	isAxiosTimeoutError,
 };

@@ -255,12 +255,15 @@ function logRemoteFailNoLocal(meta = {}) {
 	const suppressed = remoteFailSinceLastLog;
 	lastRemoteFailLogAt = now;
 	remoteFailSinceLastLog = 0;
+	const outcome = meta.outcome
+		|| (meta.deferred ? 'deferred' : 'busy');
 	console.warn(
 		`[Gateway] OPS remote-fail (no local)`
-		+ ` | deferred=${meta.deferred ? 'yes' : 'busy'}`
+		+ ` | outcome=${outcome}`
 		+ ` | botname=${meta.botname || ''}`
 		+ ` | module=${meta.moduleName || ''}`
 		+ ` | countSinceLastLog=${suppressed}`
+		+ (meta.hint ? ` | hint=${meta.hint}` : '')
 		+ (meta.error ? ` | error=${meta.error}` : '')
 	);
 }
@@ -534,10 +537,22 @@ async function parseInput(params = {}, options = {}) {
 				if (deferred) return deferred;
 				return remoteOnlyFailResult(params.locale);
 			}
-			logLocalFallback('workerErrorNoFallback', {
+			// Fail-closed: do NOT local-replay (log must not say fallback→local).
+			const errMsg = error?.message || String(error);
+			const isTimeout = /timeout of \d+ms exceeded/i.test(errMsg)
+				|| error?.code === 'ECONNABORTED'
+				|| error?.code === 'ETIMEDOUT';
+			logRemoteFailNoLocal({
 				botname: params.botname,
 				moduleName,
-				error: error?.message || String(error),
+				outcome: 'silent-empty',
+				deferred: false,
+				error: errMsg,
+				hint: isTimeout
+					? (moduleName === 'openai'
+						? 'OpenAI/upstream no response within ROLL_WORKER_TIMEOUT_MS (Worker may still be fine)'
+						: 'parse exceeded ROLL_WORKER_TIMEOUT_MS (Worker may still be fine)')
+					: 'fail-closed module; no local replay',
 			});
 			return remoteOnlySilentFailResult();
 		}

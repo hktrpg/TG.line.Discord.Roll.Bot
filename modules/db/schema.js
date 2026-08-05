@@ -300,20 +300,40 @@ if (process.env.mongoURL) {
     }));
 
     // Production has autoIndex off — ensure the sparse unique index exists at boot.
-    // Fails loudly if duplicate userName rows still exist (ops must clean them first).
-    models.accountPW.collection.createIndex(
-        { userName: 1 },
-        { unique: true, sparse: true, background: true, name: 'userName_1' }
-    ).catch((error) => {
-        console.error(
-            '[schema] accountPW.userName unique sparse index failed:'
-            + ` ${error?.message || error}`
-            + ' | find duplicates: db.accountpws.aggregate(['
+    // Old non-unique userName_1 (same name, different options) is dropped and replaced.
+    // Still fails loudly if duplicate userName rows block unique creation.
+    (async () => {
+        const collection = models.accountPW.collection;
+        const key = { userName: 1 };
+        const options = { unique: true, sparse: true, background: true, name: 'userName_1' };
+        const dupHint = 'find duplicates: db.accountpws.aggregate(['
             + '{ $match: { userName: { $type: "string" } } },'
             + '{ $group: { _id: "$userName", n: { $sum: 1 }, ids: { $push: "$id" } } },'
-            + '{ $match: { n: { $gt: 1 } } }])'
-        );
-    });
+            + '{ $match: { n: { $gt: 1 } } }])';
+        try {
+            await collection.createIndex(key, options);
+        } catch (error) {
+            const isNameConflict = error?.code === 85
+                || error?.codeName === 'IndexOptionsConflict'
+                || /same name as the requested index/i.test(String(error?.message || ''));
+            if (!isNameConflict) {
+                console.error(
+                    `[schema] accountPW.userName unique sparse index failed: ${error?.message || error} | ${dupHint}`
+                );
+                return;
+            }
+            try {
+                console.warn('[schema] accountPW.userName_1 options mismatch — dropping old index, recreating unique sparse');
+                await collection.dropIndex('userName_1');
+                await collection.createIndex(key, options);
+                console.log('[schema] accountPW.userName unique sparse index ready');
+            } catch (retryError) {
+                console.error(
+                    `[schema] accountPW.userName unique sparse index failed after drop: ${retryError?.message || retryError} | ${dupHint}`
+                );
+            }
+        }
+    })();
 
     models.allowRolling = mongoose.model('allowRolling', new Schema({
         id: String,

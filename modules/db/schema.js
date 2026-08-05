@@ -284,7 +284,8 @@ if (process.env.mongoURL) {
 
     models.accountPW = mongoose.model('accountPW', new Schema({
         id: { type: String, index: true },
-        userName: { type: String, index: true },
+        // Unique when set; sparse so registerChannel docs without login name stay allowed.
+        userName: { type: String, unique: true, sparse: true },
         password: String,
         legacyPassword: { type: String, default: null },
         channel: [{
@@ -297,6 +298,22 @@ if (process.env.mongoURL) {
             { 'channel.id': 1, 'channel.botname': 1 }
         ]
     }));
+
+    // Production has autoIndex off — ensure the sparse unique index exists at boot.
+    // Fails loudly if duplicate userName rows still exist (ops must clean them first).
+    models.accountPW.collection.createIndex(
+        { userName: 1 },
+        { unique: true, sparse: true, background: true, name: 'userName_1' }
+    ).catch((error) => {
+        console.error(
+            '[schema] accountPW.userName unique sparse index failed:'
+            + ` ${error?.message || error}`
+            + ' | find duplicates: db.accountpws.aggregate(['
+            + '{ $match: { userName: { $type: "string" } } },'
+            + '{ $group: { _id: "$userName", n: { $sum: 1 }, ids: { $push: "$id" } } },'
+            + '{ $match: { n: { $gt: 1 } } }])'
+        );
+    });
 
     models.allowRolling = mongoose.model('allowRolling', new Schema({
         id: String,

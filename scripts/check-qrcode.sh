@@ -49,7 +49,7 @@ docker logs -f --tail 0 "${CONTAINER_NAME}" 2>&1 | grep --line-buffered "QR RECE
             -H "Title: WhatsApp Login Required (${CONTAINER_NAME})" \
             -H "Priority: high" \
             -H "Tags: warning,mobile_phone" \
-            -d "${CONTAINER_NAME} is showing a WhatsApp QR code. Check logs for the QR and scan with your phone." \
+            -d "${CONTAINER_NAME} needs WhatsApp QR scan. Run: docker exec ${CONTAINER_NAME} cat /app/.wwebjs_auth/last-qr.ascii (or /app/temp/last-qr.ascii)" \
             "https://ntfy.sh/${TOPIC}" || echo "[$(date)] ntfy curl failed (non-fatal)"
 
         last_notify_epoch=$current_epoch

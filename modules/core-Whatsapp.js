@@ -25,6 +25,7 @@ if (isEnvEnabled('BROADCAST')) {
 }
 
 const fs = require('fs');
+const os = require('node:os');
 const path = require('path');
 const { spawnSync } = require('node:child_process');
 const qrcode = require('qrcode-terminal');
@@ -149,6 +150,59 @@ function wait(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Persist the current WhatsApp QR for local scan tools.
+ * Always refresh files on every 'qr' event (codes expire ~20-30s).
+ * Prefer auth root; also mirror to ./temp (often a bind/shared volume) and /tmp.
+ */
+function persistWhatsappQrFiles(qr) {
+	const payload = String(qr || '');
+	let ascii = '';
+	try {
+		qrcode.generate(qr, { small: true }, (out) => {
+			ascii = String(out || '');
+		});
+	} catch (error) {
+		return {
+			payloadPaths: [],
+			asciiPaths: [],
+			ascii: '',
+			errors: [`qrcode.generate failed: ${error.message}`],
+		};
+	}
+
+	const dirs = [
+		wwebjsAuthRoot,
+		path.join(process.cwd(), 'temp'),
+		os.tmpdir(),
+	];
+	const payloadPaths = [];
+	const asciiPaths = [];
+	const errors = [];
+
+	for (const dir of dirs) {
+		const payloadPath = path.join(dir, 'last-qr.txt');
+		const asciiPath = path.join(dir, 'last-qr.ascii');
+		try {
+			fs.mkdirSync(dir, { recursive: true });
+			fs.writeFileSync(payloadPath, payload, 'utf8');
+			payloadPaths.push(payloadPath);
+		} catch (error) {
+			errors.push(`${payloadPath}: ${error.message}`);
+		}
+		if (!ascii) continue;
+		try {
+			fs.mkdirSync(dir, { recursive: true });
+			fs.writeFileSync(asciiPath, ascii, 'utf8');
+			asciiPaths.push(asciiPath);
+		} catch (error) {
+			errors.push(`${asciiPath}: ${error.message}`);
+		}
+	}
+
+	return { payloadPaths, asciiPaths, ascii, errors };
+}
+
 function resetSessionProfileDir() {
 	const sessionDir = path.join(wwebjsAuthRoot, 'session');
 	try {
@@ -195,29 +249,28 @@ async function startUp() {
 		// - Reset on 'disconnected' so that if auth is lost later and a *new* QR flow starts, we do show the full code again.
 		let qrCodePrintedForSession = false;
 		client.on('qr', (qr) => {
+			// Always refresh QR files — codes expire; a stale last-qr.* cannot be scanned.
+			// Do not dump QR into application logs (often collected / forwarded).
+			const persisted = persistWhatsappQrFiles(qr);
+			if (process.stdout.isTTY && persisted.ascii) {
+				console.log(persisted.ascii);
+			}
+
 			if (!qrCodePrintedForSession) {
 				qrCodePrintedForSession = true;
-				// Do not dump QR into application logs (often collected / forwarded).
-				// Persist for local scan tools; print ASCII only on an interactive TTY.
-				const qrPayloadPath = path.join(wwebjsAuthRoot, 'last-qr.txt');
-				const qrAsciiPath = path.join(wwebjsAuthRoot, 'last-qr.ascii');
-				try {
-					fs.mkdirSync(wwebjsAuthRoot, { recursive: true });
-					fs.writeFileSync(qrPayloadPath, String(qr || ''), 'utf8');
-				} catch (error) {
-					console.log(`[Whatsapp] QR RECEIVED (could not write ${qrPayloadPath}: ${error.message})`);
+				const scanHint = persisted.asciiPaths[0] || persisted.payloadPaths[0];
+				if (scanHint) {
+					const extras = [...new Set([
+						...persisted.asciiPaths.slice(1),
+						...persisted.payloadPaths,
+					])].filter((p) => p !== scanHint);
+					const extraHint = extras.length > 0 ? ` (also ${extras.join(', ')})` : '';
+					console.log(`[Whatsapp] QR RECEIVED — scan ${scanHint}${extraHint}; QR not written to application logs`);
+				} else {
+					console.log(`[Whatsapp] QR RECEIVED (could not write QR files: ${persisted.errors.join('; ') || 'unknown error'})`);
 				}
-				qrcode.generate(qr, { small: true }, (ascii) => {
-					try {
-						fs.writeFileSync(qrAsciiPath, String(ascii || ''), 'utf8');
-					} catch { /* ignore */ }
-					if (process.stdout.isTTY) {
-						console.log(ascii);
-					}
-				});
-				console.log(`[Whatsapp] QR RECEIVED — scan ${qrAsciiPath} (or ${qrPayloadPath}); QR not written to application logs`);
 			} else {
-				console.log('[Whatsapp] QR code refreshed (new code active). Full QR omitted to reduce log/notify spam. Scan a previous QR from this session if still waiting.');
+				console.log('[Whatsapp] QR code refreshed (new code active; files updated). Full QR omitted to reduce log/notify spam.');
 			}
 		});
 

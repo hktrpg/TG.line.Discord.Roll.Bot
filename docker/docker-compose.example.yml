@@ -111,6 +111,10 @@ services:
       - non-discord-modules-log:/app/modules/log
       - shared-temp:/app/temp
       - shared-export:/app/export
+      # Named volume: QR files live inside the volume, not the host project dir.
+      # Read with: docker exec <container> cat /app/.wwebjs_auth/last-qr.ascii
+      # Fallback copy also written to /app/temp/last-qr.ascii (shared-temp).
+      # For host-path access, switch to a bind mount, e.g. ./whatsapp-session:/app/.wwebjs_auth
       - whatsapp-session:/app/.wwebjs_auth
 
 volumes:

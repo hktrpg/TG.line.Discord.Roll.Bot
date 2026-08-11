@@ -2618,10 +2618,17 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
+		const locale = await i18n.resolveLocale({
+			groupid: data.groupid || '',
+			userid: data.userid || '',
+			botname: 'Discord',
+		});
 		let text = await rollText(data.replyText, {
 			botname: 'Discord',
 			groupid: data.groupid,
 			channelid: data.channelid,
+			userid: data.userid,
+			locale,
 		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
 		try {
@@ -2649,10 +2656,17 @@ function respawnCluster2(meta = {}) {
 		// Specify time once	
 		//if (shardids !== 0) return;
 		let data = job.attrs.data;
+		const locale = await i18n.resolveLocale({
+			groupid: data.groupid || '',
+			userid: data.userid || '',
+			botname: 'Discord',
+		});
 		let text = await rollText(data.replyText, {
 			botname: 'Discord',
 			groupid: data.groupid,
 			channelid: data.channelid,
+			userid: data.userid,
+			locale,
 		});
 		if ((/<@\S+>/g).test(text)) quotes = false;
 		try {
@@ -2670,8 +2684,7 @@ function respawnCluster2(meta = {}) {
 		try {
 			if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
 				await job.remove();
-				const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Discord' });
-				const cronT = i18n.createTranslator(cronLocale);
+				const cronT = i18n.createTranslator(locale);
 				await SendToReplychannel(
 					{ replyText: cronT('discord.schedule.six_month_remove'), channelid: data.channelid, quotes: true, groupid: data.groupid }
 				)

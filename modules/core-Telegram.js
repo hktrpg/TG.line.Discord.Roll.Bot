@@ -451,7 +451,18 @@ if (agenda && agenda.agenda) {
     agenda.agenda.define("scheduleAtMessageTelegram", async (job) => {
         //指定時間一次
         let data = job.attrs.data;
-        let text = await rollText(data.replyText, { botname: 'Telegram', groupid: data.groupid });
+        const locale = await i18n.resolveLocale({
+            groupid: data.groupid || '',
+            userid: data.userid || '',
+            botname: 'Telegram',
+        });
+        let text = await rollText(data.replyText, {
+            botname: 'Telegram',
+            groupid: data.groupid,
+            userid: data.userid,
+            channelid: data.channelid,
+            locale,
+        });
         //SendToReply(ctx, text)
         SendToId(
             data.groupid, text
@@ -466,7 +477,18 @@ if (agenda && agenda.agenda) {
     agenda.agenda.define("scheduleCronMessageTelegram", async (job) => {
         //指定時間
         let data = job.attrs.data;
-        let text = await rollText(data.replyText, { botname: 'Telegram', groupid: data.groupid });
+        const locale = await i18n.resolveLocale({
+            groupid: data.groupid || '',
+            userid: data.userid || '',
+            botname: 'Telegram',
+        });
+        let text = await rollText(data.replyText, {
+            botname: 'Telegram',
+            groupid: data.groupid,
+            userid: data.userid,
+            channelid: data.channelid,
+            locale,
+        });
         //SendToReply(ctx, text)
         SendToId(
             data.groupid, text
@@ -474,9 +496,8 @@ if (agenda && agenda.agenda) {
         try {
             if ((new Date(Date.now()) - data.createAt) >= SIX_MONTH) {
                 await job.remove();
-                const cronLocale = await i18n.resolveLocale({ groupid: data.groupid || '', botname: 'Telegram' });
                 SendToId(
-                    data.groupid, i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove')
+                    data.groupid, i18n.createTranslator(locale)('platform.schedule.six_month_remove')
                 )
             }
         } catch (error) {

@@ -293,6 +293,7 @@ function stripWorkerProof(result) {
  * @param {boolean} [options.keepProof=false] - keep `_rollWorker` markers for tests / ops
  * @param {boolean} [options.deferredReplay=false] - drain path; allow local under remote-only
  * @param {object} [options.replyTarget] - defer-queue delivery target (Discord/TG/LINE/WA/WWW)
+ * @param {number} [options.timeoutMs] - optional per-call Worker HTTP timeout override
  */
 async function parseInput(params = {}, options = {}) {
 	// Ensure auto primary/local Workers are up before first route decision.
@@ -309,6 +310,9 @@ async function parseInput(params = {}, options = {}) {
 		: !remoteOnly;
 	const keepProof = options.keepProof === true;
 	const replyTarget = options.replyTarget || null;
+	const parseHttpOptions = (Number.isFinite(options.timeoutMs) && options.timeoutMs > 0)
+		? { timeoutMs: options.timeoutMs }
+		: {};
 
 	const mainMsg = typeof params.inputStr === 'string'
 		? params.inputStr.replaceAll(/^\s/g, '').match(/\S+/ig)
@@ -397,7 +401,7 @@ async function parseInput(params = {}, options = {}) {
 				const httpLocal = await client.parseLocal({
 					...remoteParams,
 					skipExp: skip,
-				});
+				}, parseHttpOptions);
 				if (httpLocal?.needsLocal) {
 					logLocalFallback('localHttpNeedsLocal', {
 						botname: params.botname,
@@ -442,7 +446,7 @@ async function parseInput(params = {}, options = {}) {
 				const httpLocal = await client.parseLocal({
 					...remoteParams,
 					skipExp: false,
-				});
+				}, parseHttpOptions);
 				if (httpLocal?.needsLocal) {
 					const deferred = await tryDeferBusy({
 						reason: 'needsLocal',
@@ -478,7 +482,7 @@ async function parseInput(params = {}, options = {}) {
 	}
 
 	try {
-		const result = await client.parse(remoteParams);
+		const result = await client.parse(remoteParams, parseHttpOptions);
 		if (result?.needsLocal) {
 			if (allowLocalFallback) {
 				logLocalFallback('needsLocal', {

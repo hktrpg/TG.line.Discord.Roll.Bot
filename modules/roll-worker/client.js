@@ -178,11 +178,14 @@ function toSerializableContext(params = {}) {
  * POST /v1/parse against an explicit Worker base URL.
  * @param {string} baseUrl
  * @param {object} params
- * @param {{ trackPrimaryLink?: boolean }} [options]
+ * @param {{ trackPrimaryLink?: boolean, timeoutMs?: number }} [options]
  */
 async function parseWithUrl(baseUrl, params, options = {}) {
 	const trackPrimaryLink = options.trackPrimaryLink !== false;
-	const { token, timeoutMs } = getConfig();
+	const { token, timeoutMs: defaultTimeoutMs } = getConfig();
+	const timeoutMs = (Number.isFinite(options.timeoutMs) && options.timeoutMs > 0)
+		? options.timeoutMs
+		: defaultTimeoutMs;
 	const url = String(baseUrl || '').replace(/\/$/, '');
 	if (!url) {
 		throw new Error('Roll worker URL missing');
@@ -237,18 +240,26 @@ async function parseWithUrl(baseUrl, params, options = {}) {
 	return response.data;
 }
 
-async function parse(params) {
+/**
+ * @param {object} params
+ * @param {{ timeoutMs?: number }} [options]
+ */
+async function parse(params, options = {}) {
 	const { url } = getConfig();
-	return parseWithUrl(url, params, { trackPrimaryLink: true });
+	return parseWithUrl(url, params, { trackPrimaryLink: true, timeoutMs: options.timeoutMs });
 }
 
-/** Hybrid fallback: parse on ROLL_STANDBY_URL (does not affect primary link monitor). */
-async function parseLocal(params) {
+/**
+ * Hybrid fallback: parse on ROLL_STANDBY_URL (does not affect primary link monitor).
+ * @param {object} params
+ * @param {{ timeoutMs?: number }} [options]
+ */
+async function parseLocal(params, options = {}) {
 	const { url } = getLocalConfig();
 	if (!url) {
 		throw new Error('ROLL_STANDBY_URL unset');
 	}
-	return parseWithUrl(url, params, { trackPrimaryLink: false });
+	return parseWithUrl(url, params, { trackPrimaryLink: false, timeoutMs: options.timeoutMs });
 }
 
 /**

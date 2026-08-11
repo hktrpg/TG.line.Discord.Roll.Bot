@@ -402,8 +402,13 @@ function setupAgenda(client) {
 
 	agenda.agenda.define("scheduleAtMessageWhatsapp", async (job) => {
 		try {
-			const { groupid, replyText } = job.attrs.data;
-			const text = await rollText(replyText, { botname: 'Whatsapp', groupid });
+			const { groupid, replyText, userid } = job.attrs.data;
+			const locale = await i18n.resolveLocale({
+				groupid: groupid || '',
+				userid: userid || '',
+				botname: 'Whatsapp',
+			});
+			const text = await rollText(replyText, { botname: 'Whatsapp', groupid, userid, locale });
 			await SendToId(groupid, { text: text }, client);
 			await job.remove();
 		} catch (error) {
@@ -413,13 +418,17 @@ function setupAgenda(client) {
 
 	agenda.agenda.define("scheduleCronMessageWhatsapp", async (job) => {
 		try {
-			const { groupid, replyText, createAt } = job.attrs.data;
-			const text = await rollText(replyText, { botname: 'Whatsapp', groupid });
+			const { groupid, replyText, createAt, userid } = job.attrs.data;
+			const locale = await i18n.resolveLocale({
+				groupid: groupid || '',
+				userid: userid || '',
+				botname: 'Whatsapp',
+			});
+			const text = await rollText(replyText, { botname: 'Whatsapp', groupid, userid, locale });
 			await SendToId(groupid, { text: text }, client);
 			if ((new Date(Date.now()) - createAt) >= SIX_MONTH) {
 				await job.remove();
-				const cronLocale = await i18n.resolveLocale({ groupid: groupid || '', botname: 'Whatsapp' });
-				await SendToId(groupid, { text: i18n.createTranslator(cronLocale)('platform.schedule.six_month_remove') }, client);
+				await SendToId(groupid, { text: i18n.createTranslator(locale)('platform.schedule.six_month_remove') }, client);
 			}
 		} catch (error) {
 			console.error("Schedule Error:", error);

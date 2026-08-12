@@ -62,17 +62,26 @@ describe('demo roll module (i18n styles)', () => {
         expect(demo.ns('demo')('hi')).toContain("loc('demo.hi')");
     });
 
-    test('legacy getT path still works under ALS', async () => {
+    test('getT() with no args works under ALS', async () => {
         const result = await runWithLocale('en', () => demo.rollDiceCommand({
-            mainMsg: ['.demo', 'legacy']
+            mainMsg: ['.demo', 'gett']
         }));
-        expect(result.text).toContain('getT');
+        expect(result.text).toContain('getT()');
+        expect(result.text).not.toContain('locale, t');
     });
 
-    test('locale reports request language', async () => {
+    test('locale reports request language without { locale, t }', async () => {
         const result = await runWithLocale('zh-hans', () => demo.rollDiceCommand({
             mainMsg: ['.demo', 'locale']
         }));
         expect(result.text).toContain('zh-hans');
+    });
+
+    test('rollDiceCommand does not require locale or t params', async () => {
+        const result = await runWithLocale('en', () => demo.rollDiceCommand({
+            mainMsg: ['.demo', 'hi']
+            // intentionally omit locale / t
+        }));
+        expect(result.text).toContain("loc('demo.hi')");
     });
 });

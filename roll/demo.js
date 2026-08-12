@@ -1,22 +1,19 @@
 "use strict";
 
 /**
- * Demo roll module — teaching reference for i18n call styles.
+ * Demo roll module — teaching reference for i18n WITHOUT { locale, t }.
  *
- * Preferred (new code):
+ * analytics.parseInput wraps runWithLocale, so roll code only needs:
  *   loc('demo.hi')
  *   loc('demo.greet', { name })
  *   ok ? loc('rollbase.bool_true') : loc('rollbase.bool_false')
+ *   resolveHelp({}, 'demo.help')
+ *   getLocale()
  *
- * Still supported:
- *   getT({ locale, t })('demo.hi')   // legacy; ALS also fills getT({})
- *   resolveHelp / resolveGameName
- *
- * Optional local helper (long modules only):
- *   const d = ns('demo'); d('hi')
+ * Do NOT write: getT({ locale, t }) or pass locale/t through handlers.
  *
  * Try: .demo help | .demo hi | .demo greet Ada | .demo check 50
- *      .demo ns | .demo legacy | .demo locale | .demo 123
+ *      .demo ns | .demo gett | .demo locale | .demo 123
  */
 
 const {
@@ -29,12 +26,13 @@ const {
 
 const variables = {};
 
-/** Optional namespace helper — same idea as a local `t` bound to demo.* */
+/** Optional namespace helper — short keys within one module */
 function ns(prefix) {
     return (key, data) => loc(`${prefix}.${key}`, data);
 }
 
 const gameName = function (params = {}) {
+    // params optional; under ALS, resolveGameName({}) is enough
     return resolveGameName(params, 'demo.game_name', '【Demo】');
 };
 
@@ -43,15 +41,15 @@ const gameType = function () {
 };
 
 const prefixs = function () {
-    // Allow "Demo …" and ".demo …" (analytics smoke tests use .demo)
     return [{
         first: /^[.]?demo$/i,
         second: null
     }];
 };
 
-const getHelpMessage = function (params = {}) {
-    return resolveHelp(params, 'demo.help');
+const getHelpMessage = function () {
+    // No { locale, t } — request locale comes from ALS
+    return resolveHelp({}, 'demo.help');
 };
 
 const initialize = function () {
@@ -68,9 +66,7 @@ const rollDiceCommand = async function ({
     displayname,
     channelid,
     displaynameDiscord,
-    membercount,
-    locale,
-    t
+    membercount
 }) {
     const rply = {
         default: 'on',
@@ -81,9 +77,9 @@ const rollDiceCommand = async function ({
     const sub = mainMsg[1] || '';
 
     switch (true) {
-        // --- help: resolveHelp (ALS fills locale when params omit it) ---
+        // --- help: resolveHelp with empty params (ALS) ---
         case /^help$/i.test(sub) || !sub: {
-            rply.text = getHelpMessage({ locale, t });
+            rply.text = getHelpMessage();
             rply.quotes = true;
             return rply;
         }
@@ -101,7 +97,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
 
-        // --- 3) industry-style ternary success / fail ---
+        // --- 3) ternary success / fail (industry style) ---
         case /^check$/i.test(sub): {
             const target = Number.parseInt(mainMsg[2], 10);
             if (!Number.isFinite(target) || target < 1 || target > 100) {
@@ -121,7 +117,7 @@ const rollDiceCommand = async function ({
             return rply;
         }
 
-        // --- 4) ns('demo') short keys inside one module ---
+        // --- 4) ns('demo') short keys ---
         case /^ns$/i.test(sub): {
             const d = ns('demo');
             rply.text = [
@@ -132,24 +128,24 @@ const rollDiceCommand = async function ({
             return rply;
         }
 
-        // --- 5) legacy getT (still OK; prefer loc for new code) ---
-        case /^legacy$/i.test(sub): {
-            const translate = getT({ locale, t });
-            rply.text = translate('demo.legacy_line', {
-                via: 'getT({ locale, t })'
+        // --- 5) getT() with no args (ALS) — not getT({ locale, t }) ---
+        case /^gett$/i.test(sub): {
+            const translate = getT();
+            rply.text = translate('demo.gett_line', {
+                via: 'getT()'
             });
             return rply;
         }
 
-        // --- 6) read request locale from ALS / params ---
+        // --- 6) request locale from ALS ---
         case /^locale$/i.test(sub): {
             rply.text = loc('demo.locale_line', {
-                locale: getLocale({ locale })
+                locale: getLocale()
             });
             return rply;
         }
 
-        // --- 7) keep original debug dump (interpolation) ---
+        // --- 7) debug dump ---
         case /^\d+$/i.test(sub): {
             rply.text = loc('demo.output_debug', {
                 value: sub,
@@ -166,7 +162,6 @@ const rollDiceCommand = async function ({
             return rply;
         }
 
-        // --- unknown subcommand ---
         case /^\S/.test(sub): {
             rply.text = loc('demo.unknown', { command: sub });
             return rply;
@@ -190,6 +185,5 @@ module.exports = {
     gameType,
     gameName,
     discordCommand,
-    // exported for unit tests / docs examples
     ns
 };

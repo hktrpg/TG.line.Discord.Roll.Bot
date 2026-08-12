@@ -208,7 +208,7 @@ Loaded at i18n init and merged into the `translation` namespace (keys unchanged,
 | `help.js` | Legacy zh fallback in `resolveHelp` for submodule menus |
 | `export.js` | `gameName` wired via `export.game_name` |
 | `request-rolling.js` | `gameName` wired; slash uses `slash.re` on deploy |
-| `demo.js` | i18n call-style showcase: `loc`, ternary bool, `ns()`, legacy `getT`, `resolveHelp` (`.demo hi|greet|check|ns|legacy|locale`) |
+| `demo.js` | i18n showcase **without** `{ locale, t }`: `loc`, ternary bool, `ns()`, `getT()`, `resolveHelp({})`, `getLocale()` (`.demo hi|greet|check|ns|gett|locale`) |
 | `z_role.js` | `gameName` wired; slash uses `slash.rolereact` on deploy |
 | **All other `roll/*.js`** | `game_name` wired via `resolveGameName()` |
 | `openai.js` | `SYSTEM_PROMPT` / translate prompts (intentional zh for AI) |

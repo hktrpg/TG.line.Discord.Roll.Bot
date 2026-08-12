@@ -3491,7 +3491,17 @@
   },
   "demo": {
     "game_name": "【Demo】",
-    "help": "【🎯示範功能】\n╭────── ℹ️說明 ──────\n│ 只是一個Demo的第一行\n│ 只是一個Demo末行\n╰──────────────",
+    "help": "【🎯 i18n 寫法示範】.demo / Demo\n╭────── 指令 ──────\n│ .demo help     - 本說明 (resolveHelp)\n│ .demo hi       - loc 純字串\n│ .demo greet 名 - loc 插值\n│ .demo check 50 - 1d100>50 成功/失敗 (三元 loc)\n│ .demo ns       - ns('demo') 縮短 key\n│ .demo legacy   - 舊寫法 getT({ locale, t })\n│ .demo locale   - 顯示目前請求語言\n│ .demo 123      - 除錯參數 dump\n├────── 建議 ──────\n│ 新程式優先: loc('demo.hi')\n│ 判定: ok ? loc('rollbase.bool_true') : loc('rollbase.bool_false')\n╰──────────────",
+    "hi": "你好！這行來自 loc('demo.hi')。",
+    "greet": "你好，{{name}}！（loc 插值）",
+    "unnamed": "無名氏",
+    "check_usage": "用法: .demo check <1-100>\n例: .demo check 50 → 模擬 1d100>50",
+    "check_line": "{{roll}} > {{target}} = {{result}}",
+    "ns_title": "【ns('demo') 示範】",
+    "ns_line": "這行用 {{style}} 呼叫，等於 loc('demo.*')。",
+    "legacy_line": "舊寫法仍可用: {{via}}（新程式請改用 loc）。",
+    "locale_line": "目前請求語言: {{locale}}",
+    "unknown": "未知子指令「{{command}}」。輸入 .demo help 查看示範。",
     "output": "Demo",
     "output_debug": "Demo{{value}}{{inputStr}}{{groupid}}{{userid}}{{userrole}}{{botname}}{{displayname}}{{channelid}}{{displaynameDiscord}}{{membercount}}"
   },

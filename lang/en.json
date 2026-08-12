@@ -3506,7 +3506,17 @@
   },
   "demo": {
     "game_name": "【Demo】",
-    "help": "【🎯 Demo】\n╭────── ℹ️ Info ──────\n│ Demo first line\n│ Demo last line\n╰──────────────",
+    "help": "【🎯 i18n style demo】.demo / Demo\n╭────── Commands ──────\n│ .demo help     - this help (resolveHelp)\n│ .demo hi       - loc plain string\n│ .demo greet N  - loc interpolation\n│ .demo check 50 - 1d100>50 success/fail (ternary loc)\n│ .demo ns       - ns('demo') short keys\n│ .demo legacy   - legacy getT({ locale, t })\n│ .demo locale   - show request locale\n│ .demo 123      - debug param dump\n├────── Prefer ──────\n│ New code: loc('demo.hi')\n│ Checks: ok ? loc('rollbase.bool_true') : loc('rollbase.bool_false')\n╰──────────────",
+    "hi": "Hello! This line comes from loc('demo.hi').",
+    "greet": "Hello, {{name}}! (loc interpolation)",
+    "unnamed": "Anonymous",
+    "check_usage": "Usage: .demo check <1-100>\nEx: .demo check 50 → simulate 1d100>50",
+    "check_line": "{{roll}} > {{target}} = {{result}}",
+    "ns_title": "【ns('demo') demo】",
+    "ns_line": "This line used {{style}}, same as loc('demo.*').",
+    "legacy_line": "Legacy still works: {{via}} (prefer loc for new code).",
+    "locale_line": "Request locale: {{locale}}",
+    "unknown": "Unknown subcommand \"{{command}}\". Try .demo help.",
     "output": "Demo",
     "output_debug": "Demo{{value}}{{inputStr}}{{groupid}}{{userid}}{{userrole}}{{botname}}{{displayname}}{{channelid}}{{displaynameDiscord}}{{membercount}}"
   },

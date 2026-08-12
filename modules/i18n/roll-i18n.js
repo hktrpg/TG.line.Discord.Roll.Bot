@@ -1,20 +1,44 @@
 "use strict";
 
 const i18n = require('./i18n.js');
+const {
+    loc,
+    runWithLocale,
+    getRequestLocale,
+    getRequestTranslator
+} = require('./request-locale.js');
 
+/**
+ * Prefer explicit params, then request-scoped ALS (runWithLocale), then default.
+ * New roll code can use loc('key') instead of getT({ locale, t })('key').
+ */
 function getT(params = {}) {
-    return params.t || i18n.createTranslator(params.locale || i18n.DEFAULT_LOCALE);
+    if (params.t) {
+        return params.t;
+    }
+    if (params.locale) {
+        return i18n.createTranslator(params.locale);
+    }
+    return getRequestTranslator() || i18n.createTranslator(i18n.DEFAULT_LOCALE);
 }
 
 function getInteractionT(interaction) {
     if (!interaction) {
-        return i18n.createTranslator(i18n.DEFAULT_LOCALE);
+        return getRequestTranslator() || i18n.createTranslator(i18n.DEFAULT_LOCALE);
     }
-    return interaction._hktrpgT || i18n.createTranslator(interaction._hktrpgLocale || i18n.DEFAULT_LOCALE);
+    return interaction._hktrpgT
+        || (interaction._hktrpgLocale
+            ? i18n.createTranslator(interaction._hktrpgLocale)
+            : null)
+        || getRequestTranslator()
+        || i18n.createTranslator(i18n.DEFAULT_LOCALE);
 }
 
 function getLocale(params = {}) {
-    return params.locale || i18n.DEFAULT_LOCALE;
+    if (params.locale) {
+        return params.locale;
+    }
+    return getRequestLocale() || i18n.DEFAULT_LOCALE;
 }
 
 function isDefaultLocale(params = {}) {
@@ -87,5 +111,8 @@ module.exports = {
     resolveHelp,
     resolveGameName,
     withPartialTranslationNotice,
+    loc,
+    runWithLocale,
+    getRequestLocale,
     DEFAULT_LOCALE: i18n.DEFAULT_LOCALE
 };

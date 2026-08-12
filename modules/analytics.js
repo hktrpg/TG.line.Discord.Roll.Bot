@@ -167,6 +167,12 @@ const parseInput = async (params) => {
 	// Recreate translator after init (params.t may have been built too early).
 	context.t = i18n.createTranslator(context.locale);
 
+	// Request-scoped locale so roll modules can use loc('key') without getT boilerplate.
+	const { runWithLocale } = require('./i18n/request-locale.js');
+	return runWithLocale({ locale: context.locale, t: context.t }, () => parseInputWithLocale(context));
+}
+
+async function parseInputWithLocale(context) {
 	let result = {
 		text: '',
 		type: 'text',

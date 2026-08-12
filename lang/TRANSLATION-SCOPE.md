@@ -15,7 +15,8 @@ Update this file whenever you migrate a module or add lang keys.
 | Opt-in locales | `zh-tw`, `en`, `zh-hans` |
 | Storage | MongoDB `botLocale` (`scope`: `group` / `user`) |
 | Engine | `i18next` + `modules/i18n/i18n.js` + `modules/i18n/i18n-overlays.js` |
-| Roll helper | `modules/i18n/roll-i18n.js` (`getT`, `resolveHelp`, `withPartialTranslationNotice`) |
+| Roll helper | `modules/i18n/roll-i18n.js` (`loc`, `getT`, `resolveHelp`, `withPartialTranslationNotice`) |
+| Request locale | `modules/i18n/request-locale.js` — `AsyncLocalStorage` + `loc('key')` (set in `analytics.parseInput`) |
 | Lang files | `lang/zh-tw.json`, `lang/en.json`, `lang/zh-hans.json`, `lang/overlays/{locale}/*.json` |
 | Key parity CI | `yarn test:lang` (main JSON + overlay parity across all locales) |
 
@@ -289,11 +290,12 @@ Re-deploy global slash commands after changing `slash.*` keys.
 ## How to migrate a new module
 
 1. Add matching keys to **`lang/zh-tw.json`** and **`lang/en.json`** (keep structure identical).
-2. In the roll module:
+2. In the roll module (preferred — short API; locale comes from `analytics.parseInput` ALS):
    ```javascript
-   const { getT, resolveHelp, withPartialTranslationNotice } = require('../modules/i18n/roll-i18n.js');
-   // rollDiceCommand({ locale, t, ... }) → const translate = getT({ locale, t });
+   const { loc, resolveHelp, withPartialTranslationNotice } = require('../modules/i18n/roll-i18n.js');
+   // rply.text = loc('namespace.key', { name });
    ```
+   Legacy (still supported): `const translate = getT({ locale, t });`
 3. Bridge slash: return `'.command ...'` (locale resolved in `handlingCommand`).
 4. Direct slash: use `interaction._hktrpgT('key')`.
 5. Run `yarn test:lang`.

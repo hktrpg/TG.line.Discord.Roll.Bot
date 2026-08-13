@@ -1,7 +1,7 @@
 "use strict";
 const { SlashCommandBuilder } = require('discord.js');
 const mathjs = require('mathjs');
-const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const { loc, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 let rollbase = require('./rollbase.js');
 let variables = {};
 const gameName = function (params = {}) {
@@ -34,7 +34,6 @@ const rollDiceCommand = async function ({
     locale,
     t
 }) {
-    const translate = getT({ locale, t });
     let rply = {
         default: 'on',
         type: 'text',
@@ -42,6 +41,7 @@ const rollDiceCommand = async function ({
     };
     switch (true) {
         case /^help$/i.test(mainMsg[1]):
+            // locale/t still accepted for direct callers; ALS fills them via analytics.
             rply.text = await getHelpMessage({ locale, t });
             rply.quotes = true;
             return rply;
@@ -60,18 +60,18 @@ const rollDiceCommand = async function ({
             }
             try {
                 // eslint-disable-next-line unicorn/prefer-string-replace-all
-                rply.text = translate('fate.roll_header', { input: inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") });
-                rply.text += translate('fate.roll_result', { dice: temp, total: ans });
+                rply.text = loc('fate.roll_header', { input: inputStr.toString().replace(/\r/g, " ").replace(/\n/g, " ") });
+                rply.text += loc('fate.roll_result', { dice: temp, total: ans });
                 let mod = mainMsg[0].replaceAll(/^\.4df/ig, '').replace(/^(\d)/, '+$1').replaceAll(/m/ig, '-').replaceAll('-', ' - ').replaceAll('+', ' + ');
                 if (mod) {
-                    rply.text += translate('fate.mod_result', {
+                    rply.text += loc('fate.mod_result', {
                         mod,
                         final: mathjs.evaluate(ans + mod)
                     }).replaceAll('*', ' * ');
 
                 }
             } catch (error) {
-                rply.text = translate('fate.input_error', { error: error.message });
+                rply.text = loc('fate.input_error', { error: error.message });
             }
 
 

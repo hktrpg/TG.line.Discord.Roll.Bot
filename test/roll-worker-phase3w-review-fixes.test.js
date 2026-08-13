@@ -246,7 +246,7 @@ describe('Phase 3w OpenAI empty-array prefetch', () => {
 			expect(prefetchOpenAiDiscordContext).toHaveBeenCalled();
 			expect(client.parse).toHaveBeenCalledWith(expect.objectContaining({
 				attachmentsMeta: [{ url: 'https://cdn.discordapp.com/live.png', name: 'live.png' }],
-			}));
+			}), expect.anything());
 			expect(result.text).toBe('remote-ai');
 		});
 	});

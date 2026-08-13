@@ -155,8 +155,14 @@ describe('boot order + Discord announce contracts (source)', () => {
 	});
 
 	it('roll-worker.js preserves ROLL_WORKER_GATEWAY_CHILD across dotenv', () => {
-		const src = fs.readFileSync(path.join(ROOT, 'roll-worker.js'), 'utf8');
-		expect(src).toMatch(/ROLL_WORKER_GATEWAY_CHILD/);
+		const entry = fs.readFileSync(path.join(ROOT, 'roll-worker.js'), 'utf8');
+		expect(entry).toMatch(/dotenv-preserve/);
+		expect(entry).toMatch(/loadDotenvPreserving/);
+		const preserve = fs.readFileSync(
+			path.join(ROOT, 'modules/roll-worker/dotenv-preserve.js'),
+			'utf8',
+		);
+		expect(preserve).toMatch(/ROLL_WORKER_GATEWAY_CHILD/);
 	});
 
 	it('server.js skips Listening + CONNECTED when ROLL_WORKER_GATEWAY_CHILD', () => {

@@ -105,7 +105,7 @@ const rollDiceCommand = async function ({
 			let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
 			let limit = FUNCTION_LIMIT[gpLv];
 			if (check.length >= limit) {
-				rply.text = '此群組翻譯上限為' + limit + '條頻道' + '\n支援及解鎖上限 https://www.patreon.com/HKTRPG\n';
+				rply.text = translate('wikitools.channel_limit_reached', { limit });
 				return rply
 			}
 			await schema.translateChannel.findOneAndUpdate({

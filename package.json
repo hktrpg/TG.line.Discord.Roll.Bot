@@ -2,7 +2,7 @@
   "name": "hktrpg",
   "version": "1.32.0",
   "private": true,
-  "description": "Sad's HKTRPG is a TRPG dice rolling bot for Telegram, Line, Whatsapp, web site, plurk and Discord. 現支援TRPG暗骰, TPRG擲骰, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, 自定抽選, 定時發送",
+  "description": "Sad's HKTRPG is a TRPG dice rolling bot for Telegram, Line, Whatsapp, web site, plurk and Discord. \u73fe\u652f\u63f4TRPG\u6697\u9ab0, TPRG\u64f2\u9ab0, \u983b\u9053\u7d93\u9a57\u503c, \u5360\u535c, \u5148\u653b\u8868, TRPG\u89d2\u8272\u5361, \u641c\u5716, \u7ffb\u8b6f, Discord \u804a\u5929\u7d00\u9304\u532f\u51fa, \u6578\u5b78\u8a08\u7b97, \u505a\u7b46\u8a18, \u96a8\u6a5f\u62bd\u9078, \u81ea\u5b9a\u62bd\u9078, \u5b9a\u6642\u767c\u9001",
   "engines": {
     "node": ">=20.9.0",
     "npm": "^7"
@@ -55,7 +55,7 @@
     "uuid": "^11.1.1",
     "yauzl": "^3.2.1",
     "phin": "^3.7.1",
-    "brace-expansion": "2.1.2"
+    "brace-expansion": "5.0.9"
   },
   "dependencies": {
     "@dice-roller/rpg-dice-roller": "5.3.2",

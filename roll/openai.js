@@ -789,9 +789,17 @@ class OpenAI {
         cleaned = cleaned
             .replaceAll(/<\/?(?:PREVIOUS_CONTEXT|NEXT_CONTEXT|TEXT_TO_TRANSLATE|GLOSSARY)\b[^>]*>/gi, '')
             .replaceAll(/^\s*(?:PREVIOUS_CONTEXT|NEXT_CONTEXT|TEXT_TO_TRANSLATE)\s*:?\s*$/gim, '')
-            .replace(/^(?:\s*---\s*\n)+/, '')
-            .replaceAll(/(?:\n\s*---\s*)+$/g, '')
             .trim();
+
+        // Strip leading/trailing --- delimiter lines only (line-based to avoid ReDoS)
+        const lines = cleaned.split('\n');
+        while (lines.length > 0 && /^\s*---\s*$/.test(lines[0])) {
+            lines.shift();
+        }
+        while (lines.length > 0 && /^\s*---\s*$/.test(lines.at(-1))) {
+            lines.pop();
+        }
+        cleaned = lines.join('\n').trim();
 
         // If model wrapped the whole answer in a translate tag, unwrap it
         const wrapped = cleaned.match(/^<TEXT_TO_TRANSLATE>\s*([\s\S]*?)\s*<\/TEXT_TO_TRANSLATE>$/i);
@@ -800,10 +808,10 @@ class OpenAI {
         // Drop English CoT preamble only; keep all following translated paragraphs
         const cotLine = /(?:We need to follow the rules|The user says|That's a greeting|It's non-TRPG|So respond with|Probably "|User Safety:)/i;
         if (cotLine.test(cleaned) && /[\u4E00-\u9FFF]/.test(cleaned)) {
-            const lines = cleaned.split('\n');
+            const bodyLines = cleaned.split('\n');
             let startIdx = 0;
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
+            for (let i = 0; i < bodyLines.length; i++) {
+                const line = bodyLines[i].trim();
                 if (!line) continue;
                 if (cotLine.test(line) && !/[\u4E00-\u9FFF]/.test(line)) {
                     startIdx = i + 1;
@@ -814,7 +822,7 @@ class OpenAI {
                     break;
                 }
             }
-            cleaned = lines.slice(startIdx).join('\n').trim();
+            cleaned = bodyLines.slice(startIdx).join('\n').trim();
         }
 
         return cleaned;

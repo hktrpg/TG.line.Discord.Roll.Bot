@@ -31,22 +31,25 @@ TRPG相關問題時：
 // A stricter, context-aware translation instruction inspired by the app translator
 const TRANSLATION_SYSTEM_PROMPT = `
 # 角色與任務 (Role & Mission)
-你現在是一位資深的 正體中文 文學與專業領域翻譯師。你的唯一任務是將 "TEXT_TO_TRANSLATE" 的內容，轉譯成一篇極致流暢、文氣自然、完全融入 正體中文 語境的頂級譯文。最終成品必須徹底消除任何「機器翻譯」的生硬感，達到出版級別的水準。
+你是資深正體中文翻譯。唯一任務：把 <TEXT_TO_TRANSLATE> 轉成流暢、自然的正體中文譯文。
 
-# 核心哲學：意在言先 (Core Philosophy: Intent Over Literalism)
-此為最高指導原則。你的思考路徑不應是「這個詞的對應翻譯是什麼？」，而應是「作者想透過這句話傳達什麼意境、情感和信息？我該如何用最地道的 正體中文 來重現它？」
+# 核心原則
+- 忠實傳達原意與語氣；口語保持口語，勿文言化或過度文學改寫。
+- 若原文已是中文（含簡體），以「簡轉繁 + 用語在地化」為主，不要大幅改寫文意。
+- 意在言先，但不得改變事實、專有名詞或作者態度（例如「榮幸」不可變成「欣賞」）。
 
 # 名詞對照表 (Glossary)
 若提供名詞對照表，必須嚴格遵守，若無則忽略本段。
----
+<GLOSSARY>
 <<GLOSSARY_PLACEHOLDER>>
----
+</GLOSSARY>
 
 # 關鍵執行指令 (Key Directives)
 - 文體與語氣：精準對應原文語氣（正式/口語/諷刺/莊重等）。
 - 文化在地化：俚語、諺語、雙關語，避免直譯，使用最貼切的在地表達。
-- 句法重塑：允許重構句型以符合中文母語者閱讀習慣。
+- 句法重塑：允許重構句型以符合正體中文母語者閱讀習慣，但勿無故增刪資訊。
 - 術語一致：基於上下文盡力維持專有名詞一致。
+- 禁止新增原文沒有的英文單字（Do-Not-Translate 清單除外）。簡體詞請譯/轉為正體中文，不要用英文替代。
 
 # 正體中文排版規範 (Typography)
 - 引號：外層用「」；內層用『』；不要使用英文雙引號。
@@ -59,20 +62,21 @@ const TRANSLATION_SYSTEM_PROMPT = `
 - URL、Email、檔案路徑、IP/域名（例如 http/https 開頭或像 example.com）。
 - 以反引號 backticks 包裹的程式碼片段，或明顯的程式/設定/命令片段（如函式名()、JSON 鍵名、參數名、Shell 片段）。
 - TRPG 骰子表示法與數值：如 1d100、3d6+2、2d10-1、d100、難度百分比等；屬性縮寫與數值（STR/DEX/CON/INT/WIS/CHA/HP/MP/SAN）。
+- 常見 TRPG/遊戲縮寫若原文已使用英文則可保留：PC、PL、DM、NPC、Boss、QQ。
 - 版本號、規則條目、章節/條款編號、日期時間格式（如 v1.2.3、§3.1、2024-10-06、14:30）。
 - Hashtag 與 Mention：#標籤、@用戶名。
-- 保留表格/清單符號與編號格式（-、*、1. 2. 等）。
+- 保留表格/清單符號與編號格式（-、*、1. 2.、➢ 等）。
 
 # 任務說明
-你將會收到三段內容：
-1. "PREVIOUS_CONTEXT": 這部分是已翻譯成 正體中文 的前文，請用它來確保風格、語氣和術語的一致性。
-2. "NEXT_CONTEXT": 這部分是原始語言的後續內容，請用它來預判接下來的文意脈絡。
-3. "TEXT_TO_TRANSLATE": 這是你唯一需要翻譯的核心文本。
+你會收到三段內容：
+1. <PREVIOUS_CONTEXT>：已譯成正體中文的前文，僅供風格與術語對齊。
+2. <NEXT_CONTEXT>：後續原文，僅供預判文脈。
+3. <TEXT_TO_TRANSLATE>：唯一需要翻譯的核心文本。
 
 # 輸出要求 (Output Requirements)
-- 你的輸出必須且只能是 "TEXT_TO_TRANSLATE" 的 正體中文 譯文。
-- 絕對不要翻譯 "PREVIOUS_CONTEXT" 或 "NEXT_CONTEXT"。
-- 不要包含任何前言、解釋、道歉或註解。
+- 輸出必須且只能是 <TEXT_TO_TRANSLATE> 的正體中文譯文。
+- 絕對不要翻譯或複述 <PREVIOUS_CONTEXT> / <NEXT_CONTEXT>。
+- 不要輸出標籤名、分隔線、---、前言、解釋、道歉或註解。
 - 完整保留原文段落與換行格式。
 `;
 
@@ -166,7 +170,7 @@ const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modu
 const i18n = require('../modules/i18n/i18n.js');
 
 function isOpenAiValidationError(message) {
-    return /超過VIP|VIP LV|exceeds VIP|Unsupported file format|不支援的文件格式|預估總內容|Estimated content|檔案大小超過限制|file size|Cannot extract text|無法從檔案/i.test(message);
+    return /超過VIP|VIP LV|exceeds VIP|Unsupported file format|不支援的文件格式|預估總內容|Estimated content|檔案大小超過限制|file size|Cannot extract text|無法從檔案|字數上限|Character limit|Patreon VIP|超過上限|exceeds limit/i.test(message);
 }
 
 const debugLog = (...args) => {
@@ -601,6 +605,14 @@ class OpenAI {
         return i18n.createTranslator(this._locale || i18n.DEFAULT_LOCALE);
     }
 
+    getPatreonLevelLabel(lv) {
+        const t = this.getAiT();
+        const level = Number(lv) || 0;
+        return level > 0
+            ? t('common.patreon.level_vip', { lv: level })
+            : t('common.patreon.level_free');
+    }
+
     addApiKey() {
         if (globalThis.window !== undefined) return;
         this.apiKeys = [];
@@ -695,7 +707,7 @@ class OpenAI {
 
     // OpenRouter model-level fallbacks within one request (rate limit / downtime / moderation)
     // https://openrouter.ai/docs/guides/routing/model-fallbacks
-    getOpenRouterModelFallbacks(currentModelName, modelTier = 'LOW') {
+    getOpenRouterModelFallbacks(currentModelName, modelTier = 'LOW', { minToken = null } = {}) {
         if (!this.isCurrentUsingOpenRouter()) return null;
         const disabled = process.env.OPENROUTER_MODEL_FALLBACKS;
         if (disabled !== undefined && disabled !== '' && /^(0|false|no|off)$/i.test(String(disabled).trim())) {
@@ -704,8 +716,9 @@ class OpenAI {
         if (modelTier !== 'LOW' || !AI_CONFIG.MODELS.LOW?.models?.length) return null;
 
         const fallbacks = AI_CONFIG.MODELS.LOW.models
-            .map(m => m?.name)
-            .filter(name => name && name !== currentModelName);
+            .filter(m => m?.name && m.name !== currentModelName)
+            .filter(m => minToken == null || (m.token && m.token >= minToken))
+            .map(m => m.name);
         return fallbacks.length > 0 ? fallbacks : null;
     }
 
@@ -718,7 +731,7 @@ class OpenAI {
         };
     }
 
-    applyOpenRouterRequestExtras(payload, { currentModelName, modelTier = 'LOW' } = {}) {
+    applyOpenRouterRequestExtras(payload, { currentModelName, modelTier = 'LOW', minToken = null } = {}) {
         if (!payload || !this.isCurrentUsingOpenRouter()) return payload;
 
         payload.reasoning = this.getOpenRouterReasoningPrefs();
@@ -726,7 +739,7 @@ class OpenAI {
         const providerPrefs = this.getOpenRouterProviderPrefs();
         if (providerPrefs) payload.provider = providerPrefs;
 
-        const fallbacks = this.getOpenRouterModelFallbacks(currentModelName, modelTier);
+        const fallbacks = this.getOpenRouterModelFallbacks(currentModelName, modelTier, { minToken });
         if (fallbacks) payload.models = fallbacks;
 
         return payload;
@@ -759,14 +772,71 @@ class OpenAI {
         return response?.choices?.[0]?.message?.content || '';
     }
 
-    // Strip thinking tags + common free-model leaks (User Safety / English CoT before the real reply)
-    cleanAiResponse(text) {
+    // Light cleanup safe for translate / glossary JSON (no paragraph truncation)
+    stripAiNoise(text) {
         if (!text || typeof text !== 'string') return text;
-
-        let cleaned = text
+        return text
             .replaceAll(/<(thinking|think)>[\s\S]*?<\/(thinking|think)>/gi, '')
             .replaceAll(/^User Safety:\s*\S+\s*$/gim, '')
             .trim();
+    }
+
+    // Translation-specific cleanup: strip leaked prompt markers / leading CoT (keep mid-doc --- HRs)
+    cleanTranslateOutput(text) {
+        if (!text || typeof text !== 'string') return text;
+        let cleaned = this.stripAiNoise(text);
+
+        cleaned = cleaned
+            .replaceAll(/<\/?(?:PREVIOUS_CONTEXT|NEXT_CONTEXT|TEXT_TO_TRANSLATE|GLOSSARY)\b[^>]*>/gi, '')
+            .replaceAll(/^\s*(?:PREVIOUS_CONTEXT|NEXT_CONTEXT|TEXT_TO_TRANSLATE)\s*:?\s*$/gim, '')
+            .replace(/^(?:\s*---\s*\n)+/, '')
+            .replace(/(?:\n\s*---\s*)+$/g, '')
+            .trim();
+
+        // If model wrapped the whole answer in a translate tag, unwrap it
+        const wrapped = cleaned.match(/^<TEXT_TO_TRANSLATE>\s*([\s\S]*?)\s*<\/TEXT_TO_TRANSLATE>$/i);
+        if (wrapped) cleaned = wrapped[1].trim();
+
+        // Drop English CoT preamble only; keep all following translated paragraphs
+        const cotLine = /(?:We need to follow the rules|The user says|That's a greeting|It's non-TRPG|So respond with|Probably "|User Safety:)/i;
+        if (cotLine.test(cleaned) && /[\u4e00-\u9fff]/.test(cleaned)) {
+            const lines = cleaned.split('\n');
+            let startIdx = 0;
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                if (cotLine.test(line) && !/[\u4e00-\u9fff]/.test(line)) {
+                    startIdx = i + 1;
+                    continue;
+                }
+                if (/[\u4e00-\u9fff]/.test(line)) {
+                    startIdx = i;
+                    break;
+                }
+            }
+            cleaned = lines.slice(startIdx).join('\n').trim();
+        }
+
+        return cleaned;
+    }
+
+    // Prefer JSON body when free models prepend English CoT before glossary output
+    extractGlossaryJsonText(text) {
+        const cleaned = this.stripAiNoise(text);
+        if (!cleaned || typeof cleaned !== 'string') return cleaned;
+        const startBrace = cleaned.indexOf('{');
+        const startBracket = cleaned.indexOf('[');
+        const startIdx = (startBrace === -1)
+            ? startBracket
+            : (startBracket === -1 ? startBrace : Math.min(startBrace, startBracket));
+        return startIdx > 0 ? cleaned.slice(startIdx) : cleaned;
+    }
+
+    // Chat-only: also strip common free-model English CoT before the real reply
+    cleanAiResponse(text) {
+        if (!text || typeof text !== 'string') return text;
+
+        let cleaned = this.stripAiNoise(text);
 
         const cotMarker = /(?:We need to follow the rules|The user says|That's a greeting|It's non-TRPG|So respond with|Probably "|User Safety:)/i;
         if (cotMarker.test(cleaned)) {
@@ -791,9 +861,9 @@ class OpenAI {
         return cleaned.trim();
     }
 
-    // Backward-compatible alias used by glossary JSON sanitization
+    // Backward-compatible alias — light strip only (safe for JSON / long text)
     removeThinkingTags(text) {
-        return this.cleanAiResponse(text);
+        return this.stripAiNoise(text);
     }
 
     isUnusableAiResponse(text) {
@@ -1223,7 +1293,8 @@ class TranslateAi extends OpenAI {
             limit: limit, // Return actual limit, not buffer limit
             reason: canProcess ? null : this.getAiT()('openai.file_estimated_over_limit', {
                 estimated: estimatedChars.toLocaleString(),
-                limit: limit.toLocaleString()
+                limit: limit.toLocaleString(),
+                levelLabel: this.getPatreonLevelLabel(userVipLevel)
             })
         };
     }
@@ -1268,7 +1339,7 @@ class TranslateAi extends OpenAI {
             if (!estimate.canProcess) {
                 return {
                     valid: false,
-                    error: `${filename}: ${estimate.reason}`,
+                    error: `${filename}\n${estimate.reason}`,
                     totalEstimatedChars,
                     validationResults
                 };
@@ -1280,7 +1351,8 @@ class TranslateAi extends OpenAI {
                     valid: false,
                     error: this.getAiT()('openai.attachments_total_over_limit', {
                         total: totalEstimatedChars.toLocaleString(),
-                        limit: limit.toLocaleString()
+                        limit: limit.toLocaleString(),
+                        levelLabel: this.getPatreonLevelLabel(userVipLevel)
                     }),
                     totalEstimatedChars,
                     validationResults
@@ -1974,7 +2046,11 @@ class TranslateAi extends OpenAI {
                     { role: 'user', content: userContent }
                 ]
             };
-            this.applyOpenRouterRequestExtras(glossaryPayload, { currentModelName: modelName, modelTier });
+            this.applyOpenRouterRequestExtras(glossaryPayload, {
+                currentModelName: modelName,
+                modelTier,
+                minToken: 10_000
+            });
             let response = await this.openai.chat.completions.create(glossaryPayload)
 
             const apiDuration = Date.now() - apiStartTime;
@@ -1983,7 +2059,7 @@ class TranslateAi extends OpenAI {
             this.retryManager.resetCounters();
 
             debugLog(`[GLOSSARY_DEBUG] Processing API response, status: ${response.status}`);
-            let jsonText = this.cleanAiResponse(this.extractChatCompletionText(response));
+            let jsonText = this.extractGlossaryJsonText(this.extractChatCompletionText(response));
             debugLog(`[GLOSSARY_DEBUG] Using extracted chat completion text`);
 
             debugLog(`[GLOSSARY_DEBUG] Raw JSON text length: ${jsonText?.length || 0}`);
@@ -2273,7 +2349,7 @@ class TranslateAi extends OpenAI {
                 if (textLength > limit) {
                     throw new Error(this.getAiT()('openai.vip_estimated_over_limit', {
                         estimated: textLength.toLocaleString(),
-                        lv,
+                        levelLabel: this.getPatreonLevelLabel(lv),
                         limit: limit.toLocaleString()
                     }));
                 }
@@ -2341,7 +2417,7 @@ class TranslateAi extends OpenAI {
                             if (textLength > limit) {
                                 throw new Error(this.getAiT()('openai.vip_file_over_limit', {
                                     current: textLength.toLocaleString(),
-                                    lv,
+                                    levelLabel: this.getPatreonLevelLabel(lv),
                                     limit: limit.toLocaleString()
                                 }));
                             }
@@ -2416,7 +2492,7 @@ class TranslateAi extends OpenAI {
                             if (textLength > limit) {
                                 throw new Error(this.getAiT()('openai.vip_reply_file_over_limit', {
                                     current: textLength.toLocaleString(),
-                                    lv,
+                                    levelLabel: this.getPatreonLevelLabel(lv),
                                     limit: limit.toLocaleString()
                                 }));
                             }
@@ -2462,7 +2538,19 @@ class TranslateAi extends OpenAI {
 
             const systemContent = TRANSLATION_SYSTEM_PROMPT.replace('<<GLOSSARY_PLACEHOLDER>>', glossaryString);
 
-            const userContent = `PREVIOUS_CONTEXT (already translated into Traditional Chinese):\n---\n${previousContext || 'N/A'}\n---\n\nNEXT_CONTEXT (original language):\n---\n${nextContext || 'N/A'}\n---\n\nTEXT_TO_TRANSLATE:\n---\n${inputStr}\n---`;
+            const userContent = [
+                '<PREVIOUS_CONTEXT lang="zh-Hant">',
+                previousContext || 'N/A',
+                '</PREVIOUS_CONTEXT>',
+                '',
+                '<NEXT_CONTEXT>',
+                nextContext || 'N/A',
+                '</NEXT_CONTEXT>',
+                '',
+                '<TEXT_TO_TRANSLATE>',
+                inputStr,
+                '</TEXT_TO_TRANSLATE>'
+            ].join('\n');
 
             // Per-request timeout to avoid hangs
             const perRequestTimeoutMs = (RETRY_CONFIG.GENERAL.requestTimeoutSec || 45) * 1000;
@@ -2477,28 +2565,32 @@ class TranslateAi extends OpenAI {
                 ],
                 signal: controller.signal
             };
-            this.applyOpenRouterRequestExtras(translatePayload, { currentModelName: modelName, modelTier });
+            this.applyOpenRouterRequestExtras(translatePayload, {
+                currentModelName: modelName,
+                modelTier,
+                minToken: 10_000
+            });
             let response = await this.openai.chat.completions.create(translatePayload)
             clearTimeout(timer);
-            this.retryManager.resetCounters();
-            const cleanedContent = this.cleanAiResponse(this.extractChatCompletionText(response));
+            const cleanedContent = this.cleanTranslateOutput(this.extractChatCompletionText(response));
 
             // Debug logging for translation issues
-            if (!cleanedContent || cleanedContent.trim().length === 0) {
-                console.warn(`[TRANSLATE_CHAT] Empty or invalid response for model: ${modelName}`);
+            if (!cleanedContent || cleanedContent.trim().length === 0 || this.isUnusableAiResponse(cleanedContent)) {
+                console.warn(`[TRANSLATE_CHAT] Empty or unusable response for model: ${modelName}`);
                 console.warn(`[TRANSLATE_CHAT] Raw response:`, JSON.stringify(response, null, 2));
 
                 // Check if this is a network error that should be retried
                 const hasNetworkError = response?.choices?.[0]?.error?.message?.includes('Network connection lost');
-                if (hasNetworkError) {
-                    debugLog(`[TRANSLATE_CHAT] Network error detected, throwing to trigger retry`);
-                    throw new Error('Network connection lost');
+                if (hasNetworkError || this.isUnusableAiResponse(cleanedContent)) {
+                    debugLog(`[TRANSLATE_CHAT] Retryable empty/unusable response, throwing to trigger retry`);
+                    throw new Error(hasNetworkError ? 'Network connection lost' : 'Unusable AI response');
                 }
 
                 // For other empty responses, return error message (will be retried by translateText)
                 return this.getAiT()('openai.translate_empty_response', { model: modelName });
             }
 
+            this.retryManager.resetCounters();
             return cleanedContent;
         } catch (error) {
             console.error(`[TRANSLATE_CHAT] Error in translateChat:`, error);
@@ -2626,7 +2718,12 @@ class TranslateAi extends OpenAI {
         // Final check (though getText should have caught most issues already)
         const t = this.getAiT();
         if (textLength > limit) {
-            return { text: t('openai.text_over_vip_limit', { lv, limit }) };
+            return {
+                text: t('openai.text_over_vip_limit', {
+                    levelLabel: this.getPatreonLevelLabel(lv),
+                    limit: limit.toLocaleString()
+                })
+            };
         }
         if (textLength === 0) return { text: t('openai.no_content_to_translate') };
 

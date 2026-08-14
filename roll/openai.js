@@ -202,6 +202,12 @@ const RETRY_CONFIG = {
             removeKey: true,         // Remove the API key on this error
             noRetry: false           // Still retry with other keys
         },
+        // OpenRouter key/account quota or access denied (e.g. "Key limit exceeded")
+        FORBIDDEN: {
+            status: 403,
+            baseDelay: 5,
+            maxDelay: 60
+        },
         BAD_REQUEST: {
             status: 400,
             noRetry: true           // Don't retry on bad requests
@@ -1054,14 +1060,14 @@ class OpenAI {
         // Check if we should stop retrying
         if (!this.retryManager.shouldRetry(errorType)) {
             this.retryManager.resetCounters();
-            return this.generateErrorMessage(error, errorType, modelTier, args[0]);
+            return this.generateErrorMessage(error, errorType, modelTier);
         }
 
         this.retryManager.globalRetryCount++;
 
         // Handle model cycling for LOW tier: rate limits, NOT_FOUND (e.g. model deprecated/404), server/unknown errors
         const shouldCycle = this.retryManager.shouldCycleModel(modelTier, errorType) ||
-            (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN' || errorType === 'NOT_FOUND'));
+            (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN' || errorType === 'NOT_FOUND' || errorType === 'FORBIDDEN'));
         if (shouldCycle) {
             // Put the failed model on cooldown to avoid immediate reuse
             const failedModel = isTranslation ? this.getCurrentModelForTranslation(modelTier) : this.getCurrentModel(modelTier);
@@ -1117,32 +1123,44 @@ class OpenAI {
         return await retryFunction.apply(this, args);
     }
 
-    // Generate error message for final failure
-    generateErrorMessage(error, errorType, modelTier, inputText = '') {
+    // Generate error message for final failure (never expose provider URLs / key IDs / raw dumps)
+    generateErrorMessage(error, errorType, modelTier) {
         const t = this.getAiT();
-        const commandType = inputText.match(/^\.(ai|ait|aimage)[mh]?/i)?.[0] || '.ai';
-        const cleanInput = inputText.slice(commandType.length);
 
-        if (error instanceof OpenAIApi.APIError) {
-            if (errorType === 'RATE_LIMIT') {
-                const modelInfo = modelTier === 'LOW'
-                    ? t('openai.rate_limit_low_models', { count: AI_CONFIG.MODELS.LOW.models.length })
-                    : t('openai.rate_limit_single_model');
-                return t('openai.rate_limit_exhausted', {
-                    keyCount: this.apiKeys.length,
-                    modelInfo,
-                    retries: this.retryManager.globalRetryCount,
-                    input: cleanInput
-                });
-            }
-            // Include provider message (e.g. OpenRouter "model end of testing period") when present
-            const providerMessage = error.error?.message || error.message;
-            const statusPart = error.status != null ? `AI error: ${error.status}.` : 'AI error.';
-            const detailPart = (typeof providerMessage === 'string' && providerMessage.trim())
-                ? ` ${providerMessage.trim()}` : '';
-            return `${statusPart}${detailPart}\n ${cleanInput}`;
+        const providerMessage = error?.error?.message || error?.message || '';
+        if (providerMessage) {
+            console.error('[AI_API_ERROR]', {
+                errorType,
+                modelTier,
+                status: error?.status ?? error?.code ?? null,
+                message: providerMessage
+            });
         }
-        return `AI error.\n ${cleanInput}`;
+
+        if (errorType === 'RATE_LIMIT') {
+            const modelInfo = modelTier === 'LOW'
+                ? t('openai.rate_limit_low_models', { count: AI_CONFIG.MODELS.LOW.models.length })
+                : t('openai.rate_limit_single_model');
+            return t('openai.rate_limit_exhausted', {
+                keyCount: this.apiKeys.length,
+                modelInfo,
+                retries: this.retryManager.globalRetryCount
+            });
+        }
+
+        if (errorType === 'FORBIDDEN' || /limit exceeded|quota|insufficient|credit/i.test(String(providerMessage))) {
+            return t('openai.error_quota');
+        }
+
+        if (errorType === 'UNAUTHORIZED') {
+            return t('openai.error_unauthorized');
+        }
+
+        if (errorType === 'NOT_FOUND') {
+            return t('openai.error_model_unavailable');
+        }
+
+        return t('openai.error_generic');
     }
 }
 

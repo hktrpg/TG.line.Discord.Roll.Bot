@@ -203,10 +203,12 @@ const RETRY_CONFIG = {
             noRetry: false           // Still retry with other keys
         },
         // OpenRouter key/account quota or access denied (e.g. "Key limit exceeded")
+        // Cycle API keys only — switching models with the same key will not help.
         FORBIDDEN: {
             status: 403,
-            baseDelay: 5,
-            maxDelay: 60
+            baseDelay: 2,
+            maxDelay: 15,
+            enableModelCycling: false
         },
         BAD_REQUEST: {
             status: 400,
@@ -328,6 +330,9 @@ const AI_CONFIG = {
         }
     }
 };
+
+// Avoid duplicate [AI_CONFIG] lines from OpenAI / ChatAi / TranslateAi / ImageAi constructors
+let aiConfigLoggedOnce = false;
 
 // Unified Retry Manager Class
 class RetryManager {
@@ -593,6 +598,7 @@ class OpenAI {
     constructor() {
         this.apiKeys = [];
         this.addApiKey();
+        this.logAiStartupConfig('startup');
         this.watchEnvironment();
         this.configuration = {
             apiKey: this.apiKeys[0]?.apiKey,
@@ -635,6 +641,46 @@ class OpenAI {
         }
     }
 
+    // Safe startup dump for comparing prod/test (never logs full secrets)
+    logAiStartupConfig(reason = 'startup') {
+        if (process.env.ROLL_WORKER_TEST_NO_OPENAI === 'true') return;
+        if (reason === 'startup' && aiConfigLoggedOnce) return;
+        if (reason === 'startup') aiConfigLoggedOnce = true;
+
+        const role = process.env.ROLL_WORKER_MODE === 'true' ? 'roll-worker' : 'gateway';
+        const keySummaries = (this.apiKeys || []).map((entry, index) => {
+            const secret = String(entry?.apiKey || '');
+            const tip = secret.length >= 8
+                ? `${secret.slice(0, 4)}…${secret.slice(-4)}`
+                : '(empty/short)';
+            let host = '';
+            try {
+                host = new URL(entry.baseURL).host;
+            } catch {
+                host = String(entry?.baseURL || '');
+            }
+            return `#${index + 1}:${tip}@${host}`;
+        });
+
+        const lowModels = (AI_CONFIG.MODELS.LOW?.models || []).map((model, index) => (
+            `${index + 1}:${model.name}`
+        ));
+
+        const keysPart = keySummaries.length > 0 ? keySummaries.join(', ') : 'none';
+        const modelsPart = lowModels.length > 0 ? lowModels.join(', ') : 'none';
+        const medium = AI_CONFIG.MODELS.MEDIUM?.name || 'none';
+        const high = AI_CONFIG.MODELS.HIGH?.name || 'none';
+        const sort = process.env.OPENROUTER_SORT || 'throughput(default)';
+        const ignore = process.env.OPENROUTER_IGNORE_PROVIDERS || 'none';
+        const fallbacks = process.env.OPENROUTER_MODEL_FALLBACKS || 'true(default)';
+
+        console.log(
+            `[AI_CONFIG] ${reason} | role=${role} | keys=${this.apiKeys.length} (${keysPart}) | ` +
+            `LOW=[${modelsPart}] | MEDIUM=${medium} | HIGH=${high} | ` +
+            `sort=${sort} | ignore=${ignore} | modelFallbacks=${fallbacks}`
+        );
+    }
+
     watchEnvironment() {
         // CI / Docker images often have no .env; fs.watch throws ENOENT and would
         // prevent the whole openai module from loading on Roll Worker.
@@ -659,6 +705,7 @@ class OpenAI {
                             this.currentApiKeyIndex = 0;
                             this.retryManager.resetCounters();
                             this.addApiKey();
+                            this.logAiStartupConfig('env-reload');
                             if (this.apiKeys.length === 0) return;
                             this.openai = new OpenAIApi({
                                 apiKey: this.apiKeys[0]?.apiKey,
@@ -1065,9 +1112,26 @@ class OpenAI {
 
         this.retryManager.globalRetryCount++;
 
+        // Key/account quota (403): cycle API keys only — model switching cannot fix a dead key limit
+        if (errorType === 'FORBIDDEN') {
+            const keyCount = Math.max(1, this.apiKeys?.length || 1);
+            // After one full key cycle, stop — further retries just spam OpenRouter
+            if (this.retryManager.globalRetryCount >= keyCount) {
+                this.retryManager.resetCounters();
+                return this.generateErrorMessage(error, errorType, modelTier);
+            }
+            this.handleApiKeyError(error);
+            const delay = this.retryManager.jitterDelay(
+                this.retryManager.calculateRetryDelay(errorType, this.retryManager.globalRetryCount)
+            );
+            this.retryManager.logRetry();
+            await this.retryManager.waitSeconds(delay);
+            return await retryFunction.apply(this, args);
+        }
+
         // Handle model cycling for LOW tier: rate limits, NOT_FOUND (e.g. model deprecated/404), server/unknown errors
         const shouldCycle = this.retryManager.shouldCycleModel(modelTier, errorType) ||
-            (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN' || errorType === 'NOT_FOUND' || errorType === 'FORBIDDEN'));
+            (modelTier === 'LOW' && (errorType === 'SERVER_ERROR' || errorType === 'UNKNOWN' || errorType === 'NOT_FOUND'));
         if (shouldCycle) {
             // Put the failed model on cooldown to avoid immediate reuse
             const failedModel = isTranslation ? this.getCurrentModelForTranslation(modelTier) : this.getCurrentModel(modelTier);
@@ -1129,11 +1193,17 @@ class OpenAI {
 
         const providerMessage = error?.error?.message || error?.message || '';
         if (providerMessage) {
+            // Never log OpenRouter key-manage URLs (contain key fingerprints)
+            const safeMessage = String(providerMessage)
+                .replaceAll(/https?:\/\/openrouter\.ai\/\S+/gi, '[openrouter-url-redacted]')
+                .replaceAll(/\b[a-f0-9]{32,}\b/gi, '[id-redacted]');
             console.error('[AI_API_ERROR]', {
                 errorType,
                 modelTier,
                 status: error?.status ?? error?.code ?? null,
-                message: providerMessage
+                keyIndex: this.currentApiKeyIndex,
+                keyCount: this.apiKeys?.length || 0,
+                message: safeMessage
             });
         }
 

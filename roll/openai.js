@@ -790,7 +790,7 @@ class OpenAI {
             .replaceAll(/<\/?(?:PREVIOUS_CONTEXT|NEXT_CONTEXT|TEXT_TO_TRANSLATE|GLOSSARY)\b[^>]*>/gi, '')
             .replaceAll(/^\s*(?:PREVIOUS_CONTEXT|NEXT_CONTEXT|TEXT_TO_TRANSLATE)\s*:?\s*$/gim, '')
             .replace(/^(?:\s*---\s*\n)+/, '')
-            .replace(/(?:\n\s*---\s*)+$/g, '')
+            .replaceAll(/(?:\n\s*---\s*)+$/g, '')
             .trim();
 
         // If model wrapped the whole answer in a translate tag, unwrap it
@@ -799,17 +799,17 @@ class OpenAI {
 
         // Drop English CoT preamble only; keep all following translated paragraphs
         const cotLine = /(?:We need to follow the rules|The user says|That's a greeting|It's non-TRPG|So respond with|Probably "|User Safety:)/i;
-        if (cotLine.test(cleaned) && /[\u4e00-\u9fff]/.test(cleaned)) {
+        if (cotLine.test(cleaned) && /[\u4E00-\u9FFF]/.test(cleaned)) {
             const lines = cleaned.split('\n');
             let startIdx = 0;
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i].trim();
                 if (!line) continue;
-                if (cotLine.test(line) && !/[\u4e00-\u9fff]/.test(line)) {
+                if (cotLine.test(line) && !/[\u4E00-\u9FFF]/.test(line)) {
                     startIdx = i + 1;
                     continue;
                 }
-                if (/[\u4e00-\u9fff]/.test(line)) {
+                if (/[\u4E00-\u9FFF]/.test(line)) {
                     startIdx = i;
                     break;
                 }
@@ -874,7 +874,7 @@ class OpenAI {
         // Pure leaked English meta-reasoning with no usable reply
         if (
             /(?:We need to follow the rules|That's a greeting|So respond with)/i.test(t)
-            && !/[\u4e00-\u9fff]/.test(t)
+            && !/[\u4E00-\u9FFF]/.test(t)
             && t.length < 800
         ) {
             return true;

@@ -133,15 +133,20 @@ const uploadImage = async (discordMessage, discordClient, translate, avatarUrl =
 
         rply.text = (response.ok && response.files && response.files[0].url) ? response.files[0].original_url : translate('token.upload_fail_content');
     } catch (error) {
-        // Handle specific error cases
-        if (error.response && error.response.status === 503) {
+        // Handle specific error cases. Do not dump Axios objects (cookies / CSRF / headers).
+        const status = error?.response?.status;
+        const code = error?.code;
+        const message = error?.message || 'unknown error';
+        if (status === 503) {
             console.error('Error uploading image: imgbox.com service unavailable (503)');
             rply.text = translate('token.upload_service_unavailable');
-        } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
+        } else if (code === 'ECONNRESET' || code === 'ETIMEDOUT') {
             console.error('Error uploading image: Connection timeout or reset');
             rply.text = translate('token.upload_timeout');
         } else {
-            console.error('Error uploading image:', error);
+            const statusPart = status ? ` (HTTP ${status})` : '';
+            const codePart = code ? ` [${code}]` : '';
+            console.error(`Error uploading image: ${message}${statusPart}${codePart}`);
             rply.text = translate('token.upload_fail_content');
         }
     }

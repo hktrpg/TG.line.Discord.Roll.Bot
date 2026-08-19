@@ -152,6 +152,39 @@ describe('Token Module Tests', () => {
     expect(result.text).toContain('https://example.com/image.png');
   });
 
+  test('tokenupload logs a short error without dumping axios headers or cookies', async () => {
+    const { imgbox } = require('imgbox');
+    const error = new Error('Request failed with status code 500');
+    error.code = 'ERR_BAD_RESPONSE';
+    error.response = { status: 500, data: { error: 'Internal Server Error' } };
+    error.config = { headers: { Cookie: 'secret-imgbox-session=abc123' } };
+    imgbox.mockRejectedValueOnce(error);
+
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const mockDiscordMessage = {
+      type: 0,
+      attachments: new Map([
+        ['1', { contentType: 'image/png', url: 'https://cdn.discordapp.com/attachments/1/2/image.png' }]
+      ])
+    };
+
+    const result = await tokenModule.rollDiceCommand({
+      botname: 'Discord',
+      mainMsg: ['.tokenupload'],
+      inputStr: '.tokenupload',
+      discordMessage: mockDiscordMessage,
+      discordClient: {}
+    });
+
+    expect(result.text).toBeTruthy();
+    expect(spy).toHaveBeenCalled();
+    const logged = spy.mock.calls.map(call => call.map(String).join(' ')).join('\n');
+    expect(logged).toContain('HTTP 500');
+    expect(logged).not.toContain('secret-imgbox-session');
+    expect(logged).not.toContain('Cookie');
+    spy.mockRestore();
+  });
+
   test('Test rollDiceCommand with .token2 command', async () => {
     const mockDiscordMessage = {
       type: 0,

@@ -223,11 +223,61 @@ const deferQueue = require('./roll-worker/defer-queue');
 const darkRolling = require('./roll-worker/dark-rolling');
 
 let whatsappClient = null;
+/** @type {Promise<void> | null} */
+let whatsappStartupPromise = null;
 const rollText = require('./chat/getRoll').rollText;
 const imageUrl = (/(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|gif|png)$/i);
 const MESSAGE_SPLITOR = (/\S+/ig);
+const RECENT_MESSAGE_TTL_MS = 60_000;
+const RECENT_MESSAGE_MAX = 500;
+/** @type {Map<string, number>} */
+const recentMessageIds = new Map();
+
+function getWhatsappMessageId(msg) {
+	if (!msg || !msg.id) return '';
+	return String(msg.id._serialized || msg.id.$1 || '');
+}
+
+function pruneRecentMessageIds(now = Date.now()) {
+	for (const [messageId, seenAt] of recentMessageIds) {
+		if (now - seenAt > RECENT_MESSAGE_TTL_MS) {
+			recentMessageIds.delete(messageId);
+		}
+	}
+	while (recentMessageIds.size > RECENT_MESSAGE_MAX) {
+		const oldestId = recentMessageIds.keys().next().value;
+		if (!oldestId) break;
+		recentMessageIds.delete(oldestId);
+	}
+}
+
+/**
+ * Drop duplicate message events (same WA id) before async work.
+ * whatsapp-web.js can emit the same inbound message multiple times after QR reconnect /
+ * initialize retry / repeated inject() on framenavigated.
+ */
+function claimIncomingMessage(msg) {
+	const messageId = getWhatsappMessageId(msg);
+	if (!messageId) return true;
+
+	const now = Date.now();
+	if (recentMessageIds.has(messageId)) return false;
+
+	recentMessageIds.set(messageId, now);
+	pruneRecentMessageIds(now);
+	return true;
+}
 
 async function startUp() {
+	if (whatsappStartupPromise) {
+		return whatsappStartupPromise;
+	}
+
+	whatsappStartupPromise = startUpInner();
+	return whatsappStartupPromise;
+}
+
+async function startUpInner() {
 	try {
 		cleanupChromeProfileLock();
 
@@ -325,6 +375,11 @@ async function startUp() {
 
 				const retryAttempt = attempt + 1;
 				console.log(`[WhatsApp] Retrying initialize after stale browser cleanup (${retryAttempt}/${WHATSAPP_MAX_INIT_RETRIES})`);
+				try {
+					await client.destroy();
+				} catch (destroyError) {
+					console.error('[WhatsApp] destroy before init retry failed:', destroyError.message);
+				}
 				killLingeringChromeForSession();
 				cleanupChromeProfileLock();
 				// If lock persists after initial retries, session profile is likely stale/corrupted.
@@ -343,6 +398,7 @@ async function startUp() {
 			try {
 				// Validate message object
 				if (!msg || !msg.body || msg.fromMe || msg.isForwarded) return;
+				if (!claimIncomingMessage(msg)) return;
 
 				// Validate required properties
 				if (!msg.from) {
@@ -393,6 +449,7 @@ async function startUp() {
 
 		setupAgenda(client);
 	} catch (error) {
+		whatsappStartupPromise = null;
 		console.error('[WhatsApp StartUp Error]', error);
 	}
 }
@@ -886,6 +943,8 @@ exports.shutdown = async function shutdown() {
 		}
 		whatsappClient = null;
 	}
+	whatsappStartupPromise = null;
+	recentMessageIds.clear();
 	// Clear Chromium singleton locks after shutdown so Docker restarts / SIGKILL do not leave stale locks.
 	cleanupChromeProfileLock();
 };

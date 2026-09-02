@@ -5,6 +5,8 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
+const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../utils/env-int.js');
+
 const DELAY = 1000 * 10;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
@@ -38,7 +40,6 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const childProcess = require('node:child_process');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
-const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../utils/env-int.js');
 require("./discord/deploy-commands");
 const clusterOptions = {
     token: channelSecret,

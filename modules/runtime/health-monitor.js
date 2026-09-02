@@ -209,7 +209,8 @@ class HealthMonitor extends EventEmitter {
 							startedAt: at,
 							reason
 						};
-						this._emitShardAlert(incident, 'update', at);
+						// Escalation is a distinct Admin Alert; bypass periodic cooldown.
+						this._emitShardAlert(incident, 'update', at, { force: true });
 						this.emit('recoveryAction', { ...this.activeRecovery });
 						return this.activeRecovery;
 					}
@@ -246,7 +247,8 @@ class HealthMonitor extends EventEmitter {
 				startedAt: at,
 				reason: `incident_open_for_${this.config.recoveryMs}ms`
 			};
-			this._emitShardAlert(incident, 'update', at);
+			// First Admin Alert only after sustained unhealthiness (recovery threshold).
+			this._emitShardAlert(incident, 'open', at);
 			this.emit('recoveryAction', { ...this.activeRecovery });
 			incident.phase = 'waiting_settle';
 			return this.activeRecovery;
@@ -254,6 +256,8 @@ class HealthMonitor extends EventEmitter {
 
 		for (const incident of this.shardIncidents.values()) {
 			if (incident.phase === 'resolved') continue;
+			// Do not DM while still waiting for recoveryMs (no open alert yet).
+			if ((incident.adminAlertCount || 0) === 0) continue;
 			this._emitShardAlert(incident, 'update', at);
 		}
 
@@ -353,7 +357,7 @@ class HealthMonitor extends EventEmitter {
 			};
 			this.shardIncidents.set(id, incident);
 			Object.assign(incident, patch);
-			this._emitShardAlert(incident, 'open', at);
+			// Admin Alert deferred until recoveryMs / destroy start (sustained unhealthiness).
 			return;
 		}
 
@@ -371,13 +375,16 @@ class HealthMonitor extends EventEmitter {
 		incident.resolveReason = reason;
 		this.reopenCooldownUntil.set(Number(shardId), at + this.config.reopenCooldownMs);
 		this.clearActiveRecovery(shardId);
-		this._emitShardAlert(incident, 'resolved', at);
+		// Skip resolved DM if Admin never got an open alert (transient blip).
+		if ((incident.adminAlertCount || 0) > 0) {
+			this._emitShardAlert(incident, 'resolved', at);
+		}
 		this.shardIncidents.delete(Number(shardId));
 	}
 
-	_emitShardAlert(incident, phase, at = Date.now()) {
+	_emitShardAlert(incident, phase, at = Date.now(), options = {}) {
 		const cooldownKey = `shardIncident:${incident.shardId}`;
-		if (phase !== 'resolved' && phase !== 'open') {
+		if (!options.force && phase !== 'resolved' && phase !== 'open') {
 			const last = this.alerts.get(cooldownKey);
 			if (last && (at - last.timestamp) < this.config.adminDmCooldownMs) {
 				return;
@@ -585,7 +592,6 @@ class HealthMonitor extends EventEmitter {
 			databaseError: 'critical',
 			mongodbDisconnected: 'critical',
 			memoryGrowth: 'warning',
-			shardHealthIssue: 'critical',
 			shardIncident: 'critical'
 		};
 		return severityMap[alertType] || 'info';

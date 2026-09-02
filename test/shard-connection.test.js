@@ -109,6 +109,7 @@ describe('shard-connection break / probe / restore', () => {
 		hm.applyHealthSnapshot(healthyProbe.shardDetails, t0 + 3000);
 
 		expect(hm.shardIncidents.has(28)).toBe(false);
+		expect(alerts.some((a) => a.phase === 'open')).toBe(true);
 		expect(alerts.some((a) => a.phase === 'resolved')).toBe(true);
 		expect(actions).toHaveLength(1);
 	});

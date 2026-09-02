@@ -13,11 +13,11 @@ One Discord Gateway WebSocket connection handled by a Cluster.
 _Avoid_: Server, guild partition (implementation detail of Discord’s model)
 
 **Health Coordinator**:
-The single Cluster elected to run health checks, recovery decisions, and admin alerts (default: cluster 0).
+The single Cluster elected to run health checks, recovery decisions, and admin alerts (default: cluster 0). It stays inactive during **boot grace** until the parent broadcasts `startHeartbeat` (logged as `[Cluster] All clusters are ready. Broadcasting startHeartbeat message.`).
 _Avoid_: Manager, parent process (unless recovery is explicitly delegated there)
 
 **Shard Incident**:
-A sustained unhealthy condition for one Shard (repeated gateway errors and/or non-ready status past a threshold).
+A tracked unhealthy condition for one Shard (from the first gateway error / disconnect / non-ready check). Recovery Action and the first Admin Alert wait until past a sustained threshold (`recoveryMs`).
 _Avoid_: Alert (an alert is a notification about an incident), Error (a single event)
 
 **Recovery Action**:
@@ -29,7 +29,7 @@ High-frequency repeated `shardError` logs (often Discord gateway 502/503/504) fo
 _Avoid_: Outage (broader), Rate limit (different Discord concept)
 
 **Admin Alert**:
-A DM to IDs in `ADMIN_SECRET`, gated by `ALERT=true`, with cooldown so the same incident is not spammed; includes open, periodic update, and resolved messages.
+A DM to IDs in `ADMIN_SECRET`, gated by `ALERT=true`, with cooldown so the same incident is not spammed. First DM is **open** only after sustained unhealthiness (when recovery starts); then periodic **update** / escalate, and **resolved** only if Admin was already alerted. Transient blips that heal before recovery do not DM.
 _Avoid_: Log, Notification (too generic)
 
 **Shard Health Report**:

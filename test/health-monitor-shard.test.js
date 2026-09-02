@@ -116,8 +116,60 @@ describe('health-monitor shard recovery', () => {
 		expect(actions).toHaveLength(2);
 	});
 
-	it('resolves after two consecutive healthy checks and emits resolved alert', () => {
-		const hm = createMonitor({ adminDmCooldownMs: 1 });
+	it('defers Admin open alert until recovery starts; skips resolved if never alerted', () => {
+		const hm = createMonitor({ recoveryMs: 5000, adminDmCooldownMs: 1 });
+		hm.enableCoordinatorMode();
+		const alerts = [];
+		hm.on('alert', (a) => alerts.push(a));
+
+		const t0 = 1_000_000;
+		hm.recordShardError({
+			shardId: 16,
+			clusterId: 3,
+			message: 'Unexpected server response: 503',
+			at: t0,
+		});
+		expect(hm.shardIncidents.has(16)).toBe(true);
+		expect(alerts).toHaveLength(0);
+
+		hm.tick(t0 + 1000);
+		expect(alerts).toHaveLength(0);
+
+		hm.applyHealthSnapshot([{ shardId: 16, clusterId: 3, status: 0, responsive: true }], t0 + 2000);
+		hm.applyHealthSnapshot([{ shardId: 16, clusterId: 3, status: 0, responsive: true }], t0 + 3000);
+		expect(hm.shardIncidents.has(16)).toBe(false);
+		expect(alerts).toHaveLength(0);
+	});
+
+	it('emits open Admin alert when destroy starts after recoveryMs', () => {
+		const hm = createMonitor({
+			recoveryMs: 3000,
+			destroySettleMs: 60_000,
+			adminDmCooldownMs: 1,
+		});
+		hm.enableCoordinatorMode();
+		const alerts = [];
+		hm.on('alert', (a) => alerts.push(a));
+
+		const t0 = 1_000_000;
+		hm.recordShardError({
+			shardId: 28,
+			clusterId: 5,
+			message: 'Unexpected server response: 503',
+			at: t0,
+		});
+
+		expect(hm.tick(t0 + 2999)).toBeNull();
+		expect(alerts).toHaveLength(0);
+
+		const destroy = hm.tick(t0 + 3000);
+		expect(destroy).toMatchObject({ action: 'destroy', shardId: 28 });
+		expect(alerts).toHaveLength(1);
+		expect(alerts[0]).toMatchObject({ type: 'shardIncident', phase: 'open' });
+	});
+
+	it('resolves after two consecutive healthy checks and emits resolved if Admin was alerted', () => {
+		const hm = createMonitor({ recoveryMs: 1000, adminDmCooldownMs: 1 });
 		hm.enableCoordinatorMode();
 		const alerts = [];
 		hm.on('alert', (a) => alerts.push(a));
@@ -130,10 +182,13 @@ describe('health-monitor shard recovery', () => {
 			at: t0,
 		});
 
-		hm.applyHealthSnapshot([{ shardId: 16, clusterId: 3, status: 0, responsive: true }], t0 + 1000);
-		expect(hm.shardIncidents.has(16)).toBe(true);
+		hm.tick(t0 + 1000);
+		expect(alerts.some((a) => a.phase === 'open')).toBe(true);
 
 		hm.applyHealthSnapshot([{ shardId: 16, clusterId: 3, status: 0, responsive: true }], t0 + 2000);
+		expect(hm.shardIncidents.has(16)).toBe(true);
+
+		hm.applyHealthSnapshot([{ shardId: 16, clusterId: 3, status: 0, responsive: true }], t0 + 3000);
 		expect(hm.shardIncidents.has(16)).toBe(false);
 
 		const resolved = alerts.filter((a) => a.type === 'shardIncident' && a.phase === 'resolved');

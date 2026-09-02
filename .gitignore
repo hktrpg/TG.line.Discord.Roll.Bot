@@ -92,3 +92,4 @@ ecosystem.config.js
 
 roll/storyTeller/*.json
 *.traineddata
+/tmp

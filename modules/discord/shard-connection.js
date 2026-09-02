@@ -28,6 +28,35 @@ function isShardResponsive(shardLike) {
 }
 
 /**
+ * Resolve WebSocketShard collection from a Discord Client (broadcastEval `c`).
+ * Prefer client.ws.shards; hybrid-sharding also exposes client.cluster.shards.
+ * @param {object|null|undefined} client
+ * @returns {{ get: (id: number) => object|undefined }|null}
+ */
+function resolveWsShards(client) {
+	if (!client) return null;
+	return client.ws?.shards ?? client.cluster?.shards ?? null;
+}
+
+/**
+ * Shard IDs owned by this cluster client.
+ * @param {object|null|undefined} client
+ * @param {number[]} [fallbackIds]
+ * @returns {number[]}
+ */
+function resolveShardList(client, fallbackIds = []) {
+	const fromCluster = client?.cluster?.shardList;
+	if (Array.isArray(fromCluster) && fromCluster.length > 0) {
+		return fromCluster.map(Number).filter((id) => Number.isFinite(id) && id >= 0);
+	}
+	const fromInfo = client?.info?.SHARD_LIST;
+	if (Array.isArray(fromInfo) && fromInfo.length > 0) {
+		return fromInfo.map(Number).filter((id) => Number.isFinite(id) && id >= 0);
+	}
+	return fallbackIds;
+}
+
+/**
  * Probe a list of shard IDs against a Map/Collection getter.
  * @param {{ get: (id: number) => object|undefined }} shards
  * @param {number[]} shardIds
@@ -37,11 +66,12 @@ function probeShardConnections(shards, shardIds, options = {}) {
 	const clusterId = options.clusterId ?? 0;
 	const details = [];
 	for (const shardId of shardIds) {
-		const shard = shards?.get?.(shardId);
+		const id = Number(shardId);
+		const shard = shards?.get?.(id) ?? shards?.get?.(shardId);
 		const responsive = isShardResponsive(shard);
 		details.push({
 			clusterId,
-			shardId,
+			shardId: id,
 			status: shard ? (shard.status ?? 'unknown') : 'missing',
 			ping: typeof shard?.ping === 'number' ? shard.ping : -1,
 			ready: Boolean(shard?.readyTimestamp),
@@ -123,6 +153,8 @@ function createMockShardMap(shardIds) {
 module.exports = {
 	SHARD_STATUS,
 	isShardResponsive,
+	resolveWsShards,
+	resolveShardList,
 	probeShardConnections,
 	createMockShard,
 	createMockShardMap,

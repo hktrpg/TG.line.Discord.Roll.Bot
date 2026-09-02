@@ -11,6 +11,19 @@ const {
 } = require('../modules/discord/shard-connection.js');
 
 describe('shard-connection break / probe / restore', () => {
+	it('resolveWsShards prefers client.ws.shards (broadcastEval client shape)', () => {
+		const {
+			resolveWsShards,
+			resolveShardList,
+		} = require('../modules/discord/shard-connection.js');
+		const shards = createMockShardMap([0]);
+		expect(resolveWsShards({ ws: { shards } })).toBe(shards);
+		expect(resolveWsShards({ client: { ws: { shards } } })).toBeNull();
+		expect(resolveWsShards({ cluster: { shards } })).toBe(shards);
+		expect(resolveShardList({ cluster: { shardList: [0, 1] } }, [9])).toEqual([0, 1]);
+		expect(resolveShardList({}, [9])).toEqual([9]);
+	});
+
 	it('probes all Ready shards as healthy', () => {
 		const shards = createMockShardMap([0, 1, 2]);
 		const report = probeShardConnections(shards, [0, 1, 2], { clusterId: 0 });

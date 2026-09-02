@@ -11,16 +11,6 @@ const RETRY_DELAY = 5000;
 /** discord-hybrid-sharding respawn: allow slow startup (many shards / DB / login). */
 const CLUSTER_RESPAWN_READY_MS = 120_000;
 
-/** Parse positive int from env; invalid or missing uses fallback. */
-function parsePositiveIntEnv(name, fallback) {
-    const raw = process.env[name];
-    if (raw === undefined || raw === '') {
-        return fallback;
-    }
-
-    const n = Number.parseInt(String(raw), 10);
-    return Number.isFinite(n) && n > 0 ? n : fallback;
-}
 
 /**
  * Cluster IPC heartbeat (discord-hybrid-sharding HeartbeatManager on parent).
@@ -48,6 +38,7 @@ const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
 const childProcess = require('node:child_process');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
+const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../utils/env-int.js');
 require("./discord/deploy-commands");
 const clusterOptions = {
     token: channelSecret,
@@ -228,13 +219,20 @@ function traceLifecycle(event, detail = {}) {
 function isRoutineIpcMessage(message) {
     // discord-hybrid-sharding routine telemetry payload
     // _type 22 + shardData is high-frequency and usually not actionable.
-    return Boolean(
+    if (
         message &&
         message._type === 22 &&
         message.data &&
         Number.isInteger(message.data.clusterId) &&
         Array.isArray(message.data.shardData)
-    );
+    ) {
+        return true;
+    }
+    // High-frequency during 503 storms; parent only forwards to coordinator.
+    if (message?.type === 'shardHealthReport') {
+        return true;
+    }
+    return false;
 }
 
 async function withLifecycleTrace(prefix, detail, operation) {
@@ -626,6 +624,22 @@ manager.on("clusterCreate", cluster => {
                 }
             } catch (error) {
                 console.error(`[Cluster] Failed to respawn cluster ${message.id}:`, error);
+            }
+            return;
+        }
+
+        // Forward shard gateway signals from any cluster to the Health Coordinator (ADR 0001).
+        if (message?.type === 'shardHealthReport') {
+            const coordinatorId = parseNonNegativeIntEnv('HEALTH_COORDINATOR_CLUSTER_ID', 0);
+            const coordinator = manager.clusters.get(coordinatorId);
+            if (coordinator) {
+                try {
+                    coordinator.send(message);
+                } catch (error) {
+                    console.error('[Cluster] Failed to forward shardHealthReport:', error?.message || error);
+                }
+            } else {
+                console.warn(`[Cluster] Health Coordinator cluster ${coordinatorId} not found for shardHealthReport`);
             }
             return;
         }

@@ -4,6 +4,7 @@ if (!process.env.mongoURL) {
 }
 const { SlashCommandBuilder } = require('discord.js');
 const checkMongodb = require('../modules/db/watchdog.js');
+const { parseAdminSecrets } = require('../utils/admin-ids.js');
 const adminSecrets = parseAdminSecrets(process.env.ADMIN_SECRET);
 const isAdminUser = (userid) => Boolean(userid) && adminSecrets.includes(userid);
 const schema = require('../modules/db/schema.js');
@@ -1116,14 +1117,6 @@ function escapeRegExp(target) {
         }
         return target;
     }
-}
-
-function parseAdminSecrets(rawAdminSecret) {
-    if (!rawAdminSecret) return [];
-    return rawAdminSecret
-        .split(/[\s,;]+/)
-        .map(secret => secret.trim())
-        .filter(Boolean);
 }
 
 const discordCommand = [

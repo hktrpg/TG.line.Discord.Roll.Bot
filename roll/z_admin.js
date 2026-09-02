@@ -10,6 +10,7 @@ const os = require('node:os');
 const v8 = require('node:v8');
 const { SlashCommandBuilder } = require('discord.js');
 const security = require('../utils/security.js');
+const { parseAdminSecrets } = require('../utils/admin-ids.js');
 // CRYPTO_SECRET is used via security.encryptWithCryptoSecret / decryptWithCryptoSecret
 let password = security.getCryptoSecretKey && security.getCryptoSecretKey();
 if (!password) {
@@ -1957,14 +1958,6 @@ async function checkGpAllow(target) {
 function checkPassword(text) {
     //True 即成功
     return /^[A-Za-z0-9!@#$%^&*]{6,16}$/.test(text);
-}
-
-function parseAdminSecrets(rawAdminSecret) {
-    if (!rawAdminSecret) return [];
-    return rawAdminSecret
-        .split(/[\s,;]+/)
-        .map(secret => secret.trim())
-        .filter(Boolean);
 }
 
 /**

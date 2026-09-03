@@ -89,6 +89,74 @@ function probeShardConnections(shards, shardIds, options = {}) {
 }
 
 /**
+ * Computed shard id range for a cluster (fallback when shardList unavailable).
+ * @param {number} clusterId
+ * @param {number} totalShards
+ * @param {number} shardsPerCluster
+ * @returns {number[]}
+ */
+function assignedShardRange(clusterId, totalShards, shardsPerCluster) {
+	const id = Number(clusterId) || 0;
+	const total = Number(totalShards) || 0;
+	const per = Number(shardsPerCluster) || 0;
+	if (total <= 0 || per <= 0) return [];
+	const startShard = id * per;
+	const endShard = Math.min((id + 1) * per, total);
+	const ids = [];
+	for (let i = startShard; i < endShard; i++) {
+		ids.push(i);
+	}
+	return ids;
+}
+
+/**
+ * Probe shard health for one Discord Client as seen inside broadcastEval(`c`).
+ * Must use Client shape (`c.ws.shards`), never `c.client.ws` (that path caused false unhealthies).
+ *
+ * @param {object} client Discord Client (hybrid-sharding broadcastEval argument)
+ * @param {{ totalShards: number, shardsPerCluster: number }} options
+ * @returns {object[]} shardDetails rows
+ */
+function probeClusterClientHealth(client, options = {}) {
+	const totalShards = options.totalShards;
+	const shardsPerCluster = options.shardsPerCluster;
+	const clusterId = Number(client?.cluster?.id) || 0;
+	const fallbackIds = assignedShardRange(clusterId, totalShards, shardsPerCluster);
+	const shardsToCheck = resolveShardList(client, fallbackIds);
+	const shards = resolveWsShards(client);
+	if (!shards) {
+		return probeShardConnections({ get: () => {} }, shardsToCheck, { clusterId }).shardDetails;
+	}
+	return probeShardConnections(shards, shardsToCheck, { clusterId }).shardDetails;
+}
+
+/**
+ * Find a WebSocketShard on a Discord Client (broadcastEval `c`).
+ * @param {object} client
+ * @param {number|string} shardId
+ * @returns {object|undefined}
+ */
+function findClientShard(client, shardId) {
+	const shards = resolveWsShards(client);
+	if (!shards) return undefined;
+	return shards.get?.(Number(shardId)) ?? shards.get?.(shardId);
+}
+
+/**
+ * Destroy one shard on a Client if this cluster owns it.
+ * @param {object} client
+ * @param {{ shardId: number, clusterId: number, reason?: string }} data
+ * @returns {boolean} true if destroy() was called
+ */
+function tryDestroyClientShard(client, data = {}) {
+	if (Number(client?.cluster?.id) !== Number(data.clusterId)) return false;
+	const shard = findClientShard(client, data.shardId);
+	if (!shard || typeof shard.destroy !== 'function') return false;
+	shard.destroy();
+	return true;
+}
+
+/**
  * Test double: mutable fake WebSocketShard.
  * @param {{ id: number, status?: number|string, ping?: number }} opts
  */
@@ -155,7 +223,11 @@ module.exports = {
 	isShardResponsive,
 	resolveWsShards,
 	resolveShardList,
+	assignedShardRange,
 	probeShardConnections,
+	probeClusterClientHealth,
+	findClientShard,
+	tryDestroyClientShard,
 	createMockShard,
 	createMockShardMap,
 	breakShardConnection,

@@ -900,19 +900,17 @@ async function executeShardRecoveryAction(action) {
 
 	try {
 		if (kind === 'destroy') {
+			const shardConnectionModule = path.join(__dirname, 'shard-connection.js');
 			const results = await client.cluster.broadcastEval(async (c, data) => {
-				if (Number(c.cluster?.id) !== Number(data.clusterId)) return false;
-				// broadcastEval `c` is the Discord Client (not a wrapper with .client).
-				const shards = c.ws?.shards ?? c.cluster?.shards;
-				const shard = shards?.get?.(data.shardId) ?? shards?.get?.(Number(data.shardId));
-				if (!shard) {
+				const { tryDestroyClientShard } = require(data.shardConnectionModule);
+				const ok = tryDestroyClientShard(c, data);
+				if (!ok && Number(c.cluster?.id) === Number(data.clusterId)) {
 					console.warn(`[HealthMonitor] destroy: shard ${data.shardId} not found on cluster ${data.clusterId}`);
-					return false;
+				} else if (ok) {
+					console.warn(`[HealthMonitor] Destroyed shard ${data.shardId} on cluster ${c.cluster.id} (${data.reason})`);
 				}
-				console.warn(`[HealthMonitor] Destroying shard ${data.shardId} on cluster ${c.cluster.id} (${data.reason})`);
-				shard.destroy();
-				return true;
-			}, { context: { shardId, clusterId, reason } });
+				return ok;
+			}, { context: { shardId, clusterId, reason, shardConnectionModule } });
 
 			const destroyed = Array.isArray(results) && results.some(Boolean);
 			if (!destroyed) {
@@ -1935,30 +1933,12 @@ async function checkShardHealth(options = {}) {
         // Absolute path required: broadcastEval cannot resolve './shard-connection.js' relative to bot.js.
         const shardConnectionModule = path.join(__dirname, 'shard-connection.js');
         const clusterResults = await client.cluster.broadcastEval((c, context) => {
-            const { totalShards, shardsPerCluster, shardConnectionModule: modulePath } = context;
-            const {
-                probeShardConnections,
-                resolveWsShards,
-                resolveShardList,
-            } = require(modulePath);
-
-            const clusterId = c.cluster?.id || 0;
-            const startShard = clusterId * shardsPerCluster;
-            const endShard = Math.min((clusterId + 1) * shardsPerCluster, totalShards);
-            const assignedShards = [];
-            for (let i = startShard; i < endShard; i++) {
-                assignedShards.push(i);
-            }
-
+            const { shardConnectionModule: modulePath, totalShards, shardsPerCluster } = context;
+            const { probeClusterClientHealth } = require(modulePath);
             try {
-                // Prefer cluster shardList; computed range is fallback only.
-                const shardsToCheck = resolveShardList(c, assignedShards);
-                const shards = resolveWsShards(c);
-                if (!shards) {
-                    return probeShardConnections({ get: () => {} }, shardsToCheck, { clusterId }).shardDetails;
-                }
-                return probeShardConnections(shards, shardsToCheck, { clusterId }).shardDetails;
+                return probeClusterClientHealth(c, { totalShards, shardsPerCluster });
             } catch (error) {
+                const clusterId = c.cluster?.id || 0;
                 console.error(`[ShardFix] Error in cluster ${clusterId}:`, error.message);
                 return [{
                     clusterId,

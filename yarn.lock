@@ -1765,13 +1765,6 @@
   dependencies:
     sparse-bitfield "^3.0.3"
 
-"@mongodb-js/saslprep@^1.3.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.4.0.tgz#3600f88248b174fad402f824affd48d87d7ee08c"
-  integrity sha512-ZHzx7Z3rdlWL1mECydvpryWN/ETXJiCxdgQKTAH+djzIPe77HdnSizKBDi1TVDXZjXyOj2IqEG/vPw71ULF06w==
-  dependencies:
-    sparse-bitfield "^3.0.3"
-
 "@mongodb-js/saslprep@^1.4.11":
   version "1.4.13"
   resolved "https://registry.yarnpkg.com/@mongodb-js/saslprep/-/saslprep-1.4.13.tgz#f559351f63af91b57a8068c977098ebff5994b15"
@@ -4890,7 +4883,7 @@ fn.name@1.x.x:
   resolved "https://registry.yarnpkg.com/fn.name/-/fn.name-1.1.0.tgz#26cad8017967aea8731bc42961d04a3d5988accc"
   integrity sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==
 
-follow-redirects@^1.15.11, follow-redirects@^1.15.6, follow-redirects@^1.16.0:
+follow-redirects@^1.15.6, follow-redirects@^1.16.0:
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.0.tgz#28474a159d3b9d11ef62050a14ed60e4df6d61bc"
   integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
@@ -6811,14 +6804,6 @@ mongodb-connection-string-url@^2.6.0:
     "@types/whatwg-url" "^8.2.1"
     whatwg-url "^11.0.0"
 
-mongodb-connection-string-url@^7.0.0:
-  version "7.0.0"
-  resolved "https://registry.yarnpkg.com/mongodb-connection-string-url/-/mongodb-connection-string-url-7.0.0.tgz#aad7291d191c52e3b5e2765eb9d218b6efcad655"
-  integrity sha512-irhhjRVLE20hbkRl4zpAYLnDMM+zIZnp0IDB9akAFFUZp/3XdOfwwddc7y6cNvF2WCEtfTYRwYbIfYa2kVY0og==
-  dependencies:
-    "@types/whatwg-url" "^13.0.0"
-    whatwg-url "^14.1.0"
-
 mongodb-connection-string-url@^7.0.1:
   version "7.0.2"
   resolved "https://registry.yarnpkg.com/mongodb-connection-string-url/-/mongodb-connection-string-url-7.0.2.tgz#a58163e04a900b7da38054de03b36d6f8b6d3ad1"
@@ -6827,30 +6812,30 @@ mongodb-connection-string-url@^7.0.1:
     "@types/whatwg-url" "^13.0.0"
     whatwg-url "^14.1.0"
 
-mongodb-memory-server-core@11.0.1:
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-11.0.1.tgz#952709a231acad192c3cd8b9795b15cdf2a04ff6"
-  integrity sha512-IcIb2S9Xf7Lmz43Z1ZujMqNg7PU5Q7yn+4wOnu7l6pfeGPkEmlqzV1hIbroVx8s4vXhPB1oMGC1u8clW7aj3Xw==
+mongodb-memory-server-core@11.2.0:
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server-core/-/mongodb-memory-server-core-11.2.0.tgz#d9ae32dd8c10e239fc91386b2c7ff87da3b9a30d"
+  integrity sha512-vOoDtn0JiLrHvZY81Rp/UtKXXK0rtJHZGZFVnccvJwYitPLNspO0Ty0grqFQOe7iAET8+GI4zAQcphg+R3vxQg==
   dependencies:
     async-mutex "^0.5.0"
     camelcase "^6.3.0"
     debug "^4.4.3"
     find-cache-dir "^3.3.2"
-    follow-redirects "^1.15.11"
+    follow-redirects "^1.16.0"
     https-proxy-agent "^7.0.6"
-    mongodb "^7.0.0"
+    mongodb "^7.2.0"
     new-find-package-json "^2.0.0"
     semver "^7.7.3"
-    tar-stream "^3.1.7"
+    tar-stream "^3.1.8"
     tslib "^2.8.1"
-    yauzl "^3.2.0"
+    yauzl "^3.3.1"
 
-mongodb-memory-server@^11.0.1:
-  version "11.0.1"
-  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-11.0.1.tgz#6d2848f41460989ef7253d86e2632f387ac4d62a"
-  integrity sha512-nUlKovSJZBh7q5hPsewFRam9H66D08Ne18nyknkNalfXMPtK1Og3kOcuqQhcX88x/pghSZPIJHrLbxNFW3OWiw==
+mongodb-memory-server@^11.2.0:
+  version "11.2.0"
+  resolved "https://registry.yarnpkg.com/mongodb-memory-server/-/mongodb-memory-server-11.2.0.tgz#d1b15bceb3781a133d0bddaaf60aa47d3721246f"
+  integrity sha512-506AD8qvClVx8Raw/WhAUUWBgIXPyi856iC01aa5vAzHmn6WOXC6ulvudkTF7oTMzJxkyA0A84VpD4BpyfqJ9w==
   dependencies:
-    mongodb-memory-server-core "11.0.1"
+    mongodb-memory-server-core "11.2.0"
     tslib "^2.8.1"
 
 mongodb@^4.1.0:
@@ -6865,16 +6850,7 @@ mongodb@^4.1.0:
     "@aws-sdk/credential-providers" "^3.186.0"
     "@mongodb-js/saslprep" "^1.1.0"
 
-mongodb@^7.0.0:
-  version "7.2.0"
-  resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-7.2.0.tgz#e4d2c2f196efda07c22a514f893698f7df728764"
-  integrity sha512-F/2+BMZtLVhY30ioZp0dAmZ+IRZMBqI+nrv6t5+9/1AIwCa8sMRC3jBf81lpxMhnZgqq8CoUD503Z1oZWq1/sw==
-  dependencies:
-    "@mongodb-js/saslprep" "^1.3.0"
-    bson "^7.2.0"
-    mongodb-connection-string-url "^7.0.0"
-
-mongodb@~7.5:
+mongodb@^7.2.0, mongodb@~7.5:
   version "7.5.0"
   resolved "https://registry.yarnpkg.com/mongodb/-/mongodb-7.5.0.tgz#f87d212b394a05e610ee1c3a0b886bea55ab3c13"
   integrity sha512-5FnrEDLnvp6ycUOGLNLLU33BfCx2qmp2mJjGPDwKLruYsVzXVSK5fsGpoDXvsXJwBfBsD7ebMRdawbDxC2814g==
@@ -8576,22 +8552,13 @@ tar-stream@^2.1.4:
     inherits "^2.0.3"
     readable-stream "^3.1.1"
 
-tar-stream@^3.0.0:
+tar-stream@^3.0.0, tar-stream@^3.1.8:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-3.2.0.tgz#0d0064d9b67ea3c9f5abde155e35faab0df37591"
   integrity sha512-ojzvCvVaNp6aOTFmG7jaRD0meowIAuPc3cMMhSgKiVWws1GyHbGd/xvnyuRKcKlMpt3qvxx6r0hreCNITP9hIg==
   dependencies:
     b4a "^1.6.4"
     bare-fs "^4.5.5"
-    fast-fifo "^1.2.0"
-    streamx "^2.15.0"
-
-tar-stream@^3.1.7:
-  version "3.1.7"
-  resolved "https://registry.yarnpkg.com/tar-stream/-/tar-stream-3.1.7.tgz#24b3fb5eabada19fe7338ed6d26e5f7c482e792b"
-  integrity sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==
-  dependencies:
-    b4a "^1.6.4"
     fast-fifo "^1.2.0"
     streamx "^2.15.0"
 
@@ -9334,7 +9301,7 @@ yarn-audit-fix@^9.3.10:
     synp "^1.9.10"
     tslib "^2.5.3"
 
-yauzl@^2.10.0, yauzl@^3.2.0, yauzl@^3.2.1:
+yauzl@^2.10.0, yauzl@^3.2.1, yauzl@^3.3.1:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/yauzl/-/yauzl-3.4.0.tgz#88b2a21455f37ca7dccf2eeb33bacb4392322719"
   integrity sha512-jIH9yLR9wqr0wOS0TpBvo/g/2UgZH5qePVbjgRliiF0BYvOZyaBknKsF+x9Iht0O6sqgnB93rCICdOZFecJuDw==

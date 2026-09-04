@@ -5,14 +5,19 @@ if (!process.env.DISCORD_CHANNEL_SECRET) {
     return;
 }
 
-const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../utils/env-int.js');
-
 const DELAY = 1000 * 10;
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 5000;
 /** discord-hybrid-sharding respawn: allow slow startup (many shards / DB / login). */
 const CLUSTER_RESPAWN_READY_MS = 120_000;
 
+const agenda = require('../modules/runtime/schedule')?.agenda;
+const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
+const childProcess = require('node:child_process');
+const { AsyncLocalStorage } = require('node:async_hooks');
+const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
+const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../utils/env-int.js');
+require("./discord/deploy-commands");
 
 /**
  * Cluster IPC heartbeat (discord-hybrid-sharding HeartbeatManager on parent).
@@ -35,12 +40,6 @@ const DEBUG_LOG = process.env.DEBUG_LOG === 'true';
 /** Always log hybrid-sharding heartbeat-miss / respawn attempts unless set to false. This is for real problems and stays on by default. */
 const HEARTBEAT_MISSING_LOG = String(process.env.DISCORD_HEARTBEAT_MISSING_LOG ?? 'true').trim().toLowerCase() !== 'false';
 
-const agenda = require('../modules/runtime/schedule')?.agenda;
-const channelSecret = process.env.DISCORD_CHANNEL_SECRET;
-const childProcess = require('node:child_process');
-const { AsyncLocalStorage } = require('node:async_hooks');
-const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
-require("./discord/deploy-commands");
 const clusterOptions = {
     token: channelSecret,
     shardsPerClusters: 5,

@@ -138,7 +138,7 @@ function probeClusterClientHealth(client, options = {}) {
  */
 function findClientShard(client, shardId) {
 	const shards = resolveWsShards(client);
-	if (!shards) return undefined;
+	if (!shards) return;
 	return shards.get?.(Number(shardId)) ?? shards.get?.(shardId);
 }
 

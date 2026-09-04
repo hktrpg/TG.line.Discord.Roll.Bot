@@ -168,6 +168,7 @@ const VIP = require('../modules/patreon/veryImportantPerson');
 const handleMessage = require('../modules/discord/handleMessage');
 const { getT, getInteractionT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
 const i18n = require('../modules/i18n/i18n.js');
+const { parseAdminSecrets } = require('../utils/admin-ids.js');
 
 function isOpenAiValidationError(message) {
     return /超過VIP|VIP LV|exceeds VIP|Unsupported file format|不支援的文件格式|預估總內容|Estimated content|檔案大小超過限制|file size|Cannot extract text|無法從檔案|字數上限|Character limit|Patreon VIP|超過上限|exceeds limit/i.test(message);
@@ -3487,14 +3488,6 @@ const discordCommand = [
 ];
 
 const webCommand = false;
-
-function parseAdminSecrets(rawAdminSecret) {
-    if (!rawAdminSecret) return [];
-    return rawAdminSecret
-        .split(/[\s,;]+/)
-        .map(secret => secret.trim())
-        .filter(Boolean);
-}
 
 module.exports = {
     rollDiceCommand,

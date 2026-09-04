@@ -1,5 +1,6 @@
 "use strict";
-if (!process.env.DISCORD_CHANNEL_SECRET) {
+// Load on Discord gateway (secret) or Roll Worker (remote allowlist).
+if (!process.env.DISCORD_CHANNEL_SECRET && process.env.ROLL_WORKER_MODE !== 'true') {
     return;
 }
 const { SlashCommandBuilder } = require('discord.js');

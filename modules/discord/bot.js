@@ -1,12 +1,14 @@
 /* eslint-disable n/no-process-exit */
 "use strict";
 const fs = require('node:fs');
+const path = require('node:path');
 
 const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
 const Discord = require('discord.js');
 const WebSocket = require('ws');
 const isImageURL = require('../../utils/is-image-url.js');
 const { isEnvEnabled } = require('../../utils/env-flag.js');
+const { parseAdminIds } = require('../../utils/admin-ids.js');
 
 const candle = require('../misc/candleDays.js');
 const records = require('../db/records.js');
@@ -493,6 +495,18 @@ function abortLoginRetries() {
 }
 
 /**
+ * Bound after healthMonitor loads. Until then, keep basic error logging.
+ * @type {(payload: {kind:string, shardId:number|string, message?:string}) => void}
+ */
+let onShardGatewaySignal = (payload) => {
+	if (payload?.kind === 'disconnect') {
+		console.warn(`[Discord Bot] Shard ${payload.shardId} Disconnected:`, payload.message);
+		return;
+	}
+	console.error(`[Discord Bot] Shard ${payload.shardId} Error:`, payload.message);
+};
+
+/**
  * Transient Discord/network failures that should be retried (e.g. gateway 502 during rolling restart).
  * Permanent config errors (invalid token) must NOT match here.
  */
@@ -595,11 +609,19 @@ async function loginWithErrorHandling() {
 		});
 
 		client.on('shardError', (error, shardId) => {
-			console.error(`[Discord Bot] Shard ${shardId} Error:`, error.message);
+			onShardGatewaySignal({
+				kind: 'error',
+				shardId,
+				message: error?.message || String(error),
+			});
 		});
 
 		client.on('shardDisconnect', (event, shardId) => {
-			console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, event);
+			onShardGatewaySignal({
+				kind: 'disconnect',
+				shardId,
+				message: typeof event === 'object' ? (event?.reason || JSON.stringify(event)) : String(event),
+			});
 		});
 
 		client.on('shardReconnecting', () => {
@@ -682,6 +704,57 @@ const timerManager = require('../runtime/timer-manager');
 
 const RECONNECT_INTERVAL = 1 * 1000 * 60;
 const shardid = client.cluster.id;
+
+function sendShardHealthReportIpc(report) {
+	if (!client?.cluster?.send) return;
+	try {
+		client.cluster.send({
+			type: 'shardHealthReport',
+			...report,
+		});
+	} catch (error) {
+		console.error('[Discord Bot] shardHealthReport IPC failed:', error?.message || error);
+	}
+}
+
+onShardGatewaySignal = (payload) => {
+	const clusterId = client.cluster?.id;
+	const shardId = Number(payload.shardId);
+	const message = payload.message || '';
+
+	if (payload.kind === 'disconnect') {
+		const result = healthMonitor.recordShardDisconnect({ shardId, clusterId });
+		if (result?.shouldForwardToCoordinator) {
+			sendShardHealthReportIpc({
+				kind: 'disconnect',
+				shardId,
+				clusterId,
+				at: Date.now(),
+			});
+		}
+		console.warn(`[Discord Bot] Shard ${shardId} Disconnected:`, message);
+		return;
+	}
+
+	const result = healthMonitor.recordShardError({ shardId, clusterId, message });
+	if (result?.shouldLogFull) {
+		console.error(`[Discord Bot] Shard ${shardId} Error:`, message);
+	} else if (result?.shouldLogSummary) {
+		console.warn(
+			`[Discord Bot] Shard ${shardId} error summary (${result.pattern}): ` +
+			`suppressed=${result.suppressedCount} since last summary; last=${message}`
+		);
+	}
+	if (result?.shouldForwardToCoordinator) {
+		sendShardHealthReportIpc({
+			kind: 'error',
+			shardId,
+			clusterId,
+			message,
+			at: Date.now(),
+		});
+	}
+};
 
 // Lag in this worker delays IPC heartbeat acks → parent may respawn this cluster (mass Discord reconnects).
 const DISCORD_WORKER_EVENT_LOOP_DIAG = String(process.env.DISCORD_WORKER_EVENT_LOOP_DIAG ?? 'true').trim().toLowerCase() !== 'false';
@@ -784,33 +857,30 @@ startDiscordClusterWorkerEventLoopDiag();
 let ws;
 let isReconnecting = false; // Prevent multiple reconnection attempts
 
-function parseAdminIds(rawAdminSecret) {
-	if (!rawAdminSecret) return [];
-	return rawAdminSecret
-		.split(/[\s,;]+/)
-		.map(id => id.trim())
-		.filter(Boolean);
-}
-
 function formatShardAlertMessage(alert) {
 	const data = alert?.data || {};
-	const totalShards = data.totalShards ?? 'unknown';
-	const unhealthyShards = data.unhealthyShards ?? 'unknown';
-	const unresponsive = Array.isArray(data.unresponsiveShards) ? data.unresponsiveShards : [];
-	const shardList = unresponsive.length > 0 ? unresponsive.join(', ') : 'unknown';
 	const timestamp = new Date(alert?.timestamp || Date.now()).toISOString();
-	return [
-		'[HKTRPG Alert] Shard health issue detected',
-		`Severity: ${alert?.severity || 'unknown'}`,
+	const phase = alert.phase || data.phase || 'update';
+	const lines = [
+		`[HKTRPG Alert] Shard incident (${phase})`,
+		`Severity: ${alert?.severity || 'critical'}`,
 		`Time: ${timestamp}`,
-		`Unhealthy shards: ${unhealthyShards}/${totalShards}`,
-		`Unresponsive shard IDs: ${shardList}`
-	].join('\n');
+		`Shard: ${data.shardId ?? 'unknown'}`,
+		`Cluster: ${data.clusterId ?? 'unknown'}`,
+	];
+	if (data.lastErrorMessage) lines.push(`Last error: ${data.lastErrorMessage}`);
+	if (data.upgradeReason) lines.push(`Upgrade reason: ${data.upgradeReason}`);
+	if (data.resolveReason) lines.push(`Resolved: ${data.resolveReason}`);
+	if (data.activeRecovery?.action) {
+		lines.push(`Recovery: ${data.activeRecovery.action} (${data.activeRecovery.reason || ''})`);
+	}
+	return lines.join('\n');
 }
 
 healthMonitor.on('alert', async (alert) => {
 	if (!isAlertEnabled) return;
-	if (!alert || alert.type !== 'shardHealthIssue') return;
+	if (!alert || alert.type !== 'shardIncident') return;
+	if (!healthMonitor.coordinatorMode) return;
 	if (alertAdminIds.length === 0) {
 		console.warn('[Discord Bot] ALERT=true but ADMIN_SECRET is empty, skip shard alert DM.');
 		return;
@@ -821,6 +891,128 @@ healthMonitor.on('alert', async (alert) => {
 		await SendToId(adminId, alertMessage);
 	}
 });
+
+async function executeShardRecoveryAction(action) {
+	if (!action || !healthMonitor.isCoordinator(client.cluster?.id)) return;
+
+	const { shardId, clusterId, action: kind, reason } = action;
+	console.warn(`[HealthMonitor] Recovery action=${kind} shard=${shardId} cluster=${clusterId} reason=${reason}`);
+
+	try {
+		if (kind === 'destroy') {
+			const shardConnectionModule = path.join(__dirname, 'shard-connection.js');
+			const results = await client.cluster.broadcastEval(async (c, data) => {
+				const { tryDestroyClientShard } = require(data.shardConnectionModule);
+				const ok = tryDestroyClientShard(c, data);
+				if (!ok && Number(c.cluster?.id) === Number(data.clusterId)) {
+					console.warn(`[HealthMonitor] destroy: shard ${data.shardId} not found on cluster ${data.clusterId}`);
+				} else if (ok) {
+					console.warn(`[HealthMonitor] Destroyed shard ${data.shardId} on cluster ${c.cluster.id} (${data.reason})`);
+				}
+				return ok;
+			}, { context: { shardId, clusterId, reason, shardConnectionModule } });
+
+			const destroyed = Array.isArray(results) && results.some(Boolean);
+			if (!destroyed) {
+				// Avoid settle→clusterRespawn after a no-op destroy (false unhealthy probe).
+				console.warn(
+					`[HealthMonitor] destroy did not run for shard=${shardId}; resetting incident to open (no escalate)`
+				);
+				healthMonitor.clearActiveRecovery(shardId);
+				const incident = healthMonitor.shardIncidents?.get?.(Number(shardId));
+				if (incident && ['waiting_settle', 'recovering_destroy'].includes(incident.phase)) {
+					incident.phase = 'open';
+					delete incident.destroyAt;
+				}
+			}
+			return;
+		}
+
+		if (kind === 'clusterRespawn') {
+			if (clusterId === undefined || clusterId === null || Number.isNaN(Number(clusterId))) {
+				console.error(`[HealthMonitor] clusterRespawn skipped: unknown cluster for shard ${shardId}`);
+				healthMonitor.clearActiveRecovery(shardId);
+				return;
+			}
+			console.warn(
+				`[HealthMonitor] Escalating to cluster respawn: shard=${shardId} cluster=${clusterId} reason=${reason}`
+			);
+			client.cluster.send({
+				respawn: true,
+				id: Number(clusterId),
+				meta: {
+					source: 'health_monitor',
+					trigger: 'shard_incident_escalate',
+					shardId,
+					reason,
+				},
+			});
+			healthMonitor.markClusterRespawnSent(shardId);
+			healthMonitor.clearActiveRecovery(shardId);
+		}
+	} catch (error) {
+		console.error(`[HealthMonitor] Recovery action failed:`, error?.message || error);
+		healthMonitor.clearActiveRecovery(shardId);
+	}
+}
+
+healthMonitor.on('recoveryAction', (action) => {
+	void executeShardRecoveryAction(action);
+});
+
+/** Boot grace: no shard health poll / incident recovery until parent signals all clusters ready. */
+let healthCoordinatorStarted = false;
+
+function startHealthCoordinator(reason = 'startHeartbeat') {
+	if (healthCoordinatorStarted) return;
+	if (!healthMonitor.isCoordinator(client.cluster?.id)) {
+		return;
+	}
+
+	healthCoordinatorStarted = true;
+	healthMonitor.enableCoordinatorMode();
+	console.log(
+		`[HealthMonitor] Boot grace ended (${reason}); this cluster (${client.cluster.id}) is Health Coordinator; ` +
+		`checkInterval=${healthMonitor.config.checkIntervalMs}ms recovery=${healthMonitor.config.recoveryMs}ms`
+	);
+
+	const runCoordinatorHealthPass = async () => {
+		try {
+			const healthReport = await checkShardHealth({ quiet: true, autoAlert: false });
+			if (healthReport?.shardDetails) {
+				healthMonitor.applyHealthSnapshot(healthReport.shardDetails);
+			}
+			healthMonitor.tick();
+		} catch (error) {
+			console.error('[HealthMonitor] Coordinator check failed:', error?.message || error);
+		}
+	};
+
+	// First pass soon after boot grace; then on interval.
+	void runCoordinatorHealthPass();
+	timerManager.setInterval(() => {
+		void runCoordinatorHealthPass();
+	}, healthMonitor.config.checkIntervalMs);
+}
+
+if (client.cluster?.on) {
+	client.cluster.on('message', (message) => {
+		if (!message) return;
+
+		// Parent broadcasts after "[Cluster] All clusters are ready. Broadcasting startHeartbeat message."
+		if (message.type === 'startHeartbeat') {
+			startHealthCoordinator('startHeartbeat');
+			return;
+		}
+
+		if (message.type !== 'shardHealthReport') return;
+		if (!healthMonitor.coordinatorMode) return;
+		healthMonitor.ingestRemoteShardReport(message);
+		healthMonitor.tick();
+	});
+}
+
+// Do not start health here — wait for startHeartbeat (boot grace).
 
 // StoryTeller reaction poll support
 const POLL_EMOJIS = ['🇦', '🇧', '🇨', '🇩', '🇪', '🇫', '🇬', '🇭', '🇮', '🇯', '🇰', '🇱', '🇲', '🇳', '🇴', '🇵', '🇶', '🇷', '🇸', '🇹'];
@@ -1652,15 +1844,16 @@ function logAutoResharderDiagnostics(error, context = '') {
 // Export for external access (can be called from admin commands)
 globalThis.getClusterHealthReport = getClusterHealthReport;
 
-// Shard health monitoring and auto-fix system
-let shardFixInProgress = false;
+// Shard health monitoring and auto-fix system (recovery driven by HealthMonitor)
 let unresponsiveShards = new Set();
-let shardFixInterval = null;
 
 /**
  * 檢查所有 shard 的存活狀態
  */
-async function checkShardHealth() {
+async function checkShardHealth(options = {}) {
+    const quiet = options.quiet === true;
+    const autoAlert = options.autoAlert !== false;
+
     if (!client.cluster) {
         return { error: 'No cluster manager available' };
     }
@@ -1675,12 +1868,13 @@ async function checkShardHealth() {
             const info = getInfo();
             if (info && info.TOTAL_SHARDS) {
                 totalShards = info.TOTAL_SHARDS;
-                //console.log(`[ShardFix] Detected TOTAL_SHARDS from getInfo(): ${totalShards}`);
 
                 // If getInfo returns suspiciously low shard count, try other methods
                 const clusterCount = getTotalClusterCount(client) || 1;
                 if (totalShards < clusterCount && clusterCount > 1) {
-                    console.warn(`[ShardFix] getInfo() returned low shard count (${totalShards}) for ${clusterCount} clusters, trying fallback methods`);
+                    if (!quiet) {
+                        console.warn(`[ShardFix] getInfo() returned low shard count (${totalShards}) for ${clusterCount} clusters, trying fallback methods`);
+                    }
                     totalShards = undefined; // Reset to try other methods
                 }
             }
@@ -1722,128 +1916,51 @@ async function checkShardHealth() {
 
         // 確保有合理的預設值
         totalShards = totalShards || 1;
-        console.log(`[ShardFix] Final totalShards for health check: ${totalShards}`);
+        if (!quiet) console.log(`[ShardFix] Final totalShards for health check: ${totalShards}`);
 
         const shardHealthResults = [];
+        unresponsiveShards = new Set();
 
         const clusterCount = getTotalClusterCount(client) || 1;
-        console.log(`[ShardFix] Checking health for ${totalShards} shards across ${clusterCount} clusters`);
+        if (!quiet) console.log(`[ShardFix] Checking health for ${totalShards} shards across ${clusterCount} clusters`);
 
         // 計算每cluster的shard數量（使用與core-Discord.js相同的邏輯）
         const shardsPerCluster = clusterCount > 0 ? Math.ceil(totalShards / clusterCount) : 3;
 
-        console.log(`[ShardFix] Using shardsPerCluster: ${shardsPerCluster} (${totalShards} shards / ${clusterCount} clusters)`);
+        if (!quiet) console.log(`[ShardFix] Using shardsPerCluster: ${shardsPerCluster} (${totalShards} shards / ${clusterCount} clusters)`);
 
         // 使用 broadcastEval 來檢查所有 clusters 的 shard 狀態
+        // Absolute path required: broadcastEval cannot resolve './shard-connection.js' relative to bot.js.
+        const shardConnectionModule = path.join(__dirname, 'shard-connection.js');
         const clusterResults = await client.cluster.broadcastEval((c, context) => {
-            // 檢查 cluster 對象的可用屬性
-            const { totalShards, shardsPerCluster } = context;
-
-            const results = [];
-            const clusterId = c.cluster?.id || 0;
-
+            const { shardConnectionModule: modulePath, totalShards, shardsPerCluster } = context;
+            const { probeClusterClientHealth } = require(modulePath);
             try {
-                // 動態計算此 cluster 負責的 shards
-                const startShard = clusterId * shardsPerCluster;
-                const endShard = Math.min((clusterId + 1) * shardsPerCluster, totalShards);
-                const assignedShards = [];
-                for (let i = startShard; i < endShard; i++) {
-                    assignedShards.push(i);
-                }
-
-                console.log(`[ShardFix] Cluster ${clusterId} assigned shards:`, assignedShards);
-
-                // 方法1: 通過 c.info.SHARD_LIST (如果存在且匹配計算的shards)
-                if (c.info && c.info.SHARD_LIST && Array.isArray(c.info.SHARD_LIST)) {
-                    console.log(`[ShardFix] Cluster ${clusterId} using SHARD_LIST:`, c.info.SHARD_LIST);
-
-                    // 檢查SHARD_LIST是否與計算的shards匹配，如果不匹配則使用計算的
-                    const shardListMatches = c.info.SHARD_LIST.length === assignedShards.length &&
-                        c.info.SHARD_LIST.every((shardId, index) => shardId === assignedShards[index]);
-
-                    const shardsToCheck = shardListMatches ? c.info.SHARD_LIST : assignedShards;
-
-                    if (!shardListMatches) {
-                        console.warn(`[ShardFix] Cluster ${clusterId} SHARD_LIST doesn't match calculated shards, using calculated:`, assignedShards);
-                    }
-
-                    for (const shardId of shardsToCheck) {
-                        const shard = c.client?.ws?.shards?.get(shardId);
-                        results.push({
-                            clusterId: clusterId,
-                            shardId: shardId,
-                            status: shard?.status || 'unknown',
-                            ping: shard?.ping || -1,
-                            ready: !!shard?.readyTimestamp,
-                            responsive: (shard?.status === 'ready') || !!shard?.readyTimestamp
-                        });
-                    }
-                }
-                // 方法2: 通過 c.client.ws.shards 直接獲取所有 shards
-                else if (c.client?.ws?.shards) {
-                    console.log(`[ShardFix] Cluster ${clusterId} using client.ws.shards`);
-
-                    // 只檢查分配給此cluster的shards
-                    for (const shardId of assignedShards) {
-                        const shard = c.client.ws.shards.get(shardId);
-                        if (shard) {
-                            results.push({
-                                clusterId: clusterId,
-                                shardId: Number(shardId),
-                                status: shard.status || 'unknown',
-                                ping: shard.ping || -1,
-                                ready: !!shard.readyTimestamp,
-                                responsive: (shard.status === 'ready') || !!shard.readyTimestamp
-                            });
-                        } else {
-                            // 如果shard不存在，標記為unknown
-                            results.push({
-                                clusterId: clusterId,
-                                shardId: shardId,
-                                status: 'unknown',
-                                ping: -1,
-                                ready: false,
-                                responsive: false
-                            });
-                        }
-                    }
-                }
-                // 方法3: 如果都沒有，使用計算的shard分配
-                else {
-                    console.warn(`[ShardFix] Cluster ${clusterId} has no shard access, using calculated shards:`, assignedShards);
-                    for (const shardId of assignedShards) {
-                        results.push({
-                            clusterId: clusterId,
-                            shardId: shardId,
-                            status: 'assumed_healthy', // 假設配置正確時是健康的
-                            ping: -1,
-                            ready: true,
-                            responsive: true
-                        });
-                    }
-                }
+                return probeClusterClientHealth(c, { totalShards, shardsPerCluster });
             } catch (error) {
+                const clusterId = c.cluster?.id || 0;
                 console.error(`[ShardFix] Error in cluster ${clusterId}:`, error.message);
-                results.push({
-                    clusterId: clusterId,
+                return [{
+                    clusterId,
                     shardId: -1,
                     status: 'error',
                     ping: -1,
                     ready: false,
                     responsive: false
-                });
+                }];
             }
-
-            console.log(`[ShardFix] Cluster ${clusterId} returning ${results.length} shard results`);
-            return results;
-        }, { context: { totalShards, shardsPerCluster } }).catch((error) => {
+        }, { context: { totalShards, shardsPerCluster, shardConnectionModule } }).catch((error) => {
             console.error('[ShardFix] broadcastEval failed:', error.message);
             return [];
         });
 
         // 處理所有 cluster 的結果
         const allShardResults = clusterResults.flat();
-        console.log(`[ShardFix] Collected ${allShardResults.length} shard results from ${clusterResults.length} clusters`);
+        if (!quiet) {
+            console.log(`[ShardFix] Collected ${allShardResults.length} shard results from ${clusterResults.length} clusters`);
+        }
+
+        unresponsiveShards.clear();
 
         // 為每個 shard 建立結果
         for (let shardId = 0; shardId < totalShards; shardId++) {
@@ -1855,13 +1972,17 @@ async function checkShardHealth() {
                 // 如果 shard 沒有回應，加入 unresponsive 列表
                 if (!shardResult.responsive) {
                     unresponsiveShards.add(shardId);
-                    console.warn(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is unresponsive - Status: ${shardResult.status}, Ready: ${shardResult.ready}`);
-                } else {
+                    if (!quiet) {
+                        console.warn(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is unresponsive - Status: ${shardResult.status}, Ready: ${shardResult.ready}`);
+                    }
+                } else if (!quiet) {
                     console.log(`[ShardFix] Shard ${shardId} (Cluster ${shardResult.clusterId}) is healthy - Status: ${shardResult.status}, Ping: ${shardResult.ping}ms`);
                 }
             } else {
                 // 如果沒有找到 shard 結果，視為未知狀態
-                console.warn(`[ShardFix] No result found for shard ${shardId}, marking as unknown`);
+                if (!quiet) {
+                    console.warn(`[ShardFix] No result found for shard ${shardId}, marking as unknown`);
+                }
                 shardHealthResults.push({
                     shardId,
                     clusterId: 'unknown',
@@ -1883,12 +2004,15 @@ async function checkShardHealth() {
             shardDetails: shardHealthResults
         };
 
-		if (healthSummary.unresponsiveShards.length > 0) {
-			healthMonitor.raiseAlert('shardHealthIssue', {
-				totalShards: healthSummary.totalShards,
-				unhealthyShards: healthSummary.unhealthyShards,
-				unresponsiveShards: healthSummary.unresponsiveShards
-			});
+		if (autoAlert && healthSummary.unresponsiveShards.length > 0) {
+			if (healthMonitor.coordinatorMode) {
+				healthMonitor.applyHealthSnapshot(healthSummary.shardDetails);
+				healthMonitor.tick();
+			} else {
+				console.warn(
+					'[ShardFix] autoAlert skipped: only Health Coordinator may open shard incidents / Admin Alerts'
+				);
+			}
 		}
 
 		return healthSummary;
@@ -1899,108 +2023,49 @@ async function checkShardHealth() {
 }
 
 /**
- * 開始自動修復 unresponsive shards
+ * Manual .root fixshard: seed HealthMonitor incidents (no second competing fix loop).
  */
 function startShardFix() {
-    if (shardFixInProgress) {
-        return { message: 'Shard fix is already in progress', inProgress: true };
+    if (!healthMonitor.isCoordinator(client.cluster?.id)) {
+        return {
+            message: 'startShardFix only runs on the Health Coordinator cluster',
+            inProgress: false
+        };
     }
 
-    if (unresponsiveShards.size === 0) {
+    if (!healthMonitor.coordinatorMode) {
+        // Manual fix before/without boot signal: end grace and start poll loop.
+        startHealthCoordinator('manual_fixshard');
+    }
+
+    if (unresponsiveShards.size === 0 && healthMonitor.getIncidentSnapshot().incidents.length === 0) {
         return { message: 'No unresponsive shards to fix', inProgress: false };
     }
 
-    shardFixInProgress = true;
-    console.log(`[ShardFix] Starting automatic shard fix for ${unresponsiveShards.size} unresponsive shards`);
+    healthMonitor.forceOpenIncidents(
+        [...unresponsiveShards].map((shardId) => ({ shardId }))
+    );
+    healthMonitor.tick();
 
-    let shardIterator = unresponsiveShards.values();
-    let currentShard = shardIterator.next();
-
-    shardFixInterval = setInterval(async () => {
-        if (currentShard.done) {
-            // 所有 shards 都處理完了，檢查是否還有 unresponsive 的
-            console.log('[ShardFix] All shards processed, checking for remaining issues...');
-
-            // 重新檢查所有 shards 的狀態
-            const healthReport = await checkShardHealth();
-
-            if (healthReport.unresponsiveShards && healthReport.unresponsiveShards.length > 0) {
-                // 還有 unresponsive shards，繼續處理
-                unresponsiveShards = new Set(healthReport.unresponsiveShards);
-                shardIterator = unresponsiveShards.values();
-                currentShard = shardIterator.next();
-                console.log(`[ShardFix] Found ${unresponsiveShards.size} remaining unresponsive shards, continuing...`);
-            } else {
-                // 所有 shards 都修復了
-                console.log('[ShardFix] All shards are now responsive, stopping auto-fix');
-                stopShardFix();
-            }
-            return;
-        }
-
-        const shardId = currentShard.value;
-        console.log(`[ShardFix] Attempting to respawn shard ${shardId}`);
-
-        try {
-            // 找到負責這個 shard 的 cluster
-            const clusterResult = await client.cluster.broadcastEval((c, targetShardId) => {
-                if (c.info && c.info.SHARD_LIST && c.info.SHARD_LIST.includes(targetShardId)) {
-                    return { clusterId: c.cluster.id, hasShard: true };
-                }
-                return null;
-            }, { cluster: null }, shardId).catch(() => []);
-
-            const targetCluster = clusterResult ? clusterResult.find(r => r !== null) : null;
-
-            if (targetCluster) {
-                console.log(`[ShardFix] Respawning shard ${shardId} via cluster ${targetCluster.clusterId}`);
-
-                // 發送 respawn 命令給對應的 cluster
-                await client.cluster.broadcastEval((c, data) => {
-                    if (c.cluster.id === data.clusterId) {
-                        // 在目標 cluster 中重啟 shard
-                        const shard = c.client.ws.shards.get(data.shardId);
-                        if (shard) {
-                            console.log(`[ShardFix] Destroying shard ${data.shardId} in cluster ${c.cluster.id}`);
-                            shard.destroy();
-                            // Discord.js 會自動重新連接 shard
-                        }
-                    }
-                }, { cluster: targetCluster.clusterId }, { clusterId: targetCluster.clusterId, shardId });
-
-                // 從 unresponsive 列表中移除
-                unresponsiveShards.delete(shardId);
-                console.log(`[ShardFix] Successfully initiated respawn for shard ${shardId}`);
-            } else {
-                console.error(`[ShardFix] Cannot find cluster responsible for shard ${shardId}`);
-            }
-        } catch (error) {
-            console.error(`[ShardFix] Failed to respawn shard ${shardId}:`, error.message);
-        }
-
-        // 移動到下一個 shard
-        currentShard = shardIterator.next();
-
-    }, 20_000); // 每 20 秒處理一個 shard
+    console.log(`[ShardFix] Seeded HealthMonitor for ${unresponsiveShards.size} unresponsive shards`);
 
     return {
-        message: `Started automatic shard fix for ${unresponsiveShards.size} unresponsive shards`,
+        message: `Started automatic shard fix for ${unresponsiveShards.size} unresponsive shards (via HealthMonitor)`,
         unresponsiveShards: [...unresponsiveShards],
-        inProgress: true
+        inProgress: true,
+        incidents: healthMonitor.getIncidentSnapshot().incidents
     };
 }
 
 /**
- * 停止自動修復
+ * Clear local unresponsive set and active recovery slot (incidents may still resolve via health checks).
  */
 function stopShardFix() {
-    if (shardFixInterval) {
-        clearInterval(shardFixInterval);
-        shardFixInterval = null;
-    }
-    shardFixInProgress = false;
     unresponsiveShards.clear();
-    console.log('[ShardFix] Stopped automatic shard fix');
+    if (healthMonitor.activeRecovery) {
+        healthMonitor.clearActiveRecovery(healthMonitor.activeRecovery.shardId);
+    }
+    console.log('[ShardFix] Cleared unresponsive list / active recovery (HealthMonitor incidents unchanged)');
     return { message: 'Stopped automatic shard fix', inProgress: false };
 }
 
@@ -2008,10 +2073,13 @@ function stopShardFix() {
  * 獲取 shard fix 狀態
  */
 function getShardFixStatus() {
+    const snapshot = healthMonitor.getIncidentSnapshot();
     return {
-        inProgress: shardFixInProgress,
+        inProgress: Boolean(snapshot.activeRecovery) || snapshot.incidents.length > 0,
         unresponsiveShards: [...unresponsiveShards],
-        totalUnresponsive: unresponsiveShards.size
+        totalUnresponsive: unresponsiveShards.size,
+        incidents: snapshot.incidents,
+        activeRecovery: snapshot.activeRecovery
     };
 }
 

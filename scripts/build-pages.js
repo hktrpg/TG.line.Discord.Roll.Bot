@@ -5,6 +5,7 @@
  * GitHub Pages with .nojekyll does not render .md, and extensionless files
  * are often downloaded as octet-stream.
  *
+ * views/home.html is copied to / (product hub).
  * CREDITS.html gets views/includes/header.html injected at build time.
  */
 
@@ -79,6 +80,8 @@ function loadHeaderHtml(pageTitle) {
 	let header = fs.readFileSync(headerPath, 'utf8').trim();
 	// Locale switcher needs /api/www-i18n (not available on GitHub Pages)
 	header = header.replaceAll(/<li class="nav-item dropdown" id="www-locale-switcher">[\s\S]*?<\/li>/g, '');
+	// Node serves the hub at /home; Pages serves it at the site root.
+	header = header.replaceAll('href="/home"', 'href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/"');
 	if (pageTitle) {
 		header = header.replaceAll('<span id="title"></span>', `<span id="title">${pageTitle}</span>`);
 	}
@@ -102,6 +105,38 @@ function injectSiteHeader(fileName, pageTitle) {
 	console.log(`injected header into ${fileName}`);
 }
 
+function injectSiteFooter(fileName) {
+	const footerPath = path.join(repoRoot, 'views', 'includes', 'footer.html');
+	const filePath = path.join(siteDir, fileName);
+	if (!fs.existsSync(footerPath) || !fs.existsSync(filePath)) {
+		return;
+	}
+	let html = fs.readFileSync(filePath, 'utf8');
+	if (!html.includes('id="footer"')) {
+		return;
+	}
+	const footer = fs.readFileSync(footerPath, 'utf8').trim();
+	html = html.replaceAll('<div id="footer"></div>', footer);
+	fs.writeFileSync(filePath, html, 'utf8');
+	console.log(`injected footer into ${fileName}`);
+}
+
+function publishHomePage() {
+	const src = path.join(repoRoot, 'views', 'home.html');
+	if (!fs.existsSync(src)) {
+		console.warn('skip home.html (missing)');
+		return;
+	}
+	let html = fs.readFileSync(src, 'utf8');
+	html = html.replaceAll(/<script src="\/common\/www-locale-head\.js"><\/script>\s*/g, '');
+	html = html.replaceAll(/<script src="\/common\/www-i18n\.js"><\/script>\s*/g, '');
+	html = html.replaceAll(/<script src="\/common\/site-chrome\.js"><\/script>\s*/g, '');
+	fs.writeFileSync(path.join(siteDir, 'index.html'), html, 'utf8');
+	injectSiteHeader('index.html', 'HKTRPG');
+	injectSiteFooter('index.html');
+	console.log('wrote index.html from views/home.html');
+}
+
 function writeHtml(relPath, title, markdown, options = {}) {
 	const outPath = path.join(siteDir, relPath);
 	fs.mkdirSync(path.dirname(outPath), { recursive: true });
@@ -118,6 +153,7 @@ function main() {
 	const portfolioMd = path.join(siteDir, 'PORTFOLIOP.md');
 	const privacyMd = path.join(siteDir, 'PUBLIC_PRIVACY_POLICY.md');
 
+	publishHomePage();
 	injectSiteHeader('CREDITS.html', '名人堂 Hall of Fame');
 
 	if (fs.existsSync(portfolioMd)) {

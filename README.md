@@ -32,6 +32,7 @@ Secret rolls, system dice for many TRPG rulesets, custom dice, role management, 
 
 ### Get started
 
+- Product hub: [hktrpg.github.io/TG.line.Discord.Roll.Bot](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)
 - User guide: [bothelp.hktrpg.com](https://bothelp.hktrpg.com/)
 - Support / TRPG Discord: [support.hktrpg.com](https://support.hktrpg.com)
 
@@ -74,6 +75,7 @@ Thanks to LarryLo Retsnimle (original open-source bot tutorials), 布大獅 (cod
 - HKTRPG是在Discord, Line, Telegram, Whatsapp, Plurk, API 和網頁上都可以使用的骰子機械人！
   - 功能：暗骰, 各類TRPG骰子擲骰, 自定義骰子, 身分組管理, 頻道經驗值, 占卜, 先攻表, TRPG角色卡, 搜圖, 翻譯, Discord 聊天紀錄匯出, 數學計算, 做筆記, 隨機抽選, wiki查詢, 資料庫快速查詢功能, 定時發訊息功能, 每日笑話, 每日動漫, 每日一言, 每日黃曆, 每日毒湯, 每日情話, 每日靈簽, 每日大事, 每日(星座), 每日解答
 - 使用方法請看 [HKTRPG 官方使用教學](https://bothelp.hktrpg.com/)
+  - 工具入口：[產品主頁](https://hktrpg.github.io/TG.line.Discord.Roll.Bot/)
   - 歡迎加入[開發，求助及TRPG Discord 群組](https://support.hktrpg.com)
   - 邀請HKTRPG 加入
     - [Discord 邀請連結](https://discord.hktrpg.com)

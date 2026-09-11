@@ -14,7 +14,9 @@ on:
     paths:
       - 'docs/public/**'
       - 'scripts/build-pages.js'
+      - 'views/home.html'
       - 'views/includes/header.html'
+      - 'views/includes/footer.html'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 

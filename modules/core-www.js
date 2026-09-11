@@ -1084,6 +1084,13 @@ www.use('/common/', async (req, res, next) => {
     next();
 }, express.static(process.cwd() + '/views/common/'));
 
+www.get('/home', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(process.cwd() + '/views/home.html');
+});
 www.get('/card', async (req, res) => {
     if (await checkRateLimit('card', req.ip)) {
         res.status(429).end();

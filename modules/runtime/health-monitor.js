@@ -6,6 +6,8 @@ const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../../utils/env
 const { isShardResponsive } = require('../discord/shard-connection.js');
 const timerManager = require('./timer-manager');
 
+const GATEWAY_5XX_PATTERN = /^http_5\d\d$|^gateway_5xx$/;
+
 function loadHealthConfig() {
 	return {
 		recoveryMs: parsePositiveIntEnv('HEALTH_SHARD_ERROR_RECOVERY_MS', 180_000),
@@ -15,6 +17,10 @@ function loadHealthConfig() {
 		checkIntervalMs: parsePositiveIntEnv('HEALTH_SHARD_CHECK_INTERVAL_MS', 90_000),
 		errorLogSummaryMs: parsePositiveIntEnv('HEALTH_ERROR_LOG_SUMMARY_MS', 600_000),
 		coordinatorClusterId: parseNonNegativeIntEnv('HEALTH_COORDINATOR_CLUSTER_ID', 0),
+		gatewayOutageWindowMs: parsePositiveIntEnv('HEALTH_GATEWAY_OUTAGE_WINDOW_MS', 90_000),
+		gatewayOutageMinShards: parsePositiveIntEnv('HEALTH_GATEWAY_OUTAGE_MIN_SHARDS', 5),
+		gatewayOutageMs: parsePositiveIntEnv('HEALTH_GATEWAY_OUTAGE_MS', 600_000),
+		destroyRetryBackoffMs: parsePositiveIntEnv('HEALTH_DESTROY_RETRY_BACKOFF_MS', 600_000),
 	};
 }
 
@@ -57,6 +63,8 @@ class HealthMonitor extends EventEmitter {
 		this.reopenCooldownUntil = new Map();
 		this.activeRecovery = null;
 		this.coordinatorMode = false;
+		this.gatewayOutageUntil = 0;
+		this._gatewayOutageActive = false;
 
 		if (options.skipInit) {
 			return;
@@ -184,8 +192,63 @@ class HealthMonitor extends EventEmitter {
 		}
 	}
 
+	_evaluateGatewayOutage(at = Date.now()) {
+		const windowStart = at - this.config.gatewayOutageWindowMs;
+		const recentShardIds = new Set();
+
+		for (const incident of this.shardIncidents.values()) {
+			if (incident.phase === 'resolved') continue;
+			if (!incident.errorPattern || !GATEWAY_5XX_PATTERN.test(incident.errorPattern)) continue;
+			if ((incident.lastErrorAt || 0) < windowStart) continue;
+			recentShardIds.add(incident.shardId);
+		}
+
+		const wasInOutage = this._gatewayOutageActive && at < this.gatewayOutageUntil;
+
+		if (recentShardIds.size >= this.config.gatewayOutageMinShards) {
+			this.gatewayOutageUntil = at + this.config.gatewayOutageMs;
+			if (!this._gatewayOutageActive) {
+				console.warn(
+					`[HealthMonitor] gatewayOutageMode=on shards=${recentShardIds.size} ` +
+					`window=${this.config.gatewayOutageWindowMs}ms until=${this.gatewayOutageUntil}`
+				);
+				this._gatewayOutageActive = true;
+			}
+			return true;
+		}
+
+		if (wasInOutage) {
+			return true;
+		}
+
+		if (this._gatewayOutageActive) {
+			console.warn('[HealthMonitor] gatewayOutageMode=off');
+			this._gatewayOutageActive = false;
+			for (const incident of this.shardIncidents.values()) {
+				if (incident.phase !== 'resolved') {
+					incident.openedAt = at;
+				}
+			}
+		}
+		this.gatewayOutageUntil = 0;
+		return false;
+	}
+
+	backoffIncidentRetry(shardId, at = Date.now(), ms = this.config.destroyRetryBackoffMs) {
+		const incident = this.shardIncidents.get(Number(shardId));
+		if (!incident || incident.phase === 'resolved') return;
+		incident.phase = 'open';
+		delete incident.destroyAt;
+		this.reopenCooldownUntil.set(Number(shardId), at + ms);
+		this.clearActiveRecovery(shardId);
+	}
+
 	tick(at = Date.now()) {
 		if (!this.coordinatorMode) return null;
+
+		if (this._evaluateGatewayOutage(at)) {
+			return null;
+		}
 
 		if (this.activeRecovery) {
 			const active = this.activeRecovery;
@@ -201,7 +264,9 @@ class HealthMonitor extends EventEmitter {
 						const reason = `still_unhealthy_after_destroy_settle_${this.config.destroySettleMs}ms`;
 						incident.phase = 'recovering_respawn';
 						incident.upgradeReason = reason;
-						console.warn(`[HealthMonitor] Escalating shard ${active.shardId} to clusterRespawn: ${reason}`);
+						console.warn(
+							`[HealthMonitor] clusterRespawn shard=${active.shardId} cluster=${incident.clusterId} reason=${reason}`
+						);
 						this.activeRecovery = {
 							shardId: active.shardId,
 							clusterId: incident.clusterId,

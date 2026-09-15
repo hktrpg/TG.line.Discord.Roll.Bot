@@ -29,13 +29,13 @@ function isShardResponsive(shardLike) {
 
 /**
  * Resolve WebSocketShard collection from a Discord Client (broadcastEval `c`).
- * Prefer client.ws.shards; hybrid-sharding also exposes client.cluster.shards.
+ * Only client.ws.shards — do not use client.cluster.shards (getter throws when ws.shards missing).
  * @param {object|null|undefined} client
  * @returns {{ get: (id: number) => object|undefined }|null}
  */
 function resolveWsShards(client) {
 	if (!client) return null;
-	return client.ws?.shards ?? client.cluster?.shards ?? null;
+	return client.ws?.shards ?? null;
 }
 
 /**

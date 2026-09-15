@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_upload_page_title">上傳團錄</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/trpg-hub.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
+        integrity="sha384-0DrKBsfUuJe/vqjia1HviapRn4mR1BYfCpQ9gT7qjSKu8TrzTe2tlbK3cI9i9EwV"
+        crossorigin="anonymous"></script>
+</head>
+<body class="trpg-hub-body">
+    <div id="header"></div>
+    <main class="trpg-page">
+        <div class="trpg-toolbar">
+            <div class="trpg-page-hero">
+                <h1 data-www-i18n="trpg_hub_cta_upload">上傳團錄</h1>
+                <p data-www-i18n="trpg_upload_subtitle"></p>
+            </div>
+            <div class="trpg-toolbar-actions">
+                <button type="button" class="trpg-theme-btn" data-www-theme-toggle>
+                    <span class="iconify" data-icon="bi:moon-stars" data-width="16"></span>
+                    <span data-www-theme-label data-www-i18n="roll_dark_mode">深色模式</span>
+                </button>
+                <a class="trpg-btn-sm" href="/logs" data-www-i18n="trpg_upload_back">返回列表</a>
+            </div>
+        </div>
+
+        <div class="trpg-panel" style="max-width: 520px;">
+            <div class="trpg-form-group">
+                <label for="userName" data-www-i18n="trpg_upload_account">帳號</label>
+                <input id="userName" autocomplete="username">
+            </div>
+            <div class="trpg-form-group">
+                <label for="userPassword" data-www-i18n="trpg_logs_password">密碼</label>
+                <input id="userPassword" type="password" autocomplete="current-password">
+            </div>
+            <hr>
+            <div class="trpg-form-group">
+                <label for="logTitle" data-www-i18n="trpg_upload_title_label">團錄標題</label>
+                <input id="logTitle" data-www-i18n-placeholder="trpg_upload_title_placeholder">
+            </div>
+            <div class="trpg-form-group">
+                <label for="exportFile" data-www-i18n="trpg_upload_file">Discord 匯出 HTML</label>
+                <input id="exportFile" type="file" accept=".html,text/html">
+            </div>
+            <div class="trpg-form-group">
+                <label for="exportPassword" data-www-i18n="trpg_upload_password">匯出密碼</label>
+                <input id="exportPassword" type="password" maxlength="32">
+            </div>
+            <div class="trpg-form-group">
+                <label for="visibility" data-www-i18n="trpg_upload_visibility">可見度</label>
+                <select id="visibility">
+                    <option value="private" data-www-i18n="trpg_upload_visibility_private">私人</option>
+                    <option value="unlisted" data-www-i18n="trpg_upload_visibility_unlisted">不公開列表</option>
+                </select>
+            </div>
+            <button id="uploadBtn" class="trpg-btn-primary" type="button" style="width:100%;border:0;" data-www-i18n="trpg_upload_btn">解密並匯入</button>
+            <p id="statusMsg" class="trpg-msg-muted"></p>
+            <p id="errorMsg" class="trpg-msg-error d-none"></p>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="/common/session-log-api.js"></script>
+    <script src="/common/session-log-decrypt.js"></script>
+    <script>
+        function t(key, options) {
+            return typeof wwwT === 'function' ? wwwT(key, options) : key;
+        }
+
+        document.getElementById('uploadBtn').addEventListener('click', async () => {
+            const status = document.getElementById('statusMsg');
+            const error = document.getElementById('errorMsg');
+            error.classList.add('d-none');
+            status.textContent = t('trpg_upload_processing');
+
+            const file = document.getElementById('exportFile').files[0];
+            const exportPassword = document.getElementById('exportPassword').value;
+            const userName = document.getElementById('userName').value.trim();
+            const userPassword = document.getElementById('userPassword').value;
+            const title = document.getElementById('logTitle').value.trim();
+            const visibility = document.getElementById('visibility').value;
+
+            if (!file || !exportPassword || !userName || !userPassword) {
+                error.textContent = t('trpg_upload_fill_all');
+                error.classList.remove('d-none');
+                status.textContent = '';
+                return;
+            }
+
+            try {
+                await SessionLogApi.login(userName, userPassword);
+                localStorage.setItem('userName', userName);
+                const parsed = await SessionLogDecrypt.parseExportHtmlFile(file, exportPassword);
+                const result = await SessionLogApi.importLog({
+                    title: title || parsed.channelName || t('trpg_upload_title_placeholder'),
+                    channelName: parsed.channelName,
+                    messages: parsed.messages,
+                    visibility,
+                });
+                window.location.href = `/logs/${result.id}`;
+            } catch (err) {
+                error.textContent = err.message || t('trpg_upload_fill_all');
+                error.classList.remove('d-none');
+                status.textContent = '';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await initTrpgHubPage({ titleKey: 'trpg_upload_page_title' });
+            const saved = localStorage.getItem('userName');
+            if (saved) document.getElementById('userName').value = saved;
+        });
+    </script>
+</body>
+</html>

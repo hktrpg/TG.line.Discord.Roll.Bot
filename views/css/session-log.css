@@ -1,0 +1,183 @@
+/* Session log reader chrome — uses trpg-hub theme variables */
+.session-log-view-body #header > .navbar {
+    margin-bottom: 0;
+}
+
+.session-log-shell {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 56px);
+    font-family: "Noto Sans TC", sans-serif;
+    background: var(--th-bg-elevated, #161411);
+    color: var(--th-ink, #ebe4d6);
+}
+
+.session-log-aside {
+    border-right: 1px solid var(--th-line);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--th-card);
+}
+
+.session-log-brand {
+    padding: 1rem;
+    border-bottom: 1px solid var(--th-line);
+}
+
+.session-log-brand h1 {
+    margin: 0 0 0.35rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--th-gold);
+    font-weight: 700;
+}
+
+.session-log-back {
+    display: inline-block;
+    font-size: 0.8rem;
+    color: var(--th-muted);
+    margin-bottom: 0.65rem;
+}
+
+.session-log-back:hover {
+    color: var(--th-accent);
+    text-decoration: none;
+}
+
+.session-log-theme-btn {
+    width: 100%;
+    justify-content: center;
+    margin-top: 0.25rem;
+}
+
+.session-log-nav-label {
+    padding: 0.5rem 1rem 0.25rem;
+    margin: 0;
+    font-size: 0.72rem;
+    color: var(--th-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.session-log-theme-nav {
+    overflow: auto;
+    flex: 1;
+    padding: 0.25rem 0 1rem;
+}
+
+.session-log-theme-nav button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-left: 3px solid transparent;
+    color: inherit;
+    padding: 0.55rem 1rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.88rem;
+}
+
+.session-log-theme-nav button:hover,
+.session-log-theme-nav button.active {
+    background: var(--th-accent-soft);
+    border-left-color: var(--th-gold);
+    color: var(--th-ink);
+}
+
+.session-log-stage {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-width: 0;
+    min-height: 0;
+}
+
+.session-log-meta {
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid var(--th-line);
+    background: var(--th-card);
+}
+
+.session-log-meta h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.session-log-meta p {
+    margin: 0.25rem 0 0;
+    font-size: 0.8rem;
+    color: var(--th-muted);
+}
+
+#sessionLogPreview {
+    overflow: auto;
+    min-height: 0;
+    background: #0e0c0a;
+}
+
+.page { min-height: 100%; }
+
+/* Novel skins unchanged — reading area stays warm/paper */
+.skin-kakuyomu {
+    background: #f7f1e4;
+    color: #2c2416;
+    font-family: "Noto Serif TC", serif;
+}
+
+.skin-kakuyomu .inner {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 3rem 1.4rem 5rem;
+    font-size: 1.08rem;
+    line-height: 2.05;
+}
+
+.skin-kakuyomu h1 { font-size: 1.55rem; text-align: center; margin: 0 0 0.4rem; }
+.skin-kakuyomu .head-meta { text-align: center; color: #7a6b52; font-size: 0.82rem; margin-bottom: 2rem; }
+.skin-kakuyomu .scene { text-align: center; font-weight: 700; margin: 2rem 0 1rem; }
+.skin-kakuyomu .who { white-space: nowrap; }
+.skin-kakuyomu .dice { color: #7a4a32; font-size: 0.92em; }
+.skin-kakuyomu .ooc { opacity: 0.72; }
+.skin-kakuyomu .reference { font-size: 0.9em; color: #6b4a32; }
+
+.skin-kindle { background: #f6f1e8; color: #1c1916; }
+.skin-kindle .inner {
+    max-width: 38rem;
+    margin: 0 auto;
+    padding: 2.6rem 1.5rem 4rem;
+    font-family: "Source Serif 4", "Noto Serif TC", serif;
+    font-size: 1.12rem;
+    line-height: 1.78;
+}
+.skin-kindle .progress { position: sticky; top: 0; height: 3px; background: #ddd6c8; }
+.skin-kindle .progress > span { display: block; width: 42%; height: 100%; background: #444; }
+.skin-kindle h1 { font-size: 1.35rem; margin: 1.2rem 0 0.3rem; }
+.skin-kindle .head-meta { font-size: 0.8rem; color: #6b6458; margin-bottom: 1.6rem; }
+.skin-kindle .dice { color: #555; font-size: 0.9em; }
+
+.skin-discord { background: #313338; color: #dbdee1; }
+.skin-discord .chat { max-width: 44rem; margin: 0 auto; padding: 1rem; }
+.skin-discord .msg { display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.7rem; padding: 0.45rem 0; }
+.skin-discord .av { width: 2.4rem; height: 2.4rem; border-radius: 50%; }
+.skin-discord .nm { font-weight: 600; color: #fff; }
+.skin-discord .tm { color: #949ba4; font-size: 0.72rem; margin-left: 0.4rem; }
+.skin-discord .tx { font-size: 0.95rem; line-height: 1.45; }
+
+.skin-term { background: #0b0d0a; color: #c6d4b0; }
+.skin-term pre {
+    margin: 0;
+    padding: 1.2rem;
+    font-family: "IBM Plex Mono", "Noto Sans TC", monospace;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 860px) {
+    .session-log-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .session-log-aside { max-height: 38vh; }
+}

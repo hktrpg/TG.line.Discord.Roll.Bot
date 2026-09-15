@@ -76,8 +76,10 @@ class WwwI18n {
         let text = this.strings[fullKey]
             ?? this.fallback[fullKey]
             ?? this.strings[key]
-            ?? this.fallback[key]
-            ?? fullKey;
+            ?? this.fallback[key];
+        if (text == null) {
+            return '';
+        }
         for (const [name, value] of Object.entries(options)) {
             text = text.split(`{{${name}}}`).join(String(value));
         }

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_hub_page_title">HKTRPG Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/trpg-hub.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+</head>
+<body class="trpg-hub-body">
+    <div id="header"></div>
+    <div class="trpg-hub">
+        <div class="trpg-topbar">
+            <button type="button" class="trpg-theme-btn" data-www-theme-toggle>
+                <span class="iconify" data-icon="bi:moon-stars" data-width="18"></span>
+                <span data-www-theme-label data-www-i18n="roll_dark_mode">深色模式</span>
+            </button>
+        </div>
+
+        <header class="trpg-hub-hero trpg-hub-hero-compact">
+            <p class="trpg-hub-kicker" data-www-i18n="trpg_hub_kicker">TRPG HUB</p>
+            <h1>HKTRPG Hub</h1>
+            <p class="trpg-hub-lead" data-www-i18n="trpg_hub_lead"></p>
+        </header>
+
+        <div class="trpg-hub-stage">
+            <div class="trpg-carousel-wrap">
+                <div class="trpg-carousel" role="list">
+                    <a class="trpg-carousel-slide" href="/logs" role="listitem">
+                        <div class="trpg-carousel-art trpg-poster-art-logs">
+                            <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="42"></span>
+                        </div>
+                        <p class="trpg-carousel-caption" data-www-i18n="trpg_hub_carousel_logs">團錄小說化閱讀，匯入 Discord 紀錄</p>
+                    </a>
+                    <a class="trpg-carousel-slide" href="https://card.hktrpg.com/" role="listitem">
+                        <div class="trpg-carousel-art trpg-poster-art-cards">
+                            <span class="iconify" data-icon="mdi:card-account-details-outline" data-width="42"></span>
+                        </div>
+                        <p class="trpg-carousel-caption" data-www-i18n="trpg_hub_carousel_cards">角色卡編輯與管理</p>
+                    </a>
+                    <a class="trpg-carousel-slide" href="/" role="listitem">
+                        <div class="trpg-carousel-art trpg-poster-art-roll">
+                            <span class="iconify" data-icon="mdi:dice-multiple" data-width="42"></span>
+                        </div>
+                        <p class="trpg-carousel-caption" data-www-i18n="trpg_hub_carousel_roll">網頁聊天室擲骰</p>
+                    </a>
+                </div>
+            </div>
+
+            <p class="trpg-notice-bar" data-www-i18n="trpg_hub_notice">團錄功能測試中，歡迎試用範例場次並回饋！</p>
+
+            <div class="trpg-hub-split">
+                <div class="trpg-hub-primary">
+                    <div class="trpg-section-bar">
+                        <h2 data-www-i18n="trpg_hub_section_explore">探索工具</h2>
+                        <a class="trpg-section-link" href="/home" data-www-i18n="trpg_hub_view_all">全部工具 ↗</a>
+                    </div>
+                    <div class="trpg-filter-tabs" role="tablist" aria-label="Filter">
+                        <button type="button" class="active" data-filter="all" role="tab" aria-selected="true" data-www-i18n="trpg_hub_filter_all">全部</button>
+                        <button type="button" data-filter="logs" role="tab" data-www-i18n="trpg_hub_filter_logs">團錄</button>
+                        <button type="button" data-filter="cards" role="tab" data-www-i18n="trpg_hub_filter_cards">角色卡</button>
+                        <button type="button" data-filter="roll" role="tab" data-www-i18n="trpg_hub_filter_roll">擲骰</button>
+                    </div>
+                    <div class="trpg-poster-grid">
+                        <a class="trpg-poster-card" data-cat="logs" href="/logs">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_logs">團錄</span>
+                            <div class="trpg-poster-art trpg-poster-art-logs">
+                                <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_logs_title">團錄列表</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="logs" href="/logs">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_tag_featured">優先</span>
+                            <div class="trpg-poster-art trpg-poster-art-logs">
+                                <span class="iconify" data-icon="mdi:play-circle-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_discover_demo_title">範例團錄</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="tools" href="/home">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_discover_tools">工具</span>
+                            <div class="trpg-poster-art trpg-poster-art-tools">
+                                <span class="iconify" data-icon="mdi:view-grid-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_link_home">工具總覽</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="cards" href="https://card.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_cards">角色卡</span>
+                            <div class="trpg-poster-art trpg-poster-art-cards">
+                                <span class="iconify" data-icon="mdi:card-account-details-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_link_card">角色卡</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="cards" href="/card">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_cards">角色卡</span>
+                            <div class="trpg-poster-art trpg-poster-art-cards">
+                                <span class="iconify" data-icon="mdi:account-box-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_cards_title">角色卡編輯</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="roll" href="/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_roll">擲骰</span>
+                            <div class="trpg-poster-art trpg-poster-art-roll">
+                                <span class="iconify" data-icon="bi:chat-square-text" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_chat_roll">聊天室擲骰</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="tools" href="https://bothelp.hktrpg.com/" data-www-bothelp-href>
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_link_guide">教學</span>
+                            <div class="trpg-poster-art trpg-poster-art-guide">
+                                <span class="iconify" data-icon="mdi:book-open-variant" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_link_guide">使用教學</span>
+                        </a>
+                        <a class="trpg-poster-card trpg-poster-card-muted" data-cat="news" href="/news">
+                            <span class="trpg-poster-badge trpg-poster-badge-soon" data-www-i18n="trpg_hub_tag_soon">籌備中</span>
+                            <div class="trpg-poster-art trpg-poster-art-news">
+                                <span class="iconify" data-icon="mdi:newspaper-variant-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_news_title">TRPG 新聞</span>
+                        </a>
+                    </div>
+                </div>
+
+                <aside class="trpg-hub-aside">
+                    <div class="trpg-sidebar-panel">
+                        <h3 class="trpg-sidebar-title">
+                            <span class="iconify" data-icon="mdi:fire" data-width="18"></span>
+                            <span data-www-i18n="trpg_hub_sidebar_focus">焦點工具</span>
+                        </h3>
+                        <ol class="trpg-focus-list">
+                            <li>
+                                <a href="/logs">
+                                    <span class="trpg-focus-thumb trpg-poster-art-logs"><span class="iconify" data-icon="mdi:book-open-page-variant" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>1. <span data-www-i18n="trpg_hub_card_logs_title">團錄列表</span></strong>
+                                        <small data-www-i18n="trpg_hub_card_logs_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/logs">
+                                    <span class="trpg-focus-thumb trpg-poster-art-logs"><span class="iconify" data-icon="mdi:play-circle-outline" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>2. <span data-www-i18n="trpg_discover_demo_title">範例團錄</span></strong>
+                                        <small data-www-i18n="trpg_discover_demo_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://card.hktrpg.com/">
+                                    <span class="trpg-focus-thumb trpg-poster-art-cards"><span class="iconify" data-icon="mdi:card-account-details-outline" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>3. <span data-www-i18n="trpg_hub_link_card">角色卡</span></strong>
+                                        <small data-www-i18n="trpg_hub_link_card_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/">
+                                    <span class="trpg-focus-thumb trpg-poster-art-roll"><span class="iconify" data-icon="bi:chat-square-text" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>4. <span data-www-i18n="nav_chat_roll">聊天室擲骰</span></strong>
+                                        <small data-www-i18n="hub_tool_chat_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="/home">
+                                    <span class="trpg-focus-thumb trpg-poster-art-tools"><span class="iconify" data-icon="mdi:view-grid-outline" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>5. <span data-www-i18n="trpg_hub_link_home">工具總覽</span></strong>
+                                        <small data-www-i18n="trpg_hub_link_home_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                        </ol>
+                    </div>
+                    <div class="trpg-sidebar-panel">
+                        <h3 class="trpg-sidebar-title" data-www-i18n="trpg_hub_sidebar_tags">熱門標籤</h3>
+                        <div class="trpg-tag-cloud" aria-hidden="true">
+                            <span class="trpg-tag-pill">#團錄</span>
+                            <span class="trpg-tag-pill">#角色卡</span>
+                            <span class="trpg-tag-pill">#擲骰</span>
+                            <span class="trpg-tag-pill">#COC</span>
+                            <span class="trpg-tag-pill">#D&amp;D</span>
+                            <span class="trpg-tag-pill">#TRPG</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <div class="trpg-explore-band">
+                <section class="trpg-explore-col">
+                    <header class="trpg-explore-head">
+                        <h2 data-www-i18n="trpg_discover_logs">團錄</h2>
+                        <span class="trpg-explore-num">01</span>
+                    </header>
+                    <a class="trpg-explore-link" href="/logs">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:book-open-page-variant" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_card_logs_title">團錄列表</strong>
+                            <span data-www-i18n="trpg_hub_card_logs_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="/logs">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:play-circle-outline" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_discover_demo_title">範例團錄</strong>
+                            <span data-www-i18n="trpg_discover_demo_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="/logs#import">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:upload-outline" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_card_upload_title">上傳團錄</strong>
+                            <span data-www-i18n="trpg_hub_card_upload_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                </section>
+                <section class="trpg-explore-col">
+                    <header class="trpg-explore-head">
+                        <h2 data-www-i18n="trpg_discover_tools">工具與服務</h2>
+                        <span class="trpg-explore-num">02</span>
+                    </header>
+                    <a class="trpg-explore-link" href="/home">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:view-grid-outline" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_link_home">工具總覽</strong>
+                            <span data-www-i18n="trpg_hub_link_home_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://card.hktrpg.com/">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:card-account-details-outline" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_link_card">角色卡</strong>
+                            <span data-www-i18n="trpg_hub_link_card_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://bothelp.hktrpg.com/" data-www-bothelp-href>
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:book-open-variant" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_link_guide">使用教學</strong>
+                            <span data-www-i18n="trpg_hub_link_guide_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                </section>
+                <section class="trpg-explore-col">
+                    <header class="trpg-explore-head">
+                        <h2 data-www-i18n="trpg_discover_news">新聞與資訊</h2>
+                        <span class="trpg-explore-num">03</span>
+                    </header>
+                    <a class="trpg-explore-link" href="/news">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:newspaper-variant-outline" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_card_news_title">TRPG 新聞</strong>
+                            <span data-www-i18n="trpg_hub_card_news_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="/">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:dice-multiple" data-width="20"></span></span>
+                        <span class="trpg-explore-body">
+                            <strong data-www-i18n="trpg_hub_cta_roll">回到擲骰</strong>
+                            <span data-www-i18n="hub_tool_chat_desc"></span>
+                        </span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                </section>
+            </div>
+        </div>
+    </div>
+    <div id="footer"></div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initTrpgHubPage({ titleKey: 'trpg_hub_page_title' });
+        });
+    </script>
+</body>
+</html>

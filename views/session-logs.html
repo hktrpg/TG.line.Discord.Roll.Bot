@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_logs_page_title">團錄列表</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/trpg-hub.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
+        integrity="sha384-0DrKBsfUuJe/vqjia1HviapRn4mR1BYfCpQ9gT7qjSKu8TrzTe2tlbK3cI9i9EwV"
+        crossorigin="anonymous"></script>
+</head>
+<body class="trpg-hub-body">
+    <div id="header"></div>
+
+    <div class="trpg-console">
+        <header class="trpg-console-hero">
+            <div>
+                <p class="trpg-hub-kicker" data-www-i18n="trpg_console_kicker">SESSION LOGS</p>
+                <h1 data-www-i18n="trpg_console_title">團錄控制台</h1>
+                <p class="trpg-console-lead" data-www-i18n="trpg_console_lead"></p>
+            </div>
+            <div class="trpg-console-hero-actions">
+                <button type="button" class="trpg-theme-btn" data-www-theme-toggle>
+                    <span class="iconify" data-icon="bi:moon-stars" data-width="16"></span>
+                    <span data-www-theme-label data-www-i18n="roll_dark_mode">深色模式</span>
+                </button>
+                <a class="trpg-btn-sm" href="/hub" data-www-i18n="trpg_news_back">返回 Hub</a>
+            </div>
+        </header>
+
+        <div class="trpg-console-layout">
+            <nav class="trpg-console-nav" aria-label="Console">
+                <button type="button" class="trpg-console-nav-item active" data-console-tab="library" aria-current="page">
+                    <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="18"></span>
+                    <span data-www-i18n="trpg_console_nav_library">團錄庫</span>
+                </button>
+                <button type="button" class="trpg-console-nav-item" data-console-tab="import">
+                    <span class="iconify" data-icon="mdi:tray-arrow-up" data-width="18"></span>
+                    <span data-www-i18n="trpg_console_nav_import">匯入</span>
+                </button>
+                <button type="button" class="trpg-console-nav-item" data-console-tab="account">
+                    <span class="iconify" data-icon="mdi:account-circle-outline" data-width="18"></span>
+                    <span data-www-i18n="trpg_console_nav_account">帳號</span>
+                </button>
+            </nav>
+            <main id="consolePanel" class="trpg-console-main" aria-live="polite"></main>
+        </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="/common/session-log-api.js"></script>
+    <script src="/common/session-log-decrypt.js"></script>
+    <script src="/common/session-log-dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            await initTrpgHubPage({ titleKey: 'trpg_logs_page_title' });
+            await initSessionLogDashboard();
+        });
+    </script>
+</body>
+</html>

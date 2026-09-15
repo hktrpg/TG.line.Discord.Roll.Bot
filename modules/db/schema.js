@@ -384,6 +384,58 @@ if (process.env.mongoURL) {
         times: Number
     }));
 
+    models.sessionLog = mongoose.model('sessionLog', new Schema({
+        ownerDiscordId: { type: String, index: true, required: true },
+        ownerUserName: { type: String, trim: true },
+        shareToken: { type: String, index: true, sparse: true, unique: true },
+        title: { type: String, maxlength: 200, required: true, trim: true },
+        subtitle: { type: String, maxlength: 200, trim: true },
+        sessionDate: { type: String, maxlength: 120, trim: true },
+        location: { type: String, maxlength: 200, trim: true },
+        visibility: {
+            type: String,
+            enum: ['private', 'unlisted', 'public'],
+            default: 'private',
+            index: true,
+        },
+        importSource: {
+            type: String,
+            enum: ['discord_export', 'manual'],
+            default: 'discord_export',
+        },
+        theme: { type: String, default: 'kakuyomu', maxlength: 40 },
+        settings: {
+            hideOOC: { type: Boolean, default: false },
+            hideDice: { type: Boolean, default: false },
+        },
+        events: [{
+            id: { type: String, maxlength: 16 },
+            type: { type: String, maxlength: 20 },
+            title: { type: String, maxlength: 300 },
+            name: { type: String, maxlength: 100 },
+            text: { type: String, maxlength: 8000 },
+            label: { type: String, maxlength: 200 },
+            expr: { type: String, maxlength: 80 },
+            result: { type: String, maxlength: 80 },
+            verdict: { type: String, maxlength: 200 },
+            url: { type: String, maxlength: 2000 },
+            caption: { type: String, maxlength: 500 },
+            mime: { type: String, maxlength: 80 },
+            timestamp: Number,
+        }],
+        mods: [{
+            op: { type: String, enum: ['hide', 'edit', 'unhide'] },
+            eventId: { type: String, maxlength: 16 },
+            patch: { type: Schema.Types.Mixed },
+            by: { type: String, maxlength: 100 },
+            at: { type: Date, default: Date.now },
+        }],
+        messageCount: { type: Number, default: 0 },
+        playerNames: [{ type: String, maxlength: 100 }],
+    }, {
+        timestamps: true,
+    }));
+
     models.init = mongoose.model('init', new Schema({
         groupID: { type: String, index: true },
         active: { type: Boolean, default: false },

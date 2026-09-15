@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
     <meta charset="UTF-8">
     <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title data-www-i18n="hub_page_title">HKTRPG — TRPG 骰子機械人與跑團工具</title>
     <meta name="description" data-www-i18n-content="hub_meta_description"
@@ -21,346 +21,260 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="css/trpg-hub.css">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
     <script src="/common/site-chrome.js"></script>
-    <style>
-        :root {
-            --ink: #141820;
-            --ink-soft: #3a4250;
-            --paper: #f3f0ea;
-            --line: rgba(20, 24, 32, 0.12);
-            --accent: #8b5a2b;
-            --gold: #b08d57;
-            --cta: #c45c4a;
-            --cta-ink: #fff;
-            --card: #fffcf7;
-            --nav-shadow: 0 1px 0 var(--line);
-        }
-
-        * { box-sizing: border-box; }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            margin: 0;
-            font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
-            color: var(--ink);
-            background:
-                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(196, 92, 74, 0.16), transparent 55%),
-                linear-gradient(180deg, #ebe6dc 0%, var(--paper) 28%, #ddd7cb 100%);
-            min-height: 100vh;
-        }
-
-        body > .navbar,
-        #header > .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 1030;
-            width: 100%;
-            margin: 0;
-            background-color: rgba(243, 240, 234, 0.96) !important;
-            box-shadow: var(--nav-shadow);
-            overflow: visible;
-        }
-
-        body > .navbar .navbar-collapse,
-        body > .navbar .navbar-nav,
-        body > .navbar .nav-item.dropdown,
-        #header > .navbar .navbar-collapse,
-        #header > .navbar .navbar-nav,
-        #header > .navbar .nav-item.dropdown {
-            overflow: visible;
-            position: relative;
-            z-index: 1031;
-        }
-
-        body > .navbar .dropdown-menu,
-        #header > .navbar .dropdown-menu {
-            z-index: 1040;
-        }
-
-        .hub {
-            width: min(960px, calc(100% - 2rem));
-            margin: 0 auto;
-            padding: 2rem 0 3.5rem;
-        }
-
-        .hub-hero {
-            text-align: center;
-            padding: 2rem 0.5rem 1.75rem;
-        }
-
-        .hub-kicker {
-            display: inline-block;
-            font-size: 0.75rem;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: var(--accent);
-            font-weight: 500;
-            margin-bottom: 0.75rem;
-        }
-
-        .hub-brand {
-            font-family: "Shippori Mincho", "Noto Serif TC", serif;
-            font-size: clamp(2.4rem, 6vw, 3.4rem);
-            font-weight: 700;
-            line-height: 1.15;
-            margin: 0 0 0.75rem;
-        }
-
-        .hub-lead {
-            max-width: 36rem;
-            margin: 0 auto 1.5rem;
-            color: var(--ink-soft);
-            font-size: 1.05rem;
-            line-height: 1.7;
-        }
-
-        .hub-ctas {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.6rem;
-        }
-
-        .hub-ctas .btn-cta {
-            background: var(--cta);
-            color: var(--cta-ink);
-            border: 0;
-            border-radius: 999px;
-            padding: 0.55rem 1.2rem;
-            font-weight: 500;
-        }
-
-        .hub-ctas .btn-cta:hover {
-            color: var(--cta-ink);
-            filter: brightness(1.05);
-        }
-
-        .hub-ctas .btn-ghost {
-            background: transparent;
-            color: var(--ink);
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 0.55rem 1.2rem;
-        }
-
-        .hub-ctas .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.55);
-            color: var(--ink);
-        }
-
-        .hub-section {
-            margin-top: 2.25rem;
-            scroll-margin-top: 4.5rem;
-        }
-
-        .hub-section h2 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin: 0 0 0.35rem;
-        }
-
-        .hub-section-note {
-            color: var(--ink-soft);
-            font-size: 0.92rem;
-            margin: 0 0 1rem;
-        }
-
-        .hub-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 0.85rem;
-        }
-
-        .hub-card {
-            display: block;
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 1.05rem 1.1rem 1.15rem;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 8px 24px rgba(20, 24, 32, 0.04);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        .hub-card:hover,
-        .hub-card:focus {
-            color: inherit;
-            text-decoration: none;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(20, 24, 32, 0.08);
-        }
-
-        .hub-card-icon {
-            display: inline-flex;
-            margin-bottom: 0.35rem;
-            color: var(--cta);
-        }
-
-        .hub-card h3 {
-            font-size: 1.02rem;
-            font-weight: 700;
-            margin: 0 0 0.3rem;
-        }
-
-        .hub-card p {
-            margin: 0;
-            color: var(--ink-soft);
-            font-size: 0.9rem;
-            line-height: 1.55;
-        }
-
-        .hub-platforms {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .hub-platforms a {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 0.45rem 0.9rem;
-            color: var(--ink);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .hub-platforms a:hover {
-            color: var(--ink);
-            background: #fff;
-        }
-
-        .hub-footer-links {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 0.75rem 1.1rem;
-            margin-top: 2.5rem;
-            padding-top: 1.25rem;
-            border-top: 1px solid var(--line);
-            font-size: 0.9rem;
-        }
-
-        .hub-footer-links a {
-            color: var(--accent);
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-            html { scroll-behavior: auto; }
-            .hub-card { transition: none; }
-            .hub-card:hover { transform: none; }
-        }
-    </style>
+    <script src="/common/trpg-hub-page.js"></script>
 </head>
-
-<body>
+<body class="trpg-hub-body">
     <div id="header"></div>
 
-    <main class="hub">
-        <header class="hub-hero">
-            <div class="hub-kicker" data-www-i18n="hub_kicker">TRPG 工具</div>
-            <h1 class="hub-brand">HKTRPG</h1>
-            <p class="hub-lead" data-www-i18n="hub_lead">在 Discord、Telegram、Line、WhatsApp 用同一套指令擲骰，也可以直接開網頁。</p>
-            <div class="hub-ctas">
-                <a class="btn btn-cta" href="#invite" data-www-i18n="hub_cta_invite">邀請機械人</a>
-                <a class="btn btn-ghost" href="https://bothelp.hktrpg.com/" data-www-bothelp-href data-www-i18n="hub_cta_guide">使用教學</a>
-                <a class="btn btn-ghost" href="https://rollbot.hktrpg.com/" data-www-i18n="hub_cta_chat">開始擲骰</a>
+    <div class="trpg-hub">
+        <div class="trpg-topbar">
+            <button type="button" class="trpg-theme-btn" data-www-theme-toggle>
+                <span class="iconify" data-icon="bi:moon-stars" data-width="18"></span>
+                <span data-www-theme-label data-www-i18n="roll_dark_mode">深色模式</span>
+            </button>
+        </div>
+
+        <header class="trpg-hub-hero trpg-hub-hero-compact">
+            <p class="trpg-hub-kicker" data-www-i18n="hub_kicker">TRPG 工具</p>
+            <h1 class="trpg-hub-brand">HKTRPG</h1>
+            <p class="trpg-hub-lead" data-www-i18n="hub_lead"></p>
+            <div class="trpg-hub-ctas">
+                <a class="trpg-btn-primary" href="#invite" data-www-i18n="hub_cta_invite">邀請機械人</a>
+                <a class="trpg-btn-ghost" href="https://bothelp.hktrpg.com/" data-www-bothelp-href data-www-i18n="hub_cta_guide">使用教學</a>
+                <a class="trpg-btn-ghost" href="https://rollbot.hktrpg.com/" data-www-i18n="hub_cta_chat">開始擲骰</a>
             </div>
         </header>
 
-        <section class="hub-section" id="invite" aria-labelledby="invite-title">
-            <h2 id="invite-title" data-www-i18n="hub_section_invite">邀請機械人</h2>
-            <p class="hub-section-note" data-www-i18n="hub_section_invite_desc">加到你的群組，開團就能骰。</p>
-            <div class="hub-platforms">
-                <a href="https://discord.hktrpg.com">
-                    <span class="iconify" data-icon="jam:discord" data-width="18" data-height="18"></span>
-                    Discord
-                </a>
-                <a href="https://telegram.hktrpg.com/">Telegram</a>
-                <a href="https://line.hktrpg.com">Line</a>
-                <a href="https://api.whatsapp.com/send?phone=85294427421&text=1d100" target="_blank" rel="noopener">WhatsApp</a>
-                <a href="https://www.plurk.com/HKTRPG" target="_blank" rel="noopener">Plurk</a>
-                <a href="https://rollbot.hktrpg.com/" data-www-i18n="hub_invite_web">網頁版</a>
+        <div class="trpg-hub-stage">
+            <div class="trpg-carousel-wrap">
+                <div class="trpg-carousel" role="list">
+                    <a class="trpg-carousel-slide" href="https://discord.hktrpg.com" role="listitem">
+                        <div class="trpg-carousel-art trpg-poster-art-roll">
+                            <span class="iconify" data-icon="jam:discord" data-width="42"></span>
+                        </div>
+                        <p class="trpg-carousel-caption" data-www-i18n="hub_carousel_discord">邀請 HKTRPG 到 Discord 伺服器</p>
+                    </a>
+                    <a class="trpg-carousel-slide" href="/hub" role="listitem">
+                        <div class="trpg-carousel-art trpg-poster-art-logs">
+                            <span class="iconify" data-icon="mdi:view-grid-outline" data-width="42"></span>
+                        </div>
+                        <p class="trpg-carousel-caption" data-www-i18n="trpg_hub_lead"></p>
+                    </a>
+                    <a class="trpg-carousel-slide" href="https://rollbot.hktrpg.com/" role="listitem">
+                        <div class="trpg-carousel-art trpg-poster-art-tools">
+                            <span class="iconify" data-icon="mdi:dice-multiple" data-width="42"></span>
+                        </div>
+                        <p class="trpg-carousel-caption" data-www-i18n="trpg_hub_carousel_roll">網頁聊天室擲骰</p>
+                    </a>
+                </div>
             </div>
-        </section>
 
-        <section class="hub-section" aria-labelledby="tools-title">
-            <h2 id="tools-title" data-www-i18n="hub_section_tools">網頁工具</h2>
-            <div class="hub-grid">
-                <a class="hub-card" href="https://rollbot.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="bi:chat-square-text" data-width="22" data-height="22"></span></span>
-                    <h3 data-www-i18n="nav_chat_roll">聊天室擲骰</h3>
-                    <p data-www-i18n="hub_tool_chat_desc">開房間、輸入指令，跟 Bot 一樣的骰。</p>
-                </a>
-                <a class="hub-card" href="https://roll.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="mdi:dice-multiple-outline" data-width="22" data-height="22"></span></span>
-                    <h3 data-www-i18n="nav_mobile_roll">手機簡易擲骰</h3>
-                    <p data-www-i18n="hub_tool_roll_desc">一按就骰，給不想打指令的時候。</p>
-                </a>
-                <a class="hub-card" href="https://card.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="mdi:account-box-outline" data-width="22" data-height="22"></span></span>
-                    <h3 data-www-i18n="nav_private_card">私人角色卡</h3>
-                    <p data-www-i18n="hub_tool_card_desc">和聊天平台連動，改數值、擲技能。</p>
-                </a>
-                <a class="hub-card" href="https://publiccard.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="mdi:earth" data-width="22" data-height="22"></span></span>
-                    <h3 data-www-i18n="nav_public_card">公開角色卡</h3>
-                    <p data-www-i18n="hub_tool_public_desc">查看公開的角色卡。</p>
-                </a>
-                <a class="hub-card" href="https://player.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="mdi:card-account-details-outline" data-width="22" data-height="22"></span></span>
-                    <h3 data-www-i18n="nav_player_png">喜好卡 PNG</h3>
-                    <p data-www-i18n="hub_tool_player_desc">匯出遊玩喜好名片。</p>
-                </a>
-                <a class="hub-card" href="https://character.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="mdi:badge-account-horizontal-outline" data-width="22" data-height="22"></span></span>
-                    <h3 data-www-i18n="nav_character_png">角色卡 PNG</h3>
-                    <p data-www-i18n="hub_tool_charpng_desc">匯出角色卡圖片。</p>
-                </a>
-                <a class="hub-card" href="https://signal.hktrpg.com/">
-                    <span class="hub-card-icon"><span class="iconify" data-icon="mdi:text-box-remove-outline" data-width="22" data-height="22"></span></span>
-                    <h3>Signal to Noise</h3>
-                    <p data-www-i18n="hub_tool_signal_desc">把文字慢慢變成亂碼，適合恐怖團。</p>
-                </a>
+            <p class="trpg-notice-bar" data-www-i18n="hub_section_invite_desc"></p>
+
+            <div class="trpg-hub-split">
+                <div class="trpg-hub-primary">
+                    <div class="trpg-section-bar">
+                        <h2 data-www-i18n="hub_section_tools">網頁工具</h2>
+                        <a class="trpg-section-link" href="/hub" data-www-i18n="nav_trpg_hub">TRPG Hub ↗</a>
+                    </div>
+                    <div class="trpg-filter-tabs" role="tablist" aria-label="Filter">
+                        <button type="button" class="active" data-filter="all" role="tab" aria-selected="true" data-www-i18n="trpg_hub_filter_all">全部</button>
+                        <button type="button" data-filter="roll" role="tab" data-www-i18n="trpg_hub_filter_roll">擲骰</button>
+                        <button type="button" data-filter="cards" role="tab" data-www-i18n="trpg_hub_filter_cards">角色卡</button>
+                        <button type="button" data-filter="tools" role="tab" data-www-i18n="trpg_discover_tools">工具</button>
+                    </div>
+                    <div class="trpg-poster-grid">
+                        <a class="trpg-poster-card" data-cat="tools" href="/hub">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_tag_featured">優先</span>
+                            <div class="trpg-poster-art trpg-poster-art-logs">
+                                <span class="iconify" data-icon="mdi:view-grid-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_trpg_hub">TRPG Hub</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="roll" href="https://rollbot.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_roll">擲骰</span>
+                            <div class="trpg-poster-art trpg-poster-art-roll">
+                                <span class="iconify" data-icon="bi:chat-square-text" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_chat_roll">聊天室擲骰</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="roll" href="https://roll.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_roll">擲骰</span>
+                            <div class="trpg-poster-art trpg-poster-art-roll">
+                                <span class="iconify" data-icon="mdi:dice-multiple" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_mobile_roll">手機簡易擲骰</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="cards" href="https://card.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_cards">角色卡</span>
+                            <div class="trpg-poster-art trpg-poster-art-cards">
+                                <span class="iconify" data-icon="mdi:card-account-details-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_private_card">私人角色卡</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="cards" href="https://publiccard.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_cards">角色卡</span>
+                            <div class="trpg-poster-art trpg-poster-art-cards">
+                                <span class="iconify" data-icon="mdi:account-group-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_public_card">公開角色卡</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="tools" href="https://player.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_discover_tools">工具</span>
+                            <div class="trpg-poster-art trpg-poster-art-tools">
+                                <span class="iconify" data-icon="mdi:image-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_player_png">喜好卡 PNG</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="tools" href="https://character.hktrpg.com/">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_discover_tools">工具</span>
+                            <div class="trpg-poster-art trpg-poster-art-tools">
+                                <span class="iconify" data-icon="mdi:card-bulleted-outline" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="nav_character_png">角色卡 PNG</span>
+                        </a>
+                        <a class="trpg-poster-card" data-cat="logs" href="/logs">
+                            <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_logs">團錄</span>
+                            <div class="trpg-poster-art trpg-poster-art-logs">
+                                <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="36"></span>
+                            </div>
+                            <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_logs_title">團錄列表</span>
+                        </a>
+                    </div>
+                </div>
+
+                <aside class="trpg-hub-aside" id="invite">
+                    <div class="trpg-sidebar-panel">
+                        <h3 class="trpg-sidebar-title" data-www-i18n="hub_section_invite">邀請機械人</h3>
+                        <div class="trpg-platform-grid">
+                            <a href="https://discord.hktrpg.com">
+                                <span class="iconify" data-icon="jam:discord" data-width="18" data-height="18"></span>
+                                Discord
+                            </a>
+                            <a href="https://telegram.hktrpg.com/">Telegram</a>
+                            <a href="https://line.hktrpg.com">Line</a>
+                            <a href="https://api.whatsapp.com/send?phone=85294427421&text=1d100" target="_blank" rel="noopener">WhatsApp</a>
+                            <a href="https://www.plurk.com/HKTRPG" target="_blank" rel="noopener">Plurk</a>
+                            <a href="https://rollbot.hktrpg.com/" data-www-i18n="hub_invite_web">網頁版</a>
+                        </div>
+                    </div>
+                    <div class="trpg-sidebar-panel">
+                        <h3 class="trpg-sidebar-title">
+                            <span class="iconify" data-icon="mdi:fire" data-width="18"></span>
+                            <span data-www-i18n="trpg_hub_sidebar_focus">焦點工具</span>
+                        </h3>
+                        <ol class="trpg-focus-list">
+                            <li>
+                                <a href="/hub">
+                                    <span class="trpg-focus-thumb trpg-poster-art-logs"><span class="iconify" data-icon="mdi:view-grid-outline" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>1. <span data-www-i18n="nav_trpg_hub">TRPG Hub</span></strong>
+                                        <small data-www-i18n="trpg_hub_lead"></small>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://rollbot.hktrpg.com/">
+                                    <span class="trpg-focus-thumb trpg-poster-art-roll"><span class="iconify" data-icon="bi:chat-square-text" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>2. <span data-www-i18n="nav_chat_roll">聊天室擲骰</span></strong>
+                                        <small data-www-i18n="hub_tool_chat_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://card.hktrpg.com/">
+                                    <span class="trpg-focus-thumb trpg-poster-art-cards"><span class="iconify" data-icon="mdi:card-account-details-outline" data-width="18"></span></span>
+                                    <span class="trpg-focus-text">
+                                        <strong>3. <span data-www-i18n="nav_private_card">私人角色卡</span></strong>
+                                        <small data-www-i18n="hub_tool_card_desc"></small>
+                                    </span>
+                                </a>
+                            </li>
+                        </ol>
+                    </div>
+                </aside>
             </div>
-        </section>
 
-        <section class="hub-section" aria-labelledby="more-title">
-            <h2 id="more-title" data-www-i18n="hub_section_more">教學與社群</h2>
-            <div class="hub-grid">
-                <a class="hub-card" href="https://bothelp.hktrpg.com/" data-www-bothelp-href>
-                    <h3 data-www-i18n="hub_more_guide">使用教學</h3>
-                    <p data-www-i18n="hub_more_guide_desc">指令、系統骰、角色卡與進階功能。</p>
-                </a>
-                <a class="hub-card" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
-                    <h3 data-www-i18n="nav_wiki">TRPG 百科</h3>
-                    <p data-www-i18n="hub_more_wiki_desc">開放編輯的 TRPG 百科全書。</p>
-                </a>
-                <a class="hub-card" href="https://support.hktrpg.com">
-                    <h3 data-www-i18n="hub_more_support">支援 Discord</h3>
-                    <p data-www-i18n="hub_more_support_desc">提問、回報與跑團群組。</p>
-                </a>
-                <a class="hub-card" href="https://www.patreon.com/HKTRPG">
-                    <h3 data-www-i18n="hub_more_patreon">贊助 Patreon</h3>
-                    <p data-www-i18n="hub_more_patreon_desc">請一杯茶，讓伺服器繼續轉。</p>
-                </a>
+            <div class="trpg-explore-band">
+                <section class="trpg-explore-col">
+                    <header class="trpg-explore-head">
+                        <h2 data-www-i18n="hub_section_invite">邀請機械人</h2>
+                        <span class="trpg-explore-num">01</span>
+                    </header>
+                    <a class="trpg-explore-link" href="https://discord.hktrpg.com">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="jam:discord" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong>Discord</strong><span data-www-i18n="hub_section_invite_desc"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://telegram.hktrpg.com/">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:send" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong>Telegram</strong><span data-www-i18n="hub_invite_web">網頁版</span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://line.hktrpg.com">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:chat" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong>Line</strong><span data-www-i18n="hub_invite_web">網頁版</span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                </section>
+                <section class="trpg-explore-col">
+                    <header class="trpg-explore-head">
+                        <h2 data-www-i18n="hub_section_tools">網頁工具</h2>
+                        <span class="trpg-explore-num">02</span>
+                    </header>
+                    <a class="trpg-explore-link" href="/hub">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:view-grid-outline" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong data-www-i18n="nav_trpg_hub">TRPG Hub</strong><span data-www-i18n="trpg_hub_lead"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://rollbot.hktrpg.com/">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="bi:chat-square-text" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong data-www-i18n="nav_chat_roll">聊天室擲骰</strong><span data-www-i18n="hub_tool_chat_desc"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="/logs">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:book-open-page-variant" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong data-www-i18n="trpg_hub_card_logs_title">團錄列表</strong><span data-www-i18n="trpg_hub_card_logs_desc"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                </section>
+                <section class="trpg-explore-col">
+                    <header class="trpg-explore-head">
+                        <h2 data-www-i18n="hub_section_more">教學與社群</h2>
+                        <span class="trpg-explore-num">03</span>
+                    </header>
+                    <a class="trpg-explore-link" href="https://bothelp.hktrpg.com/" data-www-bothelp-href>
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:book-open-variant" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong data-www-i18n="hub_more_guide">使用教學</strong><span data-www-i18n="hub_more_guide_desc"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://www.hktrpg.com/wiki/index.php/%E9%A6%96%E9%A0%81">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="mdi:book-alphabet" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong data-www-i18n="nav_wiki">TRPG 百科</strong><span data-www-i18n="hub_more_wiki_desc"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                    <a class="trpg-explore-link" href="https://support.hktrpg.com">
+                        <span class="trpg-explore-icon"><span class="iconify" data-icon="jam:discord" data-width="20"></span></span>
+                        <span class="trpg-explore-body"><strong data-www-i18n="hub_more_support">支援 Discord</strong><span data-www-i18n="hub_more_support_desc"></span></span>
+                        <span class="trpg-explore-go" aria-hidden="true">↗</span>
+                    </a>
+                </section>
             </div>
-        </section>
 
-        <nav class="hub-footer-links" aria-label="Footer">
+            <nav class="trpg-footer-links" aria-label="Footer">
             <a href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PORTFOLIOP" data-www-i18n="nav_portfolio">HKTRPG 作品集</a>
             <a href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/CREDITS.html" data-www-i18n="hub_more_credits">名人堂</a>
             <a href="https://hktrpg.github.io/TG.line.Discord.Roll.Bot/PUBLIC_PRIVACY_POLICY" data-www-i18n="hub_more_privacy">隱私權聲明</a>
             <a href="https://github.com/hktrpg/TG.line.Discord.Roll.Bot">GitHub</a>
-        </nav>
-    </main>
+            </nav>
+        </div>
+    </div>
 
     <div id="footer"></div>
 
@@ -371,20 +285,9 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <script>
-        function hubT(key) {
-            if (typeof wwwT !== 'function') return '';
-            return wwwT(key.startsWith('hub_') || key.startsWith('nav_') ? key : `hub_${key}`);
-        }
-        $(async function () {
-            if (window.wwwI18n?.ready) await window.wwwI18n.ready;
-            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.body);
-            const title = hubT('hub_page_title');
-            if (title) document.title = title;
-            if (typeof loadSiteChromeWithI18n === 'function') {
-                loadSiteChromeWithI18n({ title: 'HKTRPG' });
-            }
+        document.addEventListener('DOMContentLoaded', function () {
+            initTrpgHubPage({ titleKey: 'hub_page_title' });
         });
     </script>
 </body>
-
 </html>

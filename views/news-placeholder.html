@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_news_page_title">TRPG 新聞</title>
+    <link rel="stylesheet" href="css/trpg-hub.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+</head>
+<body class="trpg-hub-body">
+    <div id="header"></div>
+    <main class="trpg-page" style="text-align:center;padding-top:2rem;">
+        <div class="trpg-topbar" style="justify-content:flex-end;">
+            <button type="button" class="trpg-theme-btn" data-www-theme-toggle>
+                <span class="iconify" data-icon="bi:moon-stars" data-width="16"></span>
+                <span data-www-theme-label data-www-i18n="roll_dark_mode">深色模式</span>
+            </button>
+        </div>
+        <h1 class="h4" data-www-i18n="trpg_hub_card_news_title">TRPG 新聞</h1>
+        <p class="trpg-msg-muted" data-www-i18n="trpg_news_coming"></p>
+        <a href="/hub" class="trpg-btn-sm" data-www-i18n="trpg_news_back">返回 Hub</a>
+    </main>
+    <div id="footer"></div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            initTrpgHubPage({ titleKey: 'trpg_news_page_title' });
+        });
+    </script>
+</body>
+</html>

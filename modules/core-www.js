@@ -31,6 +31,7 @@ const i18n = require('./i18n/i18n.js');
 const patreonTiers = require('./patreon/patreon-tiers.js');
 const patreonSync = require('./patreon/patreon-sync.js');
 const schema = require('./db/schema.js');
+const { registerSessionLogRoutes } = require('./session-log/session-log-routes.js');
 const {
     safeSocketHandler,
     createRateLimitReject
@@ -1091,6 +1092,43 @@ www.get('/home', async (req, res) => {
     }
     res.sendFile(process.cwd() + '/views/home.html');
 });
+
+www.get('/hub', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'hub.html'));
+});
+
+www.get('/logs/upload', async (req, res) => {
+    res.redirect(302, '/logs#import');
+    return;
+});
+
+www.get('/logs', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-logs.html'));
+});
+
+www.get('/logs/:id', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-view.html'));
+});
+
+www.get('/news', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'news-placeholder.html'));
+});
 www.get('/card', async (req, res) => {
     if (await checkRateLimit('card', req.ip)) {
         res.status(429).end();
@@ -1956,6 +1994,14 @@ www.patch('/api/patreon/me/slot/:index', async (req, res) => {
         console.error('[Web Server] Patreon slot toggle error:', error.message);
         res.status(500).json({ error: t('www.patreon.server_error') });
     }
+});
+
+registerSessionLogRoutes({
+    www,
+    schema,
+    security,
+    checkRateLimit,
+    verifyPasswordSecure,
 });
 
 www.get('/log/:id', async (req, res) => {

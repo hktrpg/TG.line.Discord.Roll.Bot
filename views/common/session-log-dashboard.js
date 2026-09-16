@@ -55,25 +55,61 @@ const SessionLogDashboard = {
         }
     },
 
-    renderLogRow(log, options = {}) {
+    logThemeArtClass(theme) {
+        const allowed = ['kakuyomu', 'kindle', 'parchment', 'notion', 'letter', 'script', 'discord', 'chat', 'term'];
+        return allowed.includes(theme) ? theme : 'kakuyomu';
+    },
+
+    logThemeIcon(theme) {
+        const icons = {
+            kakuyomu: 'mdi:book-open-page-variant',
+            kindle: 'mdi:book-outline',
+            parchment: 'mdi:scroll-text',
+            notion: 'mdi:note-text-outline',
+            letter: 'mdi:email-newsletter',
+            script: 'mdi:script-text-outline',
+            discord: 'mdi:chat-outline',
+            chat: 'mdi:message-text-outline',
+            term: 'mdi:console',
+        };
+        return icons[this.logThemeArtClass(theme)] || icons.kakuyomu;
+    },
+
+    renderLogCard(log, options = {}) {
         const { demo = false } = options;
-        const players = (log.playerNames || []).slice(0, 4);
-        const tags = players.map((name) => `<span class="trpg-tag">${this.esc(name)}</span>`).join('');
-        const demoBadge = demo
-            ? `<span class="trpg-tag trpg-tag-demo">${this.esc(this.t('trpg_logs_demo_badge'))}</span>`
-            : '';
+        const theme = this.logThemeArtClass(log.theme);
+        const themeLabel = this.t(`trpg_theme_${theme}`);
+        const leftTag = demo
+            ? this.t('trpg_logs_demo_badge')
+            : themeLabel;
+        const messageLabel = this.t('trpg_logs_messages', { count: log.messageCount || 0 });
+        const captionMeta = [log.sessionDate, log.location].filter(Boolean).join(' · ');
+        const captionSub = log.subtitle || captionMeta;
+        const hoverTags = [];
+        if (log.sessionDate) hoverTags.push(log.sessionDate);
+        if (log.location) hoverTags.push(log.location);
+        for (const name of (log.playerNames || []).slice(0, 5)) {
+            hoverTags.push(name);
+        }
+        const tagsHtml = hoverTags
+            .map((item) => `<span class="trpg-log-card-hashtag">#${this.esc(item)}</span>`)
+            .join('');
+
         return `
-            <article class="trpg-log-item${demo ? ' trpg-log-item-demo' : ''}">
-                <div>
-                    <h3>${this.esc(log.title)}</h3>
-                    <p class="trpg-log-meta">${this.esc(log.sessionDate || '')} · ${this.t('trpg_logs_messages', { count: log.messageCount || 0 })}</p>
-                    ${log.subtitle ? `<p class="trpg-log-subtitle">${this.esc(log.subtitle)}</p>` : ''}
-                    <div class="trpg-tags">${demoBadge}${tags}</div>
+            <a class="trpg-log-card${demo ? ' trpg-log-card-demo' : ''}" href="/logs/${this.esc(log.id)}">
+                <div class="trpg-log-card-cover">
+                    <span class="trpg-log-card-tag trpg-log-card-tag-left${demo ? ' trpg-log-card-tag-demo' : ''}">${this.esc(leftTag)}</span>
+                    <span class="trpg-log-card-tag trpg-log-card-tag-right">${this.esc(messageLabel)}</span>
+                    <div class="trpg-log-card-art trpg-log-card-art-${theme}" aria-hidden="true">
+                        <span class="iconify trpg-log-card-icon" data-icon="${this.logThemeIcon(theme)}" data-width="46"></span>
+                    </div>
+                    <div class="trpg-log-card-caption">
+                        <strong class="trpg-log-card-title">${this.esc(log.title)}</strong>
+                        ${captionSub ? `<span class="trpg-log-card-sub">${this.esc(captionSub)}</span>` : ''}
+                    </div>
                 </div>
-                <div class="trpg-log-actions">
-                    <a class="trpg-btn-sm trpg-btn-sm-accent" href="/logs/${this.esc(log.id)}">${this.esc(this.t('trpg_logs_read'))}</a>
-                </div>
-            </article>`;
+                ${tagsHtml ? `<div class="trpg-log-card-tags-panel">${tagsHtml}</div>` : ''}
+            </a>`;
     },
 
     async renderLibrary(panel) {
@@ -93,8 +129,8 @@ const SessionLogDashboard = {
             }
         }
 
-        const demoHtml = (demos.logs || []).map((log) => this.renderLogRow(log, { demo: true })).join('');
-        const userHtml = userLogs.map((log) => this.renderLogRow(log)).join('');
+        const demoHtml = (demos.logs || []).map((log) => this.renderLogCard(log, { demo: true })).join('');
+        const userHtml = userLogs.map((log) => this.renderLogCard(log)).join('');
 
         panel.innerHTML = `
             ${this.state.loggedIn ? '' : `<div class="trpg-console-banner">
@@ -106,7 +142,7 @@ const SessionLogDashboard = {
                     <h2>${this.esc(this.t('trpg_logs_demo_section'))}</h2>
                     <p>${this.esc(this.t('trpg_logs_demo_section_desc'))}</p>
                 </div>
-                <div class="trpg-log-list">${demoHtml}</div>
+                <div class="trpg-log-card-grid">${demoHtml}</div>
             </section>
             ${this.state.loggedIn ? `
             <section class="trpg-console-block">
@@ -114,7 +150,7 @@ const SessionLogDashboard = {
                     <h2>${this.esc(this.t('trpg_logs_my_section'))}</h2>
                     <a class="trpg-btn-sm" href="#import" data-tab-jump="import">${this.esc(this.t('trpg_logs_import_action'))}</a>
                 </div>
-                <div class="trpg-log-list">${userHtml || `<p class="trpg-msg-muted">${this.esc(this.t('trpg_logs_empty'))}</p>`}</div>
+                <div class="trpg-log-card-grid">${userHtml || `<p class="trpg-log-card-empty trpg-msg-muted">${this.esc(this.t('trpg_logs_empty'))}</p>`}</div>
             </section>` : ''}`;
     },
 

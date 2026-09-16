@@ -135,7 +135,10 @@ class WwwI18n {
         for (const el of root.querySelectorAll('[data-www-i18n]')) {
             const key = el.getAttribute('data-www-i18n');
             if (!key) continue;
-            el.textContent = t(key);
+            const text = t(key);
+            if (text) {
+                el.textContent = text;
+            }
         }
         for (const el of root.querySelectorAll('[data-www-i18n-html]')) {
             const key = el.getAttribute('data-www-i18n-html');

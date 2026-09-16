@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_detail_page_title">團錄詳情</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/trpg-hub.css">
+    <link rel="stylesheet" href="/css/session-log.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+</head>
+<body class="trpg-hub-body session-log-detail-body">
+    <div id="header"></div>
+    <main class="session-log-detail-shell">
+        <a href="/logs" class="session-log-back" data-www-i18n="trpg_view_back">← 團錄列表</a>
+        <div id="sessionLogHero" class="session-log-hero" aria-live="polite">
+            <p class="session-log-hero-loading" data-www-i18n="trpg_view_loading">載入中…</p>
+        </div>
+    </main>
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="/common/session-log-api.js"></script>
+    <script src="/common/session-log-reader.js"></script>
+    <script src="/common/session-log-detail-page.js"></script>
+    <script>
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const logId = pathParts[1] || '';
+        const shareToken = new URLSearchParams(window.location.search).get('token') || '';
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await initTrpgHubPage({ titleKey: 'trpg_detail_page_title' });
+            await initSessionLogDetailPage(logId, shareToken);
+        });
+    </script>
+</body>
+</html>

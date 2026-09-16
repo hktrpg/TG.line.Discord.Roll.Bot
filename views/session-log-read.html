@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_view_page_title">團錄閱讀</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/trpg-hub.css">
+    <link rel="stylesheet" href="/css/session-log.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+</head>
+<body class="trpg-hub-body session-log-view-body">
+    <div id="header"></div>
+    <div class="session-log-shell">
+        <div class="session-log-stage">
+            <div class="session-log-read-bar">
+                <a href="#" id="sessionLogBackToDetail" class="session-log-back" data-www-i18n="trpg_view_back_detail">← 作品詳情</a>
+                <nav id="chapterNavBar" class="session-log-chapter-nav" hidden aria-label="Chapters">
+                    <button type="button" class="session-log-chapter-btn" id="chapterPrev" aria-label="Previous chapter">‹</button>
+                    <span id="chapterNavLabel" class="session-log-chapter-label"></span>
+                    <button type="button" class="session-log-chapter-btn" id="chapterNext" aria-label="Next chapter">›</button>
+                </nav>
+            </div>
+            <p id="sessionLogReaderError" class="session-log-reader-error" hidden></p>
+            <div id="sessionLogPreview"></div>
+        </div>
+
+        <aside class="session-log-rail" aria-label="Reader tools">
+            <button type="button" class="session-log-rail-btn" data-reader-panel="catalog" title="目錄">
+                <span class="iconify" data-icon="mdi:format-list-bulleted" data-width="22"></span>
+                <span data-www-i18n="trpg_reader_catalog">目錄</span>
+            </button>
+            <button type="button" class="session-log-rail-btn" data-reader-panel="info" title="詳情">
+                <span class="iconify" data-icon="mdi:book-open-page-variant-outline" data-width="22"></span>
+                <span data-www-i18n="trpg_reader_info">詳情</span>
+            </button>
+            <button type="button" class="session-log-rail-btn" data-reader-panel="settings" title="設置">
+                <span class="iconify" data-icon="mdi:tune-vertical" data-width="22"></span>
+                <span data-www-i18n="trpg_reader_settings">設置</span>
+            </button>
+        </aside>
+    </div>
+
+    <div id="readerOverlay" class="session-log-overlay" hidden>
+        <div class="session-log-drawer" role="dialog" aria-modal="true" aria-labelledby="readerDrawerTitle">
+            <header class="session-log-drawer-head">
+                <h3 id="readerDrawerTitle"></h3>
+                <button type="button" class="session-log-drawer-close" id="readerDrawerClose" aria-label="Close">×</button>
+            </header>
+            <div id="readerDrawerBody" class="session-log-drawer-body"></div>
+        </div>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
+        integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
+        integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script src="/common/session-log-api.js"></script>
+    <script src="/common/session-log-reader.js"></script>
+    <script src="/common/session-log-view-page.js"></script>
+    <script>
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const logId = pathParts[1] || '';
+        const shareToken = new URLSearchParams(window.location.search).get('token') || '';
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await initTrpgHubPage({ titleKey: 'trpg_view_page_title' });
+            await initSessionLogViewPage(logId, shareToken);
+        });
+    </script>
+</body>
+</html>

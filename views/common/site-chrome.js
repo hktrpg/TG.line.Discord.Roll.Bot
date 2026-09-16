@@ -44,6 +44,23 @@ function ensureBootstrap4() {
     return window.__wwwBootstrapLoading;
 }
 
+function applyNavbarActiveState() {
+    const header = document.getElementById('header');
+    if (!header) {
+        return;
+    }
+    const path = window.location.pathname;
+    const isHubSection = path === '/hub'
+        || path.startsWith('/logs')
+        || path.startsWith('/news');
+    const isHome = path === '/home';
+
+    for (const link of header.querySelectorAll('.navbar-nav > a.nav-link')) {
+        const href = link.getAttribute('href') || '';
+        link.classList.toggle('active', (isHubSection && href === '/hub') || (isHome && href === '/home'));
+    }
+}
+
 function mountSiteChrome(options = {}) {
     const resolveTitle = () => {
         if (typeof options.titleResolver === 'function') {
@@ -70,6 +87,7 @@ function mountSiteChrome(options = {}) {
         if (typeof Iconify !== 'undefined' && Iconify.scan) {
             Iconify.scan(document.getElementById('header'));
         }
+        applyNavbarActiveState();
     });
 
     $('#footer').load('/includes/footer.html', function () {

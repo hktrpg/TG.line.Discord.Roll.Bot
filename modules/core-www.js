@@ -1114,12 +1114,20 @@ www.get('/logs', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views', 'session-logs.html'));
 });
 
+www.get('/logs/:id/read', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-read.html'));
+});
+
 www.get('/logs/:id', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
         res.status(429).end();
         return;
     }
-    res.sendFile(path.join(process.cwd(), 'views', 'session-log-view.html'));
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-detail.html'));
 });
 
 www.get('/news', async (req, res) => {

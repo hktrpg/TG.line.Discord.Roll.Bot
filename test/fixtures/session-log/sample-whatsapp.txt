@@ -1,0 +1,4 @@
+[3/12/24, 10:00:00 AM] Alice: Hello everyone
+[3/12/24, 10:01:15 AM] Bob: Ready to start?
+[3/12/24, 10:02:00 AM] Alice: <attached: photo.jpg>
+[3/12/24, 10:03:00 AM] Bob: Let's go

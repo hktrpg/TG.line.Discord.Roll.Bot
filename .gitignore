@@ -85,6 +85,10 @@ temp/*
 whatsapp-session/*
 !whatsapp-session/.gitkeep
 
+# Session log author-uploaded images
+assets/session-logs/*
+!assets/session-logs/.gitkeep
+
 dist/
 
 *.dev.js

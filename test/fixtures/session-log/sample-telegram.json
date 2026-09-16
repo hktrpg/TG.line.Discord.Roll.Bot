@@ -1,0 +1,37 @@
+{
+  "name": "TRPG Table",
+  "type": "private_supergroup",
+  "messages": [
+    {
+      "id": 1,
+      "type": "message",
+      "date": "2024-03-12T10:00:00",
+      "date_unixtime": "1710237600",
+      "from": "Alice",
+      "text": "Hello"
+    },
+    {
+      "id": 2,
+      "type": "message",
+      "date": "2024-03-12T10:01:00",
+      "date_unixtime": "1710237660",
+      "from": "Bob",
+      "text": [{"type": "plain", "text": "Hi there"}]
+    },
+    {
+      "id": 3,
+      "type": "message",
+      "date": "2024-03-12T10:02:00",
+      "date_unixtime": "1710237720",
+      "from": "Alice",
+      "photo": "photos/photo_1.jpg",
+      "text": "a map"
+    },
+    {
+      "id": 4,
+      "type": "service",
+      "actor": "Alice",
+      "action": "invite_members"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_author_page_title">作者頁面</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/trpg-hub.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+</head>
+<body class="trpg-hub-body">
+    <div id="header"></div>
+
+    <div class="trpg-console">
+        <header class="trpg-console-hero" id="authorHero">
+            <p class="trpg-msg-muted" data-www-i18n="trpg_view_loading">載入中…</p>
+        </header>
+
+        <main class="trpg-console-main">
+            <section class="trpg-console-block">
+                <div class="trpg-console-block-head">
+                    <h2 data-www-i18n="trpg_author_works_title">作品列表</h2>
+                </div>
+                <div id="authorWorksGrid" class="trpg-log-card-grid" aria-live="polite"></div>
+            </section>
+        </main>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="/common/session-log-api.js"></script>
+    <script src="/common/session-log-author-page.js"></script>
+    <script>
+        const pathParts = window.location.pathname.split('/').filter(Boolean);
+        const authorSlug = pathParts[1] || '';
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            await initTrpgHubPage({ titleKey: 'trpg_author_page_title' });
+            await initSessionLogAuthorPage(authorSlug);
+        });
+    </script>
+</body>
+</html>

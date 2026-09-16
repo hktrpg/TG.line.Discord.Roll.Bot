@@ -1254,3 +1254,62 @@ body.session-log-drawer-open {
         display: none;
     }
 }
+
+/* R18 age gate overlay */
+.session-log-age-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(4px);
+}
+
+.session-log-age-gate-box {
+    max-width: 22rem;
+    padding: 1.5rem;
+    background: var(--th-card, #1c2028);
+    border: 1px solid var(--th-line, rgba(255, 255, 255, 0.1));
+    border-radius: 12px;
+    text-align: center;
+}
+
+.session-log-age-gate-box h2 {
+    font-size: 1.1rem;
+    margin: 0 0 0.5rem;
+}
+
+.session-log-age-gate-box p {
+    font-size: 0.86rem;
+    color: var(--th-muted, #9a917f);
+    margin: 0 0 1rem;
+}
+
+.session-log-age-gate-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.session-log-hero-cover-has-img {
+    padding: 0;
+    overflow: hidden;
+}
+
+.session-log-hero-cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.session-log-hero-author {
+    margin: 0.25rem 0 0;
+    font-size: 0.88rem;
+}
+
+.session-log-hero-author a {
+    color: var(--th-accent);
+}

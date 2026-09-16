@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <script src="/common/www-locale-head.js"></script>
+    <script src="/common/www-theme-head.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-www-i18n="trpg_explore_page_title">探索作品</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/trpg-hub.css">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="/common/www-i18n.js"></script>
+    <script src="/common/www-theme.js"></script>
+    <script src="/common/site-chrome.js"></script>
+    <script src="/common/trpg-hub-page.js"></script>
+</head>
+<body class="trpg-hub-body">
+    <div id="header"></div>
+
+    <div class="trpg-console">
+        <header class="trpg-console-hero">
+            <div>
+                <p class="trpg-hub-kicker" data-www-i18n="trpg_explore_kicker">DISCOVER</p>
+                <h1 data-www-i18n="trpg_explore_title">探索作品</h1>
+                <p class="trpg-console-lead" data-www-i18n="trpg_explore_lead"></p>
+            </div>
+            <div class="trpg-console-hero-actions">
+                <a class="trpg-btn-sm" href="/logs" data-www-i18n="trpg_console_nav_library">團錄庫</a>
+                <a class="trpg-btn-sm" href="/hub" data-www-i18n="trpg_news_back">返回 Hub</a>
+            </div>
+        </header>
+
+        <main class="trpg-console-main trpg-explore-main">
+            <div class="trpg-explore-toolbar">
+                <label class="trpg-form-check">
+                    <input type="checkbox" id="exploreSafeFilter" checked>
+                    <span data-www-i18n="trpg_explore_safe_filter">安全模式（隱藏 R15/R18）</span>
+                </label>
+                <select id="exploreSort" class="trpg-form-select">
+                    <option value="latest" data-www-i18n="trpg_explore_sort_latest">最新</option>
+                    <option value="popular" data-www-i18n="trpg_explore_sort_popular">熱門</option>
+                </select>
+            </div>
+            <div id="exploreGrid" class="trpg-log-card-grid" aria-live="polite">
+                <p class="trpg-msg-muted" data-www-i18n="trpg_view_loading">載入中…</p>
+            </div>
+        </main>
+    </div>
+
+    <div id="footer"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="/common/session-log-api.js"></script>
+    <script src="/common/session-log-explore-page.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function () {
+            await initTrpgHubPage({ titleKey: 'trpg_explore_page_title' });
+            await initSessionLogExplorePage();
+        });
+    </script>
+</body>
+</html>

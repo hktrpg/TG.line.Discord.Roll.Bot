@@ -5,21 +5,20 @@
     <script src="/common/www-locale-head.js"></script>
     <script src="/common/www-theme-head.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title data-www-i18n="trpg_logs_page_title">團錄列表</title>
+    <meta name="robots" content="noindex">
+    <title data-www-i18n="trpg_admin_page_title">作品管理後台</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
         integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <link rel="stylesheet" href="/css/trpg-hub.css">
+    <link rel="stylesheet" href="/css/session-log.css">
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <script src="/common/www-i18n.js"></script>
     <script src="/common/www-theme.js"></script>
     <script src="/common/site-chrome.js"></script>
     <script src="/common/trpg-hub-page.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.0.0/crypto-js.min.js"
-        integrity="sha384-0DrKBsfUuJe/vqjia1HviapRn4mR1BYfCpQ9gT7qjSKu8TrzTe2tlbK3cI9i9EwV"
-        crossorigin="anonymous"></script>
 </head>
 <body class="trpg-hub-body">
     <div id="header"></div>
@@ -27,45 +26,44 @@
     <div class="trpg-console">
         <header class="trpg-console-hero">
             <div>
-                <p class="trpg-hub-kicker" data-www-i18n="trpg_console_kicker">SESSION LOGS</p>
-                <h1 data-www-i18n="trpg_console_title">團錄控制台</h1>
-                <p class="trpg-console-lead" data-www-i18n="trpg_console_lead"></p>
+                <p class="trpg-hub-kicker">ADMIN</p>
+                <h1 data-www-i18n="trpg_admin_page_title">作品管理後台</h1>
+                <p class="trpg-console-lead" data-www-i18n="trpg_admin_lead">審核檢舉、下架作品、查看作者與稽核紀錄。</p>
             </div>
             <div class="trpg-console-hero-actions">
                 <button type="button" class="trpg-theme-btn" data-www-theme-toggle>
                     <span class="iconify" data-icon="bi:moon-stars" data-width="16"></span>
                     <span data-www-theme-label data-www-i18n="roll_dark_mode">深色模式</span>
                 </button>
-                <a class="trpg-btn-sm" href="/explore/logs" data-www-i18n="trpg_explore_title">探索作品</a>
-                <a class="trpg-btn-sm" href="/logs/admin" data-www-i18n="trpg_console_nav_admin">管理後台</a>
+                <a class="trpg-btn-sm" href="/logs" data-www-i18n="trpg_console_nav_library">作品庫</a>
                 <a class="trpg-btn-sm" href="/hub" data-www-i18n="trpg_news_back">返回 Hub</a>
             </div>
         </header>
 
         <div class="trpg-console-layout">
-            <nav class="trpg-console-nav" aria-label="Console">
-                <button type="button" class="trpg-console-nav-item active" data-console-tab="library" aria-current="page">
+            <nav class="trpg-console-nav" aria-label="Admin">
+                <button type="button" class="trpg-console-nav-item active" data-admin-tab="reports" aria-current="page">
+                    <span class="iconify" data-icon="mdi:flag-outline" data-width="18"></span>
+                    <span data-www-i18n="trpg_admin_tab_reports">檢舉</span>
+                </button>
+                <button type="button" class="trpg-console-nav-item" data-admin-tab="works">
                     <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="18"></span>
-                    <span data-www-i18n="trpg_console_nav_library">團錄庫</span>
+                    <span data-www-i18n="trpg_admin_tab_works">作品</span>
                 </button>
-                <button type="button" class="trpg-console-nav-item" data-console-tab="import">
-                    <span class="iconify" data-icon="mdi:tray-arrow-up" data-width="18"></span>
-                    <span data-www-i18n="trpg_console_nav_import">匯入</span>
+                <button type="button" class="trpg-console-nav-item" data-admin-tab="authors">
+                    <span class="iconify" data-icon="mdi:account-group-outline" data-width="18"></span>
+                    <span data-www-i18n="trpg_admin_tab_authors">作者</span>
                 </button>
-                <button type="button" class="trpg-console-nav-item" data-console-tab="author">
-                    <span class="iconify" data-icon="mdi:feather" data-width="18"></span>
-                    <span data-www-i18n="trpg_console_nav_author">作者</span>
+                <button type="button" class="trpg-console-nav-item" data-admin-tab="audits">
+                    <span class="iconify" data-icon="mdi:clipboard-text-clock-outline" data-width="18"></span>
+                    <span data-www-i18n="trpg_admin_tab_audits">稽核</span>
                 </button>
-                <button type="button" class="trpg-console-nav-item" data-console-tab="trash">
-                    <span class="iconify" data-icon="mdi:delete-outline" data-width="18"></span>
-                    <span data-www-i18n="trpg_console_nav_trash">垃圾桶</span>
-                </button>
-                <button type="button" class="trpg-console-nav-item" data-console-tab="account">
-                    <span class="iconify" data-icon="mdi:account-circle-outline" data-width="18"></span>
-                    <span data-www-i18n="trpg_console_nav_account">帳號</span>
+                <button type="button" class="trpg-console-nav-item" data-admin-tab="login">
+                    <span class="iconify" data-icon="mdi:shield-account-outline" data-width="18"></span>
+                    <span data-www-i18n="trpg_admin_tab_login">登入</span>
                 </button>
             </nav>
-            <main id="consolePanel" class="trpg-console-main" aria-live="polite"></main>
+            <main id="adminPanel" class="trpg-console-main" aria-live="polite"></main>
         </div>
     </div>
 
@@ -78,12 +76,11 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"
         integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
     <script src="/common/session-log-api.js"></script>
-    <script src="/common/session-log-decrypt.js"></script>
-    <script src="/common/session-log-dashboard.js"></script>
+    <script src="/common/session-log-admin-page.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function () {
-            await initTrpgHubPage({ titleKey: 'trpg_logs_page_title' });
-            await initSessionLogDashboard();
+            await initTrpgHubPage({ titleKey: 'trpg_admin_page_title' });
+            await initSessionLogAdminPage();
         });
     </script>
 </body>

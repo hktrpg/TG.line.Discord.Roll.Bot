@@ -288,6 +288,8 @@ if (process.env.mongoURL) {
         userName: { type: String, unique: true, sparse: true },
         password: String,
         legacyPassword: { type: String, default: null },
+        /** Session-log / works admin console privilege */
+        isAdmin: { type: Boolean, default: false, index: true },
         channel: [{
             id: String,
             botname: String,
@@ -390,6 +392,11 @@ if (process.env.mongoURL) {
         shareToken: { type: String, index: true, sparse: true, unique: true },
         title: { type: String, maxlength: 200, required: true, trim: true },
         subtitle: { type: String, maxlength: 200, trim: true },
+        synopsis: { type: String, maxlength: 2000, trim: true },
+        coverUrl: { type: String, maxlength: 2000, trim: true },
+        coverAssetId: { type: String, maxlength: 100 },
+        tags: [{ type: String, maxlength: 40 }],
+        genre: { type: String, maxlength: 40 },
         sessionDate: { type: String, maxlength: 120, trim: true },
         location: { type: String, maxlength: 200, trim: true },
         visibility: {
@@ -398,10 +405,80 @@ if (process.env.mongoURL) {
             default: 'private',
             index: true,
         },
+        status: {
+            type: String,
+            enum: ['draft', 'scheduled', 'published', 'archived'],
+            default: 'draft',
+            index: true,
+        },
+        publishAt: { type: Date, index: true },
+        rating: {
+            type: String,
+            enum: ['general', 'teen', 'r15', 'r18'],
+            default: 'general',
+            index: true,
+        },
+        contentWarnings: [{ type: String, maxlength: 40 }],
+        license: {
+            type: String,
+            enum: ['all_rights_reserved', 'cc_by', 'cc_by_nc', 'cc_by_nc_nd', 'cc0'],
+            default: 'all_rights_reserved',
+        },
+        originality: {
+            type: String,
+            enum: ['original', 'fanwork', 'translation'],
+            default: 'original',
+        },
+        sourceAttribution: { type: String, maxlength: 500 },
+        chapters: [{
+            id: { type: String, maxlength: 16 },
+            title: { type: String, maxlength: 300 },
+            order: Number,
+            startEventId: { type: String, maxlength: 16 },
+            endEventId: { type: String, maxlength: 16 },
+            status: {
+                type: String,
+                enum: ['draft', 'scheduled', 'published'],
+                default: 'published',
+            },
+            publishAt: Date,
+            wordCount: Number,
+            views: { type: Number, default: 0 },
+        }],
+        stats: {
+            views: { type: Number, default: 0 },
+            reads: { type: Number, default: 0 },
+            lastViewedAt: Date,
+        },
+        moderation: {
+            state: {
+                type: String,
+                enum: ['ok', 'under_review', 'taken_down'],
+                default: 'ok',
+                index: true,
+            },
+            reason: { type: String, maxlength: 500 },
+            at: Date,
+            by: { type: String, maxlength: 100 },
+        },
+        deletedAt: { type: Date, index: true },
+        contentHash: { type: String, maxlength: 64, index: true },
+        seriesId: { type: String, maxlength: 40, index: true },
+        seriesOrder: { type: Number, default: 0 },
+        metadataHistory: [{
+            at: { type: Date, default: Date.now },
+            by: { type: String, maxlength: 100 },
+            patch: { type: Schema.Types.Mixed },
+        }],
         importSource: {
             type: String,
-            enum: ['discord_export', 'manual'],
+            enum: ['discord_export', 'manual', 'manual_md', 'whatsapp', 'telegram', 'line'],
             default: 'discord_export',
+        },
+        sourceMeta: {
+            platform: { type: String, maxlength: 40 },
+            chatName: { type: String, maxlength: 200 },
+            exportedAt: { type: Date },
         },
         theme: { type: String, default: 'kakuyomu', maxlength: 40 },
         settings: {
@@ -432,6 +509,68 @@ if (process.env.mongoURL) {
         }],
         messageCount: { type: Number, default: 0 },
         playerNames: [{ type: String, maxlength: 100 }],
+    }, {
+        timestamps: true,
+    }));
+
+    models.authorProfile = mongoose.model('authorProfile', new Schema({
+        ownerDiscordId: { type: String, index: true, unique: true, required: true },
+        penName: { type: String, maxlength: 60, trim: true },
+        slug: { type: String, index: true, unique: true, sparse: true, maxlength: 60 },
+        avatarUrl: { type: String, maxlength: 2000 },
+        bio: { type: String, maxlength: 1000 },
+        links: [{
+            label: { type: String, maxlength: 40 },
+            url: { type: String, maxlength: 500 },
+        }],
+        isPublic: { type: Boolean, default: false },
+    }, {
+        timestamps: true,
+    }));
+
+    models.sessionLogImportJob = mongoose.model('sessionLogImportJob', new Schema({
+        ownerDiscordId: { type: String, index: true, required: true },
+        source: { type: String, maxlength: 40 },
+        status: {
+            type: String,
+            enum: ['queued', 'parsing', 'done', 'failed'],
+            default: 'queued',
+            index: true,
+        },
+        progress: { type: Number, default: 0 },
+        warnings: [String],
+        error: { type: String, maxlength: 500 },
+        workId: { type: Schema.Types.ObjectId, index: true },
+        payloadRef: { type: String, maxlength: 300 },
+        eventCount: Number,
+        metadata: { type: Schema.Types.Mixed },
+    }, {
+        timestamps: true,
+    }));
+
+    models.sessionLogReport = mongoose.model('sessionLogReport', new Schema({
+        workId: { type: Schema.Types.ObjectId, index: true, required: true },
+        reporterHash: { type: String, maxlength: 64 },
+        reason: {
+            type: String,
+            enum: ['infringement', 'illegal', 'rating', 'spam', 'other'],
+        },
+        detail: { type: String, maxlength: 1000 },
+        status: {
+            type: String,
+            enum: ['open', 'resolved', 'rejected'],
+            default: 'open',
+            index: true,
+        },
+    }, {
+        timestamps: true,
+    }));
+
+    models.sessionLogAudit = mongoose.model('sessionLogAudit', new Schema({
+        workId: { type: Schema.Types.ObjectId, index: true },
+        actor: { type: String, maxlength: 100 },
+        action: { type: String, maxlength: 40 },
+        detail: { type: Schema.Types.Mixed },
     }, {
         timestamps: true,
     }));

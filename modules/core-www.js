@@ -362,19 +362,29 @@ www.use(helmet({
 }));
 www.use(cors({
     origin: /\.hktrpg\.com$/, // Accepts all subdomains of hktrpg.com
-    methods: ['GET', 'POST', 'PUT', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     allowedHeaders: [
         'Content-Type',
         'Authorization',
-        'x-line-signature'
+        'x-line-signature',
+        'x-admin-secret'
     ],
     credentials: true,
     maxAge: 86_400,
     optionsSuccessStatus: 200
 }));
 // Line webhook needs raw body for signature verification - must skip express.json
+// Session-log import/preview/assets use larger body parsers on those routes.
 www.use((req, res, next) => {
     if (req.method === 'POST' && req.headers['x-line-signature']) {
+        return next();
+    }
+    const url = req.originalUrl || req.url || '';
+    if (req.method === 'POST' && (
+        url.startsWith('/api/session-logs/import')
+        || url.startsWith('/api/session-logs/preview')
+        || url.startsWith('/api/session-logs/assets')
+    )) {
         return next();
     }
     express.json({ limit: '100kb' })(req, res, next);
@@ -1114,6 +1124,38 @@ www.get('/logs', async (req, res) => {
     res.sendFile(path.join(process.cwd(), 'views', 'session-logs.html'));
 });
 
+www.get('/logs/admin', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-admin.html'));
+});
+
+www.get('/explore/logs', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-explore.html'));
+});
+
+www.get('/authors/:slug', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-author.html'));
+});
+
+www.get('/logs/:id/edit', async (req, res) => {
+    if (await checkRateLimit('api', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views', 'session-log-edit.html'));
+});
+
 www.get('/logs/:id/read', async (req, res) => {
     if (await checkRateLimit('api', req.ip)) {
         res.status(429).end();
@@ -1127,7 +1169,47 @@ www.get('/logs/:id', async (req, res) => {
         res.status(429).end();
         return;
     }
-    res.sendFile(path.join(process.cwd(), 'views', 'session-log-detail.html'));
+    try {
+        const fsPromises = require('node:fs').promises;
+        const htmlPath = path.join(process.cwd(), 'views', 'session-log-detail.html');
+        let html = await fsPromises.readFile(htmlPath, 'utf8');
+        const log = await schema.sessionLog.findById(req.params.id)
+            .select('title synopsis coverUrl visibility status moderation deletedAt rating')
+            .lean()
+            .catch(() => null);
+        const isPublic = log
+            && !log.deletedAt
+            && log.visibility === 'public'
+            && (log.status || 'published') === 'published'
+            && (log.moderation?.state || 'ok') === 'ok';
+        if (isPublic) {
+            const title = String(log.title || 'Session Log').replaceAll(/[<>&"]/g, '');
+            const desc = String(log.synopsis || '').slice(0, 160).replaceAll(/[<>&"]/g, '');
+            const image = String(log.coverUrl || '').replaceAll(/[<>&"]/g, '');
+            const meta = [
+                `<meta name="description" content="${desc}">`,
+                `<meta property="og:title" content="${title}">`,
+                `<meta property="og:description" content="${desc}">`,
+                `<meta property="og:type" content="article">`,
+                image ? `<meta property="og:image" content="${image}">` : '',
+                `<meta name="twitter:card" content="summary_large_image">`,
+                `<script type="application/ld+json">${JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@type': 'Book',
+                    name: log.title,
+                    description: log.synopsis || '',
+                    image: log.coverUrl || undefined,
+                })}</script>`,
+            ].filter(Boolean).join('\n    ');
+            html = html.replace('<title', `${meta}\n    <title`);
+            html = html.replace(/<title>[^<]*<\/title>/, `<title>${title} · HKTRPG</title>`);
+        } else {
+            html = html.replace('<head>', '<head>\n    <meta name="robots" content="noindex">');
+        }
+        res.type('html').send(html);
+    } catch {
+        res.sendFile(path.join(process.cwd(), 'views', 'session-log-detail.html'));
+    }
 });
 
 www.get('/news', async (req, res) => {
@@ -2010,6 +2092,13 @@ registerSessionLogRoutes({
     security,
     checkRateLimit,
     verifyPasswordSecure,
+    agenda: (() => {
+        try {
+            return require('./runtime/schedule.js').agenda || null;
+        } catch {
+            return null;
+        }
+    })(),
 });
 
 www.get('/log/:id', async (req, res) => {

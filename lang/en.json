@@ -5304,6 +5304,7 @@
     "socket": {
       "invalid_credentials_format": "Invalid credentials format",
       "db_error": "Database connection error",
+      "login_failed": "Invalid username or password",
       "user_not_found": "User not found",
       "invalid_password": "Invalid password",
       "invalid_jwt": "Invalid JWT auth",

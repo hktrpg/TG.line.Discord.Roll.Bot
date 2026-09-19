@@ -5289,6 +5289,7 @@
     "socket": {
       "invalid_credentials_format": "帳號格式無效",
       "db_error": "資料庫連線錯誤",
+      "login_failed": "帳號或密碼錯誤",
       "user_not_found": "找不到使用者",
       "invalid_password": "密碼錯誤",
       "invalid_jwt": "JWT 驗證失敗",

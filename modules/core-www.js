@@ -209,6 +209,7 @@ const certificate = (process.env.KEY_CERT) ? process.env.KEY_CERT : null;
 const APIswitch = (process.env.API) ? process.env.API : null;
 const ca = (process.env.KEY_CA) ? process.env.KEY_CA : null;
 const isMaster = isEnvEnabled('MASTER');
+const cardtestEnabled = isEnvEnabled('WWW_CARDTEST');
 const wsPort = Number(process.env.WWW_WS_PORT) || 53_589;
 const wsAllowNonLocal = String(process.env.WWW_WS_ALLOW_NON_LOCAL || '').toLowerCase() === 'true';
 const salt = process.env.SALT;
@@ -1109,6 +1110,10 @@ www.get('/publiccard', async (req, res) => {
 www.get('/cardtest', async (req, res) => {
     if (await checkRateLimit('card', req.ip)) {
         res.status(429).end();
+        return;
+    }
+    if (!cardtestEnabled) {
+        res.status(404).sendFile(path.join(process.cwd(), 'views/includes/error.html'));
         return;
     }
     res.sendFile(process.cwd() + '/views/cardtest-direct.html');
@@ -2085,26 +2090,25 @@ if (io) {
                         return null;
                     });
 
-                if (!doc) {
-                    console.warn('[Web Server] 🔒 User not found:', userName, 'from IP:', socket.handshake.address);
+                const emitAuthFailure = () => {
                     socket.emit('getListInfo', {
                         temp: null,
                         id: [],
-                        error: t('www.socket.user_not_found'),
-                        code: 'USER_NOT_FOUND'
+                        error: t('www.socket.login_failed'),
+                        code: 'AUTH_FAILED'
                     });
+                };
+
+                if (!doc) {
+                    console.warn('[Web Server] 🔒 Login failed (user not found):', userName, 'from IP:', socket.handshake.address);
+                    emitAuthFailure();
                     return;
                 }
 
                 const isValid = await verifyPasswordSecure(password, doc.password);
                 if (!isValid) {
-                    console.warn('[Web Server] 🔒 Invalid password for user:', userName, 'from IP:', socket.handshake.address);
-                    socket.emit('getListInfo', {
-                        temp: null,
-                        id: [],
-                        error: t('www.socket.invalid_password'),
-                        code: 'INVALID_PASSWORD'
-                    });
+                    console.warn('[Web Server] 🔒 Login failed (invalid password):', userName, 'from IP:', socket.handshake.address);
+                    emitAuthFailure();
                     return;
                 }
 

@@ -156,6 +156,34 @@ function tryDestroyClientShard(client, data = {}) {
 	return true;
 }
 
+// Recheck the current shard immediately before recovery; stale incidents must not
+// disconnect an already recovered shard or escalate a missing shard.
+async function recoverClientShard(client, data = {}) {
+	if (Number(client?.cluster?.id) !== Number(data.clusterId)) return 'not-owner';
+	const shard = findClientShard(client, data.shardId);
+	if (!shard) return 'missing';
+	if (isShardResponsive(shard)) return 'healthy';
+	if (typeof shard.destroy !== 'function') return 'unsupported';
+	await shard.destroy();
+	return 'destroyed';
+}
+
+/**
+ * Decide what the coordinator should do with broadcastEval recovery results.
+ * healthy resolves the incident. missing and unsupported escalate to a cluster
+ * restart. Anything else keeps the existing retry backoff.
+ * @param {string[]|undefined} results
+ * @returns {{ type: 'healthy'|'destroyed'|'respawn'|'retry', reason?: string }}
+ */
+function interpretShardRecoveryResults(results) {
+	if (!Array.isArray(results)) return { type: 'retry' };
+	if (results.includes('healthy')) return { type: 'healthy' };
+	if (results.includes('destroyed')) return { type: 'destroyed' };
+	if (results.includes('missing')) return { type: 'respawn', reason: 'shard_missing' };
+	if (results.includes('unsupported')) return { type: 'respawn', reason: 'shard_api_unsupported' };
+	return { type: 'retry' };
+}
+
 /**
  * Test double: mutable fake WebSocketShard.
  * @param {{ id: number, status?: number|string, ping?: number }} opts
@@ -228,6 +256,8 @@ module.exports = {
 	probeClusterClientHealth,
 	findClientShard,
 	tryDestroyClientShard,
+	recoverClientShard,
+	interpretShardRecoveryResults,
 	createMockShard,
 	createMockShardMap,
 	breakShardConnection,

@@ -338,4 +338,15 @@ describe('health-monitor shard recovery', () => {
 		expect(second).toBeNull();
 		expect(hm.shardIncidents.get(26).phase).toBe('open');
 	});
+
+	it('healthy recheck resolves the incident instead of applying failure backoff', () => {
+		const hm = createMonitor({ reopenCooldownMs: 1000, destroyRetryBackoffMs: 600_000 });
+		hm.enableCoordinatorMode();
+		hm.forceOpenIncidents([{ shardId: 3, clusterId: 1 }], 10_000);
+		hm.activeRecovery = { shardId: 3, action: 'destroy' };
+		hm.noteRecoveryHealthy(3, 11_000);
+		expect(hm.shardIncidents.has(3)).toBe(false);
+		expect(hm.activeRecovery).toBeNull();
+		expect(hm.reopenCooldownUntil.get(3)).toBe(12_000);
+	});
 });

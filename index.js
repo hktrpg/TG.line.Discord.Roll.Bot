@@ -4,6 +4,8 @@ require('dotenv').config({ override: true, quiet: true });
 process.env.DOTENV_CONFIG_QUIET = 'true';
 const fs = require('fs').promises;
 const path = require('path');
+const { installFatalDebug } = require('./modules/runtime/problem-debug');
+installFatalDebug('gateway-main');
 
 // Configuration Management
 const config = {

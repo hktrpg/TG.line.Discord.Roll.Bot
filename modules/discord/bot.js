@@ -9,6 +9,9 @@ const WebSocket = require('ws');
 const isImageURL = require('../../utils/is-image-url.js');
 const { isEnvEnabled } = require('../../utils/env-flag.js');
 const { parseAdminIds } = require('../../utils/admin-ids.js');
+const { createProblemDebug, installFatalDebug, observeSocketProblems } = require('../runtime/problem-debug');
+const problemDebug = createProblemDebug({ role: 'discord-worker' });
+installFatalDebug('discord-worker');
 
 const candle = require('../misc/candleDays.js');
 const records = require('../db/records.js');
@@ -601,6 +604,7 @@ async function loginWithErrorHandling() {
 	// Register critical error handlers BEFORE login
 	if (!clientEventHandlersRegistered) {
 		client.on('error', (error) => {
+			problemDebug('discord_client_error', { clusterId: client.cluster?.id }, error);
 			console.error('[Discord Bot] Discord Client Error:', error.message);
 		});
 
@@ -609,6 +613,7 @@ async function loginWithErrorHandling() {
 		});
 
 		client.on('shardError', (error, shardId) => {
+			problemDebug('discord_shard_error', { clusterId: client.cluster?.id, shardId, source: 'discord-gateway' }, error);
 			onShardGatewaySignal({
 				kind: 'error',
 				shardId,
@@ -698,6 +703,7 @@ const courtMessage = require('../chat/logs').courtMessage || function () { };
 const newMessage = require('../chat/message');
 const healthMonitor = require('../runtime/health-monitor');
 const timerManager = require('../runtime/timer-manager');
+const { interpretShardRecoveryResults } = require('./shard-connection.js');
 const { resolveShardTopology } = require('./shard-topology.js');
 const SHARD_CONNECTION_MODULE = path.join(__dirname, 'shard-connection.js');
 const isAlertEnabled = String(process.env.ALERT || '').trim().toLowerCase() === 'true';
@@ -902,24 +908,25 @@ async function executeShardRecoveryAction(action) {
 	try {
 		if (kind === 'destroy') {
 			const results = await client.cluster.broadcastEval(async (c, data) => {
-				const { tryDestroyClientShard } = require(data.shardConnectionModule);
-				const ok = tryDestroyClientShard(c, data);
-				if (!ok && Number(c.cluster?.id) === Number(data.clusterId)) {
-					console.warn(`[HealthMonitor] destroy: shard ${data.shardId} not found on cluster ${data.clusterId}`);
-				} else if (ok) {
-					console.warn(`[HealthMonitor] Destroyed shard ${data.shardId} on cluster ${c.cluster.id} (${data.reason})`);
-				}
-				return ok;
+				const { recoverClientShard } = require(data.shardConnectionModule);
+				return recoverClientShard(c, data);
 			}, { context: { shardId, clusterId, reason, shardConnectionModule: SHARD_CONNECTION_MODULE } });
 
-			const destroyed = Array.isArray(results) && results.some(Boolean);
-			if (!destroyed) {
-				console.warn(
-					`[HealthMonitor] destroy skipped shard=${shardId} cluster=${clusterId} ` +
-					`reason=api_unavailable backoffMs=${healthMonitor.config.destroyRetryBackoffMs}`
-				);
-				healthMonitor.backoffIncidentRetry(shardId);
+			const decision = interpretShardRecoveryResults(results);
+			if (decision.type === 'healthy') {
+				healthMonitor.noteRecoveryHealthy(shardId);
+				return;
 			}
+			if (decision.type === 'destroyed') return;
+			if (decision.type === 'respawn') {
+				await executeShardRecoveryAction({ ...action, action: 'clusterRespawn', reason: decision.reason });
+				return;
+			}
+			console.warn(
+				`[HealthMonitor] destroy skipped shard=${shardId} cluster=${clusterId} ` +
+				`reason=not_destroyed backoffMs=${healthMonitor.config.destroyRetryBackoffMs}`
+			);
+			healthMonitor.backoffIncidentRetry(shardId);
 			return;
 		}
 
@@ -932,7 +939,7 @@ async function executeShardRecoveryAction(action) {
 			console.warn(
 				`[HealthMonitor] clusterRespawn shard=${shardId} cluster=${clusterId} reason=${reason}`
 			);
-			client.cluster.send({
+			await client.cluster.send({
 				respawn: true,
 				id: Number(clusterId),
 				meta: {
@@ -942,8 +949,9 @@ async function executeShardRecoveryAction(action) {
 					reason,
 				},
 			});
-			healthMonitor.markClusterRespawnSent(shardId);
-			healthMonitor.clearActiveRecovery(shardId);
+			// IPC delivery is not proof of Ready. Re-probe during backoff, and allow
+			// another bounded request if the parent cannot restore this cluster.
+			healthMonitor.backoffIncidentRetry(shardId);
 		}
 	} catch (error) {
 		console.error(`[HealthMonitor] Recovery action failed:`, error?.message || error);
@@ -4853,6 +4861,7 @@ const connect = function () {
 	const wsPort = process.env.WWW_WS_PORT || '53589';
 	const wsUrl = `ws://${wsHost}:${wsPort}`;
 	ws = new WebSocket(wsUrl);
+	observeSocketProblems(ws, { role: 'discord-worker', source: 'core-www-relay', url: wsUrl, clusterId: client.cluster?.id });
 	
 	ws.on('open', function open() {
 		if (DEBUG_LOG) {

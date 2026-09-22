@@ -243,6 +243,10 @@ class HealthMonitor extends EventEmitter {
 		this.clearActiveRecovery(shardId);
 	}
 
+	noteRecoveryHealthy(shardId, at = Date.now()) {
+		this._resolveIncident(Number(shardId), at, 'healthy_on_recheck');
+	}
+
 	tick(at = Date.now()) {
 		if (!this.coordinatorMode) return null;
 

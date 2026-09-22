@@ -17,6 +17,16 @@ const childProcess = require('node:child_process');
 const { AsyncLocalStorage } = require('node:async_hooks');
 const { ClusterManager, HeartbeatManager } = require('discord-hybrid-sharding');
 const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../utils/env-int.js');
+const { ClusterRecovery } = require('./discord/cluster-recovery');
+const { createProblemDebug } = require('./runtime/problem-debug');
+const problemDebug = createProblemDebug({ role: 'discord-parent' });
+const clusterRecovery = new ClusterRecovery({
+    windowMs: parsePositiveIntEnv('CLUSTER_RECOVERY_WINDOW_MS', 600_000),
+    globalLimit: parsePositiveIntEnv('CLUSTER_RECOVERY_GLOBAL_LIMIT', 12),
+    clusterLimit: parsePositiveIntEnv('CLUSTER_RECOVERY_CLUSTER_LIMIT', 3),
+    outagePauseMs: parsePositiveIntEnv('CLUSTER_RECOVERY_OUTAGE_PAUSE_MS', 300_000),
+    readyTimeoutMs: CLUSTER_RESPAWN_READY_MS,
+});
 require("./discord/deploy-commands");
 
 /**
@@ -299,6 +309,7 @@ function logClusterShutdownTrigger({ signal = 'unknown', source = 'unknown', det
 async function gracefulShutdown({ signal = 'unknown', source = 'unknown', detail = null } = {}) {
     if (isShuttingDown) return;
     isShuttingDown = true;
+    clusterRecovery.stop();
 
     const detailText = detail ? safeStringify(detail) : '{}';
     console.log(`[Cluster] Starting graceful shutdown (signal: ${signal}, source: ${source}, detail: ${detailText})...`);
@@ -435,6 +446,7 @@ manager.respawnAll = async (...args) => {
 // Improved event handling
 let heartbeatStarted = false;
 manager.on('clusterCreate', shard => {
+    clusterRecovery.attach(shard);
     if (DEBUG_LOG) {
         console.log(`[Cluster ${shard.id}] Created`, getRuntimeMeta());
     }
@@ -480,34 +492,9 @@ manager.on('clusterCreate', shard => {
         }
         // Add retry logic (simplified as per attachment)
         if (String(event).toLowerCase() === 'death') {
-            setTimeout(async () => {
-                if (!isShuttingDown) {
-                    if (DEBUG_LOG) {
-                        console.log(`[Cluster ${shard.id}] Attempting to respawn...`, getRuntimeMeta());
-                    } else {
-                        console.log(`[Cluster ${shard.id}] Attempting to respawn...`);
-                    }
-                    try {
-                        await withLifecycleTrace('clusterRespawn', {
-                            clusterId: shard.id,
-                            source: 'error_handler_death',
-                            stack: stackWithoutHeader(new Error('cluster.respawn caller').stack)
-                        }, async () => {
-                            traceLifecycle('cluster_respawn_called', {
-                                clusterId: shard.id,
-                                source: 'error_handler_death',
-                                stack: stackWithoutHeader(new Error('cluster.respawn caller').stack)
-                            });
-                            await shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS });
-                        });
-                    } catch (error_) {
-                        console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
-                        if (DEBUG_LOG) {
-                            console.error(`[Cluster ${shard.id}] Failed to respawn runtime:`, getRuntimeMeta());
-                        }
-                    }
-                }
-            }, RETRY_DELAY);
+            void shard.respawn({ timeout: CLUSTER_RESPAWN_READY_MS }).catch(error_ => {
+                console.error(`[Cluster ${shard.id}] Failed to respawn:`, error_);
+            });
         }
     };
 
@@ -527,17 +514,21 @@ manager.on('clusterCreate', shard => {
         }
     });
 
-    shard.on('death', (childProcess) => {
+    // discord-hybrid-sharding emits (cluster, childProcess). The child is the second argument.
+    shard.on('death', (_cluster, childProcess) => {
+        const exited = childProcess || {};
+        problemDebug('cluster_death', { clusterId: shard.id, childPid: exited.pid,
+            exitCode: exited.exitCode, signal: exited.signalCode }, null, { force: true });
         updateClusterLastState(shard.id, 'death', {
-            exitCode: childProcess.exitCode,
-            signalCode: childProcess.signalCode,
-            killed: childProcess.killed
+            exitCode: exited.exitCode,
+            signalCode: exited.signalCode,
+            killed: exited.killed
         });
         const detail = {
             message: 'Cluster child process died',
-            exitCode: childProcess.exitCode,
-            signalCode: childProcess.signalCode,
-            killed: childProcess.killed
+            exitCode: exited.exitCode,
+            signalCode: exited.signalCode,
+            killed: exited.killed
         };
         if (DEBUG_LOG) detail.runtime = getRuntimeMeta();
         errorHandler('death', detail);

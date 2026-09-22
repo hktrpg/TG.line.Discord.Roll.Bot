@@ -6,6 +6,7 @@ const { Bot, GrammyError, HttpError } = require('grammy');
 const WebSocket = require('ws');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
+const { observeSocketProblems } = require('./runtime/problem-debug');
 const rollText = require('./chat/getRoll').rollText;
 exports.analytics = require('./analytics');
 const parseRouter = require('./roll-worker/parse-router');
@@ -326,6 +327,7 @@ const connect = function () {
     const wsPort = process.env.WWW_WS_PORT || '53589';
     const wsUrl = `ws://${wsHost}:${wsPort}`;
     ws = new WebSocket(wsUrl);
+    observeSocketProblems(ws, { role: 'telegram', source: 'core-www-relay', url: wsUrl });
     ws.on('open', function open() {
         console.log('[Telegram] connected To core-www from Telegram!')
         ws.send('connected To core-www from Telegram!');

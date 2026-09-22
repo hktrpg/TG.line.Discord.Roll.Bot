@@ -299,7 +299,7 @@
                         <div class="detail-value" v-if="isLongNote(item)">
                             {{ truncatedNote(item, 80) }}
                         </div>
-                        <div class="detail-value" v-else v-html="(item.itemA || item.content || '').replace(/\n/g, '<br>')"></div>
+                        <div class="detail-value note-plaintext" v-else>{{ item.itemA || item.content || '' }}</div>
                         <div class="detail-label">{{ item.name || item.title || '' }}</div>
                     </div>
                     
@@ -339,7 +339,7 @@
                     </button>
                 </div>
                 <div class="modal-body bg-color">
-                    <div v-html="modalNoteContent"></div>
+                    <div class="note-plaintext">{{ modalNoteContent }}</div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ t('btn_close') }}</button>
@@ -377,6 +377,13 @@
 </div>
 
 <style>
+    .detail-value.note-plaintext,
+    .note-plaintext {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        display: block;
+    }
+
     /* 懸停刪除按鈕樣式 - 使用最高優先級 */
     html body .hover-delete-btn,
     html body button.hover-delete-btn,

@@ -1188,13 +1188,9 @@
                 },
                 // ...existing methods...
                 highlightMatches(text, isbot) {
-                    const matchExists = text
-                        .toLowerCase()
-                        .includes(this.filter.toLowerCase());
-                    if (!matchExists) return text;
-                    const re = new RegExp(this.filter, "ig");
-                    if (isbot) text = text + '(🤖)';
-                    return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                    const raw = text == null ? '' : String(text);
+                    const escaped = this.escapeHtml(raw + (isbot ? '(🤖)' : ''));
+                    return this.applyHighlight(escaped);
                 },
                 dhm2(unix_timestamp) {
                     let dhm2date = new Date(unix_timestamp)
@@ -1215,6 +1211,11 @@
                         "'": '&#39;'
                     })[s]);
                 },
+                safeHttpUrl(url) {
+                    const raw = String(url || '').trim();
+                    if (!/^https?:\/\//i.test(raw)) return '';
+                    return this.escapeHtml(raw);
+                },
                 applyHighlight(escapedText) {
                     const term = this.filter || '';
                     if (!term) return escapedText;
@@ -1232,7 +1233,8 @@
                     atts.forEach(att => {
                         const url = att && (att.url || att.proxy_url || att.proxyURL);
                         if (!url) return;
-                        const safeUrl = this.escapeHtml(url);
+                        const safeUrl = this.safeHttpUrl(url);
+                        if (!safeUrl) return;
                         if (this.isImageUrl(url) || (att && att.contentType && att.contentType.indexOf('image/') === 0)) {
                             html += `<div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a><br><img src="${safeUrl}" alt="attachment" style="max-width: 200px; max-height: 200px;"/></div>`;
                         } else {
@@ -1251,9 +1253,10 @@
                         const thumb = e && e.thumbnail && (e.thumbnail.url || e.thumbnail.proxy_url);
                         const image = e && e.image && (e.image.url || e.image.proxy_url);
                         html += '<div class="mt-1 p-2" style="background:#f7f7f7;border-radius:6px;">';
+                        const safeHref = this.safeHttpUrl(url);
                         if (title) {
-                            if (url) {
-                                html += `<div><a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><strong>${title}</strong></a></div>`;
+                            if (safeHref) {
+                                html += `<div><a href="${safeHref}" target="_blank" rel="noopener noreferrer"><strong>${title}</strong></a></div>`;
                             } else {
                                 html += `<div><strong>${title}</strong></div>`;
                             }
@@ -1261,9 +1264,9 @@
                         if (desc) {
                             html += `<div style="white-space:pre-wrap;">${desc}</div>`;
                         }
-                        const imgUrl = image || thumb;
-                        if (imgUrl) {
-                            html += `<div><img src="${this.escapeHtml(imgUrl)}" alt="embed" style="max-width: 200px; max-height: 200px;"/></div>`;
+                        const safeImg = this.safeHttpUrl(image || thumb);
+                        if (safeImg) {
+                            html += `<div><img src="${safeImg}" alt="embed" style="max-width: 200px; max-height: 200px;"/></div>`;
                         }
                         html += '</div>';
                     });
@@ -1928,11 +1931,9 @@
                         this.rows = input;
                     },
                     highlightMatches(text, isbot) {
-                        const matchExists = text.toLowerCase().includes(this.filter.toLowerCase());
-                        if (!matchExists) return text;
-                        const re = new RegExp(this.filter, "ig");
-                        if (isbot) text += '(🤖)';
-                        return text.replace(re, matchedText => `<strong>${matchedText}</strong>`);
+                        const raw = text == null ? '' : String(text);
+                        const escaped = this.escapeHtml(raw + (isbot ? '(🤖)' : ''));
+                        return this.applyHighlight(escaped);
                     },
                     dhm2(unix_timestamp) {
                         let date = new Date(unix_timestamp);
@@ -1953,6 +1954,11 @@
                             "'": '&#39;'
                         })[s]);
                     },
+                    safeHttpUrl(url) {
+                        const raw = String(url || '').trim();
+                        if (!/^https?:\/\//i.test(raw)) return '';
+                        return this.escapeHtml(raw);
+                    },
                     applyHighlight(escapedText) {
                         const term = this.filter || '';
                         if (!term) return escapedText;
@@ -1970,7 +1976,8 @@
                         atts.forEach(att => {
                             const url = att && (att.url || att.proxy_url || att.proxyURL);
                             if (!url) return;
-                            const safeUrl = this.escapeHtml(url);
+                            const safeUrl = this.safeHttpUrl(url);
+                            if (!safeUrl) return;
                             if (this.isImageUrl(url) || (att && att.contentType && att.contentType.indexOf('image/') === 0)) {
                                 html += `<div><a href="${safeUrl}" target="_blank" rel="noopener noreferrer">${safeUrl}</a><br><img src="${safeUrl}" alt="attachment" style="max-width: 200px; max-height: 200px;"/></div>`;
                             } else {
@@ -1989,9 +1996,10 @@
                             const thumb = e && e.thumbnail && (e.thumbnail.url || e.thumbnail.proxy_url);
                             const image = e && e.image && (e.image.url || e.image.proxy_url);
                             html += '<div class="mt-1 p-2" style="background:#f7f7f7;border-radius:6px;">';
+                            const safeHref = this.safeHttpUrl(url);
                             if (title) {
-                                if (url) {
-                                    html += `<div><a href="${this.escapeHtml(url)}" target="_blank" rel="noopener noreferrer"><strong>${title}</strong></a></div>`;
+                                if (safeHref) {
+                                    html += `<div><a href="${safeHref}" target="_blank" rel="noopener noreferrer"><strong>${title}</strong></a></div>`;
                                 } else {
                                     html += `<div><strong>${title}</strong></div>`;
                                 }
@@ -1999,9 +2007,9 @@
                             if (desc) {
                                 html += `<div style="white-space:pre-wrap;">${desc}</div>`;
                             }
-                            const imgUrl = image || thumb;
-                            if (imgUrl) {
-                                html += `<div><img src="${this.escapeHtml(imgUrl)}" alt="embed" style="max-width: 200px; max-height: 200px;"/></div>`;
+                            const safeImg = this.safeHttpUrl(image || thumb);
+                            if (safeImg) {
+                                html += `<div><img src="${safeImg}" alt="embed" style="max-width: 200px; max-height: 200px;"/></div>`;
                             }
                             html += '</div>';
                         });

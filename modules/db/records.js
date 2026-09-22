@@ -561,8 +561,13 @@ class Records extends EventEmitter {
 
     async chatRoomGet(roomNumber) {
         try {
+            // Reject non-strings so a Socket payload cannot become a Mongo operator.
+            if (typeof roomNumber !== 'string') return [];
+            const room = roomNumber.trim();
+            if (!room || room.length > 50) return [];
+
             // Check cache first
-            const cacheKey = `chatRoom:${roomNumber}`;
+            const cacheKey = `chatRoom:${room}`;
             const cachedMessages = cache.get(cacheKey);
             if (cachedMessages) {
                 return cachedMessages;
@@ -570,7 +575,7 @@ class Records extends EventEmitter {
 
             // Always return messages in chronological order with a deterministic tiebreaker
             const messages = await this.ChatRoomModel
-                .find({ roomNumber })
+                .find({ roomNumber: room })
                 .sort({ time: 1, _id: 1 });
 
             // Update cache

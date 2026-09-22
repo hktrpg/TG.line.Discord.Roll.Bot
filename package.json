@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@dice-roller/rpg-dice-roller": "5.3.2",
-    "@line/bot-sdk": "^10.4.0",
+    "@line/bot-sdk": "^11.2.0",
     "@lunisolar/plugin-char8ex": "^0.2.5",
     "@lunisolar/plugin-fetalgod": "^0.1.4",
     "@lunisolar/plugin-takesound": "^0.1.2",

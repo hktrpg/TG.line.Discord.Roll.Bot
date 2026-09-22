@@ -29,13 +29,13 @@ function isShardResponsive(shardLike) {
 
 /**
  * Resolve WebSocketShard collection from a Discord Client (broadcastEval `c`).
- * Prefer client.ws.shards; hybrid-sharding also exposes client.cluster.shards.
+ * Only client.ws.shards — do not use client.cluster.shards (getter throws when ws.shards missing).
  * @param {object|null|undefined} client
  * @returns {{ get: (id: number) => object|undefined }|null}
  */
 function resolveWsShards(client) {
 	if (!client) return null;
-	return client.ws?.shards ?? client.cluster?.shards ?? null;
+	return client.ws?.shards ?? null;
 }
 
 /**
@@ -156,6 +156,34 @@ function tryDestroyClientShard(client, data = {}) {
 	return true;
 }
 
+// Recheck the current shard immediately before recovery; stale incidents must not
+// disconnect an already recovered shard or escalate a missing shard.
+async function recoverClientShard(client, data = {}) {
+	if (Number(client?.cluster?.id) !== Number(data.clusterId)) return 'not-owner';
+	const shard = findClientShard(client, data.shardId);
+	if (!shard) return 'missing';
+	if (isShardResponsive(shard)) return 'healthy';
+	if (typeof shard.destroy !== 'function') return 'unsupported';
+	await shard.destroy();
+	return 'destroyed';
+}
+
+/**
+ * Decide what the coordinator should do with broadcastEval recovery results.
+ * healthy resolves the incident. unsupported observes native reconnection;
+ * missing retains cluster escalation. Anything else keeps retry backoff.
+ * @param {string[]|undefined} results
+ * @returns {{ type: 'healthy'|'destroyed'|'observe'|'respawn'|'retry', reason?: string }}
+ */
+function interpretShardRecoveryResults(results) {
+	if (!Array.isArray(results)) return { type: 'retry' };
+	if (results.includes('healthy')) return { type: 'healthy' };
+	if (results.includes('destroyed')) return { type: 'destroyed' };
+	if (results.includes('missing')) return { type: 'respawn', reason: 'shard_missing' };
+	if (results.includes('unsupported')) return { type: 'observe', reason: 'shard_api_unsupported' };
+	return { type: 'retry' };
+}
+
 /**
  * Test double: mutable fake WebSocketShard.
  * @param {{ id: number, status?: number|string, ping?: number }} opts
@@ -228,6 +256,8 @@ module.exports = {
 	probeClusterClientHealth,
 	findClientShard,
 	tryDestroyClientShard,
+	recoverClientShard,
+	interpretShardRecoveryResults,
 	createMockShard,
 	createMockShardMap,
 	breakShardConnection,

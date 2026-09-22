@@ -599,7 +599,6 @@ class OpenAI {
     constructor() {
         this.apiKeys = [];
         this.addApiKey();
-        this.logAiStartupConfig('startup');
         this.watchEnvironment();
         this.configuration = {
             apiKey: this.apiKeys[0]?.apiKey,

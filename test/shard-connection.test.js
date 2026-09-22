@@ -19,7 +19,8 @@ describe('shard-connection break / probe / restore', () => {
 		const shards = createMockShardMap([0]);
 		expect(resolveWsShards({ ws: { shards } })).toBe(shards);
 		expect(resolveWsShards({ client: { ws: { shards } } })).toBeNull();
-		expect(resolveWsShards({ cluster: { shards } })).toBe(shards);
+		// No cluster.shards fallback — real ClusterClient.shards returns ws.shards when present.
+		expect(resolveWsShards({ cluster: { shards } })).toBeNull();
 		expect(resolveShardList({ cluster: { shardList: [0, 1] } }, [9])).toEqual([0, 1]);
 		expect(resolveShardList({}, [9])).toEqual([9]);
 	});

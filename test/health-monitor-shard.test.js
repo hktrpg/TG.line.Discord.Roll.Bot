@@ -4,6 +4,7 @@ const {
 	HealthMonitor,
 	isShardResponsive,
 	normalizeErrorPattern,
+	loadHealthConfig,
 } = require('../modules/runtime/health-monitor.js');
 
 describe('health-monitor shard recovery', () => {
@@ -11,13 +12,7 @@ describe('health-monitor shard recovery', () => {
 		return new HealthMonitor({
 			skipInit: true,
 			config: {
-				recoveryMs: 180_000,
-				destroySettleMs: 180_000,
-				reopenCooldownMs: 600_000,
-				adminDmCooldownMs: 600_000,
-				checkIntervalMs: 90_000,
-				errorLogSummaryMs: 600_000,
-				coordinatorClusterId: 0,
+				...loadHealthConfig(),
 				...overrides,
 			},
 		});
@@ -196,6 +191,138 @@ describe('health-monitor shard recovery', () => {
 		expect(resolved[0].data.resolveReason).toBe('two_consecutive_healthy_checks');
 	});
 
+	it('gatewayOutageMode skips recovery when >=5 shards report 503 via IPC', () => {
+		const hm = createMonitor({
+			recoveryMs: 1000,
+			gatewayOutageWindowMs: 90_000,
+			gatewayOutageMinShards: 5,
+			gatewayOutageMs: 600_000,
+		});
+		hm.enableCoordinatorMode();
+		const actions = [];
+		const alerts = [];
+		hm.on('recoveryAction', (a) => actions.push(a));
+		hm.on('alert', (a) => alerts.push(a));
+
+		const t0 = 1_000_000;
+		const tickAt = t0 + 5000;
+		for (let shardId = 0; shardId < 5; shardId++) {
+			hm.ingestRemoteShardReport({
+				kind: 'error',
+				shardId,
+				clusterId: 0,
+				message: 'Unexpected server response: 503',
+				at: tickAt - 1000,
+			});
+		}
+		for (const incident of hm.shardIncidents.values()) {
+			incident.openedAt = tickAt - 200_000;
+		}
+
+		expect(hm.tick(tickAt)).toBeNull();
+		expect(actions).toHaveLength(0);
+		expect(alerts).toHaveLength(0);
+		expect(hm._gatewayOutageActive).toBe(true);
+	});
+
+	it('rolling outage extends gatewayOutageUntil while 503 continues', () => {
+		const hm = createMonitor({
+			gatewayOutageWindowMs: 90_000,
+			gatewayOutageMinShards: 5,
+			gatewayOutageMs: 60_000,
+		});
+		hm.enableCoordinatorMode();
+
+		const t0 = 1_000_000;
+		for (let shardId = 0; shardId < 5; shardId++) {
+			hm.ingestRemoteShardReport({
+				kind: 'error',
+				shardId,
+				clusterId: 0,
+				message: 'Unexpected server response: 503',
+				at: t0,
+			});
+		}
+		hm.tick(t0);
+		const firstUntil = hm.gatewayOutageUntil;
+
+		hm.ingestRemoteShardReport({
+			kind: 'error',
+			shardId: 0,
+			clusterId: 0,
+			message: 'Unexpected server response: 503',
+			at: t0 + 30_000,
+		});
+		hm.tick(t0 + 30_000);
+		expect(hm.gatewayOutageUntil).toBeGreaterThan(firstUntil);
+	});
+
+	it('backoffIncidentRetry prevents tick selection until cooldown expires', () => {
+		const hm = createMonitor({
+			recoveryMs: 1000,
+			destroyRetryBackoffMs: 600_000,
+		});
+		hm.enableCoordinatorMode();
+		const t0 = 1_000_000;
+
+		hm.recordShardError({
+			shardId: 28,
+			clusterId: 5,
+			message: 'Unexpected server response: 503',
+			at: t0,
+		});
+		expect(hm.tick(t0 + 1000)).toMatchObject({ action: 'destroy' });
+		hm.backoffIncidentRetry(28, t0 + 1001);
+
+		expect(hm.shardIncidents.get(28).phase).toBe('open');
+		expect(hm.activeRecovery).toBeNull();
+		expect(hm.tick(t0 + 2000)).toBeNull();
+	});
+
+	it('backoffIncidentRetry resets waiting_settle after failed destroy', () => {
+		const hm = createMonitor({ recoveryMs: 1000 });
+		hm.enableCoordinatorMode();
+		const t0 = 1_000_000;
+
+		hm.recordShardError({
+			shardId: 28,
+			clusterId: 5,
+			message: 'Unexpected server response: 503',
+			at: t0,
+		});
+		hm.tick(t0 + 1000);
+		expect(hm.shardIncidents.get(28).phase).toBe('waiting_settle');
+
+		hm.backoffIncidentRetry(28, t0 + 1001);
+		expect(hm.shardIncidents.get(28).phase).toBe('open');
+		expect(hm.activeRecovery).toBeNull();
+	});
+
+	it('applyHealthSnapshot still resolves incidents during gateway outage', () => {
+		const hm = createMonitor({
+			recoveryMs: 1000,
+			gatewayOutageMinShards: 5,
+		});
+		hm.enableCoordinatorMode();
+		const t0 = 1_000_000;
+
+		for (let shardId = 0; shardId < 5; shardId++) {
+			hm.ingestRemoteShardReport({
+				kind: 'error',
+				shardId,
+				clusterId: 0,
+				message: 'Unexpected server response: 503',
+				at: t0,
+			});
+		}
+		hm.tick(t0);
+		expect(hm._gatewayOutageActive).toBe(true);
+
+		hm.applyHealthSnapshot([{ shardId: 0, clusterId: 0, status: 0, responsive: true }], t0 + 1000);
+		hm.applyHealthSnapshot([{ shardId: 0, clusterId: 0, status: 0, responsive: true }], t0 + 2000);
+		expect(hm.shardIncidents.has(0)).toBe(false);
+	});
+
 	it('does not start a second destroy on the same cluster while recovery is active', () => {
 		const hm = createMonitor({ recoveryMs: 1000, destroySettleMs: 60_000 });
 		hm.enableCoordinatorMode();
@@ -210,5 +337,16 @@ describe('health-monitor shard recovery', () => {
 		const second = hm.tick(t0 + 2000);
 		expect(second).toBeNull();
 		expect(hm.shardIncidents.get(26).phase).toBe('open');
+	});
+
+	it('healthy recheck resolves the incident instead of applying failure backoff', () => {
+		const hm = createMonitor({ reopenCooldownMs: 1000, destroyRetryBackoffMs: 600_000 });
+		hm.enableCoordinatorMode();
+		hm.forceOpenIncidents([{ shardId: 3, clusterId: 1 }], 10_000);
+		hm.activeRecovery = { shardId: 3, action: 'destroy' };
+		hm.noteRecoveryHealthy(3, 11_000);
+		expect(hm.shardIncidents.has(3)).toBe(false);
+		expect(hm.activeRecovery).toBeNull();
+		expect(hm.reopenCooldownUntil.get(3)).toBe(12_000);
 	});
 });

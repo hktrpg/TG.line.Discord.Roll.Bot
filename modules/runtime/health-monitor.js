@@ -3,18 +3,25 @@
 const EventEmitter = require('events');
 const dbWatchdog = require('../db/watchdog.js');
 const { parsePositiveIntEnv, parseNonNegativeIntEnv } = require('../../utils/env-int.js');
-const { isShardResponsive } = require('../discord/shard-connection.js');
+const { isShardResponsive, SHARD_STATUS } = require('../discord/shard-connection.js');
 const timerManager = require('./timer-manager');
+
+const GATEWAY_5XX_PATTERN = /^http_5\d\d$|^gateway_5xx$/;
 
 function loadHealthConfig() {
 	return {
 		recoveryMs: parsePositiveIntEnv('HEALTH_SHARD_ERROR_RECOVERY_MS', 180_000),
 		destroySettleMs: parsePositiveIntEnv('HEALTH_SHARD_DESTROY_SETTLE_MS', 180_000),
+		observationMaxMs: parsePositiveIntEnv('HEALTH_SHARD_OBSERVATION_MAX_MS', 360_000),
 		reopenCooldownMs: parsePositiveIntEnv('HEALTH_SHARD_REOPEN_COOLDOWN_MS', 600_000),
 		adminDmCooldownMs: parsePositiveIntEnv('HEALTH_ADMIN_DM_COOLDOWN_MS', 600_000),
 		checkIntervalMs: parsePositiveIntEnv('HEALTH_SHARD_CHECK_INTERVAL_MS', 90_000),
 		errorLogSummaryMs: parsePositiveIntEnv('HEALTH_ERROR_LOG_SUMMARY_MS', 600_000),
 		coordinatorClusterId: parseNonNegativeIntEnv('HEALTH_COORDINATOR_CLUSTER_ID', 0),
+		gatewayOutageWindowMs: parsePositiveIntEnv('HEALTH_GATEWAY_OUTAGE_WINDOW_MS', 90_000),
+		gatewayOutageMinShards: parsePositiveIntEnv('HEALTH_GATEWAY_OUTAGE_MIN_SHARDS', 5),
+		gatewayOutageMs: parsePositiveIntEnv('HEALTH_GATEWAY_OUTAGE_MS', 600_000),
+		destroyRetryBackoffMs: parsePositiveIntEnv('HEALTH_DESTROY_RETRY_BACKOFF_MS', 600_000),
 	};
 }
 
@@ -56,7 +63,10 @@ class HealthMonitor extends EventEmitter {
 		/** @type {Map<number, number>} */
 		this.reopenCooldownUntil = new Map();
 		this.activeRecovery = null;
+		this.recoverySequence = 0;
 		this.coordinatorMode = false;
+		this.gatewayOutageUntil = 0;
+		this._gatewayOutageActive = false;
 
 		if (options.skipInit) {
 			return;
@@ -184,25 +194,146 @@ class HealthMonitor extends EventEmitter {
 		}
 	}
 
+	_evaluateGatewayOutage(at = Date.now()) {
+		const windowStart = at - this.config.gatewayOutageWindowMs;
+		const recentShardIds = new Set();
+
+		for (const incident of this.shardIncidents.values()) {
+			if (incident.phase === 'resolved') continue;
+			if (!incident.errorPattern || !GATEWAY_5XX_PATTERN.test(incident.errorPattern)) continue;
+			if ((incident.lastErrorAt || 0) < windowStart) continue;
+			recentShardIds.add(incident.shardId);
+		}
+
+		const wasInOutage = this._gatewayOutageActive && at < this.gatewayOutageUntil;
+
+		if (recentShardIds.size >= this.config.gatewayOutageMinShards) {
+			this.gatewayOutageUntil = at + this.config.gatewayOutageMs;
+			if (!this._gatewayOutageActive) {
+				console.warn(
+					`[HealthMonitor] gatewayOutageMode=on shards=${recentShardIds.size} ` +
+					`window=${this.config.gatewayOutageWindowMs}ms until=${this.gatewayOutageUntil}`
+				);
+				this._gatewayOutageActive = true;
+			}
+			return true;
+		}
+
+		if (wasInOutage) {
+			return true;
+		}
+
+		if (this._gatewayOutageActive) {
+			console.warn('[HealthMonitor] gatewayOutageMode=off');
+			this._gatewayOutageActive = false;
+			for (const incident of this.shardIncidents.values()) {
+				if (incident.phase !== 'resolved') {
+					incident.openedAt = at;
+				}
+			}
+		}
+		this.gatewayOutageUntil = 0;
+		return false;
+	}
+
+	backoffIncidentRetry(shardId, at = Date.now(), ms = this.config.destroyRetryBackoffMs) {
+		const incident = this.shardIncidents.get(Number(shardId));
+		if (!incident || incident.phase === 'resolved') return;
+		incident.phase = 'open';
+		delete incident.destroyAt;
+		delete incident.observeStartedAt;
+		this.reopenCooldownUntil.set(Number(shardId), at + ms);
+		this.clearActiveRecovery(shardId);
+	}
+
+	noteRecoveryHealthy(shardId, at = Date.now()) {
+		this._resolveIncident(Number(shardId), at, 'healthy_on_recheck');
+	}
+
+	isCurrentRecovery(action) {
+		return Boolean(action && action.recoveryId !== undefined && this.activeRecovery
+			&& this.activeRecovery.recoveryId === action.recoveryId
+			&& this.activeRecovery.shardId === action.shardId
+			&& this.activeRecovery.action === action.action);
+	}
+
+	observeNativeRecovery(action, at = Date.now()) {
+		if (action?.action !== 'destroy' || !this.isCurrentRecovery(action)) return false;
+		const { shardId } = action;
+		const incident = this.shardIncidents.get(Number(shardId));
+		if (!incident || incident.phase !== 'waiting_settle') return false;
+		incident.recoveryMethod = 'observe_only';
+		incident.observeStartedAt = at;
+		delete incident.destroyAt;
+		incident.phase = 'waiting_settle';
+		this.activeRecovery = { ...this.activeRecovery, action: 'observe', startedAt: at,
+			reason: 'awaiting_native_recovery' };
+		return true;
+	}
+
+	canEscalateObservation(incident, active, at) {
+		const startedAt = incident.observeStartedAt ?? active.startedAt;
+		const sampleAt = incident.lastUnhealthyCheckAt;
+		return at - startedAt >= this.config.destroySettleMs
+			&& Number.isFinite(sampleAt)
+			&& sampleAt >= startedAt + this.config.destroySettleMs
+			&& sampleAt <= at && at - sampleAt <= this.config.checkIntervalMs
+			&& (incident.lastHealthyCheckAt ?? -Infinity) < sampleAt
+			&& Object.values(SHARD_STATUS).includes(incident.status)
+			&& incident.status !== SHARD_STATUS.Ready;
+	}
+
 	tick(at = Date.now()) {
 		if (!this.coordinatorMode) return null;
+		const gatewayOutage = this._evaluateGatewayOutage(at);
+
+		// Expiry also applies during gateway outage mode: an unknown probe must
+		// never hold the coordinator's single recovery slot indefinitely.
+		const current = this.activeRecovery;
+		const currentIncident = current && this.shardIncidents.get(current.shardId);
+		const observationLimit = Math.max(this.config.destroySettleMs,
+			this.config.observationMaxMs ?? 360_000);
+		if (current?.action === 'observe' && currentIncident
+			&& at - current.startedAt >= observationLimit) {
+			if ((currentIncident.consecutiveHealthyChecks || 0) >= 2) {
+				this._resolveIncident(current.shardId, at, 'healthy_after_observation');
+			} else if (gatewayOutage || !this.canEscalateObservation(currentIncident, current, at)) {
+				currentIncident.lastRecoveryOutcome = 'observation_inconclusive';
+				this.backoffIncidentRetry(current.shardId, at);
+				this.emit('recoveryDiagnostic', { event: 'shard_observation_inconclusive',
+					shardId: current.shardId, clusterId: current.clusterId, recoveryId: current.recoveryId });
+			}
+			// Valid evidence retains the action for the shared escalation path below.
+		}
+
+		if (gatewayOutage) {
+			return null;
+		}
 
 		if (this.activeRecovery) {
 			const active = this.activeRecovery;
 			const incident = this.shardIncidents.get(active.shardId);
 			if (!incident || incident.phase === 'resolved') {
 				this.activeRecovery = null;
-			} else if (active.action === 'destroy' && incident.phase === 'waiting_settle') {
-				if (at - (incident.destroyAt || active.startedAt) >= this.config.destroySettleMs) {
+			} else if (['destroy', 'observe'].includes(active.action) && incident.phase === 'waiting_settle') {
+				const observing = active.action === 'observe';
+				const settledAt = (observing ? incident.observeStartedAt : incident.destroyAt) ?? active.startedAt;
+				if (at - settledAt >= this.config.destroySettleMs) {
 					if ((incident.consecutiveHealthyChecks || 0) >= 2) {
-						this._resolveIncident(active.shardId, at, 'healthy_after_destroy');
+						this._resolveIncident(active.shardId, at, observing ? 'healthy_after_observation' : 'healthy_after_destroy');
 						this.activeRecovery = null;
 					} else {
-						const reason = `still_unhealthy_after_destroy_settle_${this.config.destroySettleMs}ms`;
+						// Observation is not a failed destroy. Require an actual, recent
+						// unhealthy sample after the observation deadline before escalating.
+						if (observing && !this.canEscalateObservation(incident, active, at)) return null;
+						const reason = `still_unhealthy_after_${observing ? 'observation' : 'destroy_settle'}_${this.config.destroySettleMs}ms`;
 						incident.phase = 'recovering_respawn';
 						incident.upgradeReason = reason;
-						console.warn(`[HealthMonitor] Escalating shard ${active.shardId} to clusterRespawn: ${reason}`);
+						console.warn(
+							`[HealthMonitor] clusterRespawn shard=${active.shardId} cluster=${incident.clusterId} reason=${reason}`
+						);
 						this.activeRecovery = {
+							recoveryId: ++this.recoverySequence,
 							shardId: active.shardId,
 							clusterId: incident.clusterId,
 							action: 'clusterRespawn',
@@ -241,6 +372,7 @@ class HealthMonitor extends EventEmitter {
 			incident.phase = 'recovering_destroy';
 			incident.destroyAt = at;
 			this.activeRecovery = {
+				recoveryId: ++this.recoverySequence,
 				shardId: incident.shardId,
 				clusterId: incident.clusterId,
 				action: 'destroy',

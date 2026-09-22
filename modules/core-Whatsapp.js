@@ -306,21 +306,23 @@ async function startUpInner() {
 				console.log(persisted.ascii);
 			}
 
+			const scanHint = persisted.asciiPaths[0] || persisted.payloadPaths[0];
+			const extras = scanHint ? [...new Set([
+				...persisted.asciiPaths.slice(1),
+				...persisted.payloadPaths,
+			])].filter((p) => p !== scanHint) : [];
+			const extraHint = extras.length > 0 ? ` (also ${extras.join(', ')})` : '';
 			if (!qrCodePrintedForSession) {
 				qrCodePrintedForSession = true;
-				const scanHint = persisted.asciiPaths[0] || persisted.payloadPaths[0];
 				if (scanHint) {
-					const extras = [...new Set([
-						...persisted.asciiPaths.slice(1),
-						...persisted.payloadPaths,
-					])].filter((p) => p !== scanHint);
-					const extraHint = extras.length > 0 ? ` (also ${extras.join(', ')})` : '';
 					console.log(`[Whatsapp] QR RECEIVED — scan ${scanHint}${extraHint}; QR not written to application logs`);
 				} else {
 					console.log(`[Whatsapp] QR RECEIVED (could not write QR files: ${persisted.errors.join('; ') || 'unknown error'})`);
 				}
+			} else if (scanHint) {
+				console.log(`[Whatsapp] QR code refreshed — scan ${scanHint}${extraHint}`);
 			} else {
-				console.log('[Whatsapp] QR code refreshed (new code active; files updated). Full QR omitted to reduce log/notify spam.');
+				console.log(`[Whatsapp] QR code refreshed (could not write QR files: ${persisted.errors.join('; ') || 'unknown error'})`);
 			}
 		});
 

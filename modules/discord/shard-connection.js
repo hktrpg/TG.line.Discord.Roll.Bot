@@ -170,17 +170,17 @@ async function recoverClientShard(client, data = {}) {
 
 /**
  * Decide what the coordinator should do with broadcastEval recovery results.
- * healthy resolves the incident. missing and unsupported escalate to a cluster
- * restart. Anything else keeps the existing retry backoff.
+ * healthy resolves the incident. unsupported observes native reconnection;
+ * missing retains cluster escalation. Anything else keeps retry backoff.
  * @param {string[]|undefined} results
- * @returns {{ type: 'healthy'|'destroyed'|'respawn'|'retry', reason?: string }}
+ * @returns {{ type: 'healthy'|'destroyed'|'observe'|'respawn'|'retry', reason?: string }}
  */
 function interpretShardRecoveryResults(results) {
 	if (!Array.isArray(results)) return { type: 'retry' };
 	if (results.includes('healthy')) return { type: 'healthy' };
 	if (results.includes('destroyed')) return { type: 'destroyed' };
 	if (results.includes('missing')) return { type: 'respawn', reason: 'shard_missing' };
-	if (results.includes('unsupported')) return { type: 'respawn', reason: 'shard_api_unsupported' };
+	if (results.includes('unsupported')) return { type: 'observe', reason: 'shard_api_unsupported' };
 	return { type: 'retry' };
 }
 

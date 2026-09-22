@@ -25,12 +25,12 @@ test('healthy and destroyed results do not escalate', () => {
     expect(interpretShardRecoveryResults(['destroyed'])).toEqual({ type: 'destroyed' });
 });
 
-test('missing and unsupported shards escalate with distinct reasons', () => {
+test('unsupported shards observe native recovery instead of immediately respawning', () => {
     expect(interpretShardRecoveryResults(['not-owner', 'missing'])).toEqual({
         type: 'respawn', reason: 'shard_missing',
     });
     expect(interpretShardRecoveryResults(['unsupported'])).toEqual({
-        type: 'respawn', reason: 'shard_api_unsupported',
+        type: 'observe', reason: 'shard_api_unsupported',
     });
     expect(interpretShardRecoveryResults(['not-owner'])).toEqual({ type: 'retry' });
     expect(interpretShardRecoveryResults()).toEqual({ type: 'retry' });

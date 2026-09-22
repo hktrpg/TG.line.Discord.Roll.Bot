@@ -17,7 +17,7 @@ function createProblemDebug({ role, enabled = process.env.DEBUG_LOG === 'true',
     const seen = new Map();
     const allowed = new Set(['clusterId', 'shardId', 'childPid', 'exitCode', 'signal',
         'connectionId', 'host', 'state', 'ageMs', 'attempt', 'durationMs', 'queuedMs',
-        'source', 'pending', 'origin']);
+        'source', 'pending', 'origin', 'recoveryId']);
     return (event, fields = {}, error, { force = false } = {}) => {
         if (!enabled) return;
         try {

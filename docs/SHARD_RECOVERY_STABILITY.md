@@ -35,15 +35,37 @@ The existing caller's Ready timeout still applies. Serial recovery deliberately
 takes longer during a fleet-wide outage, to avoid concurrent boot and DB load.
 
 Shard recovery rechecks ownership and current status. A shard that is already
-Ready resolves the incident. A missing shard, or an unhealthy shard whose
-installed discord.js API lacks destroy, requests a parent-managed cluster
-respawn. Any other result keeps the existing retry backoff. IPC delivery is not
+Ready resolves the incident. An unhealthy shard whose installed discord.js API
+lacks destroy enters observe-only waiting_settle for HEALTH_SHARD_DESTROY_SETTLE_MS
+(180 seconds by default), after the initial 180-second incident threshold. No
+socket is destroyed. Two healthy checks resolve it naturally. Escalation requires
+a numeric unhealthy status sampled at/after the observation deadline, no newer
+healthy sample, and a sample no older than one health-check interval. Missing,
+unknown and failed probes during observation are not evidence for escalation.
+The initial missing-shard recovery path still requests a parent-managed cluster
+respawn; this change specifically replaces the unsupported-API shortcut.
+Observation emits only a diagnostic event, not periodic health logs.
+Observation has a hard maximum of HEALTH_SHARD_OBSERVATION_MAX_MS (default 360
+seconds from observation start, clamped to at least the settle duration). At that
+deadline, two healthy checks resolve first. Otherwise, fresh qualifying unhealthy
+evidence escalates through the same predicate used before the deadline, unless
+gateway outage suppression is active. Only an inconclusive or suppressed attempt
+releases both the global recovery slot and the incident's busy phase,
+records observation_inconclusive, and uses the existing retry cooldown. It does
+not mark the shard healthy or force a restart without evidence. Expiry also runs
+during gateway-outage suppression. Another incident can proceed in the same tick.
+Every recovery attempt/escalation has a generation ID. Broadcast results and
+asynchronous failures must match both that ID and the current action before they
+can change state. Only an accepted destroy-to-observe transition emits the start
+diagnostic; stale results emit recovery_result_ignored. These event logs remain
+behind DEBUG_LOG=true, with no periodic health logging.
+Any other result keeps the existing retry backoff. IPC delivery is not
 treated as Ready: health probes continue and the incident uses the existing retry
 backoff. No internal discord.js websocket fields are manipulated.
 
 ## Validation
 
-Run the cluster-recovery, shard-recovery-contract, health-monitor-shard,
+Run the cluster-recovery, shard-recovery-contract, shard-native-recovery, health-monitor-shard,
 shard-client-shape, shard-connection and shard-topology Jest suites. The contract
 test uses the installed discord.js WebSocketShard, not a destroy-capable mock.
 

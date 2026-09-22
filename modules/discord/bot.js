@@ -912,14 +912,25 @@ async function executeShardRecoveryAction(action) {
 				return recoverClientShard(c, data);
 			}, { context: { shardId, clusterId, reason, shardConnectionModule: SHARD_CONNECTION_MODULE } });
 
+			if (!healthMonitor.isCurrentRecovery(action)) {
+				problemDebug('recovery_result_ignored', { clusterId, shardId, recoveryId: action.recoveryId, source: 'stale_broadcast_result' });
+				return;
+			}
 			const decision = interpretShardRecoveryResults(results);
 			if (decision.type === 'healthy') {
 				healthMonitor.noteRecoveryHealthy(shardId);
 				return;
 			}
 			if (decision.type === 'destroyed') return;
+			if (decision.type === 'observe') {
+				if (healthMonitor.observeNativeRecovery(action)) {
+					problemDebug('shard_observation_started', { clusterId, shardId, recoveryId: action.recoveryId, source: decision.reason });
+				}
+				return;
+			}
 			if (decision.type === 'respawn') {
-				await executeShardRecoveryAction({ ...action, action: 'clusterRespawn', reason: decision.reason });
+				healthMonitor.activeRecovery = { ...action, action: 'clusterRespawn', reason: decision.reason };
+				await executeShardRecoveryAction(healthMonitor.activeRecovery);
 				return;
 			}
 			console.warn(
@@ -931,6 +942,7 @@ async function executeShardRecoveryAction(action) {
 		}
 
 		if (kind === 'clusterRespawn') {
+			if (!healthMonitor.isCurrentRecovery(action)) return;
 			if (clusterId === undefined || clusterId === null || Number.isNaN(Number(clusterId))) {
 				console.error(`[HealthMonitor] clusterRespawn skipped: unknown cluster for shard ${shardId}`);
 				healthMonitor.clearActiveRecovery(shardId);
@@ -951,13 +963,21 @@ async function executeShardRecoveryAction(action) {
 			});
 			// IPC delivery is not proof of Ready. Re-probe during backoff, and allow
 			// another bounded request if the parent cannot restore this cluster.
-			healthMonitor.backoffIncidentRetry(shardId);
+			if (healthMonitor.isCurrentRecovery(action)) healthMonitor.backoffIncidentRetry(shardId);
 		}
 	} catch (error) {
+		if (!healthMonitor.isCurrentRecovery(action)) {
+			problemDebug('recovery_result_ignored', { clusterId, shardId, recoveryId: action.recoveryId, source: 'stale_recovery_failure' }, error);
+			return;
+		}
 		console.error(`[HealthMonitor] Recovery action failed:`, error?.message || error);
 		healthMonitor.backoffIncidentRetry(shardId);
 	}
 }
+
+healthMonitor.on('recoveryDiagnostic', ({ event, shardId, clusterId, recoveryId }) => {
+	problemDebug(event, { shardId, clusterId, recoveryId, source: 'observation_deadline' });
+});
 
 healthMonitor.on('recoveryAction', (action) => {
 	void executeShardRecoveryAction(action);

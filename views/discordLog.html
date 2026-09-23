@@ -1189,8 +1189,7 @@
                 // ...existing methods...
                 highlightMatches(text, isbot) {
                     const raw = text == null ? '' : String(text);
-                    const escaped = this.escapeHtml(raw + (isbot ? '(🤖)' : ''));
-                    return this.applyHighlight(escaped);
+                    return this.applyHighlight(raw + (isbot ? '(🤖)' : ''));
                 },
                 dhm2(unix_timestamp) {
                     let dhm2date = new Date(unix_timestamp)
@@ -1216,12 +1215,21 @@
                     if (!/^https?:\/\//i.test(raw)) return '';
                     return this.escapeHtml(raw);
                 },
-                applyHighlight(escapedText) {
+                applyHighlight(text) {
+                    const raw = text == null ? '' : String(text);
                     const term = this.filter || '';
-                    if (!term) return escapedText;
+                    if (!term) return this.escapeHtml(raw);
                     const safe = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                     const re = new RegExp(safe, 'ig');
-                    return escapedText.replace(re, m => `<strong>${m}</strong>`);
+                    // Match plain text first so highlighting cannot split HTML entities.
+                    let html = '';
+                    let offset = 0;
+                    for (const match of raw.matchAll(re)) {
+                        html += this.escapeHtml(raw.slice(offset, match.index));
+                        html += '<strong>' + this.escapeHtml(match[0]) + '</strong>';
+                        offset = match.index + match[0].length;
+                    }
+                    return html + this.escapeHtml(raw.slice(offset));
                 },
                 isImageUrl(url) {
                     if (!url) return false;
@@ -1247,9 +1255,9 @@
                     if (!embeds || !embeds.length) return '';
                     let html = '';
                     embeds.forEach(e => {
-                        const title = e && e.title ? this.applyHighlight(this.escapeHtml(e.title)) : '';
+                        const title = e && e.title ? this.applyHighlight(e.title) : '';
                         const url = e && (e.url || (e.author && e.author.url)) || '';
-                        const desc = e && e.description ? this.applyHighlight(this.escapeHtml(e.description)) : '';
+                        const desc = e && e.description ? this.applyHighlight(e.description) : '';
                         const thumb = e && e.thumbnail && (e.thumbnail.url || e.thumbnail.proxy_url);
                         const image = e && e.image && (e.image.url || e.image.proxy_url);
                         html += '<div class="mt-1 p-2" style="background:#f7f7f7;border-radius:6px;">';
@@ -1274,12 +1282,12 @@
                 },
                 renderReply(r) {
                     if (!r) return '';
-                    const uname = r.userName ? this.applyHighlight(this.escapeHtml(r.userName)) : 'Unknown';
-                    const content = r.contact ? this.applyHighlight(this.escapeHtml(r.contact)) : '';
+                    const uname = r.userName ? this.applyHighlight(r.userName) : 'Unknown';
+                    const content = r.contact ? this.applyHighlight(r.contact) : '';
                     return `<div class="p-2 mb-1" style="border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;">${dt('dlog_reply_prefix', { user: uname })} <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
                 },
                 renderContent(row) {
-                    const base = this.applyHighlight(this.escapeHtml((row && row.contact) || ''));
+                    const base = this.applyHighlight((row && row.contact) || '');
                     const botMark = row && row.isbot ? ' (🤖)' : '';
                     const reply = this.renderReply(row && row.reply_to);
                     const embeds = this.renderEmbeds(row && row.embeds);
@@ -1932,8 +1940,7 @@
                     },
                     highlightMatches(text, isbot) {
                         const raw = text == null ? '' : String(text);
-                        const escaped = this.escapeHtml(raw + (isbot ? '(🤖)' : ''));
-                        return this.applyHighlight(escaped);
+                        return this.applyHighlight(raw + (isbot ? '(🤖)' : ''));
                     },
                     dhm2(unix_timestamp) {
                         let date = new Date(unix_timestamp);
@@ -1959,12 +1966,21 @@
                         if (!/^https?:\/\//i.test(raw)) return '';
                         return this.escapeHtml(raw);
                     },
-                    applyHighlight(escapedText) {
+                    applyHighlight(text) {
+                        const raw = text == null ? '' : String(text);
                         const term = this.filter || '';
-                        if (!term) return escapedText;
+                        if (!term) return this.escapeHtml(raw);
                         const safe = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
                         const re = new RegExp(safe, 'ig');
-                        return escapedText.replace(re, m => `<strong>${m}</strong>`);
+                        // Match plain text first so highlighting cannot split HTML entities.
+                        let html = '';
+                        let offset = 0;
+                        for (const match of raw.matchAll(re)) {
+                            html += this.escapeHtml(raw.slice(offset, match.index));
+                            html += '<strong>' + this.escapeHtml(match[0]) + '</strong>';
+                            offset = match.index + match[0].length;
+                        }
+                        return html + this.escapeHtml(raw.slice(offset));
                     },
                     isImageUrl(url) {
                         if (!url) return false;
@@ -1990,9 +2006,9 @@
                         if (!embeds || !embeds.length) return '';
                         let html = '';
                         embeds.forEach(e => {
-                            const title = e && e.title ? this.applyHighlight(this.escapeHtml(e.title)) : '';
+                            const title = e && e.title ? this.applyHighlight(e.title) : '';
                             const url = e && (e.url || (e.author && e.author.url)) || '';
-                            const desc = e && e.description ? this.applyHighlight(this.escapeHtml(e.description)) : '';
+                            const desc = e && e.description ? this.applyHighlight(e.description) : '';
                             const thumb = e && e.thumbnail && (e.thumbnail.url || e.thumbnail.proxy_url);
                             const image = e && e.image && (e.image.url || e.image.proxy_url);
                             html += '<div class="mt-1 p-2" style="background:#f7f7f7;border-radius:6px;">';
@@ -2017,12 +2033,12 @@
                     },
                     renderReply(r) {
                         if (!r) return '';
-                        const uname = r.userName ? this.applyHighlight(this.escapeHtml(r.userName)) : 'Unknown';
-                        const content = r.contact ? this.applyHighlight(this.escapeHtml(r.contact)) : '';
+                        const uname = r.userName ? this.applyHighlight(r.userName) : 'Unknown';
+                        const content = r.contact ? this.applyHighlight(r.contact) : '';
                         return `<div class=\"p-2 mb-1\" style=\"border-left:3px solid #90ccf4;background:#eef6ff;border-radius:4px;\">${dt('dlog_reply_prefix', { user: uname })} <span style=\"white-space:pre-wrap;\">${content}</span></div>`;
                     },
                     renderContent(row) {
-                        const base = this.applyHighlight(this.escapeHtml((row && row.contact) || ''));
+                        const base = this.applyHighlight((row && row.contact) || '');
                         const botMark = row && row.isbot ? ' (🤖)' : '';
                         const reply = this.renderReply(row && row.reply_to);
                         const embeds = this.renderEmbeds(row && row.embeds);

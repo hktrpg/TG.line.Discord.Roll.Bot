@@ -1,7 +1,7 @@
 /**
  * Session log detail / landing page — Qidian-style hero, links to reader.
  */
-/* global SessionLogReader, SessionLogApi */
+/* global SessionLogReader, SessionLogApi, SessionLogCover */
 const SessionLogDetailPage = {
     log: null,
     chapters: [],
@@ -99,12 +99,7 @@ const SessionLogDetailPage = {
     },
 
     renderCover(log, theme) {
-        if (log.coverUrl) {
-            return `<img class="trpg-log-card-cover-img session-log-hero-cover-img" src="${this.esc(log.coverUrl)}" alt="">`;
-        }
-        return `
-            <span class="iconify" data-icon="${this.logThemeIcon(theme)}" data-width="48"></span>
-            <span class="session-log-hero-cover-title">${this.esc(log.title)}</span>`;
+        return SessionLogCover.renderHeroCover(log, theme);
     },
 
     renderHero() {
@@ -146,7 +141,7 @@ const SessionLogDetailPage = {
             : '';
 
         hero.innerHTML = `
-            <div class="session-log-hero-cover trpg-log-card-art-${theme}${log.coverUrl ? ' session-log-hero-cover-has-img' : ''}" aria-hidden="true">
+            <div class="session-log-hero-cover trpg-log-card-art-${theme}${String(log.coverUrl || '').trim() ? ' session-log-hero-cover-has-img' : ''}" aria-hidden="true">
                 ${this.renderCover(log, theme)}
             </div>
             <div class="session-log-hero-main">

@@ -16,6 +16,7 @@
     <script src="/common/www-i18n.js"></script>
     <script src="/common/www-theme.js"></script>
     <script src="/common/site-chrome.js"></script>
+    <script src="/common/session-log-cover.js"></script>
     <script src="/common/trpg-hub-page.js"></script>
 </head>
 <body class="trpg-hub-body">
@@ -39,6 +40,7 @@
                 <div class="trpg-carousel" role="list">
                     <a class="trpg-carousel-slide" href="/logs" role="listitem">
                         <div class="trpg-carousel-art trpg-poster-art-logs">
+                            <img class="trpg-poster-bg" src="/image/hub/poster-logs.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                             <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="42"></span>
                             <span class="trpg-carousel-title" data-www-i18n="trpg_hub_card_logs_title">團錄列表</span>
                         </div>
@@ -46,6 +48,7 @@
                     </a>
                     <a class="trpg-carousel-slide" href="https://card.hktrpg.com/" role="listitem">
                         <div class="trpg-carousel-art trpg-poster-art-cards">
+                            <img class="trpg-poster-bg" src="/image/hub/poster-cards.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                             <span class="iconify" data-icon="mdi:card-account-details-outline" data-width="42"></span>
                             <span class="trpg-carousel-title" data-www-i18n="trpg_hub_link_card">角色卡</span>
                         </div>
@@ -53,6 +56,7 @@
                     </a>
                     <a class="trpg-carousel-slide" href="/" role="listitem">
                         <div class="trpg-carousel-art trpg-poster-art-roll">
+                            <img class="trpg-poster-bg" src="/image/hub/poster-roll.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                             <span class="iconify" data-icon="mdi:dice-multiple" data-width="42"></span>
                             <span class="trpg-carousel-title" data-www-i18n="nav_chat_roll">聊天室擲骰</span>
                         </div>
@@ -62,6 +66,14 @@
             </div>
 
             <p class="trpg-notice-bar" data-www-i18n="trpg_hub_notice">團錄功能測試中，歡迎試用範例場次並回饋！</p>
+
+            <section class="trpg-hub-featured" aria-labelledby="hubFeaturedTitle">
+                <div class="trpg-section-bar">
+                    <h2 id="hubFeaturedTitle" data-www-i18n="trpg_discover_demo_title">範例團錄</h2>
+                    <a class="trpg-section-link" href="/logs" data-www-i18n="trpg_hub_view_all">全部 ↗</a>
+                </div>
+                <div class="trpg-log-card-grid trpg-hub-demo-grid" id="hubDemoGrid"></div>
+            </section>
 
             <div class="trpg-hub-split">
                 <div class="trpg-hub-primary">
@@ -79,6 +91,7 @@
                         <a class="trpg-poster-card" data-cat="logs" href="/logs">
                             <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_logs">團錄</span>
                             <div class="trpg-poster-art trpg-poster-art-logs">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-logs.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:book-open-page-variant" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_logs_title">團錄列表</span>
@@ -86,6 +99,7 @@
                         <a class="trpg-poster-card" data-cat="logs" href="/logs">
                             <span class="trpg-poster-badge" data-www-i18n="trpg_hub_tag_featured">優先</span>
                             <div class="trpg-poster-art trpg-poster-art-logs">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-logs.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:play-circle-outline" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_discover_demo_title">範例團錄</span>
@@ -93,6 +107,7 @@
                         <a class="trpg-poster-card" data-cat="tools" href="/home">
                             <span class="trpg-poster-badge" data-www-i18n="trpg_discover_tools">工具</span>
                             <div class="trpg-poster-art trpg-poster-art-tools">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-tools.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:view-grid-outline" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_hub_link_home">工具總覽</span>
@@ -100,6 +115,7 @@
                         <a class="trpg-poster-card" data-cat="cards" href="https://card.hktrpg.com/">
                             <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_cards">角色卡</span>
                             <div class="trpg-poster-art trpg-poster-art-cards">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-cards.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:card-account-details-outline" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_hub_link_card">角色卡</span>
@@ -107,6 +123,7 @@
                         <a class="trpg-poster-card" data-cat="cards" href="/card">
                             <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_cards">角色卡</span>
                             <div class="trpg-poster-art trpg-poster-art-cards">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-cards.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:account-box-outline" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_cards_title">角色卡編輯</span>
@@ -114,6 +131,7 @@
                         <a class="trpg-poster-card" data-cat="roll" href="/">
                             <span class="trpg-poster-badge" data-www-i18n="trpg_hub_filter_roll">擲骰</span>
                             <div class="trpg-poster-art trpg-poster-art-roll">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-roll.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="bi:chat-square-text" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="nav_chat_roll">聊天室擲骰</span>
@@ -121,6 +139,7 @@
                         <a class="trpg-poster-card" data-cat="tools" href="https://bothelp.hktrpg.com/" data-www-bothelp-href>
                             <span class="trpg-poster-badge" data-www-i18n="trpg_hub_link_guide">教學</span>
                             <div class="trpg-poster-art trpg-poster-art-guide">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-guide.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:book-open-variant" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_hub_link_guide">使用教學</span>
@@ -128,6 +147,7 @@
                         <a class="trpg-poster-card trpg-poster-card-muted" data-cat="news" href="/news">
                             <span class="trpg-poster-badge trpg-poster-badge-soon" data-www-i18n="trpg_hub_tag_soon">籌備中</span>
                             <div class="trpg-poster-art trpg-poster-art-news">
+                                <img class="trpg-poster-bg" src="/image/hub/poster-news.svg" alt="" data-hub-poster-img loading="lazy" decoding="async">
                                 <span class="iconify" data-icon="mdi:newspaper-variant-outline" data-width="36"></span>
                             </div>
                             <span class="trpg-poster-title" data-www-i18n="trpg_hub_card_news_title">TRPG 新聞</span>

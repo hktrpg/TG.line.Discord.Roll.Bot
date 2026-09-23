@@ -1,7 +1,7 @@
 /**
  * Session log commercial console — library / import / author / trash / account tabs.
  */
-/* global SessionLogApi, SessionLogDecrypt */
+/* global SessionLogApi, SessionLogDecrypt, SessionLogCover */
 const SessionLogDashboard = {
     IMPORT_DRAFT_KEY: 'sessionLogImportDraft',
 
@@ -136,43 +136,12 @@ const SessionLogDashboard = {
         }
     },
 
-    logThemeArtClass(theme) {
-        const allowed = ['kakuyomu', 'kindle', 'parchment', 'notion', 'letter', 'script', 'discord', 'chat', 'term'];
-        return allowed.includes(theme) ? theme : 'kakuyomu';
-    },
-
-    logThemeIcon(theme) {
-        const icons = {
-            kakuyomu: 'mdi:book-open-page-variant',
-            kindle: 'mdi:book-outline',
-            parchment: 'mdi:scroll-text',
-            notion: 'mdi:note-text-outline',
-            letter: 'mdi:email-newsletter',
-            script: 'mdi:script-text-outline',
-            discord: 'mdi:chat-outline',
-            chat: 'mdi:message-text-outline',
-            term: 'mdi:console',
-        };
-        return icons[this.logThemeArtClass(theme)] || icons.kakuyomu;
-    },
-
     renderCoverArt(log, demo) {
-        const theme = this.logThemeArtClass(log.theme);
-        if (log.coverUrl) {
-            return `<img class="trpg-log-card-cover-img" src="${this.esc(log.coverUrl)}" alt="">`;
-        }
-        const themeLabel = demo ? '' : this.t(`trpg_theme_${theme}`);
-        const leftTag = demo ? this.t('trpg_logs_demo_badge') : themeLabel;
-        return `
-            <span class="trpg-log-card-tag trpg-log-card-tag-left${demo ? ' trpg-log-card-tag-demo' : ''}">${this.esc(leftTag)}</span>
-            <div class="trpg-log-card-art trpg-log-card-art-${theme}" aria-hidden="true">
-                <span class="iconify trpg-log-card-icon" data-icon="${this.logThemeIcon(theme)}" data-width="46"></span>
-            </div>`;
+        return SessionLogCover.renderCoverArt(log, { demo });
     },
 
     renderLogCard(log, options = {}) {
         const { demo = false } = options;
-        const theme = this.logThemeArtClass(log.theme);
         const messageLabel = this.t('trpg_logs_messages', { count: log.messageCount || 0 });
         const captionMeta = [log.sessionDate, log.location].filter(Boolean).join(' · ');
         const captionSub = log.subtitle || captionMeta;

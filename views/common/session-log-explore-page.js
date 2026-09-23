@@ -1,7 +1,7 @@
 /**
  * Public session log discovery page.
  */
-/* global SessionLogApi */
+/* global SessionLogApi, SessionLogCover */
 const SessionLogExplorePage = {
     safe: true,
     sort: 'latest',
@@ -18,35 +18,10 @@ const SessionLogExplorePage = {
             .replaceAll('"', '&quot;');
     },
 
-    logThemeArtClass(theme) {
-        const allowed = ['kakuyomu', 'kindle', 'parchment', 'notion', 'letter', 'script', 'discord', 'chat', 'term'];
-        return allowed.includes(theme) ? theme : 'kakuyomu';
-    },
-
-    logThemeIcon(theme) {
-        const icons = {
-            kakuyomu: 'mdi:book-open-page-variant',
-            kindle: 'mdi:book-outline',
-            parchment: 'mdi:scroll-text',
-            notion: 'mdi:note-text-outline',
-            letter: 'mdi:email-newsletter',
-            script: 'mdi:script-text-outline',
-            discord: 'mdi:chat-outline',
-            chat: 'mdi:message-text-outline',
-            term: 'mdi:console',
-        };
-        return icons[this.logThemeArtClass(theme)] || icons.kakuyomu;
-    },
-
     renderCard(log) {
-        const theme = this.logThemeArtClass(log.theme);
         const messageLabel = this.t('trpg_logs_messages', { count: log.messageCount || 0 });
         const ratingKey = `trpg_rating_${log.rating || 'general'}`;
-        const coverHtml = log.coverUrl
-            ? `<img class="trpg-log-card-cover-img" src="${this.esc(log.coverUrl)}" alt="">`
-            : `<div class="trpg-log-card-art trpg-log-card-art-${theme}" aria-hidden="true">
-                <span class="iconify trpg-log-card-icon" data-icon="${this.logThemeIcon(theme)}" data-width="46"></span>
-               </div>`;
+        const coverHtml = SessionLogCover.renderCoverArt(log);
         const synopsis = log.synopsis ? `<p class="trpg-explore-card-synopsis">${this.esc(log.synopsis.slice(0, 100))}${log.synopsis.length > 100 ? '…' : ''}</p>` : '';
 
         return `

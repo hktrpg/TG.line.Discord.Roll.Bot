@@ -1305,6 +1305,13 @@ body.session-log-drawer-open {
     object-fit: cover;
 }
 
+.session-log-hero-cover .trpg-cover-stack-hero {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
 .session-log-hero-author {
     margin: 0.25rem 0 0;
     font-size: 0.88rem;

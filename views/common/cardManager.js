@@ -280,8 +280,8 @@ class CardManager {
                         try {
                             this.modalNoteTitle = (item && (item.name || item.title || '')) || '';
                             const raw = (item && (item.itemA || item.content || '') || '').toString();
-                            // 保留換行
-                            this.modalNoteContent = raw.replaceAll('\n', '<br>');
+                            // Plain text; the template uses pre-wrap so newlines stay without v-html.
+                            this.modalNoteContent = raw;
                             $('#noteDetailModal').modal('show');
                             debugLog('Opened note detail modal', 'info', { title: this.modalNoteTitle, length: raw.length });
                         } catch (error) {

@@ -2548,10 +2548,16 @@ if (io) {
 
         socket.on("newRoom", safeSocketHandler('newRoom', async (msg) => {
             if (await limitRaterChatRoom(socket.handshake.address)) return;
-            // 如果 msg 內容鍵值小於 2 等於是訊息傳送不完全
-            // 因此我們直接 return ，終止函式執行。
-            if (!msg) return;
-            let roomNumber = msg || "公共房間";
+            // Room id must be a plain string. Objects such as { $ne: "" } would be
+            // interpreted as MongoDB operators by chatRoomGet.
+            if (typeof msg !== 'string') return;
+            const roomNumber = msg.trim();
+            // Reply with the same id the client is waiting on. A silent return
+            // leaves isHistoryLoading set and the room blank.
+            if (!roomNumber || roomNumber.length > 50) {
+                socket.emit("chatRecord", [], msg);
+                return;
+            }
             setTimeout(async () => {
                 try {
                     const msgs = await records.chatRoomGet(roomNumber);

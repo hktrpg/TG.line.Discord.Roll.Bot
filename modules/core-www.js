@@ -2552,7 +2552,12 @@ if (io) {
             // interpreted as MongoDB operators by chatRoomGet.
             if (typeof msg !== 'string') return;
             const roomNumber = msg.trim();
-            if (!roomNumber || roomNumber.length > 50) return;
+            // Reply with the same id the client is waiting on. A silent return
+            // leaves isHistoryLoading set and the room blank.
+            if (!roomNumber || roomNumber.length > 50) {
+                socket.emit("chatRecord", [], msg);
+                return;
+            }
             setTimeout(async () => {
                 try {
                     const msgs = await records.chatRoomGet(roomNumber);

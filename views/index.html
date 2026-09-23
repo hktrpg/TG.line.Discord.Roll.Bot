@@ -4484,6 +4484,11 @@
                     state.isHistoryLoading = true;
                     state.pendingLive = [];
                     state.socket.emit("newRoom", roomName);
+                    // Names the server will not query never get a history reply on older builds.
+                    const roomId = typeof roomName === 'string' ? roomName.trim() : '';
+                    if (!roomId || roomId.length > 50) {
+                        state.isHistoryLoading = false;
+                    }
                     // 新增新房間的事件監聽器
                     state.socket.on(roomName, (message) => {
                         if (state.isHistoryLoading) {

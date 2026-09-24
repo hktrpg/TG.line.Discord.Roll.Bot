@@ -391,7 +391,8 @@ function updateCard() {
         notes: card.notes,
         characterDetails: card.characterDetails,
         public: card.public,
-        name: card.name
+        name: card.name,
+        schemaVersion: card.schemaVersion,
     });
     if (clientValidationError) {
         uiManager.showError(clientValidationError);
@@ -407,16 +408,114 @@ function updateCard() {
             _id: card._id,
             id: card.id,
             image: card.image,
-            name: card.name, // Force include name no matter what
             state: card.state,
             roll: card.roll,
             notes: card.notes,
+            schemaVersion: card.schemaVersion,
             characterDetails: card.characterDetails,
-            public: card.public
+            public: card.public,
+            name: card.name
         }
     };
     debugLog('updateCard outgoing (patched):', 'info', data.card);
     socketManager.emitUpdateCard(data);
+}
+
+function runCharacterCardImport() {
+    if (card && card.isPublic) {
+        uiManager.showInfo(typeof wwwT === 'function' ? wwwT('public_readonly_info') : 'Public page is view/roll only.');
+        return;
+    }
+    if (!card || !card._id) {
+        uiManager.showError(typeof wwwT === 'function' ? wwwT('import_select_card_first') : 'Select a character card first.');
+        return;
+    }
+    const userName = localStorage.getItem('userName');
+    const token = localStorage.getItem('jwtToken');
+    if (!userName || !token) {
+        uiManager.showError(typeof wwwT === 'function' ? wwwT('login_required_update') : 'Please log in first.');
+        return;
+    }
+    const sourceEl = document.getElementById('importSource');
+    const source = sourceEl?.value || 'ddb';
+    const runBtn = document.querySelector('#importCharacterModal .btn-primary');
+
+    const emitImport = payload => {
+        if (runBtn) {
+            uiManager.showLoading(runBtn);
+        }
+        const sent = socketManager.emitImportCharacterCard({
+            userName,
+            token,
+            cardId: card._id,
+            locale: typeof getWwwLocale === 'function' ? getWwwLocale() : undefined,
+            ...payload,
+        });
+        if (!sent && runBtn) {
+            uiManager.hideLoading(runBtn);
+        }
+    };
+
+    if (source === 'udonarium') {
+        const fileInput = document.getElementById('importUdonFile');
+        const file = fileInput?.files?.[0];
+        const replaceEl = document.getElementById('importReplaceModeUdon');
+        if (!file) {
+            uiManager.showError(typeof wwwT === 'function' ? wwwT('import_udon_file_required') : 'Choose a character XML file.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => {
+            emitImport({
+                source: 'udonarium',
+                idInput: file.name,
+                fileContent: reader.result,
+                replaceMode: Boolean(replaceEl?.checked),
+            });
+        };
+        reader.onerror = () => {
+            uiManager.showError(typeof wwwT === 'function' ? wwwT('import_failed') : 'Import failed.');
+        };
+        reader.readAsText(file);
+        return;
+    }
+
+    const idEl = document.getElementById('importDdbId');
+    const replaceEl = document.getElementById('importReplaceMode');
+    const idInput = (idEl?.value || '').trim();
+    if (!idInput) {
+        uiManager.showError(typeof wwwT === 'function' ? wwwT('import_ddb_id_required') : 'Enter a character ID or URL.');
+        return;
+    }
+    emitImport({
+        source: 'ddb',
+        idInput,
+        replaceMode: Boolean(replaceEl?.checked),
+    });
+}
+
+function exportUdonariumCharacterCard() {
+    if (card && card.isPublic) {
+        uiManager.showInfo(typeof wwwT === 'function' ? wwwT('public_readonly_info') : 'Public page is view/roll only.');
+        return;
+    }
+    if (!card || !card._id) {
+        uiManager.showError(typeof wwwT === 'function' ? wwwT('import_select_card_first') : 'Select a character card first.');
+        return;
+    }
+    const userName = localStorage.getItem('userName');
+    const token = localStorage.getItem('jwtToken');
+    if (!userName || !token) {
+        uiManager.showError(typeof wwwT === 'function' ? wwwT('login_required_update') : 'Please log in first.');
+        return;
+    }
+    if (typeof socketManager !== 'undefined' && typeof socketManager.emitExportUdonariumCharacterCard === 'function') {
+        socketManager.emitExportUdonariumCharacterCard({
+            userName,
+            token,
+            cardId: card._id,
+        });
+    }
 }
 
 // Frontend validation: avoid duplicate names and field length exceeding limits (consistent with backend)
@@ -462,16 +561,20 @@ function validateClientCardPayload(payload) {
             if (tooLong(it.name, 50)) return v('state_name_too_long', { name: it.name });
             if (tooLong(it.itemA, 50)) return v('state_value_a_too_long', { name: it.name });
             if (tooLong(it.itemB, 50)) return v('state_value_b_too_long', { name: it.name });
+            if (it.section && tooLong(it.section, 50)) return v('failed');
         }
         for (const it of (payload.roll || [])) {
             if (!it || !it.name || !it.name.toString().trim()) return v('roll_name_empty');
             if (tooLong(it.name, 50)) return v('roll_name_too_long', { name: it.name });
             if (tooLong(it.itemA, 150)) return v('roll_content_too_long', { name: it.name });
+            if (it.section && tooLong(it.section, 50)) return v('failed');
         }
         for (const it of (payload.notes || [])) {
             if (!it || !it.name || !it.name.toString().trim()) return v('notes_name_empty');
             if (tooLong(it.name, 50)) return v('notes_name_too_long', { name: it.name });
-            if (tooLong(it.itemA, 1500)) return v('notes_content_too_long', { name: it.name });
+            const notesMax = (payload.schemaVersion >= 2) ? 4000 : 1500;
+            if (tooLong(it.itemA, notesMax)) return v('notes_content_too_long', { name: it.name });
+            if (it.section && tooLong(it.section, 50)) return v('failed');
         }
         return null;
     } catch { return v('failed'); }
@@ -500,6 +603,8 @@ globalThis.showDetailedHelp = showDetailedHelp;
 globalThis.showHelp = readme;
 globalThis.selectCard = selectCard;
 globalThis.updateCard = updateCard;
+globalThis.runCharacterCardImport = runCharacterCardImport;
+globalThis.exportUdonariumCharacterCard = exportUdonariumCharacterCard;
 globalThis.showError = showError;
 globalThis.showSuccess = showSuccess;
 globalThis.requestPublicListWithRetry = requestPublicListWithRetry;

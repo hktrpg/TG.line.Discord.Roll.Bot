@@ -358,19 +358,42 @@ if (process.env.mongoURL) {
         name: { type: String, maxlength: 50 },
         image: { type: String },
         nameShow: Boolean,
+        schemaVersion: { type: Number, default: 1 },
         state: [{
             name: { type: String, maxlength: 50 },
             itemA: { type: String, maxlength: 50 },
-            itemB: { type: String, maxlength: 50 }
+            itemB: { type: String, maxlength: 50 },
+            section: { type: String, maxlength: 50 },
+            order: { type: Number },
+            kind: { type: String, maxlength: 20 },
         }],
         roll: [{
             name: { type: String, maxlength: 50 },
-            itemA: { type: String, maxlength: 150 }
+            itemA: { type: String, maxlength: 150 },
+            section: { type: String, maxlength: 50 },
+            order: { type: Number },
+            kind: { type: String, maxlength: 20 },
         }],
         notes: [{
             name: { type: String, maxlength: 50 },
-            itemA: { type: String, maxlength: 1500 }
-        }]
+            itemA: { type: String, maxlength: 4000 },
+            section: { type: String, maxlength: 50 },
+            order: { type: Number },
+            kind: { type: String, maxlength: 20 },
+        }],
+        sections: [{
+            id: { type: String, maxlength: 64 },
+            title: { type: String, maxlength: 50 },
+            bucket: { type: String, enum: ["state", "roll", "notes"] },
+            items: [{
+                name: { type: String, maxlength: 50 },
+                itemA: { type: String, maxlength: 4000 },
+                itemB: { type: String, maxlength: 50 },
+                section: { type: String, maxlength: 50 },
+                order: { type: Number },
+                kind: { type: String, maxlength: 20 },
+            }],
+        }],
     }));
 
     models.exportGp = mongoose.model('exportGp', new Schema({

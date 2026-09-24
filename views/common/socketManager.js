@@ -143,6 +143,14 @@ class SocketManager {
             this.handleUpdateCard(result);
         });
 
+        this.socket.on('importCharacterCard', (result) => {
+            this.handleImportCharacterCard(result);
+        });
+
+        this.socket.on('exportUdonariumCharacterCard', (result) => {
+            this.handleExportUdonariumCharacterCard(result);
+        });
+
         // 頻道移除結果監聽
         this.socket.on('removeChannel', (result) => {
             this.handleRemoveChannel(result);
@@ -207,6 +215,12 @@ class SocketManager {
             if (card && card.editMode !== undefined) {
                 card.editMode = false;
             }
+            if (card && typeof card.saveOriginalData === 'function') {
+                card.schemaVersion = Math.max(Number(card.schemaVersion) || 1, 2);
+                card.saveOriginalData();
+            } else if (card) {
+                card.schemaVersion = Math.max(Number(card.schemaVersion) || 1, 2);
+            }
             
             // 移除載入狀態
             this.removeLoadingState();
@@ -216,6 +230,76 @@ class SocketManager {
             
             // 移除載入狀態
             this.removeLoadingState();
+        }
+    }
+
+    /**
+     * @param {object} result
+     */
+    handleImportCharacterCard(result) {
+        this.removeImportLoadingState();
+        const t = typeof wwwT === 'function' ? wwwT : key => key;
+        if (result?.ok) {
+            const card = cardManager.getCard();
+            if (card && result.card) {
+                card.state = result.card.state || [];
+                card.roll = result.card.roll || [];
+                card.notes = result.card.notes || [];
+                card.schemaVersion = result.card.schemaVersion ?? 2;
+                if (result.card.image) {
+                    card.image = result.card.image;
+                }
+                if (typeof card.saveOriginalData === 'function') {
+                    card.saveOriginalData();
+                }
+                card.hasUnsavedChanges = false;
+                if (card.editMode !== undefined) {
+                    card.editMode = false;
+                }
+            }
+            const summary = result.importSummary || {};
+            uiManager.showSuccess(t('import_success', {
+                stateCount: summary.stateCount ?? (result.card.state || []).length,
+                rollCount: summary.rollCount ?? result.rollCount ?? 0,
+                noteCount: summary.noteCount ?? (result.card.notes || []).length,
+                attackCount: summary.attackCount ?? 0,
+            }), 8000);
+            $('#importCharacterModal').modal('hide');
+            return;
+        }
+        const message = typeof globalThis.resolveImportErrorMessage === 'function'
+            ? globalThis.resolveImportErrorMessage(result)
+            : (result?.message || t('import_failed'));
+        uiManager.showError(message || t('import_failed'), 8000);
+    }
+
+    handleExportUdonariumCharacterCard(result) {
+        const t = typeof wwwT === 'function' ? wwwT : key => key;
+        if (result?.ok && result.xml) {
+            try {
+                const blob = new Blob([result.xml], { type: 'application/xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = result.fileName || 'character.xml';
+                anchor.click();
+                URL.revokeObjectURL(url);
+                uiManager.showSuccess(t('export_udon_success'), 4000);
+            } catch {
+                uiManager.showError(t('export_udon_failed'), 5000);
+            }
+            return;
+        }
+        const code = result?.code || 'failed';
+        const key = `export_error_${code}`;
+        const translated = t(key);
+        uiManager.showError(translated !== key ? translated : t('export_udon_failed'), 6000);
+    }
+
+    removeImportLoadingState() {
+        const btn = document.querySelector('#importCharacterModal .btn-primary');
+        if (btn) {
+            uiManager.hideLoading(btn);
         }
     }
 
@@ -282,6 +366,7 @@ class SocketManager {
                             card.notes = selected.notes || [];
                             card.public = selected.public || false;
                             card.image = selected.image || "";
+                            card.schemaVersion = selected.schemaVersion ?? 1;
                             try { localStorage.setItem('lastSelectedPublicCardId', selected._id); } catch {}
                             try { $('#cardListModal').modal("hide"); } catch {}
                             this.publicCardLoadedId = selected._id;
@@ -350,6 +435,7 @@ class SocketManager {
                 card.roll = cardData.roll || [];
                 card.notes = cardData.notes || [];
                 card.public = cardData.public || false;
+                card.schemaVersion = cardData.schemaVersion ?? 1;
                 try {
                     localStorage.setItem('lastSelectedPublicCardId', cardData._id);
                 } catch {}
@@ -401,6 +487,27 @@ class SocketManager {
     emitUpdateCard(data) {
         if (this.shouldThrottleRequest('updateCard')) return;
         this.socket.emit('updateCard', data);
+    }
+
+    emitImportCharacterCard(data) {
+        if (this.shouldThrottleRequest('importCharacterCard')) {
+            this.removeImportLoadingState();
+            const msg = typeof wwwT === 'function' ? wwwT('import_error_rate_limit') : 'Too many requests.';
+            uiManager.showError(msg, 5000);
+            return false;
+        }
+        this.socket.emit('importCharacterCard', data);
+        return true;
+    }
+
+    emitExportUdonariumCharacterCard(data) {
+        if (this.shouldThrottleRequest('exportUdonariumCharacterCard')) {
+            const msg = typeof wwwT === 'function' ? wwwT('import_error_rate_limit') : 'Too many requests.';
+            uiManager.showError(msg, 5000);
+            return false;
+        }
+        this.socket.emit('exportUdonariumCharacterCard', data);
+        return true;
     }
 
     /**

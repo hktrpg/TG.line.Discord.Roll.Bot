@@ -25,6 +25,10 @@ const security = require('../utils/security.js');
 const { isEnvEnabled } = require('../utils/env-flag.js');
 const rollWorkerClient = require('./roll-worker/client');
 const { runCharacterAction } = require('./roll-worker/character-action');
+const { runCharacterCardImport } = require('./character-card/www-import-router.js');
+const { runUdonariumCharacterCardExport } = require('./character-card/www-export-udon.js');
+const { validateCardPayload } = require('./www/validate-card-payload.js');
+const { prepareCardForMongoSave, cardFieldsForMongoSet } = require('./character-card/card-facade.js');
 const deferQueue = require('./roll-worker/defer-queue');
 const { buildBusEtaShortcut } = require('./www/bus-shortcut.js');
 const i18n = require('./i18n/i18n.js');
@@ -2447,16 +2451,34 @@ if (io) {
                 // 驗證成功，更新卡片
                 let temp;
                 if (doc.id && message.card) {
-                    // 後端驗證：禁止同名與超長內容
-                    const validationError = validateCardPayload(message.card, message.locale);
+                    message.card.state = checkNullItem(message.card.state || []);
+                    message.card.roll = checkNullItem(message.card.roll || []);
+                    message.card.notes = checkNullItem(message.card.notes || []);
+
+                    const existingCard = await schema.characterCard.findOne({
+                        id: doc.id,
+                        _id: message.card._id,
+                    }).lean();
+                    const prepared = prepareCardForMongoSave(
+                        { ...message.card, _id: message.card._id },
+                        {
+                            forceV2: true,
+                            existingSchemaVersion: existingCard?.schemaVersion,
+                        }
+                    );
+                    const validationError = validateCardPayload({
+                        name: message.card.name || existingCard?.name,
+                        state: prepared.state,
+                        roll: prepared.roll,
+                        notes: prepared.notes,
+                        schemaVersion: prepared.schemaVersion,
+                    }, message.locale);
                     if (validationError) {
                         console.warn('updateCard validation failed:', validationError);
                         socket.emit('updateCard', false);
                         return;
                     }
-                    message.card.state = checkNullItem(message.card.state || []);
-                    message.card.roll = checkNullItem(message.card.roll || []);
-                    message.card.notes = checkNullItem(message.card.notes || []);
+                    const dataFields = cardFieldsForMongoSet(prepared);
 
                     temp = await schema.characterCard.findOneAndUpdate({
                         id: doc.id,
@@ -2465,9 +2487,7 @@ if (io) {
                         $set: {
                             public: message.card.public,
                             image: message.card.image,
-                            state: message.card.state,
-                            roll: message.card.roll,
-                            notes: message.card.notes,
+                            ...dataFields,
                         }
                     }).catch(error => {
                         console.error('[Web Server] 🔒 MongoDB error:', error.message);
@@ -2480,6 +2500,93 @@ if (io) {
             } catch (error) {
                 console.error('[Web Server] 🔒 updateCard error:', error.message);
                 socket.emit('updateCard', false);
+            }
+        }))
+
+        socket.on('importCharacterCard', safeSocketHandler('importCharacterCard', async message => {
+            if (await limitRaterCard(socket.handshake.address)) {
+                socket.emit('importCharacterCard', { ok: false, code: 'rate_limit' });
+                return;
+            }
+
+            const t = socket._hktrpgLocale
+                ? i18n.createTranslator(socket._hktrpgLocale)
+                : i18n.createTranslator(i18n.DEFAULT_LOCALE);
+
+            try {
+                const validation = security.validateJWTAuth({
+                    token: message.token,
+                    userName: message.userName,
+                });
+                if (!validation.valid) {
+                    socket.emit('importCharacterCard', { ok: false, code: 'auth_failed' });
+                    return;
+                }
+
+                const { userName } = validation.data;
+                const doc = await schema.accountPW.findOne({ userName: String(userName).trim() });
+                if (!doc?.id) {
+                    socket.emit('importCharacterCard', { ok: false, code: 'auth_failed' });
+                    return;
+                }
+
+                const result = await runCharacterCardImport({
+                    platformUserId: doc.id,
+                    cardId: message.cardId,
+                    source: message.source || 'ddb',
+                    idInput: message.idInput,
+                    fileContent: message.fileContent,
+                    replaceMode: Boolean(message.replaceMode),
+                    locale: message.locale,
+                });
+
+                if (!result.ok) {
+                    socket.emit('importCharacterCard', result);
+                    return;
+                }
+
+                socket.emit('importCharacterCard', result);
+            } catch (error) {
+                console.error('[Web Server] importCharacterCard error:', error.message);
+                socket.emit('importCharacterCard', {
+                    ok: false,
+                    code: 'network',
+                    message: t('www.views.import_failed'),
+                });
+            }
+        }))
+
+        socket.on('exportUdonariumCharacterCard', safeSocketHandler('exportUdonariumCharacterCard', async message => {
+            if (await limitRaterCard(socket.handshake.address)) {
+                socket.emit('exportUdonariumCharacterCard', { ok: false, code: 'rate_limit' });
+                return;
+            }
+
+            try {
+                const validation = security.validateJWTAuth({
+                    token: message.token,
+                    userName: message.userName,
+                });
+                if (!validation.valid) {
+                    socket.emit('exportUdonariumCharacterCard', { ok: false, code: 'auth_failed' });
+                    return;
+                }
+
+                const { userName } = validation.data;
+                const doc = await schema.accountPW.findOne({ userName: String(userName).trim() });
+                if (!doc?.id) {
+                    socket.emit('exportUdonariumCharacterCard', { ok: false, code: 'auth_failed' });
+                    return;
+                }
+
+                const result = await runUdonariumCharacterCardExport({
+                    platformUserId: doc.id,
+                    cardId: message.cardId,
+                });
+                socket.emit('exportUdonariumCharacterCard', result);
+            } catch (error) {
+                console.error('[Web Server] exportUdonariumCharacterCard error:', error.message);
+                socket.emit('exportUdonariumCharacterCard', { ok: false, code: 'failed' });
             }
         }))
 
@@ -2675,53 +2782,6 @@ async function verifyPasswordSecure(password, hash) {
 
 function checkNullItem(target) {
     return target.filter(item => item.name);
-}
-function validateCardPayload(card, locale = i18n.DEFAULT_LOCALE) {
-    const t = i18n.createTranslator(locale);
-    try {
-        if (!card) return t('character.validation_invalid_input');
-        const name = (card.name || '').toString().trim();
-        if (!name) return t('character.validation_name_empty');
-        if (name.length > 50) return t('character.validation_name_too_long');
-
-        const norm = (s) => (s || '').toString().trim().toLowerCase();
-        const tooLong = (v, m) => (v || '').toString().length > m;
-        const findDups = (arr) => {
-            const seen = new Set();
-            const d = new Set();
-            for (const it of (arr || [])) {
-                const k = norm(it && it.name);
-                if (!k) continue;
-                if (seen.has(k)) d.add((it.name || '').toString()); else seen.add(k);
-            }
-            return [...d];
-        };
-
-        const sD = findDups(card.state);
-        const rD = findDups(card.roll);
-        const nD = findDups(card.notes);
-        if (sD.length > 0 || rD.length > 0 || nD.length > 0) return t('character.validation_duplicate_names');
-
-        for (const it of (card.state || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return t('character.validation_state_name_empty');
-            if (tooLong(it.name, 50)) return t('character.validation_state_name_too_long', { name: it.name });
-            if (tooLong(it.itemA, 50)) return t('character.validation_state_value_a_too_long', { name: it.name });
-            if (tooLong(it.itemB, 50)) return t('character.validation_state_value_b_too_long', { name: it.name });
-        }
-        for (const it of (card.roll || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return t('character.validation_roll_name_empty');
-            if (tooLong(it.name, 50)) return t('character.validation_roll_name_too_long', { name: it.name });
-            if (tooLong(it.itemA, 150)) return t('character.validation_roll_content_too_long', { name: it.name });
-        }
-        for (const it of (card.notes || [])) {
-            if (!it || !it.name || !it.name.toString().trim()) return t('character.validation_notes_name_empty');
-            if (tooLong(it.name, 50)) return t('character.validation_notes_name_too_long', { name: it.name });
-            if (tooLong(it.itemA, 1500)) return t('character.validation_notes_content_too_long', { name: it.name });
-        }
-        return null;
-    } catch {
-        return t('character.validation_failed');
-    }
 }
 async function loadb(io, records, rplyVal, message) {
     const baseTime = new Date(message.time).getTime(); // Ensure message.time is parsed as a Date object

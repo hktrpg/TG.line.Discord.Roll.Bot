@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<character name="Sample Investigator">
+  <data name="Attributes">
+    <data name="HP" type="numberResource" currentValue="8">10</data>
+    <data name="SAN" type="numberResource" currentValue="55">99</data>
+    <data name="DEX" type="simpleNumber">65</data>
+  </data>
+  <data name="Notes">
+    <data name="Background" type="note">Former librarian.</data>
+  </data>
+  <chat-palette dicebot="Cthulhu">1d100&lt;=65 DEX
+1d100&lt;=50 Spot Hidden</chat-palette>
+</character>

@@ -202,6 +202,7 @@ class AuthManager {
                         card.roll = selected.roll || [];
                         card.notes = selected.notes || [];
                         card.public = selected.public || false;
+                        card.schemaVersion = selected.schemaVersion ?? 1;
                         $('#cardListModal').modal("hide");
 
                         // 保存新卡片的原始數據

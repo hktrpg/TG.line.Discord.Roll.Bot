@@ -96,6 +96,7 @@ class CardManager {
                         gpList: [],
                         selectedGroupId: "",
                         public: isPublic,
+                        schemaVersion: 1,
                         editMode: false,
                         isPublic: isPublic,
                         originalData: null,
@@ -117,6 +118,12 @@ class CardManager {
                             const hasToken = !!localStorage.getItem('jwtToken');
                             return hasUser && hasToken;
                         } catch { return false; }
+                    },
+                    characterImportSources() {
+                        if (typeof globalThis.getEnabledCharacterImportSources === 'function') {
+                            return globalThis.getEnabledCharacterImportSources();
+                        }
+                        return [{ id: 'ddb', menuKey: 'import_menu_ddb', enabled: true }, { id: 'udonarium', menuKey: 'import_menu_udonarium', enabled: true }];
                     },
                     headerBadges() {
                         try {
@@ -157,6 +164,22 @@ class CardManager {
                             debugLog(`headerBadges compute failed: ${error && error.message}`, 'error');
                             return [];
                         }
+                    },
+                    groupedStateSections() {
+                        return this.groupBucketBySection(this.state);
+                    },
+                    groupedRollSections() {
+                        return this.groupBucketBySection(this.roll);
+                    },
+                    groupedNotesSections() {
+                        return this.groupBucketBySection(this.notes);
+                    },
+                    sectionKeyOptions() {
+                        const order = globalThis.CARD_SECTION?.SECTION_ORDER;
+                        if (Array.isArray(order) && order.length > 0) {
+                            return order;
+                        }
+                        return ['General'];
                     }
                 },
                 mounted() {
@@ -236,6 +259,19 @@ class CardManager {
                 methods: {
                     t(key, options) {
                         return typeof wwwT === 'function' ? wwwT(key, options) : key;
+                    },
+                    groupBucketBySection(list) {
+                        if (typeof globalThis.CARD_SECTION?.groupEntriesBySection === 'function') {
+                            return globalThis.CARD_SECTION.groupEntriesBySection(list);
+                        }
+                        const items = (list || []).map((entry, index) => ({ entry, index }));
+                        return [{ key: 'General', items }];
+                    },
+                    sectionLabel(sectionKey) {
+                        const key = (sectionKey || 'General').toString();
+                        const i18nKey = `card_section_${key.replaceAll(/\s+/g, '_')}`;
+                        const translated = this.t(i18nKey);
+                        return translated === i18nKey ? key : translated;
                     },
                     // 是否為徽章屬性（非編輯模式時應隱藏於屬性格）
                     isBadgeAttribute(item) {
@@ -506,6 +542,7 @@ class CardManager {
                                     name: "",
                                     itemA: "",
                                     itemB: "",
+                                    section: "General",
                                     isNewItem: true,
                                     isInlineEditing: true
                                 });
@@ -514,6 +551,7 @@ class CardManager {
                                 this.roll.push({
                                     name: "",
                                     itemA: "",
+                                    section: "General",
                                     isNewItem: true,
                                     isInlineEditing: true
                                 });
@@ -522,6 +560,7 @@ class CardManager {
                                 this.notes.push({
                                     name: "",
                                     itemA: "",
+                                    section: "General",
                                     isNewItem: true,
                                     isInlineEditing: true
                                 });
@@ -818,6 +857,16 @@ class CardManager {
                             console.error('Error:', message);
                         }
                     },
+
+                    showInfo(message) {
+                        if (typeof uiManager !== 'undefined' && typeof uiManager.showInfo === 'function') {
+                            uiManager.showInfo(message);
+                        } else if (typeof globalThis.showInfo === 'function') {
+                            globalThis.showInfo(message);
+                        } else {
+                            console.info(message);
+                        }
+                    },
                     
                     // 保存原始數據
                     saveOriginalData() {
@@ -828,7 +877,8 @@ class CardManager {
                             roll: JSON.parse(JSON.stringify(this.roll)),
                             notes: JSON.parse(JSON.stringify(this.notes)),
                             characterDetails: JSON.parse(JSON.stringify(this.characterDetails)),
-                            public: this.public
+                            public: this.public,
+                            schemaVersion: this.schemaVersion || 1,
                         };
                         this.hasUnsavedChanges = false;
                         // 清除編輯模式備份，因為原始數據已更新
@@ -846,7 +896,8 @@ class CardManager {
                             roll: this.roll,
                             notes: this.notes,
                             characterDetails: this.characterDetails,
-                            public: this.public
+                            public: this.public,
+                            schemaVersion: this.schemaVersion || 1,
                         };
                         
                         return JSON.stringify(currentData) !== JSON.stringify(this.originalData);
@@ -863,6 +914,7 @@ class CardManager {
                         this.notes = JSON.parse(JSON.stringify(this.originalData.notes));
                         this.characterDetails = JSON.parse(JSON.stringify(this.originalData.characterDetails));
                         this.public = this.originalData.public;
+                        this.schemaVersion = this.originalData.schemaVersion || 1;
                         this.hasUnsavedChanges = false;
                     },
                     
@@ -990,6 +1042,34 @@ class CardManager {
                     // 顯示登出模態框
                     showLogoutModal() {
                         $('#logoutModalCenter').modal('show');
+                    },
+
+                    openImportModal(source) {
+                        if (this.isPublic) {
+                            this.showInfo(typeof wwwT === 'function' ? wwwT('public_readonly_info') : 'Public page is view/roll only.');
+                            return;
+                        }
+                        if (!this.name || !this._id) {
+                            this.showError(typeof wwwT === 'function' ? wwwT('import_select_card_first') : 'Select a character card first.');
+                            return;
+                        }
+                        const sourceId = source || 'ddb';
+                        const sourceInput = document.getElementById('importSource');
+                        if (sourceInput) {
+                            sourceInput.value = sourceId;
+                        }
+                        const idEl = document.getElementById('importDdbId');
+                        if (idEl) {
+                            idEl.value = '';
+                        }
+                        const replaceEl = document.getElementById('importReplaceMode');
+                        if (replaceEl) {
+                            replaceEl.checked = true;
+                        }
+                        if (typeof globalThis.showCharacterImportPanel === 'function') {
+                            globalThis.showCharacterImportPanel(sourceId);
+                        }
+                        $('#importCharacterModal').modal('show');
                     },
 
                     // 圖片URL安全檢查
@@ -1127,6 +1207,7 @@ class CardManager {
                             cardManager.card.roll = item.roll;
                             cardManager.card.notes = item.notes;
                             cardManager.card.public = item.public;
+                            cardManager.card.schemaVersion = item.schemaVersion ?? 1;
 
                             // 記下本機最後選用的角色卡（依用戶分隔）
                             try {

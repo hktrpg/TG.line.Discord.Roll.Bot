@@ -1,0 +1,82 @@
+{
+  "id": 900001,
+  "name": "Fixture Fighter",
+  "proficiencyBonus": 3,
+  "armorClass": 16,
+  "stats": [
+    { "id": 1, "value": 16 },
+    { "id": 2, "value": 14 },
+    { "id": 3, "value": 15 },
+    { "id": 4, "value": 10 },
+    { "id": 5, "value": 12 },
+    { "id": 6, "value": 8 }
+  ],
+  "classes": [{ "level": 5, "definition": { "name": "Fighter" } }],
+  "modifiers": [
+    { "entityId": 101, "subType": "attack-roll", "value": 0 },
+    { "entityId": 101, "subType": "damage", "value": 0 },
+    { "entityId": 102, "subType": "attack-roll", "value": 0 },
+    { "entityId": 102, "subType": "damage", "value": 0 },
+    { "subType": "spell-attacks", "value": 5 }
+  ],
+  "inventory": [
+    {
+      "id": 101,
+      "equipped": true,
+      "definition": {
+        "name": "Longsword",
+        "filterType": "Weapon",
+        "damage": { "diceCount": 1, "diceValue": 8, "diceMultiplier": 1, "fixedValue": 0 },
+        "properties": [{ "name": "Versatile" }]
+      }
+    },
+    {
+      "id": 102,
+      "equipped": true,
+      "definition": {
+        "name": "Shortbow",
+        "filterType": "Weapon",
+        "damage": { "diceCount": 1, "diceValue": 6, "diceMultiplier": 1, "fixedValue": 0 },
+        "properties": [{ "name": "Range" }, { "name": "Two-Handed" }]
+      }
+    },
+    {
+      "id": 103,
+      "equipped": false,
+      "definition": {
+        "name": "Dagger",
+        "filterType": "Weapon",
+        "damage": { "diceCount": 1, "diceValue": 4, "diceMultiplier": 1, "fixedValue": 0 }
+      }
+    }
+  ],
+  "classSpells": [
+    {
+      "spells": [
+        {
+          "id": 201,
+          "spellCastingAbilityId": 4,
+          "definition": {
+            "name": "Fire Bolt",
+            "level": 0,
+            "requiresSavingThrow": false,
+            "range": { "rangeValue": 120 },
+            "activation": { "activationType": "Action" },
+            "scale": {
+              "dice": { "diceCount": 2, "diceValue": 10, "diceMultiplier": 1, "fixedValue": 0 }
+            }
+          }
+        },
+        {
+          "id": 202,
+          "definition": {
+            "name": "Burning Hands",
+            "requiresSavingThrow": true,
+            "range": { "range": "Self" }
+          }
+        }
+      ]
+    }
+  ],
+  "spells": {}
+}

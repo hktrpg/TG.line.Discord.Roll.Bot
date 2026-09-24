@@ -3,12 +3,28 @@ if (!process.env.mongoURL) {
     return;
 }
 let variables = {};
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
 const records = require('../modules/db/records.js'); // eslint-disable-line no-unused-vars
 const VIP = require('../modules/patreon/veryImportantPerson');
 const schema = require('../modules/db/schema.js');
 const { getT, resolveHelp, resolveGameName } = require('../modules/i18n/roll-i18n.js');
+const ddb = require('../modules/dndbeyond/character-commands.js');
+const udon = require('../modules/udonarium/character-commands.js');
+const { applyImportPatch } = require('../modules/dndbeyond/card-patch.js');
+const { validateCardPayload } = require('../modules/www/validate-card-payload.js');
+const { prepareCardForMongoSave, cardFieldsForMongoSet } = require('../modules/character-card/card-facade.js');
+const { formatBucketForShow } = require('../modules/character-card/show-format.js');
+const {
+    slashImportDdbText,
+    slashImportUdonText,
+    slashCompareText,
+    slashExportUdonText,
+} = require('../modules/character-card/slash-command-text.js');
+const { buildUdonariumCharacterXml } = require('../modules/udonarium/udonarium-export.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const rollDiceCoc = require('./2-coc').rollDiceCommand;
 const rollDiceAdv = require('./0-advroll').rollDiceCommand;
@@ -108,6 +124,16 @@ const rollDiceCommand = async function ({ inputStr, mainMsg, groupid, botname, u
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^show$/i.test(mainMsg[1]):
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^showall$/i.test(mainMsg[1]):
             return await handleShowCh(mainMsg, inputStr, userid, groupid, channelid, rply, translate);
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^importddb$/i.test(mainMsg[1]):
+            return await handleImportDdb(mainMsg, inputStr, userid, groupid, botname, rply, translate);
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^importudon$/i.test(mainMsg[1]):
+            return await handleImportUdon(mainMsg, inputStr, userid, groupid, botname, rply, translate);
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^exportudon$/i.test(mainMsg[1]):
+            return await handleExportUdon(mainMsg, inputStr, userid, rply, translate);
+        case /(^[.]char$)/i.test(mainMsg[0]) && /^compare$/i.test(mainMsg[1]):
+            return await handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply, translate);
+        case /(^[.]ch$)/i.test(mainMsg[0]) && /^compare$/i.test(mainMsg[1]):
+            return await handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply, translate);
         case /(^[.]ch$)/i.test(mainMsg[0]) && /^\S+$/i.test(mainMsg[1]):
             return await handleCh(mainMsg, inputStr, userid, groupid, channelid, rply, translate);
 
@@ -175,35 +201,57 @@ async function handleShow(mainMsg, userid, rply, translate) {
 
 async function handleAddEdit(mainMsg, inputStr, userid, groupid, botname, rply, translate) {
     let Card = await analysicInputCharacterCard(inputStr);
-    // Validate input: prohibit duplicate titles and overly long content
+    if (!Card.name) {
+        rply.text = translate('character.no_name_input');
+        return rply;
+    }
+    let filter = { id: userid, name: new RegExp('^' + convertRegex(Card.name) + '$', "i") };
+    let doc = await schema.characterCard.findOne(filter).lean();
+    if (doc?.schemaVersion >= 2) {
+        Card.schemaVersion = doc.schemaVersion;
+    }
     const validationError = await validateCharacterCardInput(Card, translate);
     if (validationError) {
         rply.text = validationError;
         return rply;
     }
-    if (!Card.name) {
-        rply.text = translate('character.no_name_input');
-        return rply;
+    if (!doc) {
+        let lv = await VIP.viplevelCheckUser(userid, botname);
+        let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
+        lv = Math.max(gpLv, lv);
+        let limit = FUNCTION_LIMIT[lv];
+        let check = await schema.characterCard.find({ id: userid }).lean();
+        if (check.length >= limit) {
+            rply.text = translate('character.limit_reached', { limit });
+            return rply;
+        }
     }
-    let lv = await VIP.viplevelCheckUser(userid, botname);
-    let gpLv = await VIP.viplevelCheckGroup(groupid, botname);
-    lv = Math.max(gpLv, lv);
-    let limit = FUNCTION_LIMIT[lv];
-    let check = await schema.characterCard.find({ id: userid }).lean();
-    if (check.length >= limit) {
-        rply.text = translate('character.limit_reached', { limit });
-        return rply;
-    }
-    let filter = { id: userid, name: new RegExp('^' + convertRegex(Card.name) + '$', "i") };
-    let doc = await schema.characterCard.findOne(filter).lean();
     if (doc) {
         doc.name = Card.name;
         Card.state = await Merge(doc.state, Card.state, 'name');
         Card.roll = await Merge(doc.roll, Card.roll, 'name');
         Card.notes = await Merge(doc.notes, Card.notes, 'name');
     }
+    let savePayload = Card;
+    if (doc?.schemaVersion >= 2) {
+        savePayload = prepareCardForMongoSave(
+            { ...doc, ...Card, name: Card.name },
+            { forceV2: true, existingSchemaVersion: doc.schemaVersion }
+        );
+    }
     try {
-        await schema.characterCard.updateOne(filter, Card, opt);
+        if (savePayload.schemaVersion >= 2) {
+            await schema.characterCard.updateOne(filter, {
+                $set: {
+                    ...cardFieldsForMongoSet(savePayload),
+                    id: userid,
+                    name: Card.name,
+                    image: savePayload.image ?? doc?.image ?? "",
+                },
+            }, opt);
+        } else {
+            await schema.characterCard.updateOne(filter, savePayload, opt);
+        }
     } catch (error) {
         console.error('[Character] Add character card error:', error);
         rply.text = translate('character.add_failed', { error: error.message });
@@ -365,15 +413,8 @@ async function handleShowCh(mainMsg, inputStr, userid, groupid, channelid, rply,
         rply.text = translate('character.group_only');
         return rply;
     }
-    let filter = {
-        id: userid,
-        gpid: channelid || groupid,
-    };
-    let docSwitch = await schema.characterGpSwitch.findOne(filter);
-    let doc;
-    if (docSwitch && docSwitch.cardId) {
-        doc = await schema.characterCard.findOne({ _id: docSwitch.cardId });
-    } else {
+    const doc = await getActiveCharacterDoc(userid, groupid, channelid);
+    if (!doc) {
         rply.text = translate('character.no_registered');
         return rply;
     }
@@ -386,15 +427,8 @@ async function handleCh(mainMsg, inputStr, userid, groupid, channelid, rply, tra
         rply.text = translate('character.group_only');
         return rply;
     }
-    let filter = {
-        id: userid,
-        gpid: channelid || groupid,
-    };
-    let docSwitch = await schema.characterGpSwitch.findOne(filter);
-    let doc;
-    if (docSwitch && docSwitch.cardId) {
-        doc = await schema.characterCard.findOne({ _id: docSwitch.cardId });
-    } else {
+    const doc = await getActiveCharacterDoc(userid, groupid, channelid);
+    if (!doc) {
         rply.text = translate('character.no_registered');
         return rply;
     }
@@ -611,6 +645,254 @@ async function mainCharacter(doc, mainMsg, inputStr, translate) {
     return tempRply;
 }
 
+async function getActiveCharacterDoc(userid, groupid, channelid) {
+    const docSwitch = await schema.characterGpSwitch.findOne({
+        id: userid,
+        gpid: channelid || groupid,
+    });
+    if (!docSwitch?.cardId) {
+        return null;
+    }
+    return schema.characterCard.findOne({ _id: docSwitch.cardId });
+}
+
+async function handleImportDdb(mainMsg, inputStr, userid, groupid, botname, rply, translate) {
+    const { replaceMode, idInput, cardName } = ddb.parseImportDdbInput(inputStr);
+    if (!idInput || !cardName) {
+        rply.text = translate("character.importddb_usage");
+        return rply;
+    }
+
+    const fetchResult = await ddb.importDdbCharacter(idInput, userid);
+    if (!fetchResult.ok) {
+        rply.text = ddb.translateFetchError(translate, fetchResult);
+        return rply;
+    }
+
+    const patch = ddb.buildCharacterCardPatch(fetchResult.data, fetchResult.characterId);
+    const filter = { id: userid, name: new RegExp("^" + convertRegex(cardName) + "$", "i") };
+    const doc = await schema.characterCard.findOne(filter);
+    if (!doc) {
+        const lv = Math.max(
+            await VIP.viplevelCheckUser(userid, botname),
+            await VIP.viplevelCheckGroup(groupid, botname)
+        );
+        const check = await schema.characterCard.find({ id: userid }).lean();
+        if (check.length >= FUNCTION_LIMIT[lv]) {
+            rply.text = translate("character.limit_reached", { limit: FUNCTION_LIMIT[lv] });
+            return rply;
+        }
+    }
+
+    const baseCard = doc
+        ? doc.toObject()
+        : { id: userid, name: cardName, state: [], roll: [], notes: [], image: "" };
+    baseCard.name = cardName;
+    const Card = applyImportPatch(baseCard, patch, replaceMode);
+
+    const prepared = prepareCardForMongoSave(Card, {
+        forceV2: true,
+        existingSchemaVersion: doc?.schemaVersion,
+    });
+
+    const validationError = validateCardPayload({
+        name: cardName,
+        state: prepared.state,
+        roll: prepared.roll,
+        notes: prepared.notes,
+        schemaVersion: prepared.schemaVersion,
+    });
+    if (validationError) {
+        rply.text = translate("character.importddb_failed", { error: validationError });
+        return rply;
+    }
+
+    try {
+        await schema.characterCard.updateOne(filter, mongoUpdateFromPreparedImport(prepared, userid, cardName), opt);
+    } catch (error) {
+        console.error("[Character] importddb error:", error);
+        rply.text = translate("character.importddb_failed", { error: error.message });
+        return rply;
+    }
+
+    rply.text = translate("character.importddb_success", {
+        name: cardName,
+        id: fetchResult.characterId,
+        skipped: patch.skipped.length,
+        stateCount: patch.importSummary?.stateCount ?? patch.states?.length ?? 0,
+        rollCount: patch.importSummary?.rollCount ?? patch.rolls?.length ?? 0,
+        noteCount: patch.importSummary?.noteCount ?? patch.notes?.length ?? 0,
+        attackCount: patch.importSummary?.attackCount ?? 0,
+    });
+    if (patch.skipped.length > 0) {
+        rply.text += "\n" + translate("character.importddb_skipped", { list: patch.skipped.slice(0, 5).join(", ") });
+    }
+    rply.text += "\n" + translate("character.importddb_disclaimer");
+    return rply;
+}
+
+function mongoUpdateFromPreparedImport(prepared, userid, cardName) {
+    return {
+        $set: {
+            ...cardFieldsForMongoSet(prepared),
+            id: userid,
+            name: cardName,
+            image: prepared.image || "",
+        },
+    };
+}
+
+async function handleImportUdon(mainMsg, inputStr, userid, groupid, botname, rply, translate) {
+    const { replaceMode, cardName, xmlContent } = udon.parseImportUdonInput(inputStr);
+    if (!cardName || !xmlContent) {
+        rply.text = translate("character.importudon_usage");
+        return rply;
+    }
+
+    let patch;
+    try {
+        patch = udon.buildPatchFromXml(xmlContent);
+    } catch (error) {
+        rply.text = translate("character.importudon_failed", { error: error.message });
+        return rply;
+    }
+
+    const filter = { id: userid, name: new RegExp("^" + convertRegex(cardName) + "$", "i") };
+    const doc = await schema.characterCard.findOne(filter);
+    if (!doc) {
+        const lv = Math.max(
+            await VIP.viplevelCheckUser(userid, botname),
+            await VIP.viplevelCheckGroup(groupid, botname)
+        );
+        const check = await schema.characterCard.find({ id: userid }).lean();
+        if (check.length >= FUNCTION_LIMIT[lv]) {
+            rply.text = translate("character.limit_reached", { limit: FUNCTION_LIMIT[lv] });
+            return rply;
+        }
+    }
+
+    const baseCard = doc
+        ? doc.toObject()
+        : { id: userid, name: cardName, state: [], roll: [], notes: [], image: "" };
+    baseCard.name = cardName;
+    const Card = applyImportPatch(baseCard, patch, replaceMode);
+    const prepared = prepareCardForMongoSave(Card, {
+        forceV2: true,
+        existingSchemaVersion: doc?.schemaVersion,
+    });
+
+    const validationError = validateCardPayload({
+        name: cardName,
+        state: prepared.state,
+        roll: prepared.roll,
+        notes: prepared.notes,
+        schemaVersion: prepared.schemaVersion,
+    });
+    if (validationError) {
+        rply.text = translate("character.importudon_failed", { error: validationError });
+        return rply;
+    }
+
+    try {
+        await schema.characterCard.updateOne(filter, mongoUpdateFromPreparedImport(prepared, userid, cardName), opt);
+    } catch (error) {
+        console.error("[Character] importudon error:", error);
+        rply.text = translate("character.importudon_failed", { error: error.message });
+        return rply;
+    }
+
+    const summary = patch.importSummary || {};
+    rply.text = translate("character.importudon_success", {
+        name: cardName,
+        stateCount: summary.stateCount ?? prepared.state.length,
+        rollCount: summary.rollCount ?? prepared.roll.length,
+        noteCount: summary.noteCount ?? prepared.notes.length,
+    });
+    return rply;
+}
+
+async function handleExportUdon(mainMsg, inputStr, userid, rply, translate) {
+    const cardName = udon.parseExportUdonInput(inputStr);
+    if (!cardName) {
+        rply.text = translate("character.exportudon_usage");
+        return rply;
+    }
+
+    const filter = { id: userid, name: new RegExp("^" + convertRegex(cardName) + "$", "i") };
+    const doc = await schema.characterCard.findOne(filter).lean();
+    if (!doc) {
+        rply.text = translate("character.not_found");
+        return rply;
+    }
+
+    let xml;
+    try {
+        xml = buildUdonariumCharacterXml(doc);
+    } catch (error) {
+        rply.text = translate("character.exportudon_failed", { error: error.message });
+        return rply;
+    }
+
+    const safeBase = (doc.name || "character").toString().replaceAll(/[^\w\u3040-\u30FF\u3400-\u9FFF-]+/g, "_").slice(0, 40) || "character";
+    const tempDir = path.join("temp");
+    fs.mkdirSync(tempDir, { recursive: true });
+    const fileName = `udon-${crypto.randomBytes(4).toString("hex")}-${safeBase}.xml`;
+    const relativePath = path.join("temp", fileName).replaceAll("\\", "/");
+
+    try {
+        fs.writeFileSync(relativePath, xml, "utf8");
+    } catch (error) {
+        console.error("[Character] exportudon error:", error);
+        rply.text = translate("character.exportudon_failed", { error: error.message });
+        return rply;
+    }
+
+    rply.text = translate("character.exportudon_success", { name: doc.name });
+    rply.fileLink = [relativePath];
+    rply.fileText = translate("character.exportudon_file_caption", { name: doc.name });
+    return rply;
+}
+
+async function handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply, translate) {
+    const parsed = ddb.parseCompareInput(inputStr);
+    if (!parsed) {
+        rply.text = translate("character.compare_usage");
+        return rply;
+    }
+    if (!groupid) {
+        rply.text = translate("character.group_only");
+        return rply;
+    }
+
+    const doc = await getActiveCharacterDoc(userid, groupid, channelid);
+    if (!doc) {
+        rply.text = translate("character.no_registered");
+        return rply;
+    }
+
+    const entryA = ddb.findRollEntry(doc.roll, parsed.rollNameA, convertRegex);
+    const entryB = ddb.findRollEntry(doc.roll, parsed.rollNameB, convertRegex);
+    if (!entryA || !entryB) {
+        rply.text = translate("character.compare_not_found");
+        return rply;
+    }
+
+    rply.text = ddb.buildCompareMessage(
+        translate,
+        doc,
+        entryA,
+        entryB,
+        parsed.targetAc,
+        parsed.targetAcFromInput
+    );
+    if (!rply.text) {
+        rply.text = translate("character.compare_invalid_spec");
+        return rply;
+    }
+    rply.quotes = true;
+    return rply;
+}
+
 async function findObject(doc, mainMsg) {
     let re = mainMsg.replaceAll(/([.?*+^$[\]\\(){}|-])/g, String.raw`\$1`);
     let resutlt = doc.find(element => {
@@ -634,52 +916,20 @@ async function showCharacter(Card, mode, translate) {
         returnStr += t('character.edit_web_hint');
     }
     returnStr += Card.name + '　\n';
-    let a = 0;
     if (Card.state.length > 0) {
-        for (let i = 0; i < Card.state.length; i++) {
-            if (a != 0 && (a) % 4 == 0 && (Card.state[i].itemA || Card.state[i].itemB)) {
-                returnStr += '　\n';
-            }
-            returnStr += colorEmoji[(i + 1) % 4];
-            if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.state[i].name + ': ' + Card.state[i].itemA;
-                returnStr += (Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
-            } else {
-                returnStr += (Card.state[i].itemA) ? Card.state[i].name + ': ' + Card.state[i].itemA : '';
-                returnStr += (Card.state[i].itemA && Card.state[i].itemB) ? '/' + Card.state[i].itemB : '';
-            }
-            if (Card.state[i].itemA || Card.state[i].itemB) {
-                a++;
-            }
-            if ((Card.state[i].itemA || Card.state[i].itemB) && mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += ' ';
-            } else if (Card.state[i].itemA) {
-                returnStr += ' ';
-            }
-        }
+        returnStr += formatBucketForShow(Card.state, mode, 'state', colorEmoji);
         returnStr += '\n-------\n';
     }
     if (Card.roll.length > 0) {
-        for (let i = 0; i < Card.roll.length; i++) {
-            returnStr += colorEmoji2[(i + 1) % 4];
-            if (mode == 'addMode' || mode == 'showAllMode') {
-                returnStr += Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ';
-            } else {
-                returnStr += (Card.roll[i].itemA) ? Card.roll[i].name + ': ' + Card.roll[i].itemA + '  ' : '';
-            }
-            if (i != 0 && ((i + 1) % 2 == 0 || (i == Card.roll.length - 1))) {
-                returnStr += '　\n';
-            }
-        }
+        returnStr += formatBucketForShow(Card.roll, mode, 'roll', colorEmoji2);
         returnStr += '-------\n';
     }
-    if (mode == 'addMode' || mode == 'showAllMode')
+    if (mode == 'addMode' || mode == 'showAllMode') {
         if (Card.notes.length > 0) {
-            for (let i = 0; i < Card.notes.length; i++) {
-                returnStr += Card.notes[i].name + ': ' + Card.notes[i].itemA + '　\n';
-            }
+            returnStr += formatBucketForShow(Card.notes, mode, 'notes', colorEmoji2);
             returnStr += '-------';
         }
+    }
     return returnStr;
 }
 
@@ -769,11 +1019,12 @@ async function validateCharacterCardInput(Card, translate) {
         if (tooLong(it.itemA, 150)) return translate('character.validation_roll_content_too_long', { name: it.name });
     }
 
-    // 備註長度
+    // Notes length (v2 cards allow longer note bodies on www/import paths)
+    const notesMax = (Card.schemaVersion >= 2) ? 4000 : 1500;
     for (const it of (Card.notes || [])) {
         if (!it || !it.name || !it.name.toString().trim()) return translate('character.validation_notes_name_empty');
         if (tooLong(it.name, 50)) return translate('character.validation_notes_name_too_long', { name: it.name });
-        if (tooLong(it.itemA, 1500)) return translate('character.validation_notes_content_too_long', { name: it.name });
+        if (tooLong(it.itemA, notesMax)) return translate('character.validation_notes_content_too_long', { name: it.name });
     }
 
     return null;
@@ -972,6 +1223,44 @@ const discordCommand = [
                             .setRequired(true)))
             .addSubcommand(subcommand =>
                 subcommand
+                    .setName('importddb')
+                    .setDescription('從 D&D Beyond 匯入角色卡')
+                    .addStringOption(option =>
+                        option.setName('ddb_id')
+                            .setDescription('DDB 角色 ID 或 URL')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('card_name')
+                            .setDescription('本系統角色卡名稱')
+                            .setRequired(true))
+                    .addBooleanOption(option =>
+                        option.setName('replace')
+                            .setDescription('取代現有 state/roll/notes（預設為合併）')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('importudon')
+                    .setDescription('從 Udonarium XML 匯入角色卡')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('本系統角色卡名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('xml')
+                            .setDescription('Udonarium <character>… XML（Discord 上限約 4000 字）')
+                            .setRequired(true))
+                    .addBooleanOption(option =>
+                        option.setName('replace')
+                            .setDescription('取代現有 state/roll/notes（預設為合併）')))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('exportudon')
+                    .setDescription('匯出角色卡為 Udonarium XML')
+                    .addStringOption(option =>
+                        option.setName('name')
+                            .setDescription('本系統角色卡名稱')
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
                     .setName('public')
                     .setDescription('公開角色卡'))
             .addSubcommand(subcommand =>
@@ -1002,6 +1291,22 @@ const discordCommand = [
                     return `.char delete ${name}`;
                 case 'button':
                     return `.char button ${name}`;
+                case 'importddb':
+                    return slashImportDdbText({
+                        ddbId: interaction.options.getString('ddb_id'),
+                        cardName: interaction.options.getString('card_name'),
+                        replace: interaction.options.getBoolean('replace') === true,
+                    });
+                case 'importudon':
+                    return slashImportUdonText({
+                        cardName: interaction.options.getString('name'),
+                        xml: interaction.options.getString('xml'),
+                        replace: interaction.options.getBoolean('replace') === true,
+                    });
+                case 'exportudon':
+                    return slashExportUdonText({
+                        cardName: interaction.options.getString('name'),
+                    });
                 case 'public':
                     return `.char public ${name}`;
                 case 'unpublic':
@@ -1052,7 +1357,22 @@ const discordCommand = [
                     .addStringOption(option =>
                         option.setName('value')
                             .setDescription('數值或擲骰指令')
-                            .setRequired(true))),
+                            .setRequired(true)))
+            .addSubcommand(subcommand =>
+                subcommand
+                    .setName('compare')
+                    .setDescription('比較兩個攻擊擲骰（須 .char use）')
+                    .addStringOption(option =>
+                        option.setName('roll_a')
+                            .setDescription('招式 A 名稱')
+                            .setRequired(true))
+                    .addStringOption(option =>
+                        option.setName('roll_b')
+                            .setDescription('招式 B 名稱')
+                            .setRequired(true))
+                    .addIntegerOption(option =>
+                        option.setName('ac')
+                            .setDescription('目標 AC（可選，預設 15 或招式內 ac:）'))),
         async execute(interaction) {
             const subcommand = interaction.options.getSubcommand();
             switch (subcommand) {
@@ -1066,6 +1386,12 @@ const discordCommand = [
                     return `.ch set ${interaction.options.getString('item')} ${interaction.options.getString('value')}`;
                 case 'modify':
                     return `.ch ${interaction.options.getString('item')} ${interaction.options.getString('operation')}${interaction.options.getString('value')}`;
+                case 'compare':
+                    return slashCompareText({
+                        rollA: interaction.options.getString('roll_a'),
+                        rollB: interaction.options.getString('roll_b'),
+                        ac: interaction.options.getInteger('ac'),
+                    });
             }
         }
     }

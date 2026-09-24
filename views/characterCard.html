@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-Hant-HK" class="app-shell-page">
+<html lang="zh-Hant-HK">
 <!-- HKTRPG Sad -->
 <head>
     <!-- Required meta tags -->
@@ -23,13 +23,7 @@
     
     <!-- Bootstrap Overrides - Load after Bootstrap to override with higher specificity -->
     <link rel="stylesheet" href="css/bootstrap-overrides.css">
-    <link rel="stylesheet" href="css/app-shell.css">
     
-    <!-- Google Fonts - Noto Sans CJK for Chinese character support -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+CJK+TC:wght@400;500;700&family=Noto+Sans+CJK+SC:wght@400;500;700&display=swap" rel="stylesheet">
-
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
         integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
@@ -40,47 +34,44 @@
     <!-- Iconify -->
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     
-    <title data-www-i18n="title_default">Character Card 角色卡 @ HKTRPG</title>
+    <title>HKTRPG Character Card @ HKTRPG</title>
     <link rel="icon" href="https://avatars2.githubusercontent.com/u/48795428?s=280&v=4" />
 </head>
 
-<body class="bg-color app-shell-page" id="body">
-    <div class="app-shell">
-        <header class="app-header">
-            <div id="header"></div>
-        </header>
-
-        <main class="app-main">
-            <div class="container-fluid px-3 px-md-4 py-3">
-                <!-- Success Alert -->
-                <div class="alert alert-success alert-dismissible fade show overlay" 
-                     style="position: fixed; z-index: 999; display: none;" 
-                     role="alert" id="warning-update">
-                    <i class="fas fa-check-circle me-2"></i>
-                    <span data-www-i18n-html="alert_update_success_html"><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                
-                <!-- Error Alert -->
-                <div class="alert alert-danger alert-dismissible fade show overlay" 
-                     style="position: fixed; z-index: 999; display: none;" 
-                     role="alert" id="warning-updateError">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <span data-www-i18n-html="alert_update_failed_html"><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                
-                <!-- Vue App Container -->
-                <div id="array-rendering" class="container-fluid px-3 px-md-4 py-3">
-                    <!-- Hybrid UI Template will be loaded here -->
-                </div>
-
-                <footer class="app-footer site-footer">
-                    <div id="footer"></div>
-                </footer>
-            </div>
-        </main>
+<body class="bg-color " id="body">
+    <header>
+        <div id="header"></div>
+    </header>
+    <br>
+    
+    <div class="container-fluid px-3 px-md-4 py-3">
+        <!-- Success Alert -->
+        <div class="alert alert-success alert-dismissible fade show overlay" 
+             style="position: fixed; z-index: 999; display: none;" 
+             role="alert" id="warning-update">
+            <i class="fas fa-check-circle me-2"></i>
+            <span data-www-i18n-html="alert_update_success_html"><strong>更新成功!</strong> 你可以在聊天平台上使用新資料了。</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Error Alert -->
+        <div class="alert alert-danger alert-dismissible fade show overlay" 
+             style="position: fixed; z-index: 999; display: none;" 
+             role="alert" id="warning-updateError">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span data-www-i18n-html="alert_update_failed_html"><strong>更新失敗!</strong> 請檢查或向HKTRPG回報。</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <!-- Vue App Container -->
+        <div id="array-rendering" class="container-fluid px-3 px-md-4 py-3">
+            <!-- Hybrid UI Template will be loaded here -->
+        </div>
     </div>
+    
+    <footer>
+        <div id="footer"></div>
+    </footer>
 
     <!-- Common Modals -->
     <div id="commonModals"></div>
@@ -98,54 +89,64 @@
     <!-- Common JavaScript Modules -->
     <script src="/common/www-i18n.js"></script>
     <script src="/common/site-chrome.js"></script>
+    <script src="/common/card-section-grouping.js"></script>
     <script src="/common/cardManager.js"></script>
     <script src="/common/authManager.js"></script>
     <script src="/common/uiManager.js"></script>
+    <script src="/common/character-import.js"></script>
     <script src="/common/socketManager.js"></script>
     <script src="/common/pageConfigManager.js"></script>
     <script src="/common/characterCardCommon.js"></script>
 
     <!-- Page Specific JavaScript -->
     <script>
-        const IS_PUBLIC = false;
+        // Configuration object for page-specific settings
+        const PAGE_CONFIG = {
+            isPublic: false,
+            title: "HKTRPG Character Card",
+            bodyClass: "",
+            containerClass: "container-fluid px-3 px-md-4 py-3",
+            vueContainerClass: "container-fluid px-3 px-md-4 py-3"
+        };
 
-        document.addEventListener('DOMContentLoaded', function () {
-            $('#warning-update').hide();
-            $('#warning-updateError').hide();
-
-            $("#commonModals").load("/common/characterCardModals.html", function () {
-                debugLog('Modals loaded', 'info');
-                if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('commonModals'));
-                // 模態框載入完成後初始化Vue應用
-                initializeVueApps(IS_PUBLIC, true);
-            });
-
-            socket.on('cardUpdated', function (data) {
-                if (data && data.success) {
-                    $('#warning-update').show();
-                    setTimeout(function(){ $('#warning-update').hide(); }, 3000);
-                } else {
-                    $('#warning-updateError').show();
-                    setTimeout(function(){ $('#warning-updateError').hide(); }, 3000);
-                }
-            });
-
-            // 添加頁面卸載前的檢查 - 防止未保存變更遺失
-            window.addEventListener('beforeunload', function (event) {
-                if (cardManager && cardManager.getCard) {
-                    const card = cardManager.getCard();
-                    if (card && !card.isPublic) {
-                        // 檢查是否有未保存的變更
-                        if (card.hasUnsavedChanges) {
-                            const leaveMsg = getUnsavedChangesConfirmMsg();
-                            event.preventDefault();
-                            event.returnValue = leaveMsg;
-                            return leaveMsg;
-                        }
-                    }
-                }
-            });
+        // Load common modals
+        $("#commonModals").load("/common/characterCardModals.html", function() {
+            debugLog('Modals loaded', 'info');
+            if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('commonModals'));
         });
+        
+        // Initialize Vue apps with configuration
+        setTimeout(function() {
+            initializeVueApps(PAGE_CONFIG.isPublic, true);
+        }, 100);
+
+        // Hide alerts initially
+        $('#warning-update').hide();
+        $('#warning-updateError').hide();
+
+        // Initialize on body load
+        document.getElementById("body").onload = function () {
+            debugLog(`Body loaded, initializing ${PAGE_CONFIG.isPublic ? 'public' : 'private'} card`, 'info');
+            
+            // Public card specific initialization
+            if (PAGE_CONFIG.isPublic) {
+                socket.emit('getPublicListInfo');
+            }
+        };
+
+        // Public card specific socket listeners
+        
+        // Private card specific socket listeners
+        socket.on('cardUpdated', function(data) {
+            if (data && data.success) {
+                $('#warning-update').show();
+                setTimeout(() => $('#warning-update').hide(), 3000);
+            } else {
+                $('#warning-updateError').show();
+                setTimeout(() => $('#warning-updateError').hide(), 3000);
+            }
+        });
+        
     </script>
 </body>
 <!-- HKTRPG Sad -->

@@ -23,6 +23,7 @@
     "proof:roll-worker": "node scripts/proof-gateway-worker.js",
     "proof:local-worker": "node scripts/proof-local-worker.js",
     "test:lang": "jest test/i18n.test.js test/lang-keys.test.js",
+    "test:character-card": "jest test/character-card-grouping.test.js test/card-facade.test.js test/dndbeyond-integration.test.js test/show-format.test.js test/slash-command-text.test.js test/validate-card-payload.test.js test/udonarium-import.test.js test/udonarium-export.test.js",
     "test:unit": "jest --testPathIgnorePatterns=integration",
     "test:integration": "RUN_INTEGRATION_TESTS=true jest --testPathPattern=integration",
     "test:records": "jest test/records-integration.test.js",

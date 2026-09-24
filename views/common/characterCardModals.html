@@ -198,3 +198,53 @@
         </div>
     </div>
 </div>
+
+<!-- Character card import (extensible sources) -->
+<div class="modal fade" id="importCharacterModal" tabindex="-1" role="dialog" aria-labelledby="importCharacterModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importCharacterModalTitle" data-www-i18n="import_modal_title">匯入角色卡</h5>
+                <button type="button" class="close" data-dismiss="modal" data-www-i18n-aria="ui_close" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="importSource" value="ddb">
+                <div id="importPanelDdb" data-import-panel="ddb">
+                    <p class="small text-muted" data-www-i18n="import_ddb_disclaimer">使用非官方 D&amp;D Beyond 端點；角色卡須設為公開。</p>
+                    <div class="form-group">
+                        <label for="importDdbId" data-www-i18n="import_ddb_id_label">角色 ID 或 URL</label>
+                        <input type="text" class="form-control" id="importDdbId" autocomplete="off"
+                            data-www-i18n-placeholder="import_ddb_id_placeholder"
+                            placeholder="https://www.dndbeyond.com/characters/123456">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="importReplaceMode" checked>
+                        <label class="form-check-label" for="importReplaceMode" data-www-i18n="import_replace_label">
+                            取代整張角色卡內容（屬性、擲骰、筆記、頭像）
+                        </label>
+                    </div>
+                </div>
+                <div id="importPanelUdonarium" data-import-panel="udonarium" style="display:none;">
+                    <p class="small text-muted" data-www-i18n="import_udon_disclaimer">上傳 Udonarium 匯出的角色 XML（character.xml）。頭像與桌面物件不會匯入。</p>
+                    <div class="form-group">
+                        <label for="importUdonFile" data-www-i18n="import_udon_file_label">角色 XML 檔案</label>
+                        <input type="file" class="form-control-file" id="importUdonFile" accept=".xml,text/xml,application/xml">
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="importReplaceModeUdon" checked>
+                        <label class="form-check-label" for="importReplaceModeUdon" data-www-i18n="import_replace_label">
+                            取代整張角色卡內容（屬性、擲骰、筆記、頭像）
+                        </label>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm mt-3" onclick="exportUdonariumCharacterCard()" data-www-i18n="export_udon_btn">匯出 Udonarium XML</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-www-i18n="btn_close">關閉</button>
+                <button type="button" class="btn btn-primary" onclick="runCharacterCardImport()" data-www-i18n="btn_import_run">開始匯入</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -4,6 +4,9 @@
  * Phase A/B: /v1/admin/shutdown + /v1/admin/reload (self-restart),
  * supervised local respawn, shared local + remote reload without PM2.
  * Avoids requiring analytics via parse-router (Babel breaks on chat/logs top-level return).
+ *
+ * Live spawn suites bind high ports (3985–3987). When this file flakes in a full parallel
+ * `yarn test`, run: `yarn jest test/roll-worker-reload.test.js --runInBand`.
  */
 jest.setTimeout(90_000);
 
@@ -77,6 +80,19 @@ async function waitHealth(port, timeoutMs = 60_000) {
 		await sleep(200);
 	}
 	throw new Error(`health timeout :${port}`);
+}
+
+/** After self-restart, successor resets counters and uptime restarts (may lag behind /health). */
+async function assertReloadSuccessorHealth(port, beforeHealth, getHealth = () => waitHealth(port)) {
+	let afterHealth = await getHealth();
+	const deadline = Date.now() + 8000;
+	while (afterHealth.uptime >= beforeHealth.uptime && Date.now() < deadline) {
+		await sleep(150);
+		afterHealth = await getHealth();
+	}
+	expect(afterHealth.ok).toBe(true);
+	expect(afterHealth.parseCount).toBe(0);
+	expect(afterHealth.uptime).toBeLessThan(beforeHealth.uptime);
 }
 
 describe('roll-worker admin shutdown (unit app)', () => {
@@ -299,14 +315,12 @@ describe('Phase A external local reload without PM2 (live)', () => {
 		}
 		const result = await localWorker.reloadLocal({ drainMs: 150 });
 		expect(result).toMatchObject({ ok: true, mode: 'self-restart' });
-		const afterHealth = await waitHealth(PORT_E);
 		// Old child handle is obsolete; successor is detached.
 		child = null;
 		if (beforePid) {
 			expect(result.pid).toBe(beforePid);
 		}
-		expect(afterHealth.ok).toBe(true);
-		expect(afterHealth.uptime).toBeLessThan(beforeHealth.uptime);
+		await assertReloadSuccessorHealth(PORT_E, beforeHealth);
 	}, 30_000);
 });
 
@@ -366,13 +380,10 @@ describe('Phase B reloadRemote against live primary', () => {
 		const result = await localWorker.reloadRemote({ drainMs: 150 });
 		expect(result.ok).toBe(true);
 		expect(result.mode).toBe('self-restart');
-		const afterHealth = await waitHealth(PORT_R);
 		child = null;
 		if (beforePid) {
 			expect(result.pid).toBe(beforePid);
 		}
-		expect(afterHealth.ok).toBe(true);
-		// Successor is a new process — uptime must be lower than the pre-reload process.
-		expect(afterHealth.uptime).toBeLessThan(beforeHealth.uptime);
+		await assertReloadSuccessorHealth(PORT_R, beforeHealth);
 	}, 30_000);
 });

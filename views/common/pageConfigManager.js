@@ -78,6 +78,7 @@ class PageConfigManager {
                 card.roll = cardData.roll || [];
                 card.notes = cardData.notes || [];
                 card.public = cardData.public || false;
+                card.schemaVersion = cardData.schemaVersion ?? 1;
                 $('#cardListModal').modal("hide");
 
                 // 保存新卡片的原始數據

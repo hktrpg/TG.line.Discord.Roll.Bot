@@ -17,6 +17,18 @@
             <button type="button" class="btn btn-info float-right" v-if="name && !isPublic" onclick="updateCard()">
                 <span class="iconify" data-icon="ic:outline-save-alt" data-inline="false"></span>{{ t('btn_save_card') }}
             </button>
+            <div class="btn-group float-right" v-if="name && !isPublic && isLoggedIn">
+                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false" :title="t('title_import')">
+                    <span class="iconify" data-icon="mdi:import" data-inline="false"></span> {{ t('btn_import') }}
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <button type="button" class="dropdown-item" v-for="src in characterImportSources" :key="src.id"
+                        @click="openImportModal(src.id)">
+                        {{ t(src.menuKey) }}
+                    </button>
+                </div>
+            </div>
             <!-- Common buttons -->
             <button type="button" class="btn btn-secondary float-right" onclick="selectCard()">
                 <span class="iconify" data-icon="grommet-icons:select" data-inline="false"></span>{{ t('btn_select_card') }}

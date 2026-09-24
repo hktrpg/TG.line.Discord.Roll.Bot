@@ -884,6 +884,10 @@ async function handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply
         rply.text = translate("character.compare_usage");
         return rply;
     }
+    if (parsed.unmatched) {
+        rply.text = translate("character.compare_not_found");
+        return rply;
+    }
 
     const entryA = ddb.findRollEntry(doc.roll, parsed.rollNameA, convertRegex);
     const entryB = ddb.findRollEntry(doc.roll, parsed.rollNameB, convertRegex);

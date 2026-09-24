@@ -35,7 +35,20 @@ function copyEntry(entry) {
  * Build v2 sections tree from flat buckets (grouped by entry.section).
  * @param {{ state?: object[], roll?: object[], notes?: object[] }} card
  */
+function sectionReuseKey(bucket, title) {
+    return `${bucket}::${title}`;
+}
+
 function synthesizeSectionsFromFlat(card) {
+    const existingIds = new Map();
+    for (const section of card.sections || []) {
+        const bucket = section.bucket || "state";
+        const title = section.title || bucket;
+        const key = sectionReuseKey(bucket, title);
+        if (section.id && !existingIds.has(key)) {
+            existingIds.set(key, section.id);
+        }
+    }
     const bucketDefs = [
         { bucket: "state", list: card.state || [] },
         { bucket: "roll", list: card.roll || [] },
@@ -51,9 +64,10 @@ function synthesizeSectionsFromFlat(card) {
             if (items.length === 0) {
                 continue;
             }
+            const title = group.key === SECTION.GENERAL ? bucket : group.key;
             sections.push({
-                id: newSectionId(),
-                title: group.key === SECTION.GENERAL ? bucket : group.key,
+                id: existingIds.get(sectionReuseKey(bucket, title)) || newSectionId(),
+                title,
                 bucket,
                 items,
             });

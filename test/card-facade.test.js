@@ -36,6 +36,21 @@ describe("card-facade", () => {
         expect(projected.notes.map(n => n.name)).toContain("Memo");
     });
 
+    test("prepareCardForMongoSave keeps section ids when the group still exists", () => {
+        const first = prepareCardForMongoSave({
+            state: [{ name: "HP", itemA: "8", itemB: "10", section: SECTION.VITALS }],
+            roll: [],
+            notes: [],
+        }, { forceV2: true });
+        const vitalsId = first.sections.find(s => s.title === SECTION.VITALS).id;
+        const second = prepareCardForMongoSave({
+            ...first,
+            state: [{ name: "HP", itemA: "7", itemB: "10", section: SECTION.VITALS }],
+        }, { existingSchemaVersion: 2 });
+        expect(second.sections.find(s => s.title === SECTION.VITALS).id).toBe(vitalsId);
+        expect(second.sections.find(s => s.title === SECTION.VITALS).items[0].itemA).toBe("7");
+    });
+
     test("prepareCardForMongoSave sets schemaVersion 2", () => {
         const out = prepareCardForMongoSave({ state: [], roll: [], notes: [] }, { forceV2: true });
         expect(out.schemaVersion).toBe(2);

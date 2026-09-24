@@ -204,10 +204,12 @@ describe("dndbeyond attack-extractor", () => {
                     },
                 },
             ],
+            spellSlots: [{ level: 1, used: 1 }],
+            pactMagic: [{ level: 1, used: 1 }],
         };
         const states = extractCharacterImport(sheet).states;
-        expect(states.find(s => s.name === "Spell Slots")?.itemA).toBe("L1:2");
-        expect(states.find(s => s.name === "Pact Slots")?.itemA).toBe("L1:1");
+        expect(states.find(s => s.name === "Spell Slots")?.itemA).toBe("L1:1/2");
+        expect(states.find(s => s.name === "Pact Slots")?.itemA).toBe("L1:0/1");
         expect(states.find(s => s.name === "Spell DC Warlock")?.itemA).toBe("13");
         expect(states.find(s => s.name === "Spell DC Wizard")?.itemA).toBe("12");
     });
@@ -262,6 +264,7 @@ describe("dndbeyond roll-spec and anydice", () => {
             targetAc: 16,
             targetAcFromInput: true,
         });
+        expect(parseCompareInput(".ch compare Fire Bolt NotASword", rolls)).toEqual({ unmatched: true });
     });
 
     test("parseRollSpec roundtrip", () => {

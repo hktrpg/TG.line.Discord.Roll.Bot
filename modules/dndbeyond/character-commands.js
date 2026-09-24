@@ -75,7 +75,7 @@ function parseCompareInput(inputStr, rollNames) {
             return matched;
         }
         if (rollNames.some(name => /\s/.test(String(name)))) {
-            return null;
+            return { unmatched: true };
         }
     }
     const tokens = body.split(/\s+/).filter(Boolean);

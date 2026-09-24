@@ -394,12 +394,12 @@ function resolveSpellSaveDc(data, stats, pb) {
     return 8 + pb + abilityMod(stats[statId] ?? 10);
 }
 
-function formatSpellSlotRow(row, data) {
+function formatSpellSlotRow(row, usedSlots) {
     if (!Array.isArray(row)) {
         return;
     }
     const usedByLevel = new Map(
-        (data.spellSlots || []).map(slot => [slot.level, slot.used ?? 0])
+        (usedSlots || []).map(slot => [slot.level, slot.used ?? 0])
     );
     const parts = [];
     for (let index = 0; index < row.length && index < 9; index++) {
@@ -417,13 +417,21 @@ function formatSpellSlotRow(row, data) {
     return parts.join(" ").slice(0, 50);
 }
 
-function classSlotLine(cls, data) {
+function spellSlotPool(data) {
+    return Array.isArray(data.spellSlots) ? data.spellSlots : [];
+}
+
+function pactSlotPool(data) {
+    return Array.isArray(data.pactMagic) ? data.pactMagic : [];
+}
+
+function classSlotLine(cls, usedSlots) {
     const table = cls.definition?.spellRules?.levelSpellSlots;
     const level = cls.level || 0;
     if (!Array.isArray(table) || level < 1 || level >= table.length) {
         return;
     }
-    return formatSpellSlotRow(table[level], data);
+    return formatSpellSlotRow(table[level], usedSlots);
 }
 
 function resolveSpellSlotStates(data) {
@@ -434,26 +442,28 @@ function resolveSpellSlotStates(data) {
     const warlocks = withTables.filter(isWarlock);
     const others = withTables.filter(cls => !isWarlock(cls));
     const rows = [];
+    const spellUsed = spellSlotPool(data);
+    const pactUsed = pactSlotPool(data);
     if (others.length === 1) {
-        const line = classSlotLine(others[0], data);
+        const line = classSlotLine(others[0], spellUsed);
         if (line) {
             rows.push({ name: "Spell Slots", itemA: line });
         }
     } else if (others.length > 1) {
         const combined = Math.min(20, others.reduce((sum, cls) => sum + casterLevelContribution(cls), 0));
-        const line = combined >= 1 ? formatSpellSlotRow(MULTICLASS_SPELL_SLOTS[combined], data) : undefined;
+        const line = combined >= 1 ? formatSpellSlotRow(MULTICLASS_SPELL_SLOTS[combined], spellUsed) : undefined;
         if (line) {
             rows.push({ name: "Spell Slots", itemA: line });
         }
     } else if (warlocks.length === 1) {
-        const line = classSlotLine(warlocks[0], data);
+        const line = classSlotLine(warlocks[0], pactUsed.length > 0 ? pactUsed : spellUsed);
         if (line) {
             rows.push({ name: "Spell Slots", itemA: line });
         }
     }
     if (warlocks.length > 0 && others.length > 0) {
         for (const cls of warlocks) {
-            const line = classSlotLine(cls, data);
+            const line = classSlotLine(cls, pactUsed);
             if (line) {
                 rows.push({ name: "Pact Slots", itemA: line });
             }

@@ -113,44 +113,12 @@
         $("#commonModals").load("/common/characterCardModals.html", function() {
             debugLog('Modals loaded', 'info');
             if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('commonModals'));
-        });
-        
-        // Initialize Vue apps with configuration
-        setTimeout(function() {
             initializeVueApps(PAGE_CONFIG.isPublic, true);
-        }, 100);
+        });
 
         // Hide alerts initially
         $('#warning-update').hide();
         $('#warning-updateError').hide();
-
-        // Initialize on body load
-        document.getElementById("body").onload = function () {
-            debugLog(`Body loaded, initializing ${PAGE_CONFIG.isPublic ? 'public' : 'private'} card`, 'info');
-            
-            // Public card specific initialization
-            if (PAGE_CONFIG.isPublic) {
-                socket.emit('getPublicListInfo');
-            }
-        };
-
-        // Public card specific socket listeners
-        
-        // Public card specific socket listeners
-        socket.on("getPublicListInfo", function (listInfo) {
-            let list = listInfo.temp;
-            if (list) {
-                if (cardList && cardList.list) {
-                    cardList.list = list;
-                    $('#cardListModal').modal("show");
-                    debugLog('Public card list loaded successfully', 'info');
-                } else {
-                    debugLog('CardList Vue app not initialized', 'error');
-                }
-            } else {
-                debugLog('Failed to load public card list', 'error');
-            }
-        });
 
         socket.on("getPublicCardInfo", function (cardInfo) {
             if (cardInfo && cardInfo.temp) {
@@ -183,6 +151,9 @@
 
         // Public card utility functions
         function getTheSelectedOne(index) {
+            const cardList = typeof cardManager !== "undefined" && cardManager.getCardList
+                ? cardManager.getCardList()
+                : null;
             if (cardList && cardList.list && cardList.list[index]) {
                 const selectedCard = cardList.list[index];
                 socket.emit('getPublicCardInfo', {

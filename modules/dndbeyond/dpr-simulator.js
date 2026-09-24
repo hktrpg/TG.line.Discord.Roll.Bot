@@ -60,14 +60,17 @@ function simulateAttack(spec, targetAc, iterations = DEFAULT_ITERATIONS, seed) {
 
     for (let i = 0; i < iterations; i++) {
         const attack = rollD20Attack(spec.hitRoll, spec.advantage, spec.disadvantage, rng);
-        const damage = resolveHitDamage(spec, attack, targetAc, rng);
+        const damage = Math.max(0, resolveHitDamage(spec, attack, targetAc, rng));
+        const isHit = !spec.hitRoll
+            || attack.natural === 20
+            || (attack.natural !== 1 && attack.total >= targetAc);
         if (spec.hitRoll && attack.natural === 20) {
             crits++;
             hits++;
-        } else if (spec.hitRoll && attack.natural !== 1 && attack.total >= targetAc) {
+        } else if (spec.hitRoll && isHit) {
             hits++;
         }
-        if (damage > 0) {
+        if (isHit) {
             onHitTotal += damage;
             onHitN++;
         }

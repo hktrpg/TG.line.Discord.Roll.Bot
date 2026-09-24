@@ -86,17 +86,32 @@ function sumModifiersForEntity(data, entityId, subType) {
     return total;
 }
 
-function weaponUsesDex(properties) {
-    const names = (properties || []).map(p => (p.name || p).toString().toLowerCase());
-    return names.some(n => n === "finesse" || n === "range" || n === "thrown");
+function propertyNames(properties) {
+    return (properties || []).map(p => (p.name || p).toString().toLowerCase());
 }
 
-function abilityStatId(useDex) {
-    return useDex ? 2 : 1;
+/**
+ * Melee (including thrown) uses Strength. Ranged uses Dexterity.
+ * Finesse uses whichever of Strength or Dexterity is higher.
+ * Thrown alone does not switch the attack to Dexterity.
+ * @param {object[]|string[]} properties
+ * @param {Record<number, number>} stats
+ * @returns {number}
+ */
+function weaponAbilityStatId(properties, stats) {
+    const names = propertyNames(properties);
+    const finesse = names.includes("finesse");
+    const ranged = names.includes("range") || names.includes("ranged");
+    if (finesse) {
+        const strMod = abilityMod(stats[1] ?? 10);
+        const dexMod = abilityMod(stats[2] ?? 10);
+        return dexMod > strMod ? 2 : 1;
+    }
+    return ranged ? 2 : 1;
 }
 
-function weaponAttackModifier(stats, useDex, pb, entityId, data) {
-    const mod = abilityMod(stats[abilityStatId(useDex)] ?? 10);
+function weaponAttackModifier(stats, statId, pb, entityId, data) {
+    const mod = abilityMod(stats[statId] ?? 10);
     return mod + pb + sumModifiersForEntity(data, entityId, "attack-roll");
 }
 
@@ -113,13 +128,13 @@ function extractEquippedWeapon(data, item, stats, pb) {
     if (!name) {
         return null;
     }
-    const useDex = weaponUsesDex(def.properties);
+    const statId = weaponAbilityStatId(def.properties, stats);
     const entityId = item.id;
-    const damageMod = abilityMod(stats[abilityStatId(useDex)] ?? 10)
+    const damageMod = abilityMod(stats[statId] ?? 10)
         + sumModifiersForEntity(data, entityId, "damage");
     return {
         name,
-        hitRoll: d20AttackRoll(weaponAttackModifier(stats, useDex, pb, entityId, data)),
+        hitRoll: d20AttackRoll(weaponAttackModifier(stats, statId, pb, entityId, data)),
         damageRoll: appendModifierToDamage(damageDefToNotation(def.damage), damageMod),
         source: "ddb_weapon",
         ddbEntityId: entityId,

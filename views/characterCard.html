@@ -113,26 +113,23 @@
         $("#commonModals").load("/common/characterCardModals.html", function() {
             debugLog('Modals loaded', 'info');
             if (typeof wwwApplyDomI18n === 'function') wwwApplyDomI18n(document.getElementById('commonModals'));
-        });
-        
-        // Initialize Vue apps with configuration
-        setTimeout(function() {
             initializeVueApps(PAGE_CONFIG.isPublic, true);
-        }, 100);
+        });
 
         // Hide alerts initially
         $('#warning-update').hide();
         $('#warning-updateError').hide();
 
-        // Initialize on body load
-        document.getElementById("body").onload = function () {
-            debugLog(`Body loaded, initializing ${PAGE_CONFIG.isPublic ? 'public' : 'private'} card`, 'info');
-            
-            // Public card specific initialization
-            if (PAGE_CONFIG.isPublic) {
-                socket.emit('getPublicListInfo');
+        window.addEventListener('beforeunload', function (event) {
+            const current = (typeof card !== 'undefined' && card)
+                || (typeof cardManager !== 'undefined' && cardManager.getCard && cardManager.getCard());
+            if (current && current.hasUnsavedChanges) {
+                const message = typeof wwwT === 'function' ? wwwT('unsaved_changes_confirm') : '';
+                event.preventDefault();
+                event.returnValue = message;
+                return message;
             }
-        };
+        });
 
         // Public card specific socket listeners
         

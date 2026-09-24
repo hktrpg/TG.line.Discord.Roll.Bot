@@ -242,12 +242,19 @@ class SocketManager {
         if (result?.ok) {
             const card = cardManager.getCard();
             if (card && result.card) {
+                const incomingId = result.card._id == null ? "" : String(result.card._id);
+                const currentId = card._id == null ? "" : String(card._id);
+                if (incomingId && currentId && incomingId !== currentId) {
+                    uiManager.showSuccess(t('import_saved_other_card'), 8000);
+                    $('#importCharacterModal').modal('hide');
+                    return;
+                }
                 card.state = result.card.state || [];
                 card.roll = result.card.roll || [];
                 card.notes = result.card.notes || [];
                 card.schemaVersion = result.card.schemaVersion ?? 2;
-                if (result.card.image) {
-                    card.image = result.card.image;
+                if (Object.prototype.hasOwnProperty.call(result.card, "image")) {
+                    card.image = result.card.image || "";
                 }
                 if (typeof card.saveOriginalData === 'function') {
                     card.saveOriginalData();

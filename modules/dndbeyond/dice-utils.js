@@ -1,5 +1,8 @@
 "use strict";
 
+const MAX_DICE_COUNT = 100;
+const MAX_DIE_SIDES = 1000;
+
 function abilityMod(score) {
     return Math.floor((score - 10) / 2);
 }
@@ -63,8 +66,28 @@ function doubleDiceInDamageNotation(notation) {
     );
 }
 
+function diceNotationWithinLimits(notation) {
+    if (!notation || typeof notation !== "string") {
+        return true;
+    }
+    const diceRe = /(\d*)d(\d+)/gi;
+    let match = diceRe.exec(notation);
+    while (match) {
+        const count = Number.parseInt(match[1] || "1", 10);
+        const sides = Number.parseInt(match[2], 10);
+        if (count > MAX_DICE_COUNT || sides > MAX_DIE_SIDES || sides < 1 || count < 1) {
+            return false;
+        }
+        match = diceRe.exec(notation);
+    }
+    return true;
+}
+
 function rollDamageNotation(notation, rng) {
-    const cleaned = notation.replaceAll(/\s+/g, "");
+    const cleaned = String(notation || "").replaceAll(/\s+/g, "");
+    if (!diceNotationWithinLimits(cleaned)) {
+        throw new Error("dice notation exceeds limits");
+    }
     let total = 0;
     const diceRe = /([+-]?)(\d*)d(\d+)/gi;
     let match = diceRe.exec(cleaned);
@@ -77,16 +100,14 @@ function rollDamageNotation(notation, rng) {
         }
         match = diceRe.exec(cleaned);
     }
-    const flatRe = /([+-]\d+)(?!.*d)/gi;
-    let flat = flatRe.exec(cleaned);
+    const withoutDice = cleaned.replaceAll(/([+-]?)(\d*)d(\d+)/gi, "");
+    const flatRe = /[+-]?\d+/g;
+    let flat = flatRe.exec(withoutDice);
     while (flat) {
-        total += Number.parseInt(flat[1], 10);
-        flat = flatRe.exec(cleaned);
+        total += Number.parseInt(flat[0], 10);
+        flat = flatRe.exec(withoutDice);
     }
-    if (!/d/i.test(cleaned) && /^[+-]?\d+$/.test(cleaned)) {
-        total = Number.parseInt(cleaned, 10);
-    }
-    return total;
+    return Math.max(0, total);
 }
 
 module.exports = {
@@ -97,5 +118,8 @@ module.exports = {
     appendModifierToDamage,
     rollDie,
     doubleDiceInDamageNotation,
+    diceNotationWithinLimits,
     rollDamageNotation,
+    MAX_DICE_COUNT,
+    MAX_DIE_SIDES,
 };

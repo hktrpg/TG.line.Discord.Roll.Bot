@@ -175,11 +175,19 @@ class CardManager {
                         return this.groupBucketBySection(this.notes);
                     },
                     sectionKeyOptions() {
-                        const order = globalThis.CARD_SECTION?.SECTION_ORDER;
-                        if (Array.isArray(order) && order.length > 0) {
-                            return order;
+                        const order = Array.isArray(globalThis.CARD_SECTION?.SECTION_ORDER)
+                            && globalThis.CARD_SECTION.SECTION_ORDER.length > 0
+                            ? globalThis.CARD_SECTION.SECTION_ORDER
+                            : ['General'];
+                        const used = new Set();
+                        for (const item of [...(this.state || []), ...(this.roll || []), ...(this.notes || [])]) {
+                            const key = (item?.section || '').toString().trim();
+                            if (key) {
+                                used.add(key);
+                            }
                         }
-                        return ['General'];
+                        const extras = [...used].filter(key => !order.includes(key));
+                        return [...order, ...extras];
                     }
                 },
                 mounted() {
@@ -929,6 +937,49 @@ class CardManager {
                             this.hasUnsavedChanges = true;
                         }
                     },
+
+                    isBuiltinSection(sectionKey) {
+                        const order = globalThis.CARD_SECTION?.SECTION_ORDER;
+                        return Array.isArray(order) && order.includes(sectionKey);
+                    },
+
+                    customSectionValue(sectionKey) {
+                        return this.isBuiltinSection(sectionKey) ? '' : (sectionKey || '');
+                    },
+
+                    renameCustomSection(entry, rawName) {
+                        if (!entry) {
+                            return;
+                        }
+                        const next = (rawName || '').toString().trim().slice(0, 40);
+                        const previous = (entry.section || 'General').toString();
+                        if (!next) {
+                            if (!this.isBuiltinSection(previous)) {
+                                this.renameSectionKey(previous, 'General');
+                            }
+                            this.handleEditChange();
+                            return;
+                        }
+                        if (next === previous) {
+                            return;
+                        }
+                        if (this.isBuiltinSection(previous)) {
+                            entry.section = next;
+                        } else {
+                            this.renameSectionKey(previous, next);
+                        }
+                        this.handleEditChange();
+                    },
+
+                    renameSectionKey(previous, next) {
+                        for (const list of [this.state, this.roll, this.notes]) {
+                            for (const item of list || []) {
+                                if (item && item.section === previous) {
+                                    item.section = next;
+                                }
+                            }
+                        }
+                    },
                     
                     // 獲取非數值屬性
                     getNonNumericAttributes() {
@@ -1110,6 +1161,10 @@ class CardManager {
             const cardListElement = document.querySelector('#array-cardList');
             if (!cardListElement) {
                 debugLog('Card list element #array-cardList not found', 'error');
+                this._cardListMountAttempts = (this._cardListMountAttempts || 0) + 1;
+                if (this._cardListMountAttempts <= 20) {
+                    setTimeout(() => this.initializeCardList(), 100);
+                }
                 return;
             }
 

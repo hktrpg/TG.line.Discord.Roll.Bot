@@ -86,10 +86,15 @@ async function fetchCharacterData(characterId, userid, options = {}) {
     }
 
     const url = `${CHARACTER_BASE}/${id}?includeCustomItems=true`;
+    if (userid && !options.skipCooldown) {
+        markUserFetch(userid);
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     let response;
+    let payload;
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
         response = await fetchImpl(url, {
             method: "GET",
             headers: {
@@ -98,29 +103,30 @@ async function fetchCharacterData(characterId, userid, options = {}) {
             },
             signal: controller.signal,
         });
-        clearTimeout(timer);
-    } catch (error) {
-        console.error("[DDB] fetch error:", error.message);
-        return { ok: false, code: "network", message: error.message };
-    }
 
-    if (response.status === 429) {
-        return { ok: false, code: "rate_limit", retryMs: USER_COOLDOWN_MS };
-    }
+        if (response.status === 429) {
+            return { ok: false, code: "rate_limit", retryMs: USER_COOLDOWN_MS };
+        }
 
-    const statusError = { 403: "not_public", 404: "not_found" }[response.status];
-    if (statusError) {
-        return { ok: false, code: statusError };
-    }
-    if (!response.ok) {
-        return { ok: false, code: "network", message: `HTTP ${response.status}` };
-    }
+        const statusError = { 403: "not_public", 404: "not_found" }[response.status];
+        if (statusError) {
+            return { ok: false, code: statusError };
+        }
+        if (!response.ok) {
+            return { ok: false, code: "network", message: `HTTP ${response.status}` };
+        }
 
-    let payload;
-    try {
         payload = await response.json();
-    } catch {
-        return { ok: false, code: "parse_error" };
+    } catch (error) {
+        const aborted = error?.name === "AbortError";
+        console.error("[DDB] fetch error:", error.message);
+        return {
+            ok: false,
+            code: aborted ? "network" : (response ? "parse_error" : "network"),
+            message: error.message,
+        };
+    } finally {
+        clearTimeout(timer);
     }
 
     const data = payload?.data ?? payload;
@@ -129,9 +135,6 @@ async function fetchCharacterData(characterId, userid, options = {}) {
     }
 
     characterCache.set(id, { expires: Date.now() + CACHE_TTL_MS, data });
-    if (userid) {
-        markUserFetch(userid);
-    }
 
     return { ok: true, data, characterId: id, fromCache: false };
 }

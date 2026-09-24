@@ -15,8 +15,9 @@ const {
 const { parseRollSpec, formatRollSpec } = require("../modules/dndbeyond/roll-spec-parser.js");
 const { generateCompareAnyDice } = require("../modules/dndbeyond/anydice-codegen.js");
 const { compareAttacks, simulateAttack } = require("../modules/dndbeyond/dpr-simulator.js");
-const { doubleDiceInDamageNotation } = require("../modules/dndbeyond/dice-utils.js");
-const { resolveCompareTargetAc } = require("../modules/dndbeyond/character-commands.js");
+const { doubleDiceInDamageNotation, rollDamageNotation } = require("../modules/dndbeyond/dice-utils.js");
+const { resolveCompareTargetAc, parseCompareInput } = require("../modules/dndbeyond/character-commands.js");
+const { computeMaxHitPoints } = require("../modules/dndbeyond/sheet-extractor.js");
 const { SECTION } = require("../modules/character-card/section-keys.js");
 
 const fixturePath = path.join(__dirname, "fixtures", "dndbeyond-character-v5.json");
@@ -66,6 +67,15 @@ describe("dndbeyond character-client", () => {
         expect(blocked.code).toBe("rate_limit");
         expect(blocked.retryMs).toBeLessThanOrEqual(USER_COOLDOWN_MS);
     });
+
+    test("failed fetches still start the per-user cooldown", async () => {
+        const fetchImpl = jest.fn().mockResolvedValue({ ok: false, status: 404 });
+        const missing = await fetchCharacterData("404", "failuser", { fetchImpl });
+        expect(missing).toEqual({ ok: false, code: "not_found" });
+        const blocked = await fetchCharacterData("405", "failuser", { fetchImpl });
+        expect(blocked.code).toBe("rate_limit");
+        expect(fetchImpl).toHaveBeenCalledTimes(1);
+    });
 });
 
 describe("dndbeyond attack-extractor", () => {
@@ -98,7 +108,8 @@ describe("dndbeyond attack-extractor", () => {
         expect(patch.importSummary.rollCount).toBeGreaterThanOrEqual(25);
         expect(patch.states.find(s => s.name === "DEX")?.itemA).toBe("15");
         expect(patch.states.find(s => s.name === "WIS")?.itemA).toBe("18");
-        expect(patch.states.find(s => s.name === "HP")?.itemA).toBe("38/38");
+        expect(patch.states.find(s => s.name === "HP")?.itemA).toBe("38");
+        expect(patch.states.find(s => s.name === "HP")?.itemB).toBe("38");
         expect(patch.states.find(s => s.name === "AC")?.itemA).toBe("15");
         expect(patch.states.find(s => s.name === "Spell DC")?.itemA).toBe("15");
         expect(patch.states.some(s => s.name === "Darkvision")).toBe(true);
@@ -115,6 +126,90 @@ describe("dndbeyond attack-extractor", () => {
         expect(patch.rolls.find(r => r.name === "Unarmed Strike")?.section).toBe(SECTION.COMBAT);
         expect(patch.rolls.find(r => r.name === "Save WIS")?.section).toBe(SECTION.SAVES);
         expect(patch.states.find(s => s.name === "Passive Perception")?.section).toBe(SECTION.PASSIVES);
+    });
+
+    test("thrown weapons use Strength unless finesse or ranged", () => {
+        const sheet = {
+            name: "Thrower",
+            proficiencyBonus: 2,
+            stats: [{ id: 1, value: 16 }, { id: 2, value: 10 }],
+            classes: [{ level: 1, definition: { hitDice: 10 } }],
+            inventory: [
+                {
+                    id: 1,
+                    equipped: true,
+                    definition: {
+                        name: "Handaxe",
+                        filterType: "Weapon",
+                        damage: { diceCount: 1, diceValue: 6 },
+                        properties: [{ name: "Thrown" }, { name: "Light" }],
+                    },
+                },
+                {
+                    id: 2,
+                    equipped: true,
+                    definition: {
+                        name: "Dagger",
+                        filterType: "Weapon",
+                        damage: { diceCount: 1, diceValue: 4 },
+                        properties: [{ name: "Finesse" }, { name: "Thrown" }],
+                    },
+                },
+            ],
+        };
+        const attacks = extractCharacterImport(sheet).attacks;
+        const handaxe = attacks.find(a => a.name === "Handaxe");
+        const dagger = attacks.find(a => a.name === "Dagger");
+        expect(handaxe.hitRoll).toBe("1d20+5");
+        expect(dagger.hitRoll).toBe("1d20+5");
+    });
+
+    test("multiclass hit points do not grant a second max hit die", () => {
+        const stats = { 3: 14 };
+        const single = computeMaxHitPoints({
+            classes: [{ level: 1, definition: { hitDice: 10 } }],
+        }, stats);
+        const multi = computeMaxHitPoints({
+            classes: [
+                { level: 1, definition: { hitDice: 10 } },
+                { level: 1, definition: { hitDice: 8 } },
+            ],
+        }, stats);
+        expect(single).toBe(12);
+        expect(multi).toBe(19);
+    });
+
+    test("warlock pact slots stay separate from another caster", () => {
+        const sheet = {
+            name: "Hexblade",
+            proficiencyBonus: 2,
+            stats: [{ id: 6, value: 16 }, { id: 4, value: 14 }],
+            classes: [
+                {
+                    level: 1,
+                    definition: {
+                        name: "Warlock",
+                        hitDice: 8,
+                        spellCastingAbilityId: 6,
+                        spellRules: { levelSpellSlots: [null, [1]] },
+                    },
+                },
+                {
+                    level: 1,
+                    definition: {
+                        name: "Wizard",
+                        hitDice: 6,
+                        spellCastingAbilityId: 4,
+                        spellRules: { levelSpellSlots: [null, [2]] },
+                    },
+                },
+            ],
+        };
+        const states = extractCharacterImport(sheet).states;
+        expect(states.find(s => s.name === "Spell Slots")?.itemA).toBe("L1:2");
+        expect(states.find(s => s.name === "Pact Slots")?.itemA).toBe("L1:1");
+        expect(states.find(s => s.name === "Spell DC Warlock")?.itemA).toBe("13");
+        expect(states.find(s => s.name === "Spell DC Wizard")?.itemA).toBe("12");
     });
 });
 
@@ -148,6 +243,27 @@ describe("dndbeyond card-patch", () => {
 });
 
 describe("dndbeyond roll-spec and anydice", () => {
+    test("parseRollSpec rejects oversized dice pools", () => {
+        expect(parseRollSpec("hit:1d20+5; dmg:1000000000d6")).toBeNull();
+    });
+
+    test("rollDamageNotation keeps flat bonuses between dice and floors at zero", () => {
+        const ones = () => 0;
+        expect(rollDamageNotation("1d8+2+1d6+3", ones)).toBe(7);
+        expect(rollDamageNotation("1d4-3", ones)).toBe(0);
+    });
+
+    test("parseCompareInput matches attack names that contain spaces", () => {
+        const rolls = ["Fire Bolt", "Longsword", "Shortbow"];
+        const parsed = parseCompareInput(".ch compare Fire Bolt Longsword 16", rolls);
+        expect(parsed).toEqual({
+            rollNameA: "Fire Bolt",
+            rollNameB: "Longsword",
+            targetAc: 16,
+            targetAcFromInput: true,
+        });
+    });
+
     test("parseRollSpec roundtrip", () => {
         const spec = {
             name: "Test",

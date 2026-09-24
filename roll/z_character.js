@@ -4,7 +4,6 @@ if (!process.env.mongoURL) {
 }
 let variables = {};
 const fs = require('node:fs');
-const path = require('node:path');
 const crypto = require('node:crypto');
 const mathjs = require('mathjs');
 const { SlashCommandBuilder } = require('discord.js');
@@ -25,6 +24,7 @@ const {
     slashExportUdonText,
 } = require('../modules/character-card/slash-command-text.js');
 const { buildUdonariumCharacterXml } = require('../modules/udonarium/udonarium-export.js');
+const { getTempFilePath } = require('../modules/roll-worker/artifacts.js');
 const rollDice = require('./rollbase').rollDiceCommand;
 const rollDiceCoc = require('./2-coc').rollDiceCommand;
 const rollDiceAdv = require('./0-advroll').rollDiceCommand;
@@ -379,6 +379,7 @@ async function handleSet(mainMsg, inputStr, userid, groupid, channelid, rply, tr
         doc.roll = await Merge(doc.roll, useCard, 'name', true);
         doc.notes = await Merge(doc.notes, useCard, 'name', true);
         try {
+            syncV2Sections(doc);
             let a = await doc.save();
             if (a) {
                 let resutltState = await findObject(doc.state, mainMsg[2]) || '';
@@ -628,8 +629,10 @@ async function mainCharacter(doc, mainMsg, inputStr, translate) {
             }
         }
         try {
-            if (doc && doc.db)
+            if (doc && doc.db) {
+                syncV2Sections(doc);
                 await doc.save();
+            }
         } catch (error) {
             console.error('doc SAVE GET ERROR:', error);
         }
@@ -834,13 +837,11 @@ async function handleExportUdon(mainMsg, inputStr, userid, rply, translate) {
     }
 
     const safeBase = (doc.name || "character").toString().replaceAll(/[^\w\u3040-\u30FF\u3400-\u9FFF-]+/g, "_").slice(0, 40) || "character";
-    const tempDir = path.join("temp");
-    fs.mkdirSync(tempDir, { recursive: true });
     const fileName = `udon-${crypto.randomBytes(4).toString("hex")}-${safeBase}.xml`;
-    const relativePath = path.join("temp", fileName).replaceAll("\\", "/");
+    const absolutePath = getTempFilePath(fileName);
 
     try {
-        fs.writeFileSync(relativePath, xml, "utf8");
+        fs.writeFileSync(absolutePath, xml, "utf8");
     } catch (error) {
         console.error("[Character] exportudon error:", error);
         rply.text = translate("character.exportudon_failed", { error: error.message });
@@ -848,17 +849,24 @@ async function handleExportUdon(mainMsg, inputStr, userid, rply, translate) {
     }
 
     rply.text = translate("character.exportudon_success", { name: doc.name });
-    rply.fileLink = [relativePath];
+    rply.fileLink = [absolutePath];
     rply.fileText = translate("character.exportudon_file_caption", { name: doc.name });
     return rply;
 }
 
-async function handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply, translate) {
-    const parsed = ddb.parseCompareInput(inputStr);
-    if (!parsed) {
-        rply.text = translate("character.compare_usage");
-        return rply;
+function syncV2Sections(doc) {
+    if (!doc || (doc.schemaVersion || 1) < 2) {
+        return;
     }
+    const plain = typeof doc.toObject === "function" ? doc.toObject() : doc;
+    const prepared = prepareCardForMongoSave(plain, {
+        existingSchemaVersion: doc.schemaVersion,
+    });
+    doc.sections = prepared.sections;
+    doc.schemaVersion = prepared.schemaVersion;
+}
+
+async function handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply, translate) {
     if (!groupid) {
         rply.text = translate("character.group_only");
         return rply;
@@ -867,6 +875,13 @@ async function handleCompare(mainMsg, inputStr, userid, groupid, channelid, rply
     const doc = await getActiveCharacterDoc(userid, groupid, channelid);
     if (!doc) {
         rply.text = translate("character.no_registered");
+        return rply;
+    }
+
+    const rollNames = (doc.roll || []).map(entry => entry?.name).filter(Boolean);
+    const parsed = ddb.parseCompareInput(inputStr, rollNames);
+    if (!parsed) {
+        rply.text = translate("character.compare_usage");
         return rply;
     }
 

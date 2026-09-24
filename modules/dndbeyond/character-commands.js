@@ -39,9 +39,46 @@ function translateFetchError(translate, fetchResult) {
     return translate("character.importddb_failed", { error: fetchResult.code });
 }
 
-function parseCompareInput(inputStr) {
+function matchTwoRollNames(body, rollNames) {
+    const names = [...new Set(rollNames.filter(Boolean))].sort((a, b) => b.length - a.length);
+    let rest = body.trim();
+    let targetAc = 15;
+    let targetAcFromInput = false;
+    const acMatch = rest.match(/^(.*\S)\s+(\d+)$/);
+    if (acMatch) {
+        targetAc = Number.parseInt(acMatch[2], 10);
+        targetAcFromInput = true;
+        rest = acMatch[1].trim();
+    }
+    const lowerRest = rest.toLowerCase();
+    for (const nameA of names) {
+        const prefix = nameA.toLowerCase();
+        if (lowerRest !== prefix && !lowerRest.startsWith(prefix + " ")) {
+            continue;
+        }
+        const after = rest.slice(nameA.length).trim();
+        const afterLower = after.toLowerCase();
+        for (const nameB of names) {
+            if (afterLower === nameB.toLowerCase()) {
+                return { rollNameA: nameA, rollNameB: nameB, targetAc, targetAcFromInput };
+            }
+        }
+    }
+    return null;
+}
+
+function parseCompareInput(inputStr, rollNames) {
     const body = inputStr.replace(/^\.(?:char|ch)\s+compare\s+/i, "").trim();
-    const tokens = body.split(/\s+/);
+    if (Array.isArray(rollNames) && rollNames.length > 0) {
+        const matched = matchTwoRollNames(body, rollNames);
+        if (matched) {
+            return matched;
+        }
+        if (rollNames.some(name => /\s/.test(String(name)))) {
+            return null;
+        }
+    }
+    const tokens = body.split(/\s+/).filter(Boolean);
     if (tokens.length < 2) {
         return null;
     }

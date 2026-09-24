@@ -124,15 +124,21 @@ function computeMaxHitPoints(data, stats) {
     }
     const conMod = abilityMod(stats[3] ?? 10);
     let total = 0;
+    let grantedFirstLevelMax = false;
     for (const cls of data.classes || []) {
         const level = cls.level || 0;
         const hd = cls.definition?.hitDice || 8;
         if (level <= 0) {
             continue;
         }
-        total += hd + conMod;
-        const perLevel = Math.floor(hd / 2) + 1 + conMod;
-        total += (level - 1) * perLevel;
+        const average = Math.floor(hd / 2) + 1 + conMod;
+        if (!grantedFirstLevelMax) {
+            total += hd + conMod;
+            total += (level - 1) * average;
+            grantedFirstLevelMax = true;
+        } else {
+            total += level * average;
+        }
     }
     const bonus = data.bonusHitPoints ?? 0;
     if (total > 0) {
@@ -258,8 +264,11 @@ function resolveHitPoints(data, stats) {
     if (max <= 0) {
         return;
     }
-    const itemA = temp > 0 ? `${current}+${temp}/${max}` : `${current}/${max}`;
-    return itemA.slice(0, 50);
+    return {
+        current: String(current).slice(0, 50),
+        max: String(max).slice(0, 50),
+        temp: temp > 0 ? String(temp).slice(0, 50) : "",
+    };
 }
 
 function buildCombatStates(data, stats, pb) {
@@ -302,7 +311,10 @@ function buildSheetStates(data, stats, pb) {
     }
     const hp = resolveHitPoints(data, stats);
     if (hp) {
-        rows.push({ name: "HP", itemA: hp });
+        rows.push({ name: "HP", itemA: hp.current, itemB: hp.max });
+        if (hp.temp) {
+            rows.push({ name: "Temp HP", itemA: hp.temp });
+        }
     }
     for (const [id, label] of Object.entries(STAT_NAMES)) {
         const val = stats[Number(id)];
@@ -329,19 +341,63 @@ function resolveSpellcastingAbilityId(data) {
     return 5;
 }
 
+const FULL_CASTERS = new Set(["bard", "cleric", "druid", "sorcerer", "wizard"]);
+const HALF_CASTERS = new Set(["paladin", "ranger"]);
+const HALF_ROUND_UP_CASTERS = new Set(["artificer"]);
+const MULTICLASS_SPELL_SLOTS = [
+    null,
+    [2],
+    [3],
+    [4, 2],
+    [4, 3],
+    [4, 3, 2],
+    [4, 3, 3],
+    [4, 3, 3, 1],
+    [4, 3, 3, 2],
+    [4, 3, 3, 3, 1],
+    [4, 3, 3, 3, 2],
+    [4, 3, 3, 3, 2, 1],
+    [4, 3, 3, 3, 2, 1],
+    [4, 3, 3, 3, 2, 1, 1],
+    [4, 3, 3, 3, 2, 1, 1],
+    [4, 3, 3, 3, 2, 1, 1, 1],
+    [4, 3, 3, 3, 2, 1, 1, 1],
+    [4, 3, 3, 3, 2, 1, 1, 1, 1],
+    [4, 3, 3, 3, 3, 1, 1, 1, 1],
+    [4, 3, 3, 3, 3, 2, 1, 1, 1],
+    [4, 3, 3, 3, 3, 2, 2, 1, 1],
+];
+
+function casterLevelContribution(cls) {
+    const name = (cls.definition?.name || "").toLowerCase();
+    const level = cls.level || 0;
+    if (level <= 0 || name === "warlock") {
+        return 0;
+    }
+    if (FULL_CASTERS.has(name)) {
+        return level;
+    }
+    if (HALF_CASTERS.has(name)) {
+        return Math.floor(level / 2);
+    }
+    if (HALF_ROUND_UP_CASTERS.has(name)) {
+        return Math.ceil(level / 2);
+    }
+    if (name === "fighter" || name === "rogue") {
+        return Math.floor(level / 3);
+    }
+    return cls.definition?.spellRules?.levelSpellSlots ? level : 0;
+}
+
 function resolveSpellSaveDc(data, stats, pb) {
     const statId = resolveSpellcastingAbilityId(data);
     return 8 + pb + abilityMod(stats[statId] ?? 10);
 }
 
-function resolveSpellSlotLine(data) {
-    const totalLevel = readTotalLevel(data);
-    const cls = (data.classes || [])[0];
-    const table = cls?.definition?.spellRules?.levelSpellSlots;
-    if (!table || totalLevel < 1 || totalLevel >= table.length) {
+function formatSpellSlotRow(row, data) {
+    if (!Array.isArray(row)) {
         return;
     }
-    const row = table[totalLevel];
     const usedByLevel = new Map(
         (data.spellSlots || []).map(slot => [slot.level, slot.used ?? 0])
     );
@@ -361,6 +417,51 @@ function resolveSpellSlotLine(data) {
     return parts.join(" ").slice(0, 50);
 }
 
+function classSlotLine(cls, data) {
+    const table = cls.definition?.spellRules?.levelSpellSlots;
+    const level = cls.level || 0;
+    if (!Array.isArray(table) || level < 1 || level >= table.length) {
+        return;
+    }
+    return formatSpellSlotRow(table[level], data);
+}
+
+function resolveSpellSlotStates(data) {
+    const withTables = (data.classes || []).filter(
+        cls => Array.isArray(cls.definition?.spellRules?.levelSpellSlots)
+    );
+    const isWarlock = cls => (cls.definition?.name || "").toLowerCase() === "warlock";
+    const warlocks = withTables.filter(isWarlock);
+    const others = withTables.filter(cls => !isWarlock(cls));
+    const rows = [];
+    if (others.length === 1) {
+        const line = classSlotLine(others[0], data);
+        if (line) {
+            rows.push({ name: "Spell Slots", itemA: line });
+        }
+    } else if (others.length > 1) {
+        const combined = Math.min(20, others.reduce((sum, cls) => sum + casterLevelContribution(cls), 0));
+        const line = combined >= 1 ? formatSpellSlotRow(MULTICLASS_SPELL_SLOTS[combined], data) : undefined;
+        if (line) {
+            rows.push({ name: "Spell Slots", itemA: line });
+        }
+    } else if (warlocks.length === 1) {
+        const line = classSlotLine(warlocks[0], data);
+        if (line) {
+            rows.push({ name: "Spell Slots", itemA: line });
+        }
+    }
+    if (warlocks.length > 0 && others.length > 0) {
+        for (const cls of warlocks) {
+            const line = classSlotLine(cls, data);
+            if (line) {
+                rows.push({ name: "Pact Slots", itemA: line });
+            }
+        }
+    }
+    return rows;
+}
+
 function buildSpellcastingStates(data, stats, pb) {
     const rows = [];
     const hasCaster = (data.classes || []).some(
@@ -369,12 +470,18 @@ function buildSpellcastingStates(data, stats, pb) {
     if (!hasCaster && (data.classSpells || []).length === 0) {
         return rows;
     }
-    const dc = resolveSpellSaveDc(data, stats, pb);
-    rows.push({ name: "Spell DC", itemA: String(dc) });
-    const slots = resolveSpellSlotLine(data);
-    if (slots) {
-        rows.push({ name: "Spell Slots", itemA: slots });
+    const casters = (data.classes || []).filter(cls => cls.definition?.spellCastingAbilityId);
+    if (casters.length <= 1) {
+        rows.push({ name: "Spell DC", itemA: String(resolveSpellSaveDc(data, stats, pb)) });
+    } else {
+        for (const cls of casters) {
+            const statId = cls.definition.spellCastingAbilityId;
+            const dc = 8 + pb + abilityMod(stats[statId] ?? 10);
+            const label = `Spell DC ${cls.definition?.name || ""}`.trim().slice(0, 50);
+            rows.push({ name: label, itemA: String(dc) });
+        }
     }
+    rows.push(...resolveSpellSlotStates(data));
     return rows;
 }
 

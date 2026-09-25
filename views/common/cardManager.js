@@ -175,19 +175,14 @@ class CardManager {
                         return this.groupBucketBySection(this.notes);
                     },
                     sectionKeyOptions() {
-                        const order = Array.isArray(globalThis.CARD_SECTION?.SECTION_ORDER)
-                            && globalThis.CARD_SECTION.SECTION_ORDER.length > 0
-                            ? globalThis.CARD_SECTION.SECTION_ORDER
-                            : ['General'];
                         const used = new Set();
                         for (const item of [...(this.state || []), ...(this.roll || []), ...(this.notes || [])]) {
                             const key = (item?.section || '').toString().trim();
-                            if (key) {
+                            if (key && key !== 'General') {
                                 used.add(key);
                             }
                         }
-                        const extras = [...used].filter(key => !order.includes(key));
-                        return [...order, ...extras];
+                        return [...used];
                     }
                 },
                 mounted() {
@@ -938,47 +933,18 @@ class CardManager {
                         }
                     },
 
-                    isBuiltinSection(sectionKey) {
-                        const order = globalThis.CARD_SECTION?.SECTION_ORDER;
-                        return Array.isArray(order) && order.includes(sectionKey);
+                    sectionFieldValue(sectionKey) {
+                        const key = (sectionKey || '').toString().trim();
+                        return key === 'General' ? '' : key;
                     },
 
-                    customSectionValue(sectionKey) {
-                        return this.isBuiltinSection(sectionKey) ? '' : (sectionKey || '');
-                    },
-
-                    renameCustomSection(entry, rawName) {
+                    assignSection(entry, rawName) {
                         if (!entry) {
                             return;
                         }
-                        const next = (rawName || '').toString().trim().slice(0, 40);
-                        const previous = (entry.section || 'General').toString();
-                        if (!next) {
-                            if (!this.isBuiltinSection(previous)) {
-                                this.renameSectionKey(previous, 'General');
-                            }
-                            this.handleEditChange();
-                            return;
-                        }
-                        if (next === previous) {
-                            return;
-                        }
-                        if (this.isBuiltinSection(previous)) {
-                            entry.section = next;
-                        } else {
-                            this.renameSectionKey(previous, next);
-                        }
+                        const next = (rawName || '').toString().trim().slice(0, 50);
+                        entry.section = next || 'General';
                         this.handleEditChange();
-                    },
-
-                    renameSectionKey(previous, next) {
-                        for (const list of [this.state, this.roll, this.notes]) {
-                            for (const item of list || []) {
-                                if (item && item.section === previous) {
-                                    item.section = next;
-                                }
-                            }
-                        }
                     },
                     
                     // 獲取非數值屬性

@@ -4489,7 +4489,7 @@
       "card_section_Spells": "Spells",
       "card_section_Equipment": "Equipment",
       "card_section_Features": "Features",
-      "section_custom_placeholder": "Custom group name (renames the whole group)",
+      "section_custom_placeholder": "Category name",
       "placeholder_card_section": "Section",
       "btn_delete": "Delete",
       "unnamed_character": "Unnamed character",

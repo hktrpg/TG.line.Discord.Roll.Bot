@@ -18,6 +18,9 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
 </script>
+    <datalist id="card-section-names">
+        <option v-for="sk in sectionKeyOptions" :key="'section-name-' + sk" :value="sk"></option>
+    </datalist>
     <!-- 角色頭部信息 -->
     <section class="character-header mb-4">
         <div class="hybrid-card-container">
@@ -196,12 +199,10 @@
                     <div v-if="editMode && !slot.entry.isInlineEditing" class="edit-inputs">
                     <input type="text" :value="slot.entry.name" @input="slot.entry.name = $event.target.value" :placeholder="t('placeholder_attr_name')"
                                class="edit-input">
-                        <select v-model="slot.entry.section" class="edit-input mb-1" @change="handleEditChange()">
-                            <option v-for="sk in sectionKeyOptions" :key="'state-sk-' + sk" :value="sk">{{ sectionLabel(sk) }}</option>
-                        </select>
-                        <input type="text" class="edit-input mb-1" :placeholder="t('section_custom_placeholder')"
-                            :value="customSectionValue(slot.entry.section)"
-                            @change="renameCustomSection(slot.entry, $event.target.value)">
+                        <input type="text" class="edit-input mb-1" list="card-section-names"
+                            :placeholder="t('section_custom_placeholder')"
+                            :value="sectionFieldValue(slot.entry.section)"
+                            @change="assignSection(slot.entry, $event.target.value)">
                         <div class="edit-number-inputs">
                         <input type="text" :value="(slot.entry.itemA || '').toString().replace(/^CC\s*/i, '')"
                             @input="slot.entry.itemA = $event.target.value" :placeholder="t('placeholder_current')" class="edit-input">
@@ -214,12 +215,10 @@
                     <!-- 內聯編輯輸入框 -->
                     <div v-if="slot.entry.isInlineEditing" class="inline-edit-inputs">
                         <input type="text" v-model="slot.entry.name" :placeholder="t('placeholder_attr_name')" class="edit-input" @input="handleEditChange()">
-                        <select v-model="slot.entry.section" class="edit-input mb-1" @change="handleEditChange()">
-                            <option v-for="sk in sectionKeyOptions" :key="'state-inline-sk-' + sk" :value="sk">{{ sectionLabel(sk) }}</option>
-                        </select>
-                        <input type="text" class="edit-input mb-1" :placeholder="t('section_custom_placeholder')"
-                            :value="customSectionValue(slot.entry.section)"
-                            @change="renameCustomSection(slot.entry, $event.target.value)">
+                        <input type="text" class="edit-input mb-1" list="card-section-names"
+                            :placeholder="t('section_custom_placeholder')"
+                            :value="sectionFieldValue(slot.entry.section)"
+                            @change="assignSection(slot.entry, $event.target.value)">
                         <div class="edit-number-inputs">
                             <input type="text" v-model="slot.entry.itemA" :placeholder="t('placeholder_current')" class="edit-input" @input="handleEditChange()">
                             <span class="edit-separator">/</span>
@@ -277,23 +276,19 @@
                 <div v-if="editMode && !slot.entry.isInlineEditing" class="edit-inputs">
                     <input type="text" v-model="slot.entry.name" :placeholder="t('placeholder_skill_name')"
                         class="edit-input" @input="handleEditChange()">
-                    <select v-model="slot.entry.section" class="edit-input mb-1" @change="handleEditChange()">
-                        <option v-for="sk in sectionKeyOptions" :key="'roll-sk-' + sk" :value="sk">{{ sectionLabel(sk) }}</option>
-                    </select>
-                    <input type="text" class="edit-input mb-1" :placeholder="t('section_custom_placeholder')"
-                        :value="customSectionValue(slot.entry.section)"
-                        @change="renameCustomSection(slot.entry, $event.target.value)">
+                    <input type="text" class="edit-input mb-1" list="card-section-names"
+                        :placeholder="t('section_custom_placeholder')"
+                        :value="sectionFieldValue(slot.entry.section)"
+                        @change="assignSection(slot.entry, $event.target.value)">
                     <input type="text" v-model="slot.entry.itemA" :placeholder="t('placeholder_roll_cmd')" class="edit-input" @input="handleEditChange()">
                     </div>
                     
                 <div v-if="slot.entry.isInlineEditing" class="inline-edit-inputs">
                     <input type="text" v-model="slot.entry.name" :placeholder="t('placeholder_skill_name')" class="edit-input" @input="handleEditChange()">
-                    <select v-model="slot.entry.section" class="edit-input mb-1" @change="handleEditChange()">
-                        <option v-for="sk in sectionKeyOptions" :key="'roll-inline-sk-' + sk" :value="sk">{{ sectionLabel(sk) }}</option>
-                    </select>
-                    <input type="text" class="edit-input mb-1" :placeholder="t('section_custom_placeholder')"
-                        :value="customSectionValue(slot.entry.section)"
-                        @change="renameCustomSection(slot.entry, $event.target.value)">
+                    <input type="text" class="edit-input mb-1" list="card-section-names"
+                        :placeholder="t('section_custom_placeholder')"
+                        :value="sectionFieldValue(slot.entry.section)"
+                        @change="assignSection(slot.entry, $event.target.value)">
                     <input type="text" v-model="slot.entry.itemA" :placeholder="t('placeholder_roll_cmd')" class="edit-input" @input="handleEditChange()">
                 </div>
                 </div>
@@ -352,23 +347,19 @@
                     <input type="text" :value="slot.entry.name || slot.entry.title || ''"
                         @input="slot.entry.name = $event.target.value; if (slot.entry.title) slot.entry.title = $event.target.value"
                         :placeholder="t('placeholder_note_title')" class="edit-detail-label">
-                    <select v-model="slot.entry.section" class="edit-input mb-1" @change="handleEditChange()">
-                        <option v-for="sk in sectionKeyOptions" :key="'note-sk-' + sk" :value="sk">{{ sectionLabel(sk) }}</option>
-                    </select>
-                    <input type="text" class="edit-input mb-1" :placeholder="t('section_custom_placeholder')"
-                        :value="customSectionValue(slot.entry.section)"
-                        @change="renameCustomSection(slot.entry, $event.target.value)">
+                    <input type="text" class="edit-input mb-1" list="card-section-names"
+                        :placeholder="t('section_custom_placeholder')"
+                        :value="sectionFieldValue(slot.entry.section)"
+                        @change="assignSection(slot.entry, $event.target.value)">
                     </div>
                     
                     <div v-if="slot.entry.isInlineEditing" class="inline-edit-inputs">
                         <textarea v-model="slot.entry.itemA" :placeholder="t('placeholder_note_content')" class="edit-detail-textarea" @input="handleEditChange()"></textarea>
                         <input type="text" v-model="slot.entry.name" :placeholder="t('placeholder_note_title')" class="edit-detail-label" @input="handleEditChange()">
-                        <select v-model="slot.entry.section" class="edit-input mb-1" @change="handleEditChange()">
-                            <option v-for="sk in sectionKeyOptions" :key="'note-inline-sk-' + sk" :value="sk">{{ sectionLabel(sk) }}</option>
-                        </select>
-                        <input type="text" class="edit-input mb-1" :placeholder="t('section_custom_placeholder')"
-                            :value="customSectionValue(slot.entry.section)"
-                            @change="renameCustomSection(slot.entry, $event.target.value)">
+                        <input type="text" class="edit-input mb-1" list="card-section-names"
+                            :placeholder="t('section_custom_placeholder')"
+                            :value="sectionFieldValue(slot.entry.section)"
+                            @change="assignSection(slot.entry, $event.target.value)">
                     </div>
                 </div>
             </details>

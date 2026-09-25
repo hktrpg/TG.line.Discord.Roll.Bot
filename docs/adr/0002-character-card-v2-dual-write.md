@@ -15,3 +15,4 @@ HKTRPG character sheets stay bot-compatible via flat `state` / `roll` / `notes`.
 - `sections[].items` note bodies follow flat `notes` limits (4000 on v2); not a separate edit surface yet.
 - Udonarium / DDB import always `forceV2: true`.
 - No ADR for www tree editor until product needs structured editing beyond flat + `section` dropdown.
+- Manual chat and web steps: [Character card context](../character-card/CONTEXT.md#manual-test).

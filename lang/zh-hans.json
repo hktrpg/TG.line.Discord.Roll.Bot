@@ -4490,7 +4490,7 @@
       "card_section_Spells": "法术",
       "card_section_Equipment": "装备",
       "card_section_Features": "特性",
-      "section_custom_placeholder": "自定义分组名称（会改整组）",
+      "section_custom_placeholder": "分类名称",
       "placeholder_card_section": "分区",
       "btn_delete": "删除",
       "unnamed_character": "未命名角色",

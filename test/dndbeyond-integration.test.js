@@ -14,7 +14,7 @@ const {
 } = require("../modules/dndbeyond/attack-extractor.js");
 const { parseRollSpec, formatRollSpec } = require("../modules/dndbeyond/roll-spec-parser.js");
 const { generateCompareAnyDice } = require("../modules/dndbeyond/anydice-codegen.js");
-const { compareAttacks, simulateAttack } = require("../modules/dndbeyond/dpr-simulator.js");
+const { compareAttacks, simulateAttack, rollD20Attack } = require("../modules/dndbeyond/dpr-simulator.js");
 const { doubleDiceInDamageNotation, rollDamageNotation } = require("../modules/dndbeyond/dice-utils.js");
 const { resolveCompareTargetAc, parseCompareInput } = require("../modules/dndbeyond/character-commands.js");
 const { computeMaxHitPoints } = require("../modules/dndbeyond/sheet-extractor.js");
@@ -294,6 +294,39 @@ describe("dndbeyond roll-spec and anydice", () => {
 });
 
 describe("dndbeyond dpr-simulator", () => {
+    test("compound flat modifiers simulate identically to their sum", () => {
+        const compound = parseRollSpec("hit:1d20+5+2-1; dmg:1d8+3");
+        const simple = parseRollSpec("hit:1d20+6; dmg:1d8+3");
+        expect(rollD20Attack(compound.hitRoll, false, false, () => 0.45)).toEqual({ natural: 10, total: 16 });
+        expect(simulateAttack(compound, 15, 1000, 91)).toEqual(simulateAttack(simple, 15, 1000, 91));
+    });
+
+    test("advantage applies to the natural d20 and rolls the bonus die once", () => {
+        const spec = parseRollSpec("hit:1d20+2+1d4; dmg:1d8+3; adv:1");
+        const values = [0.2, 0.75, 0.99];
+        let index = 0;
+        expect(rollD20Attack(spec.hitRoll, true, false, () => values[index++])).toEqual({ natural: 16, total: 22 });
+        expect(index).toBe(3);
+        const code = generateCompareAnyDice([spec], 15);
+        expect(code).toContain("[highest 1 of 2d20]+2+1d4 >= 15");
+    });
+
+    test("negative bonuses remain negative and unsupported hit formulas are rejected", () => {
+        expect(rollD20Attack("1d20-5-1d4", false, false, () => 0)).toEqual({ natural: 1, total: -5 });
+        for (const hit of ["1d12+5", "2d20+5", "1d20*2", "1d20+5oops", "1d20+100d6"]) {
+            expect(parseRollSpec(`hit:${hit}; dmg:1d8`)).toBeNull();
+            expect(() => rollD20Attack(hit, false, false, () => 0)).toThrow("unsupported attack notation");
+        }
+    });
+
+    test("automatic damage reports a hit without a critical hit", () => {
+        const spec = parseRollSpec("hit:none; dmg:3");
+        const result = simulateAttack(spec, 100, 10, 1);
+        expect(result.hitRate).toBe(1);
+        expect(result.critRate).toBe(0);
+        expect(result.avgDamage).toBe(3);
+    });
+
     test("doubleDiceInDamageNotation doubles dice only", () => {
         expect(doubleDiceInDamageNotation("1d8+3")).toBe("2d8+3");
         expect(doubleDiceInDamageNotation("2d6+1d4+5")).toBe("4d6+2d4+5");

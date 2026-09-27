@@ -182,6 +182,9 @@ function initializeVueAppsInternal(isPublic = false, templateContent = null) {
             // Public page: Request public list after Vue initialization completes, using improved retry mechanism
             this.requestPublicListWithRetry();
         }
+        if (typeof PAGE_CONFIG !== 'undefined' && typeof PAGE_CONFIG.onCardReady === 'function') {
+            PAGE_CONFIG.onCardReady(card);
+        }
     } catch (error) {
         debugLog(`Error initializing Vue apps internal: ${error.message}`, 'error');
     }

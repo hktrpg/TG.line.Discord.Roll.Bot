@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="840" viewBox="0 0 600 840" role="img" aria-labelledby="title desc">
+<title id="title">銀髮半精靈巡林客</title><desc id="desc">一位披着苔綠斗篷的銀髮巡林客，攜弓立於金色月光與薄霧松林之間。</desc>
+<defs>
+ <linearGradient id="bg" x2=".6" y2="1"><stop stop-color="#18352f"/><stop offset=".5" stop-color="#28463c"/><stop offset="1" stop-color="#0a1c1b"/></linearGradient>
+ <radialGradient id="glow"><stop stop-color="#b6b87f" stop-opacity=".46"/><stop offset=".55" stop-color="#7b9567" stop-opacity=".18"/><stop offset="1" stop-color="#263f33" stop-opacity="0"/></radialGradient>
+ <linearGradient id="cloak" x1=".2" y1="0" x2=".8" y2="1"><stop stop-color="#839275"/><stop offset=".22" stop-color="#65785c"/><stop offset=".6" stop-color="#3b5846"/><stop offset="1" stop-color="#182e29"/></linearGradient>
+ <linearGradient id="hood" x1="0" x2="1" y2=".8"><stop stop-color="#a1a78a"/><stop offset=".4" stop-color="#738669"/><stop offset="1" stop-color="#344f3e"/></linearGradient>
+ <linearGradient id="skin" x1="0" x2="1" y2=".25"><stop stop-color="#a98f75"/><stop offset=".28" stop-color="#e1cbb0"/><stop offset=".66" stop-color="#ead5b9"/><stop offset="1" stop-color="#b29b7e"/></linearGradient>
+ <linearGradient id="face" x1=".05" y1=".2" x2="1" y2=".7"><stop stop-color="#bda589"/><stop offset=".3" stop-color="#e8d7bb"/><stop offset=".62" stop-color="#f0dfc4"/><stop offset="1" stop-color="#bea589"/></linearGradient>
+ <linearGradient id="hair" x1="0" x2=".9" y2=".7"><stop stop-color="#d5d4c4"/><stop offset=".3" stop-color="#f0ebda"/><stop offset=".65" stop-color="#aeb6ab"/><stop offset="1" stop-color="#6f8275"/></linearGradient>
+ <linearGradient id="leather" x1="0" x2="1" y2="1"><stop stop-color="#846c4b"/><stop offset=".5" stop-color="#574c36"/><stop offset="1" stop-color="#303b30"/></linearGradient>
+ <linearGradient id="gold" x1="0" x2="1" y2="1"><stop stop-color="#eed9a0"/><stop offset=".5" stop-color="#b29e66"/><stop offset="1" stop-color="#726240"/></linearGradient>
+ <linearGradient id="mist" x2="0" y2="1"><stop stop-color="#dce2b6" stop-opacity="0"/><stop offset=".5" stop-color="#b8c7a7" stop-opacity=".14"/><stop offset="1" stop-color="#1b362c" stop-opacity="0"/></linearGradient>
+ <linearGradient id="fade" x2="0" y2="1"><stop offset=".72" stop-color="#0b201b" stop-opacity="0"/><stop offset="1" stop-color="#0b201b" stop-opacity=".88"/></linearGradient>
+ <pattern id="grain" width="17" height="21" patternUnits="userSpaceOnUse"><circle cx="3" cy="4" r=".55" fill="#ebdfb1" opacity=".12"/><circle cx="11" cy="16" r=".45" fill="#071b18" opacity=".18"/></pattern>
+ <filter id="soft"><feGaussianBlur stdDeviation="13"/></filter>
+</defs>
+<path fill="url(#bg)" d="M0 0h600v840H0z"/>
+<ellipse cx="306" cy="269" rx="325" ry="342" fill="url(#glow)"/>
+<g fill="#557661" opacity=".4"><path d="M54 0h9l-1 248 56 80-55-40 4 350H49l4-430-41 49 41-73z"/><path d="M139 0h7l-1 102 33 44-34-23 7 370h-16l7-266-46-83 45 51z"/><path d="M486 0h10l-5 179 68-100-65 134 8 360h-21l4-249-43-53 43 30z"/><path d="M571 0h5l-4 346 28-39v31l-26 48 8 293h-20l6-439-35-41 35 19z"/></g>
+<g fill="#132e27" opacity=".65"><path d="M0 65l28 44-15-1 32 63-20-10 39 76-37-17 40 68-34-7 45 59-45-13 30 59-27-8 21 62H0z"/><path d="M599 99l-28 37 14-2-35 61 22-8-40 66 31-7-51 78 40-16-44 69 41-12-48 88 48-16-25 59 44-12 31 52z"/><path d="M89 237l-17 39 9-1-25 42 16-6-27 50 19-3-27 44 34-12-15 34 40-7 23 30-10-47 19 8-23-41 15 4-26-38 12 1-23-31z"/></g>
+<circle cx="307" cy="206" r="126" fill="none" stroke="#cfc083" stroke-width="1" opacity=".42"/>
+<circle cx="307" cy="206" r="139" fill="none" stroke="#cfc083" stroke-width=".5" opacity=".24"/>
+<path d="M328 66c-86 5-142 80-121 158-47-65-8-150 76-164 17-3 31-1 45 6z" fill="#d7c88b" opacity=".64"/>
+<g fill="#d9d0a0" opacity=".8"><circle cx="131" cy="153" r="1.3"/><circle cx="417" cy="105" r="1.4"/><circle cx="463" cy="280" r="1"/><circle cx="185" cy="370" r="1.2"/><circle cx="513" cy="427" r="1.6"/><circle cx="91" cy="457" r="1"/><circle cx="454" cy="178" r="1"/><path d="M308 40l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></g>
+<path d="M0 405c167-91 272 17 600-42v87C348 505 195 453 0 495z" fill="url(#mist)" filter="url(#soft)"/>
+<!-- Quiver and feathered arrows behind the shoulder. -->
+<path d="M390 328l83 17-51 262-82-18z" fill="#263b2e" stroke="#a69465" stroke-width="2"/>
+<path d="M399 340l58 12-42 235-59-13z" fill="url(#leather)"/>
+<path d="M394 365l55 12m-61 18l55 12m-60 18l55 12m-61 18l55 12" fill="none" stroke="#bba775" stroke-opacity=".3"/>
+<g stroke="#bdab7c" stroke-width="3"><path d="M413 358l47-190"/><path d="M426 358l57-164"/><path d="M398 353l23-170"/></g>
+<g fill="#a6b19a" stroke="#465e49" stroke-width="1"><path d="M454 202l-10-12 12-41 7 21 17-10-10 40-15 14z"/><path d="M477 226l-8-12 13-35 5 15 15-9-10 34-14 16z"/><path d="M416 211l-10-12 6-34 10 19 13-10-5 33-13 15z"/></g>
+<!-- Cloak silhouette and layered shoulder folds. -->
+<path d="M206 332c-44 15-66 40-77 98L79 682l-15 158h484l-23-165-55-249c-13-55-38-78-78-95z" fill="#1d352b" stroke="#1a2c24" stroke-width="3"/>
+<path d="M223 324c-42 11-81 38-95 87-23 85-37 215-45 298l-16 131h155l45-456z" fill="url(#cloak)"/>
+<path d="M365 327c53 12 86 41 102 92 24 80 44 216 57 305l17 116H353l-46-460z" fill="url(#cloak)"/>
+<path d="M209 359c-27 91-42 246-59 481h-45c9-151 27-369 66-442z" fill="#a4ae83" opacity=".12"/>
+<path d="M167 429c-24 88-38 206-43 334m323-317c24 89 33 170 42 275M386 423l49 327" fill="none" stroke="#bbc098" stroke-width="1.5" opacity=".17"/>
+<path d="M251 347l-57 142 32 219-10 132h172l-8-165 13-185-55-144z" fill="#263d30"/>
+<path d="M262 363l-24 93 14 135h100l17-135-35-94z" fill="url(#leather)"/>
+<path d="M264 382l39 41 33-41-9 126h-50z" fill="#a08f69" opacity=".5"/>
+<path d="M237 484c41 18 89 18 132-2m-129 32c39 12 80 13 125-1m-121 34c41 7 77 7 116-1" fill="none" stroke="#c4b285" stroke-opacity=".22"/>
+<!-- Neck, shadow under jaw, and open collar. -->
+<path d="M269 304l-9 62 43 38 41-39-18-69z" fill="url(#skin)"/>
+<path d="M269 311l60-5 8 38c-22 17-40 16-70-6z" fill="#8c7863" opacity=".5"/>
+<path d="M267 352l-22 11 10 50 39 3-25-28zM339 350l22 14-16 51-33 3 24-30z" fill="#a0a183"/>
+<path d="M255 372l40 48-26 18-33-63m116-3l-42 48 21 17 37-62" fill="#3d5941" stroke="#94a078" stroke-width="1.5"/>
+<!-- Sculpted hood. -->
+<path d="M208 329c-26-51-21-95-11-133 14-63 58-103 109-105 65-3 108 56 113 121 3 43-11 92-31 124l-25-16-1-116-65-44-59 53-11 119z" fill="url(#hood)" stroke="#22392c" stroke-width="3"/>
+<path d="M224 329c-23-47-24-91-8-137 16-44 43-71 78-77-24 17-44 43-47 89l-3 96z" fill="#aab293" opacity=".37"/>
+<path d="M219 325c-16-67-9-127 31-166 34-35 68-25 100 1 37 29 53 94 36 158l-28 23-117-8z" fill="#263a30"/>
+<path d="M197 299c-4-52 2-99 26-136 22-33 45-52 76-60m95 211c22-60 18-120-14-161" fill="none" stroke="#b8bf9f" stroke-width="2" opacity=".45"/>
+<!-- Pale hair, pointed ears and face. -->
+<path d="M248 167c32-30 72-27 102 2 23 23 21 69 12 106l-10 80 34 72c-30-6-48-28-51-68l-72 2c-5 36-21 57-48 70 20-60 23-113 20-162-3-44-9-78 13-100z" fill="url(#hair)"/>
+<path d="M244 238l-31-22c-1 23 9 51 29 52l10-13m101-18l39-27c-4 26-18 54-37 57l-12-11" fill="url(#skin)" stroke="#8f8870" stroke-width="1.5"/>
+<path d="M242 248l-18-19 7 21 11 7m112-10l23-22-12 27-12 6" fill="#917f6a"/>
+<path d="M253 185c-12 18-15 49-11 73 4 30 16 54 37 66 10 6 21 11 29 8 29-10 45-32 49-61 6-35 0-74-22-91-24-18-62-13-82 5z" fill="url(#face)"/>
+<path d="M247 234c-2 32 9 69 28 83l-1-36-11-30zm101-14c11 38 3 72-18 97l2-37 15-29z" fill="#b5a487" opacity=".37"/>
+<path d="M264 260c7-5 15-5 22 0m33-1c7-5 15-5 22-1" stroke="#c1937e" stroke-width="7" opacity=".2" stroke-linecap="round"/>
+<path d="M253 229c10-7 23-6 31-1m32-1c9-6 20-7 29-2" fill="none" stroke="#777d6b" stroke-width="3" stroke-linecap="round"/>
+<path d="M253 240c10-8 21-7 30 0-9 7-20 7-30 0zm62-2c10-8 21-9 30-2-8 8-21 9-30 2z" fill="#f0ead2"/>
+<path d="M253 240c10-8 21-7 30 0m32-2c10-8 21-9 30-2" fill="none" stroke="#425247" stroke-width="2" stroke-linecap="round"/>
+<ellipse cx="271" cy="239" rx="4.6" ry="5.2" fill="#728865"/><ellipse cx="330" cy="237" rx="4.6" ry="5.2" fill="#728865"/>
+<ellipse cx="271" cy="239" rx="2" ry="4" fill="#273c31"/><ellipse cx="330" cy="237" rx="2" ry="4" fill="#273c31"/><circle cx="272" cy="237" r="1.3" fill="#fff8df"/><circle cx="331" cy="235" r="1.3" fill="#fff8df"/>
+<path d="M299 238l-5 31 5 4m-10 2c6 3 12 3 18-1" fill="none" stroke="#ac947c" stroke-width="1.7" stroke-linecap="round"/>
+<path d="M285 294c7-5 12-3 16-3s9-3 15 0c-7 9-22 12-31 3z" fill="#a57565" opacity=".75"/>
+<path d="M286 293c9 2 19 1 29-1" fill="none" stroke="#785d53" stroke-width="1.2"/>
+<path d="M294 304c5 1 10 0 14-2" fill="none" stroke="#f5e5c9" stroke-width="2" stroke-linecap="round"/>
+<path d="M243 229c-7-18-4-42 13-58 20-20 51-24 73-12-10 28-40 32-55 46-9 8-16 17-20 37l-4-38-7 25z" fill="url(#hair)"/>
+<path d="M321 159c31-1 46 23 43 63l-10 39c-5-33-8-61-36-78z" fill="url(#hair)"/>
+<g fill="none" stroke="#718778" stroke-width="1.3" opacity=".65"><path d="M316 162c-24 9-49 18-60 44m60-34c-21 11-35 16-46 28m64-26c17 13 23 31 24 59m-12-52c10 27 5 42 6 63M244 270c9 61-2 97-11 124m20-103c6 48-1 84-13 117m110-130c-9 56-1 87 20 124"/></g>
+<path d="M351 277c-2 35 4 64 9 75-16-6-20-18-21-28m-95-44c6 19 4 40-2 55" fill="none" stroke="#e7e5cf" stroke-width="3" opacity=".7"/>
+<circle cx="361" cy="271" r="4" fill="url(#gold)"/><path d="M361 275v14l-5 8 5 8 5-8-5-8" fill="none" stroke="#bdab70" stroke-width="2"/>
+<!-- Brooch and diagonal leather harness. -->
+<path d="M393 368L237 668l-28-14 153-299z" fill="#252e23"/>
+<path d="M382 366L229 661l-15-8 153-299z" fill="url(#leather)" stroke="#b19a67" stroke-width="1.3"/>
+<path d="M374 370L222 655" stroke="#d0bc87" stroke-width=".9" stroke-dasharray="3 5" opacity=".6"/>
+<path d="M315 484l24 13-17 33-24-13z" fill="none" stroke="url(#gold)" stroke-width="5"/><path d="M308 512l19-3" stroke="#b4a370" stroke-width="2"/>
+<circle cx="263" cy="405" r="17" fill="#253e2b" stroke="url(#gold)" stroke-width="3"/>
+<path d="M260 418c-9-19-3-27 13-30-2 13-6 23-13 30zm0 0l7-21" fill="#a8ad79" stroke="#e2d295" stroke-width="1"/>
+<path d="M128 431c39-4 68-22 102-68l-22 102-66 92z" fill="#657857" opacity=".56"/>
+<path d="M468 437c-33-9-64-31-97-68l31 105 81 87z" fill="#57704e" opacity=".55"/>
+<path d="M138 442c35-7 62-24 85-59m238 64c-22-8-48-26-70-47" fill="none" stroke="#b1b991" stroke-width="2" opacity=".35"/>
+<!-- Gloved hand around longbow and ornamental bracer. -->
+<path d="M139 510c18 30 30 53 30 81l-10 65 48 21 17-72c5-43-12-83-35-114z" fill="url(#cloak)"/>
+<path d="M152 596l61 18-10 75-59-14z" fill="url(#leather)" stroke="#a28c61" stroke-width="2"/>
+<path d="M159 610l44 11m-47 4l44 11m-47 4l44 11m-47 4l44 11" fill="none" stroke="#b9a272" stroke-width="1.2"/>
+<path d="M161 673c-7 3-21 14-23 24l3 34 20 10 31-13 8-20-9-22z" fill="url(#skin)" stroke="#8c7e60" stroke-width="2"/>
+<path d="M144 700l35 9m-38 1l37 9m-33 2l29 7" fill="none" stroke="#a3896c" stroke-width="2" stroke-linecap="round"/>
+<path d="M114 192C22 320 111 530 150 684s1 207-31 244" fill="none" stroke="#1d2b22" stroke-width="15"/>
+<path d="M114 192C22 320 111 530 150 684s1 207-31 244" fill="none" stroke="url(#gold)" stroke-width="8"/>
+<path d="M114 192l5 736" stroke="#c9cbb0" stroke-width="1" opacity=".7"/>
+<path d="M142 645l20 74" stroke="#4e4530" stroke-width="12"/><path d="M145 648l18 68" stroke="#bba16c" stroke-width="1.5" stroke-dasharray="3 4"/>
+<!-- Waist and travel details. -->
+<path d="M222 682c48 10 101 11 160-1l2 29c-58 14-114 15-166 2z" fill="#4c4932" stroke="#b3a06a" stroke-width="1.5"/>
+<path d="M288 686h37v29h-37z" fill="#263b2c" stroke="url(#gold)" stroke-width="5"/><path d="M305 699h24" stroke="#c1ab70" stroke-width="3"/>
+<path d="M344 721c18-4 40-4 56 4l7 69c-17 17-45 20-65 5z" fill="url(#leather)" stroke="#9d885c" stroke-width="1.5"/>
+<path d="M342 721c22-7 41-4 58 4l-5 23-23 9-28-12z" fill="#746447"/><circle cx="373" cy="746" r="3.7" fill="#bea671"/>
+<path d="M0 728c174-62 313 31 600-50v162H0z" fill="url(#mist)"/>
+<path fill="url(#fade)" d="M0 0h600v840H0z"/>
+<path fill="url(#grain)" d="M0 0h600v840H0z"/>
+</svg>

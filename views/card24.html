@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>索引 — 一屏</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0; min-height: 100dvh; overflow: auto; display: flex; flex-direction: column;
+            background: #f5f7fa; color: #1a2432; font: 12px/1.3 "Segoe UI", "Noto Sans TC", sans-serif;
+        }
+        .index { flex: 1; min-height: 0; display: grid; grid-template-columns: 168px minmax(0, 1fr); background: #fff; }
+        .rail { border-right: 1px solid #dde2e9; background: #f8f9fb; padding: 12px 14px; display: flex; flex-direction: column; }
+        .word { display: flex; gap: 8px; align-items: center; font-weight: 700; letter-spacing: 0.04em; }
+        .word b { font: 700 28px/1 Arial, sans-serif; color: #2559e8; }
+        .word small { display: block; font: 8px/1.4 "Courier New", monospace; font-weight: 400; margin-top: 2px; }
+        .rail ol { list-style: none; margin: 16px 0 0; padding: 0; }
+        .rail li { display: flex; gap: 8px; padding: 7px 0; border-bottom: 1px solid transparent; color: #697383; font-weight: 600; }
+        .rail li.on { color: #2559e8; border-bottom-color: #2559e8; }
+        .rail li span { font: 10px "Courier New", monospace; color: #a0a7b1; }
+        .live { margin-top: auto; font-size: 11px; color: #636d7c; }
+        .live i { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #2559e8; margin-right: 6px; }
+        .main { min-height: 0; padding: 10px 18px 12px; display: grid; grid-template-rows: auto auto auto auto; gap: 8px; }
+        .line { display: flex; justify-content: space-between; border-bottom: 1px solid #dde2e9; padding-bottom: 6px; font: 10px "Courier New", monospace; color: #76808e; }
+        .id { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+        .over { margin: 0; font: 10px "Courier New", monospace; letter-spacing: 0.08em; color: #76808e; }
+        h1 { margin: 2px 0 0; font-size: 36px; letter-spacing: -1px; line-height: 1; }
+        h1 span { color: #2559e8; }
+        .meta { margin: 6px 0 0; color: #76808e; font-size: 11px; }
+        .meta b { color: #1a2432; font-weight: 600; border-left: 1px solid #bdc4cd; margin-left: 8px; padding-left: 8px; }
+        img { width: 64px; height: 76px; object-fit: cover; filter: grayscale(1); opacity: 0.85; }
+        .stats { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); border-top: 2px solid #1a2432; border-bottom: 1px solid #dde2e9; }
+        .stats div { padding: 6px 4px; border-left: 1px solid #dde2e9; min-width: 0; }
+        .stats div:first-child { border-left: 0; }
+        .stats b { display: block; font: 9px "Courier New", monospace; color: #76808e; font-weight: 400; }
+        .stats span { font: 500 16px/1.2 "Courier New", monospace; }
+        .work { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; }
+        .cap { display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid #dde2e9; padding-bottom: 4px; }
+        .cap em { font: 10px "Courier New", monospace; color: #2559e8; font-style: normal; }
+        .cap h2 { margin: 0; font-size: 13px; }
+        .cap span { margin-left: auto; font: 8px "Courier New", monospace; color: #89919d; }
+        .row { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px solid #dde2e9; }
+        .row span { font: 13px "Courier New", monospace; color: #2559e8; }
+        .side { border-left: 1px solid #dde2e9; padding-left: 14px; }
+        .side .row span { font: 12px/1.35 "Segoe UI", "Noto Sans TC", sans-serif; color: #637083; }
+        @media (max-width: 760px) {
+            body { overflow: auto; height: auto; }
+            .index, .work, .stats { grid-template-columns: 1fr 1fr; }
+            .rail { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <div class="index">
+        <aside class="rail">
+            <div class="word"><b>i.</b><div>角色索引<small>THE CHARACTER INDEX</small></div></div>
+            <ol>
+                <li class="on"><span>01</span>總覽</li>
+                <li><span>02</span>能力</li>
+                <li><span>03</span>筆記</li>
+                <li><span>04</span>裝備</li>
+            </ol>
+            <div class="live"><i></i>冒險進行中</div>
+        </aside>
+        <div class="main">
+            <div class="line"><span>你的冒險 / CoC 7e</span><span>RECORD / 024</span></div>
+            <header class="id">
+                <div>
+                    <p class="over">PLAYER CHARACTER — INVESTIGATOR</p>
+                    <h1 data-studio="name"></h1><span class="meta">LAM CHIU YE <b data-studio="role"></b> <b data-studio="trait"></b></span>
+                </div>
+                <img data-studio="image" alt="">
+            </header>
+            <div class="stats" data-studio-list="stats"><template><div><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            <div class="work">
+                <section>
+                    <div class="cap"><em>01</em><h2>常用行動</h2><span>QUICK ACTIONS</span></div>
+                    <div data-studio-list="rolls"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                </section>
+                <aside class="side">
+                    <div class="cap"><em>03</em><h2>筆記</h2><span>NOTES</span></div>
+                    <div data-studio-list="notes"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                </aside>
+            </div>
+        </div>
+    </div>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

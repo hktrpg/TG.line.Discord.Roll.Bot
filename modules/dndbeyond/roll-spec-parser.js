@@ -1,6 +1,6 @@
 "use strict";
 
-const { diceNotationWithinLimits } = require("./dice-utils.js");
+const { diceNotationWithinLimits, parseD20AttackNotation } = require("./dice-utils.js");
 
 /**
  * Parse roll.itemA format: hit:1d20+7; dmg:2d6+4; adv:0; dis:0; ac:15
@@ -31,7 +31,7 @@ function parseRollSpec(itemA) {
     const hitRaw = (map.hit || "none").toLowerCase();
     const hitRoll = hitRaw === "none" ? null : hitRaw.replaceAll(/\s+/g, "");
     const damageRoll = (map.dmg || "0").replaceAll(/\s+/g, "");
-    if ((hitRoll && !diceNotationWithinLimits(hitRoll)) || !diceNotationWithinLimits(damageRoll)) {
+    if ((hitRoll && !parseD20AttackNotation(hitRoll)) || !diceNotationWithinLimits(damageRoll)) {
         return null;
     }
 

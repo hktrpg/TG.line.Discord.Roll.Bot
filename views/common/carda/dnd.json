@@ -1,0 +1,153 @@
+{
+  "system": "dnd",
+  "name": "Sad Unlucky",
+  "subtitle": "Wood Elf · Druid 5 · Circle of the Moon",
+  "player": "Sadzz",
+  "portrait": "/common/card-designs/portrait.svg",
+  "edition": "D&D 5e · Legacy",
+  "proficiency": 3,
+  "identity": [
+    { "label": "種族", "value": "Wood Elf 木精靈" },
+    { "label": "職業", "value": "Druid 德魯伊 5" },
+    { "label": "結社", "value": "Circle of the Moon 月亮結社" },
+    { "label": "背景", "value": "Outlander 化外之民" },
+    { "label": "陣營", "value": "Chaotic Good 混亂善良" }
+  ],
+  "attributes": [
+    { "key": "STR", "name": "力量", "value": 8 },
+    { "key": "DEX", "name": "敏捷", "value": 15 },
+    { "key": "CON", "name": "體質", "value": 15 },
+    { "key": "INT", "name": "智力", "value": 10 },
+    { "key": "WIS", "name": "感知", "value": 18 },
+    { "key": "CHA", "name": "魅力", "value": 10 }
+  ],
+  "resources": [
+    { "key": "hp", "label": "生命 HP", "current": 38, "max": 38 },
+    { "key": "temp", "label": "臨時 HP", "current": 0, "max": 99 },
+    { "key": "wildshape", "label": "荒野形態", "current": 2, "max": 2 },
+    { "key": "hitdice", "label": "生命骰 d8", "current": 5, "max": 5 }
+  ],
+  "combatStats": [
+    { "label": "AC 護甲", "value": "15" },
+    { "label": "先攻", "value": "+2" },
+    { "label": "移動", "value": "35 ft." },
+    { "label": "熟練", "value": "+3" },
+    { "label": "法術 DC", "value": "15" },
+    { "label": "法術攻擊", "value": "+7" }
+  ],
+  "saves": [
+    { "key": "STR", "name": "力量", "proficient": false },
+    { "key": "DEX", "name": "敏捷", "proficient": false },
+    { "key": "CON", "name": "體質", "proficient": false },
+    { "key": "INT", "name": "智力", "proficient": true },
+    { "key": "WIS", "name": "感知", "proficient": true },
+    { "key": "CHA", "name": "魅力", "proficient": false }
+  ],
+  "senses": [
+    { "label": "被動察覺", "value": "17" },
+    { "label": "被動調查", "value": "10" },
+    { "label": "被動洞悉", "value": "14" },
+    { "label": "黑暗視覺", "value": "60 ft." }
+  ],
+  "skills": [
+    { "name": "Acrobatics 體操", "key": "DEX", "proficient": false },
+    { "name": "Animal Handling 馴獸", "key": "WIS", "proficient": true },
+    { "name": "Arcana 奧秘", "key": "INT", "proficient": false },
+    { "name": "Athletics 運動", "key": "STR", "proficient": true },
+    { "name": "Deception 欺瞞", "key": "CHA", "proficient": false },
+    { "name": "History 歷史", "key": "INT", "proficient": false },
+    { "name": "Insight 洞悉", "key": "WIS", "proficient": false },
+    { "name": "Intimidation 威嚇", "key": "CHA", "proficient": false },
+    { "name": "Investigation 調查", "key": "INT", "proficient": false },
+    { "name": "Medicine 醫藥", "key": "WIS", "proficient": false },
+    { "name": "Nature 自然", "key": "INT", "proficient": true },
+    { "name": "Perception 察覺", "key": "WIS", "proficient": true },
+    { "name": "Performance 表演", "key": "CHA", "proficient": false },
+    { "name": "Persuasion 說服", "key": "CHA", "proficient": false },
+    { "name": "Religion 宗教", "key": "INT", "proficient": false },
+    { "name": "Sleight of Hand 巧手", "key": "DEX", "proficient": false },
+    { "name": "Stealth 隱匿", "key": "DEX", "proficient": false },
+    { "name": "Survival 求生", "key": "WIS", "proficient": true }
+  ],
+  "training": [
+    { "label": "護甲", "value": "Light Armor, Medium Armor, Shields" },
+    { "label": "武器", "value": "Club, Dagger, Dart, Javelin, Longbow, Longsword, Mace, Quarterstaff, Scimitar, Shortbow, Shortsword, Sickle, Sling, Spear" },
+    { "label": "工具", "value": "Herbalism Kit, Lute" },
+    { "label": "語言", "value": "Common, Draconic, Druidic, Elvish" }
+  ],
+  "actions": [
+    { "name": "Scimitar 彎刀", "type": "attack", "range": "5 ft.", "hit": "+5", "damage": "1d6+2", "notes": "Martial · Finesse · Light · Nick", "uses": "1 次／動作" },
+    { "name": "Thorn Whip 荊棘之鞭", "type": "attack", "range": "30 ft.", "hit": "+7", "damage": "2d6", "notes": "Cantrip · Druid · V/S/M · Legacy", "uses": "1 動作" },
+    { "name": "Unarmed Strike 徒手打擊", "type": "attack", "range": "5 ft.", "hit": "+2", "damage": "0", "notes": "傷害 1 + STR = 0；可選擒抱或推撞。豁免 DC 10。", "uses": "1 動作" },
+    { "name": "Wild Shape 荒野形態", "type": "action", "range": "自身", "hit": "—", "damage": "—", "notes": "每短休 2 次；通常為動作，月亮結社可用附贈動作。持續 2 小時。" },
+    { "name": "Combat Wild Shape", "type": "bonus", "range": "自身", "hit": "—", "damage": "1d8", "notes": "附贈動作變形；也可消耗一個法術位，每環恢復 1d8 HP。" },
+    { "name": "Healing Word 治療真言", "type": "bonus", "range": "60 ft.", "hit": "—", "damage": "1d4+4", "notes": "一環 · Legacy · V；升環每高一環 +1d4。" },
+    { "name": "Two-Weapon Fighting", "type": "bonus", "range": "近戰", "hit": "—", "damage": "—", "notes": "雙持戰鬥；實際武器和加值依當前裝備。" },
+    { "name": "Opportunity Attack 藉機攻擊", "type": "reaction", "range": "觸及", "hit": "—", "damage": "—", "notes": "符合觸發条件時使用反應，選擇已裝備的近戰攻擊。" },
+    { "name": "Absorb Elements 吸收元素", "type": "reaction", "range": "自身", "hit": "—", "damage": "1d6", "notes": "一環 · S · 持續 1 回合；相應抗性及下次近戰額外元素傷害。" },
+    { "name": "Mask of the Wild 野性面具", "type": "other", "range": "自身", "hit": "—", "damage": "—", "notes": "自然現象造成輕度遮蔽時也可嘗試躲藏。" }
+  ],
+  "combatOptions": ["Attack", "Dash", "Disengage", "Dodge", "Grapple", "Help", "Hide", "Improvise", "Influence", "Magic", "Ready", "Search", "Shove", "Study", "Utilize", "Interact with an Object"],
+  "slots": [{ "level": 1, "current": 4, "max": 4 }, { "level": 2, "current": 3, "max": 3 }, { "level": 3, "current": 2, "max": 2 }],
+  "spells": [
+    { "name": "Druidcraft", "zh": "德魯伊伎倆", "level": 0, "time": "1A", "range": "30 ft.", "hit": "—", "effect": "Control", "notes": "V/S · Legacy", "text": "微小的自然魔法效果。來源頁面標示 Control。", "ritual": false, "concentration": false },
+    { "name": "Guidance", "zh": "神導術", "level": 0, "time": "1A", "range": "Touch", "hit": "—", "effect": "+1d4 檢定", "notes": "1 分鐘 · V/S · Legacy", "text": "為一次能力檢定提供 1d4 加值；需要專注。", "ritual": false, "concentration": true },
+    { "name": "Thorn Whip", "zh": "荊棘之鞭", "level": 0, "time": "1A", "range": "30 ft.", "hit": "+7", "effect": "2d6 穿刺", "notes": "V/S/M · Legacy", "text": "近戰法術攻擊；命中造成穿刺傷害，並可將符合體型條件的目標拉近。", "ritual": false, "concentration": false },
+    { "name": "Absorb Elements", "zh": "吸收元素", "level": 1, "time": "1R", "range": "Self", "hit": "—", "effect": "抗性／1d6", "notes": "1 回合 · S", "text": "符合傷害觸發時以反應施放。取得相應元素抗性；下次近戰命中造成額外元素傷害。可升環。", "ritual": false, "concentration": false },
+    { "name": "Detect Magic", "zh": "偵測魔法", "level": 1, "time": "1A", "range": "Self · 30 ft.", "hit": "—", "effect": "Detection", "notes": "10 分鐘 · V/S · Legacy", "text": "感知附近的魔法；需要專注，可作儀式施放。", "ritual": true, "concentration": true },
+    { "name": "Faerie Fire", "zh": "妖火", "level": 1, "time": "1A", "range": "60 ft.", "hit": "DEX 15", "effect": "顯形／優勢", "notes": "1 分鐘 · 20 ft. · V · Legacy", "text": "區域內目標進行敏捷豁免。被光照亮的目標不能受惠於隱形，對其攻擊具有優勢。", "ritual": false, "concentration": true },
+    { "name": "Goodberry", "zh": "神莓術", "level": 1, "time": "1A", "range": "Touch", "hit": "—", "effect": "10 枚神莓", "notes": "V/S/M · Legacy", "text": "創造神莓；每枚可恢復生命並提供營養。", "ritual": false, "concentration": false },
+    { "name": "Healing Word", "zh": "治療真言", "level": 1, "time": "1BA", "range": "60 ft.", "hit": "—", "effect": "1d4+4 治療", "notes": "V · Legacy", "text": "以附贈動作治療可見目標。每高於一環的法術位額外恢復 1d4。", "ritual": false, "concentration": false },
+    { "name": "Speak with Animals", "zh": "動物交談", "level": 1, "time": "1A", "range": "Self", "hit": "—", "effect": "Communication", "notes": "10 分鐘 · V/S · Legacy", "text": "可與野獸溝通；可作儀式施放。", "ritual": true, "concentration": false },
+    { "name": "Heat Metal", "zh": "灼熱金屬", "level": 2, "time": "1A", "range": "60 ft.", "hit": "—", "effect": "2d8 火焰", "notes": "1 分鐘 · V/S/M · Legacy", "text": "使金屬物件灼熱並傷害接觸者；專注期間可再次以附贈動作觸發。可升環。", "ritual": false, "concentration": true },
+    { "name": "Lesser Restoration", "zh": "次級復原術", "level": 2, "time": "1A", "range": "Touch", "hit": "—", "effect": "解除狀態", "notes": "V/S · Legacy", "text": "解除疾病或符合條件的失明、耳聾、麻痺、中毒狀態。", "ritual": false, "concentration": false },
+    { "name": "Water Breathing", "zh": "水中呼吸", "level": 3, "time": "1A", "range": "30 ft.", "hit": "—", "effect": "Buff", "notes": "24 小時 · V/S/M · Legacy", "text": "讓目標能在水中呼吸；可作儀式施放。", "ritual": true, "concentration": false }
+  ],
+  "features": [
+    { "name": "Hit Points", "category": "class", "summary": "Druid 生命骰 d8", "text": "角色目前及最大生命值均為 38。生命骰依 5 級德魯伊設定為 5d8。", "source": "PHB p.65" },
+    { "name": "Proficiencies", "category": "class", "summary": "Animal Handling · Nature", "text": "職業選擇的技能熟練為 Animal Handling 與 Nature；護甲、武器、工具和語言見熟練欄。", "source": "PHB p.65" },
+    { "name": "Druidic", "category": "class", "summary": "德魯伊密語", "text": "You know Druidic, the secret language of druids.", "source": "PHB p.66" },
+    { "name": "Spellcasting", "category": "class", "summary": "WIS +4 · 攻擊 +7 · DC 15", "text": "You can cast prepared druid spells using WIS as your spellcasting modifier (Spell DC 15, Spell Attack +7) and prepared druid spells as rituals if they have the ritual tag. You can use a druidic focus as a spellcasting focus.", "source": "PHB p.66" },
+    { "name": "Wild Shape", "category": "class", "summary": "2 次／短休 · 2 小時", "text": "As an action, you can magically assume the shape of a beast that you have seen before twice per short rest. You can stay in beast shape for 2 hours before reverting back to your normal form, earlier as a bonus action, or if you fall unconscious, drop to 0 hit points, or die.", "source": "PHB p.66" },
+    { "name": "Druid Circle", "category": "class", "summary": "Circle of the Moon", "text": "Chosen druid circle: Circle of the Moon.", "source": "PHB p.67" },
+    { "name": "Combat Wild Shape", "category": "class", "summary": "附贈動作變形／回復", "text": "You can use Wild Shape as a bonus action and you can use a bonus action to expend one spell slot to regain 1d8 HP per level of the spell slot expended.", "source": "PHB p.69" },
+    { "name": "Circle Forms", "category": "class", "summary": "月亮結社 · CR ≤ 1", "text": "When using Wild Shape, you can transform into beasts with a CR of 1 or lower.", "source": "PHB p.69" },
+    { "name": "Wild Shape Improvement", "category": "class", "summary": "4 級一般規則 · 不可飛行", "text": "From 4th level, the general Wild Shape rule allows beasts of CR 1/2 or lower without a flying speed. This character also has the Circle Forms feature; retain both source entries instead of discarding either.", "source": "PHB p.66" },
+    { "name": "Ability Score Improvement", "category": "class", "summary": "Wisdom Score × 2", "text": "Ability Score Improvement: Wisdom Score, Wisdom Score. Included in the supplied WIS 18.", "source": "PHB p.67" },
+    { "name": "Ability Score Increase", "category": "species", "summary": "DEX +2 · WIS +1", "text": "Your Dexterity score increases by 2. Your Wisdom score increases by 1. These increases are already reflected in the supplied scores.", "source": "BR pp.23–24" },
+    { "name": "Darkvision", "category": "species", "summary": "60 ft. 黑暗視覺", "text": "You can see in darkness (shades of gray) up to 60 ft.", "source": "BR p.23" },
+    { "name": "Keen Senses", "category": "species", "summary": "Perception 熟練", "text": "You have proficiency in the Perception skill.", "source": "BR p.23" },
+    { "name": "Fey Ancestry", "category": "species", "summary": "抗魅惑 · 魔法不能使你入睡", "text": "You have advantage on saves against being charmed, and magic can't put you to sleep.", "source": "BR p.23" },
+    { "name": "Trance", "category": "species", "summary": "4 小時冥想", "text": "You don't need to sleep, but meditate semiconsciously for 4 hours a day. After resting in this way, you gain the same benefit that a human does from 8 hours of sleep.", "source": "BR p.23" },
+    { "name": "Elf Weapon Training", "category": "species", "summary": "Longsword · Shortsword · Shortbow · Longbow", "text": "You have proficiency with the longsword, shortsword, shortbow, and longbow.", "source": "BR p.24" },
+    { "name": "Fleet of Foot", "category": "species", "summary": "步行速度 35 ft.", "text": "Your base walking speed increases to 35 feet.", "source": "BR p.24" },
+    { "name": "Mask of the Wild", "category": "species", "summary": "自然輕度遮蔽下躲藏", "text": "You can attempt to hide even when you are only lightly obscured. Special action.", "source": "BR p.24" },
+    { "name": "Feats 專長", "category": "feat", "summary": "來源未列出額外專長", "text": "The pasted character page includes a Feats heading but does not list a feat.", "source": "使用者提供資料" }
+  ],
+  "inventory": [
+    { "name": "Scimitar 彎刀", "quantity": 1, "detail": "由攻擊清單確認持有；其他裝備細節未提供。" },
+    { "name": "其他装備", "quantity": null, "detail": "來源未提供完整 Inventory 清單，保留待填。" }
+  ],
+  "wealth": [{ "label": "金錢", "value": "未提供" }],
+  "background": [
+    { "label": "Background", "text": "Outlander 化外之民" },
+    { "label": "Wanderer", "text": "You have an excellent memory for maps and geography, and you can always recall the general layout of terrain, settlements, and other features around you. In addition, you can find food and fresh water for yourself and up to five other people each day, provided that the land offers berries, small game, water, and so forth." },
+    { "label": "Characteristics", "text": "Chaotic Good · M · Medium · Age 125 · Height 170 · Weight 122 lb. · Eyes 綠 · Hair Green · Skin 黃 · Faith 未提供" },
+    { "label": "Personality Traits", "text": "I have a lesson for every situation, drawn from observing nature. I was, in fact, raised by wolves." },
+    { "label": "Ideals", "text": "Change. Life is like the seasons, in constant change, and we must change with it. (Chaotic)" },
+    { "label": "Bonds", "text": "My family, clan, or tribe is the most important thing in my life, even when they are far from me. It is my duty to provide children to sustain my tribe." },
+    { "label": "Flaws", "text": "Don't expect me to save those who can't save themselves. It is nature's way that the strong thrive and the weak perish." },
+    { "label": "Appearance", "text": "來源只有標題，未提供外觀描述。" }
+  ],
+  "notes": [{ "title": "冒險筆記", "text": "" }, { "title": "Extras / 額外資料", "text": "來源未提供額外生物、坐騎或其他資料。" }],
+  "conditions": [],
+  "conditionOptions": ["Blinded 失明", "Charmed 魅惑", "Deafened 耳聾", "Frightened 恐慌", "Grappled 擒抱", "Incapacitated 失能", "Invisible 隱形", "Paralyzed 麻痺", "Petrified 石化", "Poisoned 中毒", "Prone 倒地", "Restrained 束縛", "Stunned 震懾", "Unconscious 昏迷", "Exhaustion 力竭", "Concentrating 專注"],
+  "defenses": ["Magical Sleep：免疫魔法睡眠", "對抗 Charmed 的豁免具有優勢"],
+  "sourceNotes": [
+    "主要欄位及長篇能力、背景文字來自本次使用者貼上的 D&D Beyond 角色頁；保留 Legacy 標示，沒有替換為新版職業規則。",
+    "能力調整值、六項豁免、技能加值由能力數值、熟練加值 +3 及所列職業／種族／Outlander 背景推算；熟練選擇可在編輯資料內調整。",
+    "法術位 4/3/2、生命骰 5d8 和荒野形態 2 次為 5 級德魯伊試玩初始值；貼文沒有顯示各法術位剩餘數。",
+    "法術清單保留全部 12 個獨立法術。升環以施放視窗選擇環位，避免為同一個法術複製三份資料。法術效果的中文短摘要是界面輔助，不是完整規則文本。",
+    "Inventory、Extras、Feats、Appearance 中未提供的內容明確留空或標為未提供。裝飾肖像是試玩插畫，並非原角色肖像。"
+  ]
+}

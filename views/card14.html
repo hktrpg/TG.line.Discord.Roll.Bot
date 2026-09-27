@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>倉單 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #e7d3cf; color: #3a2a22; font: 12px/1.3 "Segoe UI", "PingFang TC", sans-serif; }
+        .sheet { width: min(860px, calc(100% - 12px)); margin: 8px auto 16px; background: #f6efe6; border: 1px solid #d9c3b2; }
+        .id { display: grid; grid-template-columns: 56px 1fr; gap: 8px; padding: 8px; border-bottom: 1px solid #e4d5c6; align-items: center; }
+        img { width: 56px; height: 56px; object-fit: cover; }
+        h1 { margin: 0; font-size: 16px; font-weight: 650; }
+        .id p { margin: 2px 0 0; }
+        .cols { display: grid; grid-template-columns: 1fr 1fr; }
+        section { padding: 6px 8px 8px; }
+        section + section { border-left: 1px solid #e4d5c6; }
+        h2 { margin: 2px 0 4px; font-size: 12px; }
+        h2::before { content: ""; display: inline-block; width: 3px; height: 10px; background: #c9842a; margin-right: 6px; }
+        .res { display: grid; grid-template-columns: 52px 1fr auto; gap: 6px; align-items: center; padding: 3px 0; }
+        .track { height: 8px; background: #e7dccd; border-radius: 99px; }
+        .track i { display: block; height: 100%; background: #6d8f4e; border-radius: 99px; }
+        .line { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid #efe4d8; }
+        .line::before { content: "›"; color: #c9842a; margin-right: 4px; }
+        @media (max-width: 700px) { .cols { grid-template-columns: 1fr; } section + section { border-left: 0; border-top: 1px solid #e4d5c6; } }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="sheet">
+        <header class="id">
+            <img data-studio="image" alt="">
+            <div><h1 data-studio="name"></h1><p><span data-studio="role"></span> · <span data-studio="trait"></span></p></div>
+        </header>
+        <div class="cols">
+            <section>
+                <h2>資源</h2>
+                <div data-studio-list="stats">
+                    <template>
+                        <div class="res"><b data-field="name"></b><div class="track"><i data-field="bar"></i></div><span data-field="value"></span></div>
+                    </template>
+                </div>
+            </section>
+            <section>
+                <h2>戰鬥</h2>
+                <div data-studio-list="rolls"><template><div class="line"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                <h2>情報</h2>
+                <div data-studio-list="notes"><template><div class="line"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            </section>
+        </div>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

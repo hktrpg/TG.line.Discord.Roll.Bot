@@ -1,0 +1,1 @@
+body{background:#140e0c;color:#1c140f}.sheet{display:grid;grid-template-columns:280px 1fr;background:#f3ead7}.who{grid-row:span 2;background:#2a120e;color:#f6efe4;align-items:flex-end;padding:16px}.who h1{font-family:Georgia,serif;font-style:italic}.cell{border-bottom:1px solid rgba(28,20,15,.2);padding:6px 0}.roll{background:transparent;border:0;color:inherit}

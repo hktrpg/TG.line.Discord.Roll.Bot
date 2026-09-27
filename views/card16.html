@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>八圍 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #14181c; color: #e6dcc8; font: 12px/1.25 "Segoe UI", "PingFang TC", sans-serif; }
+        .sheet { width: min(900px, calc(100% - 12px)); margin: 8px auto 16px; }
+        .top { display: grid; grid-template-columns: 72px 1fr; gap: 10px; align-items: center; }
+        img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid #d7c49a; }
+        h1 { margin: 0; font-size: 16px; }
+        .top p { margin: 2px 0 0; color: #b7ab96; }
+        .tiles { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-top: 8px; }
+        .tile { background: #f3efe6; color: #1c1a17; border-radius: 4px; text-align: center; padding: 4px 2px 5px; }
+        .tile b { display: block; font-size: 10px; color: #7a6240; font-weight: 600; }
+        .tile span { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        h2 { margin: 0; font-size: 11px; letter-spacing: 0.16em; color: #d7c49a; padding-bottom: 3px; border-bottom: 1px solid #3a3428; }
+        .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid #2a261f; }
+        @media (max-width: 720px) { .tiles { grid-template-columns: repeat(4, 1fr); } .cols { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="sheet">
+        <header class="top">
+            <img data-studio="image" alt="">
+            <div><h1 data-studio="name"></h1><p data-studio="role"></p></div>
+        </header>
+        <div class="tiles" data-studio-list="stats">
+            <template><div class="tile"><b data-field="name"></b><span data-field="value"></span></div></template>
+        </div>
+        <div class="cols">
+            <section>
+                <h2>技能</h2>
+                <div data-studio-list="rolls"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            </section>
+            <section>
+                <h2>筆記</h2>
+                <div data-studio-list="notes"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            </section>
+        </div>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

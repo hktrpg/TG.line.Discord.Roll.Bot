@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>方格 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;560&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #111; color: #111; font: 12px/1.2 Inter, "PingFang TC", sans-serif; }
+        .board { width: min(920px, calc(100% - 12px)); margin: 8px auto 16px; display: grid; grid-template-columns: repeat(8, 1fr); gap: 2px; background: #111; }
+        .who { grid-column: span 2; grid-row: span 2; background: #f6f6f4; padding: 8px; display: flex; gap: 8px; align-items: center; }
+        img { width: 56px; height: 56px; object-fit: cover; }
+        h1 { margin: 0; font-size: 16px; }
+        .who p { margin: 2px 0 0; color: #555; }
+        .cell { background: #f6f6f4; min-height: 52px; padding: 6px 7px; display: flex; flex-direction: column; justify-content: space-between; }
+        .cell b { font-size: 10px; letter-spacing: 0.06em; color: #666; font-weight: 560; }
+        .cell span { font-size: 15px; font-variant-numeric: tabular-nums; }
+        .wide { grid-column: span 4; }
+        @media (max-width: 720px) { .board { grid-template-columns: repeat(4, 1fr); } .wide { grid-column: span 4; } }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <div class="board">
+        <header class="who">
+            <img data-studio="image" alt="">
+            <div><h1 data-studio="name"></h1><p data-studio="role"></p></div>
+        </header>
+        <div data-studio-list="stats" style="display:contents">
+            <template><div class="cell"><b data-field="name"></b><span data-field="value"></span></div></template>
+        </div>
+        <div data-studio-list="rolls" style="display:contents">
+            <template><div class="cell"><b data-field="name"></b><span data-field="value"></span></div></template>
+        </div>
+        <div data-studio-list="notes" style="display:contents">
+            <template><div class="cell wide"><b data-field="name"></b><span data-field="value"></span></div></template>
+        </div>
+    </div>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

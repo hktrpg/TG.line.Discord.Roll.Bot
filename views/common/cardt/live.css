@@ -1,0 +1,82 @@
+/* T pages share the A design grammar while displaying the canonical card buckets. */
+html.cardt-document{font-size:16px}
+.t-live-page #header,.t-live-page #footer{display:none}
+.t-live-page{font-family:var(--font,system-ui),sans-serif}
+.t-live-page .t-empty{padding:3rem;min-height:40vh}
+.t-live-page .t-empty button{margin:1rem .5rem 0 0;padding:.7rem 1rem}
+.t-live-page .a-sheet-context{flex-wrap:wrap;gap:.6rem}
+.t-channel{display:flex;align-items:center;gap:.5rem;margin:0}
+.t-channel select{max-width:18rem;padding:.3rem;background:var(--paper);color:var(--ink);border:1px solid var(--line)}
+.t-entries .t-entry{display:grid!important;grid-template-columns:minmax(6em,1fr) minmax(3em,auto) auto;position:relative;min-width:0;align-items:start;gap:.35rem;padding:.4rem 0;border-bottom:1px solid var(--line);height:auto!important;max-height:none!important}
+.t-entries .t-entry-name{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;min-width:0;font-weight:600}
+.t-entries .t-entry-value{font-variant-numeric:tabular-nums;white-space:pre-wrap;overflow-wrap:anywhere;min-width:0;font-size:inherit!important}
+.t-entries .t-entry-tools{display:flex;gap:.25rem;flex-wrap:wrap}
+.t-entry-tools button{font-size:.875rem;padding:.2rem .4rem;min-width:0;white-space:nowrap}
+.t-entries .t-entry-source{grid-column:1/-1;opacity:.65}
+.t-entries .a-roll{min-width:0;overflow-wrap:anywhere;white-space:pre-wrap;font-size:inherit!important;line-height:1.3;max-width:100%;padding:.1rem .3rem}
+.t-entries .t-entry em{grid-column:2;font-size:.8125rem;font-style:normal;white-space:nowrap}
+.t-entries .t-entry-tools{grid-column:3;grid-row:1/3}
+.t-entries .t-entry:not(:has(.t-entry-tools)){grid-template-columns:minmax(6em,1fr) minmax(3em,auto)!important}
+.t-entries .t-entry:has(.t-check-values) .t-entry-value{grid-column:2;grid-row:1}
+.t-entries .t-check-values{grid-row:2}
+.t-entries .a-attribute{padding:.6rem!important;grid-template-columns:minmax(4em,1fr) auto auto;background:var(--surface)}
+.t-live-page[data-density="summary"] .t-entries .t-entry{font-size:.875rem;line-height:1.4;padding:.24rem 0;gap:.2rem}
+.t-live-page[data-density="summary"] .t-entry-value{max-height:4.2em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.t-live-page[data-density="open"] .t-entries .t-entry{font-size:1rem;padding:.8rem .3rem;line-height:1.6;gap:.65rem}
+.t-live-page[data-density="open"] .t-entry-value{display:block;max-height:none;overflow:visible}
+.t-live-page .a-skill-grid .t-entry{grid-template-columns:minmax(5em,1fr) auto auto}
+.t-live-page .a-feature-list .t-entry,.t-live-page .a-spell-list .t-entry,.t-live-page .t-entry-list .t-entry{grid-template-columns:minmax(5em,.4fr) minmax(0,1fr) auto}
+.t-live-page .a-detail-copy{white-space:pre-wrap;overflow-wrap:anywhere}
+#t-entry-form{display:grid;gap:.8rem}
+#t-entry-form label{display:grid;gap:.35rem}
+#t-entry-form input,#t-entry-form textarea{width:100%;padding:.5rem;border:1px solid var(--line);background:var(--paper);color:var(--ink)}
+#cardt-management{margin:1rem auto 3rem;width:min(96%,1500px);border:1px solid var(--line);scroll-margin-top:5rem}
+#cardt-management>summary{cursor:pointer;padding:1rem;background:var(--surface);color:var(--ink);font-weight:600}
+#cardt-management .hybrid-card-container{color:#f5f5dc}
+.t-live-page .modal{color:#212529;font-family:system-ui,sans-serif;z-index:1060}
+.t-live-page .modal .modal-content{background:#fff;color:#212529}
+.t-live-page .modal-backdrop{z-index:1050}
+.t-live-page .a-toolbar{z-index:100}
+.t-live-page .modal input,.t-live-page .modal select,.t-live-page .modal textarea{color:#212529;background:#fff}
+.t-live-page .modal button{font-family:inherit}
+.t-live-page .floating-edit-controls,.t-live-page .floating-save-controls{z-index:101}
+/* Density comes from spacing and columns; readable type is shared by every design. */
+body.t-live-page[data-density] .a-layout,body.t-live-page[data-density] .a-block-body{font-size:14px;line-height:1.4}
+body.t-live-page[data-density="open"] .a-block-body{font-size:16px;line-height:1.6}
+body.t-live-page[data-density] .a-block-head h2{font-size:18px!important;line-height:1.4}
+body.t-live-page[data-density="open"] .a-block-head h2{font-size:20px!important}
+body.t-live-page .a-block-head h2{flex-wrap:wrap}
+body.t-live-page .t-entry-name{font-size:inherit!important;width:auto!important;max-width:none!important;line-height:inherit!important}
+body.t-live-page .a-identity small{font-size:13px;line-height:1.4}
+body.t-live-page :is(.a-toolbar button,.a-design-nav a,.a-design-nav a span,.a-identity-tools button,.a-display-controls,.a-display-controls button,.a-section-button,.a-manual-tab,.a-terminal-command,.a-map-pin,.a-orbit-point,.a-air-link,.a-circuit-key,.a-archive-event,.a-page-controls button,.a-footer button){font-size:14px!important;line-height:1.4;min-height:32px;height:auto}
+body.t-live-page :is(.a-brand span,.a-local-status,.a-theme-name,.a-sheet-context,.a-block-head small,.a-count,.a-section-index,.t-entry-source,.a-resource>span,.a-resource-value small,.a-footer,.a-page-controls span,.a-display-controls small,.a-section-button small,.a-manual-tab small,.a-map-pin small,.a-orbit-point small,.a-air-link small,.a-circuit-key small,.a-archive-event time,.a-id-facts dt,.a-id-tag small){font-size:13px!important;line-height:1.4}
+body.t-live-page :is(.a-brand strong,.a-id-facts dd,.a-id-tag b){font-size:16px}
+body.t-live-page .a-identity p{font-size:16px;line-height:1.5}
+body.t-live-page :is(.a-search input,.a-catalog-search input,.a-terminal-prompts input){font-size:14px;padding:8px;min-width:0}
+body.t-live-page .a-resource-value strong{font-size:24px!important}
+body.t-live-page .a-resource-value button{font-size:18px;min-width:28px;min-height:28px}
+body.t-live-page :is(.a-dossier-kicker,.a-ledger-caption,.a-blueprint-ruler,.a-blueprint-footer,.a-manual-header,.a-folio-spreadhead,.a-terminal-bar,.a-terminal-status,.a-archive-recordhead,.a-index-heading,.a-atlas-coordinate,.a-map-caption,.a-catalog-cardno,.a-manual-page-no,.a-circuit-title,.a-circuit-live,.a-archive-stamp,.a-route-coordinates,.a-lab-label,.a-observatory-title,.a-observatory-legend){font-size:13px;line-height:1.4}
+body.t-live-page .a-dialog-body{font-size:16px;line-height:1.5}
+body.t-live-page .a-dialog-body .t-entry{font-size:16px;line-height:1.6}
+body.t-live-page .a-dialog-body .t-entry-value{display:block;max-height:none;overflow:visible;-webkit-line-clamp:unset}
+body.t-live-page .a-detail-copy{font-size:16px}
+body.t-live-page .a-dialog-head h2{font-size:24px}
+body.t-live-page .a-dialog-head span{font-size:13px}
+body.t-live-page .a-attributes .t-entry-name{grid-column:1;grid-row:1/3}
+body.t-live-page .a-skill-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))!important}
+body.t-live-page .a-attributes{grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr))!important}
+body.t-live-page[data-system="generic"] .a-layout{grid-template-areas:none;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+body.t-live-page[data-system="generic"] .a-layout>.a-block{grid-area:auto!important}
+body.t-live-page[data-system="coc"] .a-layout{grid-template-areas:none}
+body.t-live-page[data-system="coc"] .a-layout>.a-block{grid-area:auto!important}
+@media(max-width:600px){
+ body.t-live-page .t-entries .t-entry,body.t-live-page .t-entries .t-entry:not(:has(.t-entry-tools)){grid-template-columns:minmax(0,1fr) auto!important}
+ .t-entries .t-entry,.t-live-page .a-feature-list .t-entry,.t-live-page .a-spell-list .t-entry,.t-live-page .t-entry-list .t-entry{grid-template-columns:minmax(0,1fr) auto}
+ .t-entries .t-entry-value,.t-entries .a-roll{grid-column:1;grid-row:2}
+ .t-entries .t-entry-tools{grid-column:2;grid-row:1/3}
+ .t-channel select{max-width:12rem}
+ .t-entries .t-entry-tools{grid-column:2;grid-row:1/4}
+ .t-entries .t-entry:has(.t-check-values) .t-entry-value{grid-column:1;grid-row:2}
+ .t-entries .t-check-values{grid-column:1;grid-row:3}
+ body.t-live-page .a-attributes .t-entry-name{grid-row:1}
+}

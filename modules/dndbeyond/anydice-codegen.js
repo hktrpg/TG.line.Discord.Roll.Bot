@@ -1,13 +1,19 @@
 "use strict";
 
+const { parseD20AttackNotation } = require("./dice-utils.js");
+
 function d20RollPart(hitRoll, advantage, disadvantage) {
-    let rollPart = hitRoll.replace(/^1d20/i, "1d20");
-    if (advantage && !disadvantage) {
-        rollPart = `[highest 1 of ${rollPart.replace(/^1d20/i, "2d20")}]`;
-    } else if (disadvantage && !advantage) {
-        rollPart = `[lowest 1 of ${rollPart.replace(/^1d20/i, "2d20")}]`;
+    const parsed = parseD20AttackNotation(hitRoll);
+    if (!parsed) {
+        throw new Error("unsupported attack notation");
     }
-    return rollPart;
+    let rollPart = "1d20";
+    if (advantage && !disadvantage) {
+        rollPart = "[highest 1 of 2d20]";
+    } else if (disadvantage && !advantage) {
+        rollPart = "[lowest 1 of 2d20]";
+    }
+    return rollPart + (parsed.bonusNotation === "0" ? "" : parsed.bonusNotation);
 }
 
 function hitRollToAnyDice(spec, targetAc, label) {

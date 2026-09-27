@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>轉播 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;560&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #07080b; color: #f2f4f8; font-family: "IBM Plex Mono", ui-monospace, monospace; }
+        .live { display: flex; align-items: center; gap: 18px; padding: 28px 4vw 8px; }
+        img { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px #e10600; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #e10600; display: inline-block; margin-right: 8px; }
+        .tag { margin: 0; color: #e10600; letter-spacing: 0.28em; font-size: 12px; }
+        h1 { margin: 4px 0 0; font-family: Oswald, "PingFang TC", sans-serif; font-weight: 600; font-size: clamp(56px, 9vw, 104px); letter-spacing: 0.02em; line-height: 0.9; text-transform: uppercase; }
+        .ticker { display: flex; gap: 28px; overflow: auto; padding: 18px 4vw 8px; border-top: 1px solid #222; border-bottom: 1px solid #222; }
+        .ticker div { min-width: max-content; }
+        .ticker b { display: block; color: #8b93a7; font-weight: 400; font-size: 11px; letter-spacing: 0.16em; }
+        .ticker span { font-family: Oswald, sans-serif; font-size: 36px; }
+        .board { padding: 8px 0 120px; }
+        .hit { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 18px 4vw; border-left: 6px solid transparent; }
+        .hit:hover { background: #12141b; border-left-color: #e10600; }
+        .hit b { font-family: Oswald, "PingFang TC", sans-serif; font-size: 28px; font-weight: 500; letter-spacing: 0.04em; }
+        .lower { display: block; padding: 16px 4vw 28px; background: #e8ecf4; color: #101218; }
+        .lower b { font-family: Oswald, sans-serif; font-size: 22px; margin-right: 12px; }
+        .lower p { margin: 0 0 10px; }
+        @media (max-width: 700px) { .lower { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <header class="live">
+        <img data-studio="image" alt="">
+        <div>
+            <p class="tag"><span class="dot"></span>ON AIR · <span data-studio="role"></span></p>
+            <h1 data-studio="name"></h1>
+        </div>
+    </header>
+    <div class="ticker" data-studio-list="stats">
+        <template>
+            <div><b data-field="name"></b><span data-field="value"></span></div>
+        </template>
+    </div>
+    <section class="board" data-studio-list="rolls">
+        <template>
+            <div class="hit"><b data-field="name"></b><span data-field="value"></span></div>
+        </template>
+    </section>
+    <aside class="lower" data-studio-list="notes">
+        <template>
+            <p><b data-field="name"></b><span data-field="value"></span></p>
+        </template>
+    </aside>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+.studio-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(12, 12, 12, 0.88);
+    backdrop-filter: blur(8px);
+}
+
+.studio-nav a {
+    color: #f4efe6;
+    text-decoration: none;
+    font: 600 12px/1.2 "Segoe UI", "PingFang TC", sans-serif;
+    letter-spacing: 0.02em;
+    padding: 3px 7px;
+    border-radius: 999px;
+}
+
+.studio-nav a[aria-current="page"] {
+    background: #f4efe6;
+    color: #161616;
+}
+
+.studio-section {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+    font: 600 10px/1.4 "Segoe UI", "PingFang TC", sans-serif;
+    letter-spacing: 0.08em;
+    opacity: 0.7;
+}

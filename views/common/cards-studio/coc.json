@@ -1,0 +1,41 @@
+{
+  "id": "coc",
+  "name": "吾是示範",
+  "role": "保險調查員",
+  "trait": "野外活動愛好者",
+  "image": "/common/card-designs/investigator.svg",
+  "channels": [
+    { "id": "0", "label": "不進行群組擲骰" },
+    { "id": "1", "label": "Discord - zzz's server2222 general" },
+    { "id": "2", "label": "Discord - zzz's server2222 2" }
+  ],
+  "stats": [
+    { "section": "未分類", "name": "HP", "itemA": "11", "itemB": "11" },
+    { "section": "未分類", "name": "MP", "itemA": "16", "itemB": "16" },
+    { "section": "未分類", "name": "SAN", "itemA": "80", "itemB": "80" },
+    { "section": "未分類", "name": "體格", "itemA": "1" },
+    { "section": "未分類", "name": "DB", "itemA": "+1d4" },
+    { "section": "未分類", "name": "MOV", "itemA": "8" },
+    { "section": "未分類", "name": "護甲", "itemA": "0" },
+    { "section": "未分類", "name": "幸運", "itemA": "60" },
+    { "section": "未分類", "name": "鬥毆", "itemA": "49" }
+  ],
+  "rolls": [
+    { "section": "未分類", "name": "HP擲骰", "itemA": "1d{HP}" },
+    { "section": "未分類", "name": "1d100+HP", "itemA": "1d100+{hp}" },
+    { "section": "未分類", "name": "幸運檢定", "itemA": "CC {幸運}" },
+    { "section": "未分類", "name": "鬥毆", "itemA": "CC 49" },
+    { "section": "未分類", "name": "鬥毆（變數）", "itemA": "CC {鬥毆}" },
+    { "section": "未分類", "name": "棍+db", "itemA": "1d6{db}" },
+    { "section": "未分類", "name": "心理學", "itemA": "10" },
+    { "section": "未分類", "name": "信譽", "itemA": "CC 5" },
+    { "section": "未分類", "name": "偵查", "itemA": "CC 25" },
+    { "section": "未分類", "name": "sc", "itemA": ".sc {SAN}" },
+    { "section": "未分類", "name": "魔法", "itemA": "1" },
+    { "section": "未分類", "name": "小刀", "itemA": "1d4+1{db}" }
+  ],
+  "notes": [
+    { "section": "未分類", "name": "調查筆記", "itemA": "這是測試筆記內容" },
+    { "section": "未分類", "name": "戰鬥記錄", "itemA": "戰鬥日誌記錄" }
+  ]
+}

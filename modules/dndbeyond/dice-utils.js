@@ -83,7 +83,22 @@ function diceNotationWithinLimits(notation) {
     return true;
 }
 
-function rollDamageNotation(notation, rng) {
+function parseD20AttackNotation(notation) {
+    const cleaned = String(notation || "").replaceAll(/\s+/g, "");
+    const match = /^1d20((?:[+-](?:\d*d\d+|\d+))*)$/i.exec(cleaned);
+    if (!match || !diceNotationWithinLimits(cleaned)) {
+        return null;
+    }
+    const diceCount = [...cleaned.matchAll(/(\d*)d\d+/gi)]
+        .reduce((total, term) => total + Number(term[1] || 1), 0);
+    const flatTerms = cleaned.replaceAll(/\d*d\d+/gi, "").match(/[+-]?\d+/g) || [];
+    if (diceCount > MAX_DICE_COUNT || flatTerms.some(term => !Number.isSafeInteger(Number(term)))) {
+        return null;
+    }
+    return { bonusNotation: match[1] || "0" };
+}
+
+function rollDiceNotation(notation, rng) {
     const cleaned = String(notation || "").replaceAll(/\s+/g, "");
     if (!diceNotationWithinLimits(cleaned)) {
         throw new Error("dice notation exceeds limits");
@@ -107,7 +122,11 @@ function rollDamageNotation(notation, rng) {
         total += Number.parseInt(flat[0], 10);
         flat = flatRe.exec(withoutDice);
     }
-    return Math.max(0, total);
+    return total;
+}
+
+function rollDamageNotation(notation, rng) {
+    return Math.max(0, rollDiceNotation(notation, rng));
 }
 
 module.exports = {
@@ -119,6 +138,8 @@ module.exports = {
     rollDie,
     doubleDiceInDamageNotation,
     diceNotationWithinLimits,
+    parseD20AttackNotation,
+    rollDiceNotation,
     rollDamageNotation,
     MAX_DICE_COUNT,
     MAX_DIE_SIDES,

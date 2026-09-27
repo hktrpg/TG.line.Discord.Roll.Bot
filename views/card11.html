@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>現代條 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;560&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #e7e9ee; color: #1b1e27; font: 13px/1.35 "IBM Plex Sans", "PingFang TC", sans-serif; }
+        .sheet { width: min(880px, calc(100% - 16px)); margin: 10px auto 20px; background: #fff; border-radius: 10px; padding: 12px 14px 14px; }
+        .top { display: flex; gap: 10px; align-items: center; }
+        img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+        h1 { margin: 0; font-size: 18px; font-weight: 560; }
+        .sub { margin: 0; color: #667; font-size: 12px; }
+        .bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .bar b { font-size: 11px; font-weight: 560; }
+        .track { height: 6px; background: #e6e8ee; border-radius: 99px; margin-top: 3px; }
+        .track i { display: block; height: 100%; background: #1f6feb; border-radius: 99px; }
+        .nums { float: right; font-variant-numeric: tabular-nums; }
+        .split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 12px; margin-top: 12px; }
+        h2 { margin: 0 0 4px; font-size: 11px; letter-spacing: 0.12em; color: #778; font-weight: 560; }
+        .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid #eef0f4; }
+        .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+        .chips span { background: #f2f4f8; border-radius: 6px; padding: 3px 6px; }
+        @media (max-width: 700px) { .bars, .split { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="sheet">
+        <header class="top">
+            <img data-studio="image" alt="">
+            <div><h1 data-studio="name"></h1><p class="sub"><span data-studio="role"></span> · <span data-studio="trait"></span></p></div>
+        </header>
+        <div class="bars" data-studio-list="stats">
+            <template>
+                <div class="bar"><b data-field="name"></b><span class="nums"><span data-field="value"></span></span><div class="track"><i data-field="bar"></i></div></div>
+            </template>
+        </div>
+        <div class="split">
+            <section>
+                <h2>動作</h2>
+                <div data-studio-list="rolls"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            </section>
+            <section>
+                <h2>筆記</h2>
+                <div data-studio-list="notes"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            </section>
+        </div>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

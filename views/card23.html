@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>手帳 — 一屏</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0; min-height: 100dvh; overflow: auto; display: flex; flex-direction: column;
+            background: #e7e5da; color: #283e32; font: 12px/1.35 "Noto Sans TC", sans-serif;
+        }
+        .desk { flex: 1; min-height: 0; width: min(1040px, calc(100% - 20px)); margin: 8px auto; display: flex; flex-direction: column; }
+        .top { display: flex; justify-content: space-between; margin: 0 4px 6px; font-size: 11px; letter-spacing: 0.14em; }
+        .top i { font-style: normal; color: #797c69; margin-left: 8px; font-size: 10px; letter-spacing: 0.16em; }
+        .book {
+            flex: 1; min-height: 0; display: grid; grid-template-columns: 34% 66%;
+            background: #f9f6ed; border: 1px solid #dbd8c9; border-radius: 3px 8px 8px 3px;
+            box-shadow: 1px 4px 0 #d5d2c4, 0 12px 28px -18px #3e4439;
+            position: relative;
+        }
+        .book:after {
+            content: ""; position: absolute; top: 0; bottom: 0; left: 34%; width: 18px; transform: translateX(-50%);
+            background: linear-gradient(90deg, transparent, #5c594420 48%, #fff8 56%, transparent); pointer-events: none;
+        }
+        .left, .right { min-height: 0; padding: 12px 16px; display: flex; flex-direction: column; }
+        .eye { display: flex; justify-content: space-between; color: #797c69; font-size: 10px; }
+        .frame { width: 72%; max-width: 160px; margin: 8px auto; padding: 6px 6px 0; background: #fffdf6; transform: rotate(-2deg); box-shadow: 0 2px 6px #32372c22; position: relative; }
+        .tape { position: absolute; width: 54px; height: 14px; left: calc(50% - 27px); top: -7px; background: #ded6b5a6; }
+        img { display: block; width: 100%; height: 92px; object-fit: cover; object-position: center 28%; filter: sepia(0.2) saturate(0.75); }
+        .cap { display: flex; justify-content: space-between; font: 10px/1.6 "Noto Serif TC", serif; color: #737767; padding: 2px 2px 4px; }
+        .latin { margin: 4px 0 0; font-family: Georgia, serif; font-style: italic; font-size: 11px; color: #9a6339; }
+        h1 { margin: 0; font: 600 28px/1.2 "Noto Serif TC", serif; }
+        .role { margin: 4px 0 8px; color: #6f7666; font-size: 11px; }
+        .loc { border-top: 1px solid #d9d7c5; border-bottom: 1px solid #d9d7c5; padding: 6px 0; font: 500 13px/1.3 "Noto Serif TC", serif; }
+        .loc span { display: block; font: 9px/1.4 "Noto Sans TC", sans-serif; letter-spacing: 0.12em; color: #797c69; }
+        .facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 8px; text-align: center; }
+        .facts b { display: block; font-weight: 500; font-size: 10px; color: #797c69; }
+        .facts span { font: 16px/1.2 Georgia, serif; }
+        .status { margin-top: auto; font-size: 10px; color: #6a765b; }
+        .status i { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #7c8a64; margin-right: 6px; }
+        .right h2 { margin: 8px 0 2px; font: 500 20px/1.3 "Noto Serif TC", serif; }
+        .intro { margin: 0 0 6px; color: #747967; font: 12px/1.5 "Noto Serif TC", serif; }
+        .sub { display: flex; justify-content: space-between; font: 500 13px/1 "Noto Serif TC", serif; margin: 6px 0 2px; }
+        .sub span { font: 9px/1.2 "Noto Sans TC", sans-serif; color: #939582; }
+        .row { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid #e4e0d0; }
+        .cols { min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        @media (max-width: 760px) {
+            body { overflow: auto; height: auto; }
+            .book, .cols, .facts { grid-template-columns: 1fr; }
+            .book:after { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <div class="desk">
+        <div class="top"><span>旅人手帳 <i>THE FIELD JOURNAL</i></span><span>CoC · 調查紀錄</span></div>
+        <div class="book">
+            <aside class="left">
+                <div class="eye"><span>此冊屬於</span><span>BELONGS TO</span></div>
+                <div class="frame"><i class="tape"></i><img data-studio="image" alt=""><div class="cap">一個尚在路上的人<span>Fig. 01</span></div></div>
+                <p class="latin">LAM CHIU YE</p>
+                <h1 data-studio="name"></h1>
+                <p class="role"><span data-studio="role"></span> · <span data-studio="trait"></span></p>
+                <div class="loc"><span>此刻身在</span>海濱旅館 · 第三號房</div>
+                <div class="facts" data-studio-list="stats"><template><div><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                <div class="status"><i></i>一切安好，繼續前行</div>
+            </aside>
+            <article class="right">
+                <div class="eye"><span>冒險者的隨身記錄</span><span>FIELD NOTES / 01</span></div>
+                <h2>旅途，尚未完結。</h2>
+                <p class="intro">一宗沒有受益人的索償，把記錄帶到海邊的舊旅館。</p>
+                <div class="cols">
+                    <section>
+                        <div class="sub">拿手好戲<span>ACTIONS</span></div>
+                        <div data-studio-list="rolls"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                    </section>
+                    <section>
+                        <div class="sub">沿途拾記<span>NOTES</span></div>
+                        <div data-studio-list="notes"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                    </section>
+                </div>
+            </article>
+        </div>
+    </div>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

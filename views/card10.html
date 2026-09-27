@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>星圖 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,560;1,500&family=Syne:wght@560;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #0c121c; color: #f3e6c8; font-family: Syne, "PingFang TC", sans-serif; }
+        .sky { position: relative; min-height: 92vh; padding: 24px 6vw 80px; }
+        .orbit {
+            position: relative;
+            width: min(560px, 100%);
+            height: 560px;
+            margin: 12px auto 24px;
+        }
+        .ring { position: absolute; inset: 0; }
+        .orbit::before {
+            content: "";
+            position: absolute;
+            inset: 46px;
+            border: 1px solid rgba(212, 175, 106, 0.45);
+            border-radius: 50%;
+        }
+        .core { position: absolute; inset: 150px; border-radius: 50%; overflow: hidden; border: 1px solid #d4af6a; }
+        .core img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(0.25) contrast(1.05); }
+        h1 { position: absolute; left: 0; right: 0; top: 42%; margin: 0; text-align: center; font-family: "Cormorant Garamond", serif; font-size: 42px; font-style: italic; text-shadow: 0 2px 16px #0c121c; pointer-events: none; }
+        .stat {
+            position: absolute;
+            width: 92px;
+            text-align: center;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+        }
+        .stat b { display: block; font-family: "Cormorant Garamond", serif; font-size: 22px; font-weight: 560; }
+        .stat:nth-child(2) { left: 50%; top: 0; transform: translateX(-50%); }
+        .stat:nth-child(3) { right: 6%; top: 14%; }
+        .stat:nth-child(4) { right: 0; top: 42%; }
+        .stat:nth-child(5) { right: 8%; bottom: 12%; }
+        .stat:nth-child(6) { left: 50%; bottom: 0; transform: translateX(-50%); }
+        .stat:nth-child(7) { left: 8%; bottom: 12%; }
+        .stat:nth-child(8) { left: 0; top: 42%; }
+        .stat:nth-child(9) { left: 6%; top: 14%; }
+        .stat:nth-child(n + 10) { position: static; display: inline-block; width: auto; margin: 8px 14px 0; }
+        .path { width: min(640px, 100%); margin: 0 auto; }
+        .step { display: grid; grid-template-columns: 16px 1fr auto; gap: 14px; align-items: baseline; padding: 16px 0; }
+        .step i { width: 9px; height: 9px; border: 1px solid #d4af6a; border-radius: 50%; display: block; }
+        .margin { width: min(640px, 100%); margin: 12px auto 0; color: #cbb892; font-family: "Cormorant Garamond", serif; font-size: 22px; font-style: italic; }
+        .margin b { display: block; font-style: normal; font-family: Syne, sans-serif; font-size: 12px; letter-spacing: 0.16em; color: #d4af6a; }
+        @media (max-width: 640px) {
+            .orbit { height: auto; }
+            .orbit::before, .core, h1 { position: static; }
+            .core { width: 180px; height: 180px; margin: 0 auto 12px; }
+            .stat { position: static; display: inline-block; width: auto; margin: 8px; }
+            h1 { text-shadow: none; margin-top: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <div class="sky">
+        <div class="orbit">
+            <div class="ring" data-studio-list="stats">
+                <template>
+                    <div class="stat"><b data-field="value"></b><span data-field="name"></span></div>
+                </template>
+            </div>
+            <div class="core"><img data-studio="image" alt=""></div>
+            <h1 data-studio="name"></h1>
+        </div>
+        <div class="path" data-studio-list="rolls">
+            <template>
+                <div class="step"><i></i><b data-field="name"></b><span data-field="value"></span></div>
+            </template>
+        </div>
+        <div data-studio-list="notes">
+            <template>
+                <p class="margin"><b data-field="name"></b><span data-field="value"></span></p>
+            </template>
+        </div>
+    </div>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

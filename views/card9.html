@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>檔案 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&family=Source+Serif+4:opsz,wght@8..60,560&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #b08968; color: #24180f; font-family: "Courier Prime", "PingFang TC", monospace; }
+        .folder { width: min(920px, calc(100% - 28px)); margin: 28px auto 48px; background: #efe2c9; min-height: 78vh; padding: 28px 28px 48px; position: relative; box-shadow: 8px 10px 0 rgba(70, 40, 16, 0.25); }
+        .stamp { position: absolute; right: 36px; top: 84px; border: 3px solid #9d2c2c; color: #9d2c2c; font-weight: 700; letter-spacing: 0.18em; padding: 6px 10px; transform: rotate(8deg); }
+        .clip { width: 18px; height: 64px; border: 3px solid #8d8d8d; border-bottom: none; border-radius: 10px 10px 0 0; margin-left: 18px; }
+        .head { display: grid; grid-template-columns: 140px 1fr; gap: 18px; align-items: end; }
+        img { width: 140px; height: 176px; object-fit: cover; background: #fff; padding: 8px 8px 28px; transform: rotate(-2deg); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+        h1 { margin: 0; font-family: "Source Serif 4", serif; font-size: 48px; }
+        .meta { margin: 8px 0 0; }
+        .tabs { display: flex; gap: 8px; margin: 28px 0 0; }
+        .tabs button { font: inherit; border: none; background: #d8c4a4; padding: 10px 16px; cursor: pointer; }
+        .tabs button[aria-selected="true"] { background: #fffdf8; }
+        .page { display: none; background: #fffdf8; padding: 8px 16px 20px; min-height: 280px; }
+        .page.is-on { display: block; }
+        .line { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px dashed #c8b79a; padding: 10px 0; }
+        .note { margin: 0; padding: 14px 0; border-bottom: 1px dashed #c8b79a; }
+        .note b { display: block; }
+        @media (max-width: 640px) { .head { grid-template-columns: 1fr; } .stamp { position: static; display: inline-block; margin-top: 12px; } }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="folder">
+        <div class="clip"></div>
+        <div class="stamp">FIELD COPY</div>
+        <header class="head">
+            <img data-studio="image" alt="">
+            <div>
+                <p class="meta">檔號 19-07 · <span data-studio="role"></span></p>
+                <h1 data-studio="name"></h1>
+                <p class="meta" data-studio="trait"></p>
+            </div>
+        </header>
+        <div class="tabs" role="tablist">
+            <button type="button" aria-selected="true" data-tab="stats">數值</button>
+            <button type="button" aria-selected="false" data-tab="rolls">動作</button>
+            <button type="button" aria-selected="false" data-tab="notes">附頁</button>
+        </div>
+        <section class="page is-on" id="panel-stats" data-studio-list="stats">
+            <template><div class="line"><b data-field="name"></b><span data-field="value"></span></div></template>
+        </section>
+        <section class="page" id="panel-rolls" data-studio-list="rolls">
+            <template><div class="line"><b data-field="name"></b><span data-field="value"></span></div></template>
+        </section>
+        <section class="page" id="panel-notes" data-studio-list="notes">
+            <template><p class="note"><b data-field="name"></b><span data-field="value"></span></p></template>
+        </section>
+    </article>
+    <script src="/common/card-studio.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            for (const button of document.querySelectorAll("[data-tab]")) {
+                button.addEventListener("click", () => {
+                    for (const tab of document.querySelectorAll("[data-tab]")) {
+                        tab.setAttribute("aria-selected", String(tab === button));
+                    }
+                    for (const panel of document.querySelectorAll(".page")) {
+                        panel.classList.toggle("is-on", panel.id === "panel-" + button.dataset.tab);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

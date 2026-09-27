@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>舊卡 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #d9d3c7; color: #1e1a16; font: 13px/1.25 "Special Elite", "PMingLiU", serif; }
+        .card { width: min(640px, calc(100% - 16px)); margin: 12px auto; background: #f7f1e3; border: 1px solid #1e1a16; padding: 8px 10px 10px; position: relative; }
+        .stamp { position: absolute; right: 10px; top: 8px; border: 2px solid #8e2f2f; color: #8e2f2f; font-size: 11px; padding: 1px 5px; transform: rotate(6deg); }
+        .top { display: flex; gap: 8px; align-items: flex-end; border-bottom: 2px solid #1e1a16; padding-bottom: 4px; }
+        img { width: 48px; height: 60px; object-fit: cover; filter: sepia(0.35); }
+        h1 { margin: 0; font-size: 22px; font-weight: 400; }
+        .top p { margin: 0; font-size: 12px; }
+        .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+        .row { display: flex; justify-content: space-between; border-bottom: 1px dotted #1e1a16; padding: 1px 0; }
+        h2 { margin: 0 0 2px; font-size: 12px; font-weight: 400; letter-spacing: 0.12em; }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="card">
+        <div class="stamp">FILE</div>
+        <header class="top">
+            <img data-studio="image" alt="">
+            <div><h1 data-studio="name"></h1><p data-studio="role"></p></div>
+        </header>
+        <div class="cols">
+            <section><h2>STATUS</h2><div data-studio-list="stats"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div></section>
+            <section><h2>ROLL</h2><div data-studio-list="rolls"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div></section>
+        </div>
+        <h2>NOTE</h2>
+        <div data-studio-list="notes"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

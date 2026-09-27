@@ -1,0 +1,1 @@
+body{background:#fff;color:#222}.cell.stat{display:grid;grid-template-columns:1.2fr .8fr .6fr;border:1px solid #ccc;padding:4px}.cell.roll,.cell.note{border:1px solid #ccc;padding:4px}.stat small{display:block}.roll{background:#fff;color:inherit}

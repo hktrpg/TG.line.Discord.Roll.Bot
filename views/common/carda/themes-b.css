@@ -1,0 +1,204 @@
+/* Each composition uses the same twelve live sections, with its own reading order. */
+body[data-design='11']{--paper:#eeeade;--ink:#293e36;--muted:#687367;--accent:#56765b;--line:#c4c9b4;--surface:#f7f4e9;--font:"Segoe UI","Noto Sans TC",sans-serif;--display:Georgia,"Noto Serif TC",serif;--heading:var(--display);--radius:0;background-color:var(--paper);background-image:repeating-linear-gradient(0deg,transparent 0 31px,#52644b08 31px 32px),repeating-linear-gradient(90deg,transparent 0 31px,#52644b08 31px 32px)}
+body[data-design='11'] .a-shell{border:1px solid #9da78e;box-shadow:0 0 0 5px #eeeade,0 0 0 6px #b1b8a1;padding:13px;background:#f4f0e4f2;margin-top:17px}
+body[data-design='11'] .a-identity{border-bottom:2px solid var(--accent);padding-bottom:10px}
+body[data-design='11'] .a-identity h1{font-family:var(--display);letter-spacing:2px}
+body[data-design='11'] .a-resource-strip{border-block:1px solid var(--line);margin-block:8px;padding-block:6px;background:#e1e7d833}
+body[data-design='11'] .a-layout{display:grid;grid-template-columns:1fr 1.12fr 1.12fr 1fr;gap:9px 15px;grid-template-areas:"attributes attributes senses training" "saves skills actions status" "features skills powers powers" "inventory background notes notes"}
+body[data-design='11'] .a-block{border:0;border-top:1px solid var(--line);background:transparent;border-radius:0;padding:0;box-shadow:none}
+body[data-design='11'] .a-block-head{border-bottom:1px solid var(--line);background:transparent;padding:5px 0;position:relative}
+body[data-design='11'] .a-block-head::before{content:"+";font:12px Georgia;color:var(--accent);margin-right:6px}
+body[data-design='11'] .a-block-head h2{font-family:var(--display);letter-spacing:1px;font-size:13px}
+body[data-design='11'] .a-block-body{padding:5px 0}
+body[data-design='11'] .a-row,body[data-design='11'] .a-skill{border-bottom-style:dotted}
+body[data-design='11'] .a-attribute{border:0;border-right:1px solid var(--line);background:transparent;border-radius:0}
+body[data-design='11'] .a-attribute:last-child{border-right:0}
+body[data-design='11'] .block-notes{background:#e1e5d645;padding-inline:9px}
+body[data-design='11'] .a-footer{border-top:1px dashed #8f9b81;font-family:Georgia,serif}
+
+body[data-design='12']{--paper:#111b2b;--ink:#dbe3ed;--muted:#8e9bb5;--accent:#bfa671;--line:#31415b;--surface:#192438;--font:"Segoe UI","Noto Sans TC",sans-serif;--display:Georgia,"Noto Serif TC",serif;--heading:var(--display);--radius:2px;background:radial-gradient(ellipse at 20% 0,#253451,transparent 55%),#111b2b;color-scheme:dark}
+body[data-design='12'] .a-shell{background:transparent;padding:10px 14px;border-top:1px solid #67718a;border-bottom:1px solid #67718a}
+body[data-design='12'] .a-identity{position:relative;border-bottom:1px solid #61718a66;padding-bottom:9px}
+body[data-design='12'] .a-identity::after{content:"✧";color:#bea66f;position:absolute;right:6px;top:3px;font-size:30px;pointer-events:none;opacity:.55}
+body[data-design='12'] .a-identity h1{font-family:var(--display);font-weight:400;letter-spacing:3px}
+body[data-design='12'] .a-resource-strip{background:#25334a80;border:1px solid #53607866;padding:6px 10px;margin-block:9px;border-radius:2px}
+body[data-design='12'] .a-layout{display:grid;grid-template-columns:1.1fr 1fr 1fr .9fr;gap:10px;grid-template-areas:"attributes attributes senses status" "skills actions actions saves" "skills powers features training" "inventory inventory background notes"}
+body[data-design='12'] .a-block{border:0;border-top:1px solid #73809b55;background:#16223666;padding:0;border-radius:0;box-shadow:none}
+body[data-design='12'] .a-block-head{background:transparent;border-bottom:1px solid #73809b33;padding:5px 8px}
+body[data-design='12'] .a-block-head h2{font-family:var(--display);font-size:13px;font-weight:400;letter-spacing:1.5px}
+body[data-design='12'] .a-block-head h2::before{content:"·";color:#d9c388;margin-right:6px}
+body[data-design='12'] .a-block-body{padding:6px 8px}
+body[data-design='12'] .a-attribute{background:transparent;border:0;border-right:1px solid #7c8ba344;border-radius:0}
+body[data-design='12'] .a-attribute strong{color:#ebd5a4;font-family:Georgia,serif;font-weight:400}
+body[data-design='12'] .a-skill,body[data-design='12'] .a-row{border-bottom-color:#a4b3c416}
+body[data-design='12'] .block-actions{background:linear-gradient(100deg,#35415b5c,#1d283b50);border-top-color:#bda57088}
+body[data-design='12'] .a-count{color:#b6a57c;background:#bda66c12}
+body[data-design='12'] .a-footer{color:#7f93af;border-color:#53607866}
+
+body[data-design='13']{--paper:#e7edee;--ink:#263239;--muted:#687c86;--accent:#077c8e;--line:#becdd0;--surface:#fff;--font:"Arial","Noto Sans TC",sans-serif;--display:"Arial","Noto Sans TC",sans-serif;--heading:var(--display);--radius:0;background:var(--paper)}
+body[data-design='13'] .a-shell{background:#fff;padding:0 14px 12px;border-left:5px solid #077c8e}
+body[data-design='13'] .a-identity{background:#203c48;color:#f1f6f6;margin-inline:-14px;padding:10px 17px;border-bottom:0}
+body[data-design='13'] .a-identity h1{color:#fff;letter-spacing:0;font-size:26px}
+body[data-design='13'] .a-identity p,body[data-design='13'] .a-identity small{color:#c0d8dd}
+body[data-design='13'] .a-resource-strip{background:#dcebef;margin-inline:-14px;padding:7px 15px;border-bottom:1px solid #a9c6cc}
+body[data-design='13'] .a-layout{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px 12px;margin-top:10px;grid-template-areas:"attributes attributes saves senses training status" "actions actions actions powers powers powers" "skills skills features features inventory inventory" "background background background notes notes notes"}
+body[data-design='13'] .a-block{background:transparent;border:0;border-radius:0;padding:0;box-shadow:none}
+body[data-design='13'] .a-block-head{background:#e3eef1;border:0;padding:4px 7px;border-left:3px solid #538c99}
+body[data-design='13'] .a-block-head h2{font-size:12px;letter-spacing:.5px;font-weight:700}
+body[data-design='13'] .a-block-body{padding:5px 4px}
+body[data-design='13'] .block-actions .a-block-head,body[data-design='13'] .block-powers .a-block-head{background:#077c8e;color:#fff;border-color:#044f5e}
+body[data-design='13'] .block-actions h2,body[data-design='13'] .block-powers h2{color:#fff}
+body[data-design='13'] .block-actions .a-count,body[data-design='13'] .block-powers .a-count{color:#d7eef0;background:#ffffff16}
+body[data-design='13'] .a-action,body[data-design='13'] .a-power{border-bottom:1px solid #dce5e7;padding-block:4px}
+body[data-design='13'] .a-row:nth-child(even){background:#f0f5f6}
+body[data-design='13'] .a-attributes{gap:2px}
+body[data-design='13'] .a-attribute{border:0;border-radius:0;background:#e5eff1;padding:4px 3px}
+body[data-design='13'] .a-footer{border-top:2px solid #077c8e;padding-top:7px}
+
+body[data-design='14']{--paper:#e9e2d6;--ink:#38332c;--muted:#8a7c68;--accent:#84563b;--line:#d0c5b3;--surface:#f8f4e9;--font:Georgia,"Noto Serif TC","Songti TC",serif;--display:Georgia,"Noto Serif TC",serif;--heading:var(--display);--radius:0;background:#e9e2d6}
+body[data-design='14'] .a-shell{background:#f8f4e9;box-shadow:0 3px 17px #57412912;border:1px solid #dbd1be;padding:14px 20px}
+body[data-design='14'] .a-identity{border-top:3px double #96795b;border-bottom:1px solid #bda88d;padding-block:9px}
+body[data-design='14'] .a-identity h1{font-size:28px;font-family:var(--display);font-weight:400;letter-spacing:3px}
+body[data-design='14'] .a-resource-strip{border-bottom:1px solid #bda88d;padding:7px 0;background:transparent}
+body[data-design='14'] .a-layout{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:7px 22px;grid-template-areas:"attributes attributes status" "skills actions powers" "skills saves powers" "senses training features" "inventory background notes"}
+body[data-design='14'] .a-block{background:transparent;border:0;border-radius:0;padding:0;box-shadow:none}
+body[data-design='14'] .a-block-head{background:transparent;border-bottom:1px solid #bda88d;padding:5px 0}
+body[data-design='14'] .a-block-head h2{font-weight:400;font-size:14px;letter-spacing:1.7px}
+body[data-design='14'] .a-block-head h2::first-letter{font-size:17px;color:#8e5038}
+body[data-design='14'] .a-block-body{padding:5px 0}
+body[data-design='14'] .a-count{background:transparent;font-size:10px;font-style:italic}
+body[data-design='14'] .a-attributes{gap:0}
+body[data-design='14'] .a-attribute{border:0;border-radius:0;border-right:1px solid #d3c5b1;background:transparent}
+body[data-design='14'] .a-attribute strong{font-family:Georgia,serif;font-weight:400;color:#765239}
+body[data-design='14'] .a-skill,body[data-design='14'] .a-row{border-bottom:1px dotted #d8cdbd}
+body[data-design='14'] .a-feature,body[data-design='14'] .a-mini-note{line-height:1.5}
+body[data-design='14'] .a-footer{border-top:3px double #96795b;font-style:italic;padding-top:7px}
+
+body[data-design='15']{--paper:#deded7;--ink:#3d413b;--muted:#828579;--accent:#8c493e;--line:#c9c9bb;--surface:#f8f7ee;--font:"Segoe UI","Noto Sans TC",sans-serif;--display:Georgia,"Noto Serif TC",serif;--heading:var(--display);--radius:1px;background:linear-gradient(0deg,#dbdcd4,#eeeee5)}
+body[data-design='15'] .a-shell{padding:11px 14px 12px;background:#f8f7ee;border:1px solid #c2c4b4;box-shadow:3px 3px 0 #d0d1c4,6px 6px 0 #bcbeaf}
+body[data-design='15'] .a-identity{border-bottom:2px solid #8c493e;padding-bottom:8px}
+body[data-design='15'] .a-identity h1{font-family:var(--display);font-size:25px;letter-spacing:1px}
+body[data-design='15'] .a-resource-strip{border-bottom:1px solid var(--line);padding-block:7px}
+body[data-design='15'] .a-layout{display:grid;grid-template-columns:1.07fr 1fr 1fr .95fr;gap:8px 16px;grid-template-areas:"attributes attributes attributes status" "saves senses training status" "skills actions actions powers" "skills features inventory powers" "background background notes notes"}
+body[data-design='15'] .a-block{background:transparent;border:0;border-top:1px solid #c4c6b8;padding:0;border-radius:0;box-shadow:none}
+body[data-design='15'] .a-block-head{background:transparent;border:0;padding:0 0 5px;margin-top:-1px;align-items:center}
+body[data-design='15'] .a-block-head h2{font-size:11px;letter-spacing:1px;background:#deded0;border-top:2px solid #9a9d88;border-right:1px solid #c4c6b8;padding:4px 11px;margin:0;min-width:80px}
+body[data-design='15'] .block-actions h2,body[data-design='15'] .block-notes h2{background:#e9d6ca;border-top-color:#9a5948;color:#794c3f}
+body[data-design='15'] .a-block-body{padding:1px 2px 5px}
+body[data-design='15'] .a-row,body[data-design='15'] .a-skill{border-bottom:1px solid #d1d3c34d}
+body[data-design='15'] .a-table{border-left:1px solid #b7615140;padding-left:8px}
+body[data-design='15'] .a-attribute{background:transparent;border:0;border-right:1px solid #d3d4c6;border-radius:0}
+body[data-design='15'] .a-attribute strong{font-family:Georgia,serif;font-weight:400}
+body[data-design='15'] .a-kv{border-bottom:1px dotted #cdd0c0}
+body[data-design='15'] .a-mini-note{background:repeating-linear-gradient(transparent 0 17px,#aeb4a526 17px 18px)}
+body[data-design='15'] .a-footer{border-top:1px solid #9fa58e;color:#828674}
+
+body[data-design='16']{--paper:#e0dfce;--ink:#2d3b2d;--muted:#737c65;--accent:#4d6036;--line:#b9c0a3;--surface:#f0eedc;--font:"Courier New","Noto Sans TC",monospace;--display:"Arial","Noto Sans TC",sans-serif;--heading:var(--display);--radius:0;background:#d8dac6}
+body[data-design='16'] .a-shell{border:1px solid #a6ae8c;border-left:13px solid #475b36;padding:12px 13px;background:linear-gradient(90deg,#b6bd9e4a,#efeedc 15px);box-shadow:4px 5px 0 #b6bca1}
+body[data-design='16'] .a-identity{border-bottom:3px solid #596b3f;padding-bottom:8px}
+body[data-design='16'] .a-identity h1{font-family:Arial,"Noto Sans TC",sans-serif;font-size:24px;font-weight:800;letter-spacing:2px}
+body[data-design='16'] .a-resource-strip{background:#c5cdb05c;border-block:1px solid #a4af8b;padding:6px 8px;margin-block:8px}
+body[data-design='16'] .a-layout{display:grid;grid-template-columns:.8fr 1.08fr 1.12fr 1fr;gap:8px 14px;grid-template-areas:"attributes skills actions powers" "saves skills features powers" "senses training inventory powers" "status background notes notes"}
+body[data-design='16'] .a-block{border:0;border-top:2px solid #738257;background:transparent;padding:0;border-radius:0;box-shadow:none}
+body[data-design='16'] .a-block-head{padding:4px 2px;border-bottom:1px dashed #a9b193;background:transparent}
+body[data-design='16'] .a-block-head h2{font:700 12px Arial,"Noto Sans TC",sans-serif;letter-spacing:1px}
+body[data-design='16'] .a-block-body{padding:5px 2px}
+body[data-design='16'] .block-attributes .a-attributes{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+body[data-design='16'] .a-attribute{border:1px solid #acb493;background:#d8dec44d;border-radius:0;padding:4px 2px}
+body[data-design='16'] .a-attribute strong{font-family:"Courier New",monospace;font-size:20px;font-weight:700}
+body[data-design='16'] .block-powers{border-left:1px dashed #9ea989;padding-left:10px}
+body[data-design='16'] .a-row,body[data-design='16'] .a-skill{border-bottom:1px dotted #b8c19f}
+body[data-design='16'] .a-count{border:1px solid #a9b58a;border-radius:0;padding:0 3px;background:transparent}
+body[data-design='16'] .a-footer{border-top:2px solid #738257;font-size:9px;letter-spacing:1px}
+
+body[data-design='17']{--paper:#e8e8e4;--ink:#1c1e1d;--muted:#777b74;--accent:#e55531;--line:#b5b9af;--surface:#f8f8f2;--font:"Arial","Noto Sans TC",sans-serif;--display:"Arial Black","Noto Sans TC",sans-serif;--heading:var(--display);--radius:0;background:#e4e6de}
+body[data-design='17'] .a-shell{border:2px solid #1f2820;background:#f8f8f2;padding:12px;box-shadow:6px 6px 0 #313b30}
+body[data-design='17'] .a-identity{background:#1e2921;color:#f7f7ea;padding:10px 12px;margin:-12px -12px 0;border-bottom:4px solid #e55531}
+body[data-design='17'] .a-identity h1{font-family:var(--display);font-size:29px;letter-spacing:-1px;color:#f5f6e8}
+body[data-design='17'] .a-identity p,body[data-design='17'] .a-identity small{color:#c5cebc}
+body[data-design='17'] .a-resource-strip{border-bottom:2px solid #263325;padding:7px 0}
+body[data-design='17'] .a-layout{display:grid;grid-template-columns:.85fr 1.1fr 1.05fr 1fr;gap:8px 12px;grid-template-areas:"attributes attributes attributes attributes" "saves skills actions powers" "senses skills features powers" "training inventory background status" "notes notes notes notes"}
+body[data-design='17'] .a-block{border:0;border-top:2px solid #253224;border-radius:0;padding:0;background:transparent;box-shadow:none}
+body[data-design='17'] .a-block-head{background:transparent;padding:4px 0;border-bottom:1px solid #c0c7b6}
+body[data-design='17'] .a-block-head h2{font-size:13px;letter-spacing:-.3px;font-weight:900}
+body[data-design='17'] .a-block-body{padding:4px 0}
+body[data-design='17'] .block-attributes{border-top:0}
+body[data-design='17'] .a-attributes{gap:0}
+body[data-design='17'] .a-attribute{border:0;border-right:2px solid #263325;background:transparent;border-radius:0;padding:3px 6px}
+body[data-design='17'] .a-attribute:last-child{border-right:0}
+body[data-design='17'] .a-attribute strong{font-family:var(--display);font-size:28px;font-weight:900;letter-spacing:-1.5px;color:#1e2921;line-height:1}
+body[data-design='17'] .a-count{border-radius:0;color:#f8f7ed;background:#263325;font-weight:700;padding:1px 4px}
+body[data-design='17'] .a-skill:nth-child(even),body[data-design='17'] .a-row:nth-child(even){background:#e5e9de}
+body[data-design='17'] .block-notes .a-block-body{display:flex;gap:15px;flex-wrap:wrap}
+body[data-design='17'] .a-footer{border-top:3px solid #e55531;font-weight:700}
+
+body[data-design='18']{--paper:#f6f8f7;--ink:#33443f;--muted:#86958e;--accent:#399b89;--line:#dce6e0;--surface:#fff;--font:"Segoe UI","Noto Sans TC",sans-serif;--display:"Segoe UI","Noto Sans TC",sans-serif;--heading:var(--display);--radius:0;background:#f6f8f7}
+body[data-design='18'] .a-shell{background:#fff;border:0;padding:14px 22px;box-shadow:none}
+body[data-design='18'] .a-identity{border-bottom:1px solid #d5e2da;padding-bottom:11px}
+body[data-design='18'] .a-identity h1{font-size:26px;letter-spacing:1px;font-weight:400}
+body[data-design='18'] .a-resource-strip{background:transparent;border-bottom:1px solid #d5e2da;padding:9px 0}
+body[data-design='18'] .a-layout{display:grid;grid-template-columns:1fr 1.15fr 1.05fr 1fr;gap:10px 24px;grid-template-areas:"attributes skills actions powers" "saves skills features powers" "senses training inventory status" "background background notes notes"}
+body[data-design='18'] .a-block{border:0!important;border-radius:0;padding:0;background:transparent;box-shadow:none}
+body[data-design='18'] .a-block-head{background:transparent;border:0;padding:5px 0 7px}
+body[data-design='18'] .a-block-head h2{font-size:12px;font-weight:600;letter-spacing:1px;display:flex;align-items:center;gap:7px}
+body[data-design='18'] .a-block-head h2::before{content:"";height:5px;width:5px;background:#5cba9f;border-radius:50%;display:inline-block}
+body[data-design='18'] .a-block-body{padding:0}
+body[data-design='18'] .a-attributes{gap:6px;grid-template-columns:repeat(3,minmax(0,1fr))}
+body[data-design='18'] .a-attribute{padding:3px 0;border:0;border-radius:0;background:transparent;text-align:left}
+body[data-design='18'] .a-attribute strong{font-size:24px;font-weight:300;color:#4c917b}
+body[data-design='18'] .a-row,body[data-design='18'] .a-skill{border-bottom:1px solid #edf2ef;padding-block:3px}
+body[data-design='18'] .a-feature,body[data-design='18'] .a-action,body[data-design='18'] .a-power{border-bottom:1px solid #e4ece7;padding-block:4px}
+body[data-design='18'] .a-count{background:transparent;color:#9faea6;padding:0;font-weight:400}
+body[data-design='18'] .a-footer{border-top:1px solid #d5e2da;color:#899a90;padding-top:8px}
+
+body[data-design='19']{--paper:#111c20;--ink:#d3e2df;--muted:#83a3a5;--accent:#7de0c3;--line:#2b4b4f;--surface:#15272c;--font:"Consolas","Noto Sans TC",monospace;--display:"Consolas","Noto Sans TC",monospace;--heading:var(--display);--radius:0;background:linear-gradient(#23404415 1px,transparent 1px),#111c20;background-size:100% 4px;color-scheme:dark}
+body[data-design='19'] .a-shell{border:1px solid #467475;border-top:3px solid #77cdb4;padding:10px;background:#101f23;box-shadow:0 0 30px #0002}
+body[data-design='19'] .a-identity{border-bottom:1px solid #416568;padding-bottom:7px}
+body[data-design='19'] .a-identity h1{font-family:var(--display);font-size:24px;font-weight:600;letter-spacing:1px}
+body[data-design='19'] .a-resource-strip{background:#244045;border:1px solid #355b5d;padding:5px 8px;margin-block:8px}
+body[data-design='19'] .a-layout{display:grid;grid-template-columns:.9fr 1fr 1fr 1fr 1fr .95fr;gap:7px;grid-template-areas:"status attributes attributes attributes saves senses" "training skills skills actions actions powers" "features skills skills inventory inventory powers" "background background background notes notes notes"}
+body[data-design='19'] .a-block{border:1px solid #2d4a4e;background:#15272c;padding:0;border-radius:0;box-shadow:none;position:relative}
+body[data-design='19'] .a-block::before{content:"";position:absolute;left:-1px;top:-1px;width:6px;height:6px;border-left:1px solid #70a99e;border-top:1px solid #70a99e;pointer-events:none}
+body[data-design='19'] .a-block-head{background:#21383e;border-bottom:1px solid #35565c;padding:4px 6px}
+body[data-design='19'] .a-block-head h2{font-family:var(--display);font-size:11px;letter-spacing:1px;font-weight:600}
+body[data-design='19'] .a-block-head h2::before{content:"/ ";color:#5e9290}
+body[data-design='19'] .a-block-body{padding:4px 6px}
+body[data-design='19'] .a-attribute{border:0;border-left:1px solid #35565c;background:transparent;border-radius:0;padding:4px 2px}
+body[data-design='19'] .a-attribute strong{font-family:Consolas,monospace;color:#94e8d1;font-weight:400;font-size:24px}
+body[data-design='19'] .a-skill,body[data-design='19'] .a-row{border-bottom-color:#35565c66}
+body[data-design='19'] .a-skill:nth-child(even){background:#25444744}
+body[data-design='19'] .a-count{background:transparent;color:#61968e;border:1px solid #3e6565;border-radius:0;font-size:9px;padding:0 3px}
+body[data-design='19'] .block-status{border-top:2px solid #b3bd77}
+body[data-design='19'] .block-status .a-block-head h2{color:#c3cc8b}
+body[data-design='19'] .a-footer{font-family:Consolas,monospace;color:#739e98;border-top:1px solid #416568;font-size:9px}
+
+body[data-design='20']{--paper:#e7e4e0;--ink:#343634;--muted:#86847c;--accent:#917748;--line:#d1cdc2;--surface:#faf9f4;--font:"Segoe UI","Noto Sans TC",sans-serif;--display:Georgia,"Noto Serif TC",serif;--heading:var(--display);--radius:0;background:#e7e4e0}
+body[data-design='20'] .a-shell{display:grid;grid-template-columns:173px minmax(0,1fr);grid-template-areas:"identity resources" "identity layout" "identity footer";gap:0 21px;background:#faf9f4;border:1px solid #d0cbc0;padding:14px 18px 13px 0;box-shadow:0 5px 22px #5747320a}
+body[data-design='20'] .a-identity{grid-area:identity;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;gap:9px;border:0;border-right:1px solid #cfc9ba;padding:0 16px;background:linear-gradient(90deg,#e5dfd158,#faf9f400);height:100%;min-width:0}
+body[data-design='20'] .a-identity-side{width:100%;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+body[data-design='20'] .a-identity-actions{width:100%;justify-content:flex-start;flex-wrap:wrap}
+body[data-design='20'] .a-local-status{line-height:1.4;overflow-wrap:anywhere}
+body[data-design='20'] .a-identity h1{font-family:var(--display);font-size:23px;font-weight:400;letter-spacing:1px;line-height:1.4}
+body[data-design='20'] .a-identity img,body[data-design='20'] .a-portrait{width:112px;height:132px;object-fit:cover;object-position:50% 22%;border-radius:0;filter:saturate(.55);border:4px solid #f9f7ef;outline:1px solid #cbc2b0;margin:4px 0 8px;flex:none}
+body[data-design='20'] .a-identity p{font-size:10px;line-height:1.65}
+body[data-design='20'] .a-identity small{font-size:9px;letter-spacing:.5px}
+body[data-design='20'] .a-identity>*{max-width:100%}
+body[data-design='20'] .a-resource-strip{grid-area:resources;display:flex;flex-wrap:wrap;border-block:1px solid #bbae94;padding:7px 0;margin:0 0 9px;background:transparent}
+body[data-design='20'] .a-layout{grid-area:layout;display:grid;grid-template-columns:1fr 1.08fr 1fr;gap:8px 17px;grid-template-areas:"attributes attributes senses" "skills actions powers" "skills saves powers" "features inventory training" "status background notes"}
+body[data-design='20'] .a-block{background:transparent;border:0;border-top:1px solid #d1cdc2;border-radius:0;padding:0;box-shadow:none}
+body[data-design='20'] .a-block-head{background:transparent;border:0;padding:5px 0}
+body[data-design='20'] .a-block-head h2{font-family:var(--display);font-size:13px;letter-spacing:.8px;font-weight:400}
+body[data-design='20'] .a-block-body{padding:3px 0 5px}
+body[data-design='20'] .a-count{font-family:Georgia,serif;background:transparent;border:0;color:#a0927b;font-style:italic}
+body[data-design='20'] .a-attribute{background:transparent;border:0;border-right:1px solid #dfd9cb;border-radius:0}
+body[data-design='20'] .a-attribute strong{font-family:Georgia,serif;font-weight:400;color:#6a624e}
+body[data-design='20'] .a-row,body[data-design='20'] .a-skill{border-bottom:1px dotted #ddd6c8}
+body[data-design='20'] .a-footer{grid-area:footer;border-top:1px solid #bbae94;font-size:9px;margin-top:7px}
+
+/* Compact summary views retain every section; expanded lists use natural document height. */
+body:is([data-design='11'],[data-design='12'],[data-design='13'],[data-design='14'],[data-design='15'],[data-design='16'],[data-design='17'],[data-design='18'],[data-design='19'],[data-design='20'])[data-density='summary'] .a-layout{font-size:11px;line-height:1.35;align-items:stretch}
+body:is([data-design='11'],[data-design='12'],[data-design='13'],[data-design='14'],[data-design='15'],[data-design='16'],[data-design='17'],[data-design='18'],[data-design='19'],[data-design='20']) .a-block{min-width:0}
+body:is([data-design='11'],[data-design='12'],[data-design='13'],[data-design='14'],[data-design='15'],[data-design='16'],[data-design='17'],[data-design='18'],[data-design='19'],[data-design='20'])[data-density='open'] .a-layout{align-items:start}
+@media(max-width:1100px) and (min-width:901px){body[data-design='20'] .a-shell{grid-template-columns:137px minmax(0,1fr);gap:0 13px;padding-right:12px}body[data-design='20'] .a-identity{padding-inline:11px}body[data-design='20'] .a-identity img,body[data-design='20'] .a-portrait{width:100px;height:123px}body[data-design='20'] .a-layout{gap:8px 11px}body[data-design='16'] .a-layout,body[data-design='18'] .a-layout{gap:8px 12px}}
+@media(max-width:900px){body:is([data-design='11'],[data-design='12'],[data-design='13'],[data-design='14'],[data-design='15'],[data-design='16'],[data-design='17'],[data-design='18'],[data-design='19'],[data-design='20']) .a-layout{display:flex;flex-direction:column;gap:12px}body:is([data-design='11'],[data-design='12'],[data-design='13'],[data-design='14'],[data-design='15'],[data-design='16'],[data-design='17'],[data-design='18'],[data-design='19'],[data-design='20']) .a-block{width:100%;box-sizing:border-box}body[data-design='20'] .a-shell{display:block;padding:12px}body[data-design='20'] .a-identity{height:auto;display:flex;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid #cfc9ba;padding:0 0 10px;background:transparent;gap:12px}body[data-design='20'] .a-identity img,body[data-design='20'] .a-portrait{width:62px;height:75px;margin:0}body[data-design='20'] .a-resource-strip{margin-top:9px}body[data-design='20'] .a-identity h1{font-size:23px}body[data-design='16'] .block-attributes .a-attributes,body[data-design='18'] .a-attributes{grid-template-columns:repeat(6,minmax(0,1fr))}body[data-design='16'] .block-powers{padding-left:0;border-left:0}body[data-design='14'] .a-shell,body[data-design='18'] .a-shell{padding:12px}body[data-design='11'] .a-shell{margin-top:10px;box-shadow:none}body[data-design='17'] .a-shell{box-shadow:3px 3px 0 #313b30}}
+@media(max-width:470px){body[data-design='16'] .block-attributes .a-attributes,body[data-design='18'] .a-attributes{grid-template-columns:repeat(3,minmax(0,1fr))}body[data-design='11'] .a-shell,body[data-design='12'] .a-shell,body[data-design='14'] .a-shell,body[data-design='15'] .a-shell,body[data-design='18'] .a-shell{padding-inline:10px}body[data-design='16'] .a-shell{border-left-width:7px;padding-inline:9px}body[data-design='17'] .a-attribute strong{font-size:23px}body[data-design='19'] .a-shell{padding:7px}}

@@ -201,6 +201,9 @@ class AuthManager {
                         card.state = selected.state || [];
                         card.roll = selected.roll || [];
                         card.notes = selected.notes || [];
+                        if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isLive === true) {
+                            card.characterDetails = selected.characterDetails || [];
+                        }
                         card.public = selected.public || false;
                         card.schemaVersion = selected.schemaVersion ?? 1;
                         $('#cardListModal').modal("hide");

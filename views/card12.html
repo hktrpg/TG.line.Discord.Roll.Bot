@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>古帳 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #cfc6b4; color: #2a2118; font: 12px/1.35 "Libre Baskerville", "PMingLiU", serif; }
+        .sheet { width: min(760px, calc(100% - 16px)); margin: 10px auto 20px; background: #f4efe4; padding: 10px 12px 14px; border: 1px solid #2a2118; outline: 3px solid #f4efe4; outline-offset: -6px; }
+        .mast { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px double #2a2118; padding-bottom: 6px; }
+        h1 { margin: 0; font-size: 22px; }
+        img { width: 52px; height: 64px; object-fit: cover; border: 1px solid #2a2118; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        th { text-align: left; font-size: 11px; letter-spacing: 0.14em; border-bottom: 1px solid #2a2118; padding: 2px 4px; }
+        td { border-bottom: 1px solid rgba(42,33,24,0.25); padding: 2px 4px; vertical-align: top; }
+        td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+        .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="sheet">
+        <header class="mast">
+            <div><h1 data-studio="name"></h1><div data-studio="role"></div></div>
+            <img data-studio="image" alt="">
+        </header>
+        <div class="two">
+            <table>
+                <tr><th>數值</th><th></th></tr>
+                <tbody data-studio-list="stats"><template><tr><td data-field="name"></td><td class="n" data-field="value"></td></tr></template></tbody>
+            </table>
+            <table>
+                <tr><th>動作</th><th></th></tr>
+                <tbody data-studio-list="rolls"><template><tr><td data-field="name"></td><td class="n" data-field="value"></td></tr></template></tbody>
+            </table>
+        </div>
+        <table>
+            <tr><th>附記</th><th></th></tr>
+            <tbody data-studio-list="notes"><template><tr><td data-field="name"></td><td data-field="value"></td></tr></template></tbody>
+        </table>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

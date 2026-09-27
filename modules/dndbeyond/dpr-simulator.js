@@ -1,7 +1,7 @@
 "use strict";
 
 const { Random, MersenneTwister19937 } = require("random-js");
-const { rollDie, rollDamageNotation, doubleDiceInDamageNotation } = require("./dice-utils.js");
+const { rollDie, rollDiceNotation, rollDamageNotation, parseD20AttackNotation, doubleDiceInDamageNotation } = require("./dice-utils.js");
 
 const DEFAULT_ITERATIONS = 50_000;
 
@@ -18,22 +18,18 @@ function rollD20Attack(hitNotation, advantage, disadvantage, rng) {
     if (!hitNotation) {
         return { total: 21, natural: 20 };
     }
-    const mod = Number.parseInt(hitNotation.match(/^1d20([+-]\d+)?$/i)?.[1] || "0", 10);
-    const rollOnce = () => {
-        const natural = rollDie(20, rng);
-        return { total: natural + mod, natural };
-    };
+    const parsed = parseD20AttackNotation(hitNotation);
+    if (!parsed) {
+        throw new Error("unsupported attack notation");
+    }
+    let natural = rollDie(20, rng);
     if (advantage && !disadvantage) {
-        const a = rollOnce();
-        const b = rollOnce();
-        return a.total >= b.total ? a : b;
+        natural = Math.max(natural, rollDie(20, rng));
     }
     if (disadvantage && !advantage) {
-        const a = rollOnce();
-        const b = rollOnce();
-        return a.total <= b.total ? a : b;
+        natural = Math.min(natural, rollDie(20, rng));
     }
-    return rollOnce();
+    return { total: natural + rollDiceNotation(parsed.bonusNotation, rng), natural };
 }
 
 function resolveHitDamage(spec, attack, targetAc, rng) {
@@ -67,7 +63,7 @@ function simulateAttack(spec, targetAc, iterations = DEFAULT_ITERATIONS, seed) {
         if (spec.hitRoll && attack.natural === 20) {
             crits++;
             hits++;
-        } else if (spec.hitRoll && isHit) {
+        } else if (isHit) {
             hits++;
         }
         if (isHit) {

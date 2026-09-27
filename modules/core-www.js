@@ -1103,6 +1103,39 @@ www.get('/card', async (req, res) => {
     }
     res.sendFile(process.cwd() + '/views/characterCard.html');
 });
+// Interactive visual studies use fictional, browser-local data only.
+www.get(['/card1', '/card2', '/card3', '/card4', '/card5'], async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views/common/card-designs/preview.html'));
+});
+for (const studioPage of ['card6', 'card7', 'card8', 'card9', 'card10', 'card11', 'card12', 'card13', 'card14', 'card15', 'card16', 'card17', 'card18', 'card19', 'card20', 'card21', 'card22', 'card23', 'card24', 'card25', 'cards6', 'cards7', 'cards8', 'cards9', 'cards10', 'cards11', 'cards12', 'cards13', 'cards14', 'cards15', 'cards16', 'cards17', 'cards18', 'cards19', 'cards20', 'cards21', 'cards22', 'cards23', 'cards24', 'cards25']) {
+    www.get('/' + studioPage, async (req, res) => {
+        if (await checkRateLimit('card', req.ip)) {
+            res.status(429).end();
+            return;
+        }
+        res.sendFile(process.cwd() + '/views/' + studioPage + '.html');
+    });
+}
+// Shared, local-only CoC and D&D character-sheet design studies.
+www.get(Array.from({ length: 20 }, (_, index) => `/carda${index + 1}`), async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views/common/carda/index.html'));
+});
+// Authenticated design variants use the same card/socket permissions as /card.
+www.get(Array.from({ length: 20 }, (_, index) => `/cardt${index + 1}`), async (req, res) => {
+    if (await checkRateLimit('card', req.ip)) {
+        res.status(429).end();
+        return;
+    }
+    res.sendFile(path.join(process.cwd(), 'views/common/cardt/index.html'));
+});
 www.get('/publiccard', async (req, res) => {
     if (await checkRateLimit('card', req.ip)) {
         res.status(429).end();

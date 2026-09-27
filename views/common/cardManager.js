@@ -87,6 +87,7 @@ class CardManager {
                 data() {
                     return {
                         id: "",
+                        _id: "",
                         name: "",
                         image: "",
                         state: [],
@@ -196,7 +197,8 @@ class CardManager {
                                 return !!(u && p);
                             } catch { return false; }
                         })();
-                        if ((isTestPage || !hasCredentials) && !this.isPublic) {
+                        const isLiveDesign = typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isLive === true;
+                        if ((isTestPage || !hasCredentials) && !this.isPublic && !isLiveDesign) {
                             this.loadTestData();
                         } else {
                             debugLog('User has credentials, starting with clean state', 'info');
@@ -1168,6 +1170,7 @@ class CardManager {
                     // 含吾是示範置頂的清單，避免重複
                     listWithTest() {
                         const base = Array.isArray(this.list) ? this.list : [];
+                        if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isLive === true) return base;
                         if (cardManager.isPublic) {
                             return base;
                         }
@@ -1227,6 +1230,9 @@ class CardManager {
                             cardManager.card.state = item.state;
                             cardManager.card.roll = item.roll;
                             cardManager.card.notes = item.notes;
+                            if (typeof PAGE_CONFIG !== 'undefined' && PAGE_CONFIG.isLive === true) {
+                                cardManager.card.characterDetails = item.characterDetails || [];
+                            }
                             cardManager.card.public = item.public;
                             cardManager.card.schemaVersion = item.schemaVersion ?? 1;
 

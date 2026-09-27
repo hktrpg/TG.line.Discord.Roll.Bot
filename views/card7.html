@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>筆記 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,460;7..72,650&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: #d7d1c5;
+            color: #243044;
+            font-family: Literata, "PingFang TC", serif;
+        }
+        .sheet {
+            width: min(760px, calc(100% - 24px));
+            margin: 28px auto 64px;
+            min-height: 110vh;
+            padding: 36px 36px 64px 72px;
+            background:
+                radial-gradient(circle at 28px 72px, #c5bfb2 7px, transparent 8px),
+                radial-gradient(circle at 28px 148px, #c5bfb2 7px, transparent 8px),
+                radial-gradient(circle at 28px 224px, #c5bfb2 7px, transparent 8px),
+                repeating-linear-gradient(#f7f1e4, #f7f1e4 31px, #d5e2f0 32px),
+                linear-gradient(90deg, transparent 54px, #e7b7b2 55px, #e7b7b2 57px, transparent 58px),
+                #f7f1e4;
+            box-shadow: 0 18px 40px rgba(40, 32, 20, 0.18);
+        }
+        .mast { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; }
+        h1 { margin: 0; font-size: 42px; font-weight: 650; line-height: 1; }
+        .who { margin: 6px 0 0; font-size: 16px; }
+        img { width: 92px; height: 118px; object-fit: cover; border: 1px solid #243044; transform: rotate(1.5deg); }
+        h2 { margin: 22px 0 0; font-size: 13px; letter-spacing: 0.22em; font-weight: 650; color: #8d3a34; }
+        .row, .roll, .note { display: grid; grid-template-columns: 1fr auto; gap: 16px; min-height: 32px; align-items: end; }
+        .row b, .roll b, .note b { font-weight: 650; }
+        .note { grid-template-columns: 88px 1fr; align-items: start; padding-top: 6px; }
+        .note span { line-height: 32px; }
+        @media (max-width: 640px) {
+            .sheet { padding-left: 48px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="sheet">
+        <header class="mast">
+            <div>
+                <h1 data-studio="name"></h1>
+                <p class="who"><span data-studio="role"></span> · <span data-studio="trait"></span></p>
+            </div>
+            <img data-studio="image" alt="">
+        </header>
+        <h2>數值</h2>
+        <div data-studio-list="stats">
+            <template>
+                <div class="row"><b data-field="name"></b><span data-field="value"></span></div>
+            </template>
+        </div>
+        <h2>擲骰</h2>
+        <div data-studio-list="rolls">
+            <template>
+                <div class="roll"><b data-field="name"></b><span data-field="value"></span></div>
+            </template>
+        </div>
+        <h2>頁邊</h2>
+        <div data-studio-list="notes">
+            <template>
+                <p class="note"><b data-field="name"></b><span data-field="value"></span></p>
+            </template>
+        </div>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

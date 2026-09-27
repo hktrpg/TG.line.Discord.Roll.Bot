@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="840" viewBox="0 0 600 840" role="img" aria-labelledby="title desc">
+<title id="title">雨夜中的調查員</title><desc id="desc">一位戴圓眼鏡和軟呢帽的調查員，手持筆記與提燈，穿過一九三零年代雨霧籠罩的城市。</desc>
+<defs>
+ <linearGradient id="ibg" x1="0" x2="1" y2="1"><stop stop-color="#1c3035"/><stop offset=".45" stop-color="#4b5655"/><stop offset="1" stop-color="#13252b"/></linearGradient>
+ <radialGradient id="ifog"><stop stop-color="#c4bd9f" stop-opacity=".43"/><stop offset="1" stop-color="#abb6a4" stop-opacity="0"/></radialGradient>
+ <linearGradient id="icoat" x1="0" x2="1" y2="1"><stop stop-color="#a19b84"/><stop offset=".38" stop-color="#7f7e6e"/><stop offset=".72" stop-color="#515b54"/><stop offset="1" stop-color="#2d4142"/></linearGradient>
+ <linearGradient id="ilapel" x1="0" x2="1" y2="1"><stop stop-color="#beb39a"/><stop offset=".4" stop-color="#92907b"/><stop offset="1" stop-color="#5b655b"/></linearGradient>
+ <linearGradient id="iface" x1="0" x2="1" y2=".3"><stop stop-color="#8f8a78"/><stop offset=".27" stop-color="#c8b89a"/><stop offset=".58" stop-color="#e0c5a0"/><stop offset="1" stop-color="#a69073"/></linearGradient>
+ <linearGradient id="ihat" x1=".3" y1="0" x2=".8" y2="1"><stop stop-color="#53605b"/><stop offset=".55" stop-color="#374848"/><stop offset="1" stop-color="#172d32"/></linearGradient>
+ <linearGradient id="igold" x1="0" x2="1" y2="1"><stop stop-color="#d9bd7f"/><stop offset=".5" stop-color="#a18352"/><stop offset="1" stop-color="#554f37"/></linearGradient>
+ <radialGradient id="ilight"><stop stop-color="#fff0b4" stop-opacity=".65"/><stop offset=".23" stop-color="#e8b968" stop-opacity=".32"/><stop offset="1" stop-color="#c49c5b" stop-opacity="0"/></radialGradient>
+ <linearGradient id="iglass" x2="0" y2="1"><stop stop-color="#f6d58d" stop-opacity=".6"/><stop offset=".5" stop-color="#ffedaf" stop-opacity=".9"/><stop offset="1" stop-color="#bd7e39" stop-opacity=".5"/></linearGradient>
+ <linearGradient id="ifade" x2="0" y2="1"><stop offset=".75" stop-color="#10262c" stop-opacity="0"/><stop offset="1" stop-color="#10262c" stop-opacity=".8"/></linearGradient>
+ <pattern id="irain" width="75" height="131" patternUnits="userSpaceOnUse"><path d="M20 3l-9 40m41 30l-6 28m30-42l-6 27" stroke="#c0cfbd" stroke-width=".65" opacity=".16"/></pattern>
+ <pattern id="itweed" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 2l4 2 4-2M0 6l4 2 4-2" fill="none" stroke="#dfd0a6" stroke-opacity=".08" stroke-width=".7"/></pattern>
+</defs>
+<path fill="url(#ibg)" d="M0 0h600v840H0z"/>
+<ellipse cx="284" cy="248" rx="290" ry="290" fill="url(#ifog)"/>
+<!-- Rain-softened architecture, fire escapes and reflected lights. -->
+<g fill="#1a3036" opacity=".67"><path d="M0 127h71v-22h23v508H0z"/><path d="M100 231h64v-52h21v449h-85z"/><path d="M430 94h107v30h24v527H430z"/><path d="M567 234h33v469h-33z"/></g>
+<path d="M437 108h95M435 143h104M434 180h105M4 153h79M1 199h82" stroke="#829087" opacity=".3" stroke-width="2"/>
+<g fill="#a9a68a" opacity=".29"><path d="M17 224h15v31H17zm34 0h15v31H51zM17 286h15v31H17zm34 0h15v31H51zM17 348h15v31H17zm34 0h15v31H51zM17 410h15v31H17zm34 0h15v31H51zM446 216h18v36h-18zm45 0h18v36h-18zm-45 66h18v36h-18zm45 0h18v36h-18zm-45 66h18v36h-18zm45 0h18v36h-18zm-45 66h18v36h-18zm45 0h18v36h-18z"/></g>
+<g fill="none" stroke="#293f42" stroke-width="3" opacity=".8"><path d="M422 250h125v12H422zm0 90h125v12H422zm0 90h125v12H422zM442 264l64 76m-64 14l64 76"/><path d="M427 241v9m20-9v9m20-9v9m20-9v9m20-9v9m20-9v9" stroke-width="1"/></g>
+<path d="M0 630l236-69h129l235 82v197H0z" fill="#213b40"/>
+<path d="M275 565L116 840m222-275l178 275M0 706h600M0 782h600" stroke="#92977c" opacity=".18"/>
+<path d="M44 537l-9 130 32-4-7-126m445 4l-22 158h41l-2-158" stroke="#c3b58c" stroke-width="12" opacity=".13"/>
+<path d="M78 526V302m0 2l-17-22h34l-17 22m-12-23v-35h24v35z" fill="#233b3f" stroke="#7f8f81" stroke-width="2"/>
+<path d="M68 252h20v23H68z" fill="#dbc590" opacity=".8"/>
+<circle cx="78" cy="263" r="76" fill="url(#ilight)" opacity=".38"/>
+<path fill="url(#irain)" d="M0 0h600v840H0z"/>
+<!-- Shoulder silhouette, suit and raincoat. -->
+<path d="M224 324c-38 7-87 25-102 73-22 68-27 209-25 327L87 840h427l-19-177c-2-114-13-226-32-266-23-47-66-57-110-68z" fill="#283f40" stroke="#23363a" stroke-width="3"/>
+<path d="M226 326c-43 8-78 23-97 72-22 55-29 183-29 298L88 840h195l22-432z" fill="url(#icoat)"/>
+<path d="M350 329c53 6 89 30 108 70 24 59 35 181 34 294l20 147H300l-3-429z" fill="url(#icoat)"/>
+<path d="M147 401c-8 78-17 204-23 381m318-365c17 107 23 220 24 360" fill="none" stroke="#d6c7a7" stroke-width="2" opacity=".18"/>
+<path d="M223 331l-32 139 76 179 80-6 50-168-41-142z" fill="#283b3c"/>
+<path d="M264 328l-23 62 66 126 43-125-28-63z" fill="#c8c3ac"/>
+<path d="M265 334l36 33-29 40-33-19zm54-2l-18 35 23 39 28-27z" fill="#e2d5b8" stroke="#a49e86" stroke-width="1.5"/>
+<path d="M295 370l19 1 9 31-18 22-21-23z" fill="#685044"/><path d="M305 416l-21 82 18 37 20-38-12-80z" fill="#60493f"/>
+<path d="M288 443l23 10m-28 14l34 15" stroke="#a48b65" stroke-width="4" opacity=".5"/>
+<path d="M222 333l-35 80 45 11-35 34 91 155-34-203z" fill="url(#ilapel)" stroke="#45584f" stroke-width="2"/>
+<path d="M359 335l42 81-47 8 28 39-74 151 31-204z" fill="url(#ilapel)" stroke="#45584f" stroke-width="2"/>
+<path d="M218 353l-24 55 47 10-36 40 73 130m76-233l36 54-47 10 28 43-52 110" fill="none" stroke="#dac9a6" stroke-width="1" opacity=".48"/>
+<path d="M152 374l56-16 6 17-57 16zm231-16l49 15-6 18-47-19z" fill="#a09a80" stroke="#4c6056" stroke-width="1.5"/>
+<circle cx="199" cy="371" r="4" fill="#4b5547"/><circle cx="387" cy="370" r="4" fill="#4b5547"/>
+<path d="M364 497l56 9-3 8-55-8z" fill="#394c45"/><path d="M375 488l9-21 14 22 4-20 10 35-41-5z" fill="#b3ad91"/>
+<!-- Neck and dignified, weathered face. -->
+<path d="M268 284l-6 54 37 29 29-31-7-50z" fill="url(#iface)"/>
+<path d="M267 290l56-2 2 34c-17 19-38 13-61-6z" fill="#796f5a" opacity=".48"/>
+<path d="M243 211c-7 26-4 63 4 83 9 23 28 42 49 43 24 0 47-23 55-51 6-22 5-55-1-74l-52-33z" fill="url(#iface)"/>
+<path d="M241 244c-17-7-17 14-8 30l12 4m108-37c15-8 17 10 8 28l-9 8" fill="url(#iface)" stroke="#817e69" stroke-width="1.4"/>
+<path d="M243 218l3 52 8-8 1-43zm102-2l-5 45 9 9 7-51z" fill="#424c42"/>
+<path d="M250 215c19-12 51-16 96-3l2 14c-33-8-64-6-96 6z" fill="#8a8c74" opacity=".56"/>
+<path d="M255 269c3 31 15 48 33 59l-15-36zm82-2c-1 28-10 46-25 62l9-38z" fill="#9e9176" opacity=".43"/>
+<path d="M255 242c8-5 19-5 28-2m26 0c9-6 19-6 27-2" fill="none" stroke="#515a4c" stroke-width="3" stroke-linecap="round"/>
+<path d="M257 253c7-4 15-4 22-1m32-1c7-5 16-5 23-2" fill="none" stroke="#4a5245" stroke-width="2" stroke-linecap="round"/>
+<circle cx="270" cy="253" r="2.9" fill="#3a5149"/><circle cx="323" cy="251" r="2.9" fill="#3a5149"/>
+<path d="M295 252l-5 31 7 3m-12 1c7 3 15 3 22-1" fill="none" stroke="#9b8268" stroke-width="1.8" stroke-linecap="round"/>
+<path d="M280 302c12 4 25 3 37-2m-31 11c8 2 14 1 22-1" fill="none" stroke="#876f5c" stroke-width="1.6" stroke-linecap="round"/>
+<path d="M281 286l-7 11m39-13l9 11M250 264l11 9m75-12l-10 10" fill="none" stroke="#9b876d" stroke-width="1.1" opacity=".8"/>
+<g fill="none" stroke="#374947" stroke-width="2.7"><circle cx="269" cy="254" r="19"/><circle cx="325" cy="252" r="19"/><path d="M288 251c6-6 11-6 18-1m-56 1l-11-7m105 6l10-10"/></g>
+<path d="M257 244l13-6m43 6l14-6" stroke="#e7e0c3" stroke-width="2" opacity=".45"/>
+<!-- Felt fedora with weathered ribbon. -->
+<path d="M224 211l10-69c5-18 16-28 34-27l29 8 40-12c15-2 24 7 29 23l16 77z" fill="url(#ihat)" stroke="#253b3c" stroke-width="2"/>
+<path d="M247 135c17-5 28 13 47 15 24 2 38-25 54-19l-8 30c-14 9-26 17-42 16-19-1-35-12-51-10z" fill="#243b3d" opacity=".74"/>
+<path d="M236 158l-5 39c49 15 98 14 142-2l-7-39 12 52c-52 20-103 19-154 2z" fill="#607064" opacity=".34"/>
+<path d="M228 191c51 18 100 16 146-1l5 27c-45 17-96 18-155-2z" fill="#152d33"/>
+<path d="M225 207c-29-1-51 5-56 12 15 13 63 23 119 24 63 0 110-16 127-29-9-8-23-11-37-10-52 16-103 17-153 3z" fill="url(#ihat)" stroke="#263e3e" stroke-width="2"/>
+<path d="M176 220c70 23 173 23 227-5" fill="none" stroke="#8c9580" stroke-width="1.5" opacity=".5"/>
+<path d="M352 194l12 24-17 6-8-26z" fill="#42554e"/><path d="M352 200l6 15-11 3" fill="none" stroke="#75816b" stroke-width="1"/>
+<!-- Notebook held close to chest. -->
+<path d="M158 469c-26 43-38 83-31 121 4 33 33 53 66 47l81-38-18-46-69 22 18-74z" fill="url(#icoat)" stroke="#47584e" stroke-width="2"/>
+<path d="M135 570c3 28 9 41 22 45m-12-57l15 39" fill="none" stroke="#cec1a0" stroke-width="2" opacity=".3"/>
+<path d="M202 552l33-17 30 69-34 15z" fill="#8b8d76" stroke="#43564a" stroke-width="2"/><path d="M210 549l29 65" stroke="#c3b896" stroke-width="1.5"/><circle cx="225" cy="589" r="4.7" fill="#394c42"/>
+<g transform="rotate(-13 288 520)"><path d="M246 432h100v166H246z" fill="#1f3536" stroke="#b2a47d" stroke-width="2"/><path d="M255 433h86v164h-86z" fill="#45564b"/><path d="M266 442h64v143h-64z" fill="none" stroke="#a59e77" stroke-width="1"/><path d="M253 437v156" stroke="#afa07b" stroke-width="2"/><path d="M274 460h47m-47 6h31" stroke="#9a9873" opacity=".35"/><path d="M326 432v174l-6-7-5 9V432" fill="#96754f"/></g>
+<path d="M250 538c14-4 31-3 40 6l19 29c3 9-5 14-11 9l-14-14 9 20c1 8-7 11-12 4l-11-16 5 18c1 8-7 10-12 4l-13-22-14-11z" fill="url(#iface)" stroke="#8e8268" stroke-width="1.5"/>
+<path d="M251 546l20 6 19 22m-44-18l18 7 15 19" fill="none" stroke="#9c886d" stroke-width="1.6" stroke-linecap="round"/>
+<!-- Lantern hand, sleeve and warm reflected light. -->
+<path d="M419 472c21 34 34 76 31 113l-18 89-48-9 6-83-18-77z" fill="url(#icoat)" stroke="#41564d" stroke-width="2"/>
+<path d="M385 641l52 9-6 35-51-12z" fill="#91907a" stroke="#43574d" stroke-width="2"/><circle cx="422" cy="663" r="4.4" fill="#3b4b40"/>
+<path d="M391 675c-9 6-10 19-4 29l3 21 22 8 16-14-2-27-10-13z" fill="url(#iface)" stroke="#8e8169" stroke-width="1.5"/>
+<path d="M391 696l23 4m-23 5l24 4m-22 4l19 4" fill="none" stroke="#9d866b" stroke-width="1.6" stroke-linecap="round"/>
+<ellipse cx="411" cy="747" rx="155" ry="167" fill="url(#ilight)"/>
+<path d="M394 723c-7-51 34-50 33 0" fill="none" stroke="#382e22" stroke-width="6"/><path d="M394 723c-7-51 34-50 33 0" fill="none" stroke="url(#igold)" stroke-width="3"/>
+<path d="M385 720h53l8 15-70 1z" fill="url(#igold)" stroke="#4f4932" stroke-width="2"/>
+<path d="M380 735h61l-3 66h-54z" fill="url(#iglass)" stroke="#a58a55" stroke-width="2"/>
+<path d="M384 742l2 49m48-49l-2 49" stroke="#fff2c0" stroke-width="1.5" opacity=".7"/>
+<path d="M376 733l6 73m63-73l-7 73" stroke="#5e5739" stroke-width="5"/>
+<path d="M379 800h64l5 14h-75z" fill="url(#igold)" stroke="#514a30" stroke-width="2"/>
+<path d="M409 791c-13-12-8-23 1-38-2 12 11 20 9 28-1 6-4 9-10 10z" fill="#fff4c0"/><path d="M409 791c-4-6-4-10 2-18 1 8 7 12-2 18z" fill="#fffce8"/>
+<path d="M400 792h22v5h-22z" fill="#8e703b"/>
+<!-- Buttons, belt and detective's watch chain. -->
+<path d="M193 654c48 9 112 13 183 0l-1 26c-65 14-128 13-184 0z" fill="#747664" stroke="#4e5b4b" stroke-width="1.5"/>
+<path d="M284 654h35v29h-35z" fill="none" stroke="url(#igold)" stroke-width="4"/><path d="M302 667h20" stroke="#b9a474" stroke-width="2"/>
+<g fill="#33463e" stroke="#a3a182" stroke-width="1.3"><circle cx="268" cy="555" r="5.5"/><circle cx="318" cy="617" r="5.5"/><circle cx="315" cy="727" r="5.5"/><circle cx="266" cy="729" r="5.5"/><circle cx="314" cy="793" r="5.5"/><circle cx="264" cy="795" r="5.5"/></g>
+<path d="M351 516c19 58 2 99-29 104" fill="none" stroke="#bea16a" stroke-width="1.6" stroke-dasharray="2 2"/>
+<path d="M175 708l73 12-2 12-75-12m169-8l44-4" fill="none" stroke="#344b41" stroke-width="4"/>
+<path d="M130 695l-12 145h383l-19-146" fill="url(#itweed)" opacity=".7"/>
+<path d="M110 371c54-36 88-40 115-44m138 5c26 4 52 12 81 32" fill="none" stroke="#d1c3a2" stroke-width="1" opacity=".4"/>
+<path fill="url(#ifade)" d="M0 0h600v840H0z"/>
+<path d="M21 635l-13 61m544-421l-10 45m-374-195l-8 37m290 293l-5 27M47 37l-11 53m529 539l-11 53" stroke="#d0d5bd" opacity=".24" stroke-width="1"/>
+</svg>

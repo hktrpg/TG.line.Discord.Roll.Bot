@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>格線 — 角色卡試看</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { margin: 0; background: #eef1f4; color: #1a1d23; font: 12px/1.3 ui-sans-serif, "Segoe UI", "PingFang TC", sans-serif; }
+        .sheet { width: min(820px, calc(100% - 12px)); margin: 8px auto 16px; background: #fff; border: 1px solid #c5ced6; }
+        .who { display: flex; gap: 8px; align-items: center; padding: 6px 8px; background: #1f2933; color: #fff; }
+        img { width: 32px; height: 32px; object-fit: cover; }
+        h1 { margin: 0; font-size: 14px; }
+        .who p { margin: 0; font-size: 11px; color: #c5d0da; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #d5dee6; padding: 3px 6px; text-align: left; }
+        th { background: #f4f7fa; font-size: 11px; font-weight: 650; }
+        td.k { width: 52px; color: #5c6b7a; }
+        td.n { width: 88px; text-align: right; font-variant-numeric: tabular-nums; }
+        caption { caption-side: bottom; text-align: left; color: #6b7785; padding: 4px 6px; }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <article class="sheet">
+        <header class="who">
+            <img data-studio="image" alt="">
+            <div><h1 data-studio="name"></h1><p data-studio="role"></p></div>
+        </header>
+        <table>
+            <thead><tr><th>類</th><th>名稱</th><th>現在</th><th>上限</th></tr></thead>
+            <tbody data-studio-list="stats">
+                <template><tr><td class="k">數值</td><td data-field="name"></td><td class="n" data-field="a"></td><td class="n" data-field="b"></td></tr></template>
+            </tbody>
+            <tbody data-studio-list="rolls">
+                <template><tr><td class="k">動作</td><td data-field="name"></td><td class="n" data-field="value"></td><td class="n"></td></tr></template>
+            </tbody>
+            <tbody data-studio-list="notes">
+                <template><tr><td class="k">筆記</td><td data-field="name"></td><td colspan="2" data-field="value"></td></tr></template>
+            </tbody>
+        </table>
+    </article>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

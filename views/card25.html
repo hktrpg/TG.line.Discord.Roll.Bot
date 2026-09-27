@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>靈魂之境 — 一屏</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500&family=Noto+Serif+TC:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0; min-height: 100dvh; overflow: auto; display: flex; flex-direction: column;
+            background: #0a1918; color: #dce5d8; font: 12px/1.35 Georgia, "Noto Serif TC", serif;
+        }
+        .world {
+            flex: 1; display: grid; grid-template-rows: auto auto auto;
+            background: radial-gradient(ellipse at 22% 30%, rgba(68, 108, 91, 0.35), transparent 42%), linear-gradient(120deg, #071716, #152622 60%, #0b1819);
+        }
+        .bar { display: flex; align-items: center; gap: 12px; margin: 0 16px; min-height: 36px; border-bottom: 1px solid rgba(190, 179, 139, 0.2); }
+        .mark { letter-spacing: 0.2em; color: #d8c796; }
+        .mark small { display: block; font: 8px/1.2 Arial, sans-serif; letter-spacing: 0.16em; color: #90a49b; }
+        .where { margin-left: auto; letter-spacing: 0.12em; color: #8eaaa1; font-size: 11px; }
+        .stage { min-height: 0; display: grid; grid-template-columns: minmax(280px, 1fr) minmax(280px, 0.9fr); }
+        .portrait { position: relative; min-height: 320px; overflow: hidden; }
+        .portrait img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 18%;
+            filter: saturate(0.7) brightness(0.82); mask-image: linear-gradient(#000 0%, #000 70%, transparent 98%);
+        }
+        .halo { position: absolute; width: 220px; height: 220px; left: 18%; top: 12%; border-radius: 50%; border: 1px solid rgba(194, 181, 122, 0.28); }
+        .float { position: absolute; color: #e9e5d1; letter-spacing: 0.12em; font-size: 10px; text-shadow: 0 2px 10px #061714; }
+        .float strong { display: block; font-size: 22px; font-weight: 400; color: #e9e5d1; letter-spacing: 0; }
+        .f1 { left: 8%; top: 28%; } .f2 { right: 10%; top: 36%; } .f3 { left: 12%; bottom: 28%; }
+        .id { position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; text-shadow: 0 2px 16px #081914; }
+        .id p { margin: 0; letter-spacing: 0.2em; color: #bdb28f; font-size: 11px; }
+        .id h1 { margin: 4px 0; font-weight: 400; font-size: 32px; letter-spacing: 0.28em; color: #f2edde; }
+        .id small { font-family: Cinzel, serif; letter-spacing: 0.28em; color: #b7a67e; }
+        .detail { min-height: 0; border-left: 1px solid rgba(154, 167, 137, 0.12); padding: 10px 16px; display: flex; flex-direction: column; }
+        .chap { margin: 0; font: 9px/1 Arial, sans-serif; letter-spacing: 0.2em; color: #ab9b70; }
+        .detail h2 { margin: 6px 0 8px; font-weight: 400; font-size: 16px; letter-spacing: 0.08em; color: #e0dfce; }
+        .detail h2:after { content: ""; display: block; width: 28px; height: 1px; background: #a99869; margin-top: 6px; }
+        .skills { display: grid; grid-template-columns: 1fr 1fr; }
+        .skills div { display: flex; justify-content: space-between; gap: 6px; padding: 5px 8px 5px 0; border-bottom: 1px solid rgba(174, 186, 156, 0.12); }
+        .skills span { color: #c9b486; }
+        .notes { margin-top: 8px; }
+        .notes div { padding: 4px 0; border-bottom: 1px solid rgba(174, 186, 156, 0.12); color: #a9bdb0; }
+        .notes b { color: #cabe99; margin-right: 8px; font-weight: 400; }
+        .dock { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0 16px; padding: 6px 0 8px; border-top: 1px solid rgba(190, 179, 139, 0.2); }
+        .dock b { font-size: 10px; letter-spacing: 0.14em; color: #cabe99; font-weight: 400; }
+        .dock strong { float: right; font-weight: 400; color: #e9e5d1; }
+        .track { height: 3px; background: rgba(190, 179, 139, 0.15); margin-top: 3px; }
+        .track i { display: block; height: 100%; background: #c7af77; }
+        @media (max-width: 760px) {
+            body { overflow: auto; height: auto; }
+            .stage, .dock, .skills { grid-template-columns: 1fr; }
+            .portrait { height: 280px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <div class="world">
+        <header class="bar"><div class="mark">靈魂之境<small>THE LIVING CHARACTER</small></div><span class="where">海濱旅館 · 第三號房</span></header>
+        <div class="stage">
+            <section class="portrait">
+                <img data-studio="image" alt="">
+                <div class="halo"></div>
+                <div class="float f1">護甲<strong>0</strong></div>
+                <div class="float f2">移動<strong>8</strong></div>
+                <div class="float f3">幸運<strong>60</strong></div>
+                <div class="id">
+                    <p>✦ <span data-studio="role"></span></p>
+                    <h1 data-studio="name"></h1>
+                    <small>LAM CHIU YE</small>
+                </div>
+            </section>
+            <section class="detail">
+                <p class="chap">INSTINCT</p>
+                <h2>在下一個瞬間，作出選擇。</h2>
+                <div class="skills" data-studio-list="rolls"><template><div><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                <div class="notes" data-studio-list="notes"><template><div><b data-field="name"></b><span data-field="value"></span></div></template></div>
+            </section>
+        </div>
+        <footer class="dock" data-studio-list="stats">
+            <template><div class="bar2"><b data-field="name"></b><strong data-field="value"></strong><div class="track"><i data-field="bar"></i></div></div></template>
+        </footer>
+    </div>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

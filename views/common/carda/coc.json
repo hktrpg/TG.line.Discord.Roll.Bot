@@ -1,0 +1,2003 @@
+{
+  "system": "coc",
+  "name": "達達利亞",
+  "subtitle": "黑幫－馬仔 · 「公子」",
+  "player": "Aelita",
+  "portrait": "/common/card-designs/investigator.svg",
+  "edition": "CoC 7e",
+  "identity": [
+    {
+      "label": "玩家",
+      "value": "Aelita"
+    },
+    {
+      "label": "職業",
+      "value": "黑幫-馬仔"
+    },
+    {
+      "label": "職位",
+      "value": "「公子」"
+    },
+    {
+      "label": "年齡",
+      "value": "18"
+    },
+    {
+      "label": "性別",
+      "value": "男"
+    },
+    {
+      "label": "出生地",
+      "value": "俄羅斯"
+    },
+    {
+      "label": "居住地",
+      "value": "日本"
+    },
+    {
+      "label": "學歷",
+      "value": "高中肆業"
+    },
+    {
+      "label": "時代／貨幣",
+      "value": "日本-現代"
+    },
+    {
+      "label": "Pulp 擴充",
+      "value": "不啓用"
+    },
+    {
+      "label": "職業配點屬性",
+      "value": "敏捷／力量"
+    }
+  ],
+  "attributes": [
+    {
+      "key": "STR",
+      "name": "力量",
+      "value": 55,
+      "hard": 27,
+      "extreme": 11
+    },
+    {
+      "key": "DEX",
+      "name": "敏捷",
+      "value": 30,
+      "hard": 15,
+      "extreme": 6
+    },
+    {
+      "key": "POW",
+      "name": "意志",
+      "value": 80,
+      "hard": 40,
+      "extreme": 16
+    },
+    {
+      "key": "CON",
+      "name": "體質",
+      "value": 80,
+      "hard": 40,
+      "extreme": 16
+    },
+    {
+      "key": "APP",
+      "name": "外貌",
+      "value": 35,
+      "hard": 17,
+      "extreme": 7
+    },
+    {
+      "key": "EDU",
+      "name": "教育",
+      "value": 50,
+      "hard": 25,
+      "extreme": 10
+    },
+    {
+      "key": "SIZ",
+      "name": "體型",
+      "value": 70,
+      "hard": 35,
+      "extreme": 14
+    },
+    {
+      "key": "INT",
+      "name": "智力",
+      "value": 55,
+      "hard": 27,
+      "extreme": 11
+    }
+  ],
+  "resources": [
+    {
+      "key": "hp",
+      "label": "HP",
+      "current": 15,
+      "max": 15
+    },
+    {
+      "key": "mp",
+      "label": "MP",
+      "current": 16,
+      "max": 16
+    },
+    {
+      "key": "san",
+      "label": "SAN",
+      "current": 80,
+      "max": 99
+    },
+    {
+      "key": "luck",
+      "label": "幸運",
+      "current": 55,
+      "max": 99
+    }
+  ],
+  "combatStats": [
+    {
+      "label": "MOV",
+      "value": "7"
+    },
+    {
+      "label": "DB",
+      "value": "+1d4"
+    },
+    {
+      "label": "體格",
+      "value": "1"
+    },
+    {
+      "label": "護甲",
+      "value": "1 · 厚重的皮夾克"
+    },
+    {
+      "label": "閃避",
+      "value": "45%"
+    },
+    {
+      "label": "先攻（DEX）",
+      "value": "30"
+    },
+    {
+      "label": "SAN 初始",
+      "value": "80"
+    },
+    {
+      "label": "今日 SAN 損失",
+      "value": "0"
+    },
+    {
+      "label": "單日五分一",
+      "value": "16 · 由 80 降至 64"
+    },
+    {
+      "label": "瘋狂狀態",
+      "value": "無"
+    },
+    {
+      "label": "瘋狂長度",
+      "value": "未提供"
+    },
+    {
+      "label": "瘋狂結果",
+      "value": "無"
+    }
+  ],
+  "skills": [
+    {
+      "name": "心理學",
+      "group": "交際類",
+      "value": 60,
+      "base": 10,
+      "trained": true,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 50,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 30,
+      "extreme": 12,
+      "sourceLine": 32
+    },
+    {
+      "name": "藝術／手藝（美術）",
+      "group": "職業興趣",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 32
+    },
+    {
+      "name": "信譽",
+      "group": "交際類",
+      "value": 20,
+      "base": "9-20",
+      "trained": true,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 20,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 33
+    },
+    {
+      "name": "藝術／手藝（偽造）",
+      "group": "職業興趣",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 33
+    },
+    {
+      "name": "說服",
+      "group": "交際類",
+      "value": 40,
+      "base": 10,
+      "trained": true,
+      "occupation": true,
+      "occupationEligible": true,
+      "occupationMarker": "☆",
+      "occupationPoints": 30,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 20,
+      "extreme": 8,
+      "sourceLine": 34
+    },
+    {
+      "name": "藝術／手藝（表演）",
+      "group": "職業興趣",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 34
+    },
+    {
+      "name": "話術",
+      "group": "交際類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": true,
+      "occupationMarker": "☆",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 35
+    },
+    {
+      "name": "藝術／手藝（攝影）",
+      "group": "職業興趣",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 35
+    },
+    {
+      "name": "恐嚇",
+      "group": "交際類",
+      "value": 15,
+      "base": 15,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": true,
+      "occupationMarker": "☆",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 7,
+      "extreme": 3,
+      "sourceLine": 36
+    },
+    {
+      "name": "取悅",
+      "group": "交際類",
+      "value": 15,
+      "base": 15,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": true,
+      "occupationMarker": "☆",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 7,
+      "extreme": 3,
+      "sourceLine": 37
+    },
+    {
+      "name": "操作重機",
+      "group": "職業興趣",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 38
+    },
+    {
+      "name": "導航",
+      "group": "移動類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 39
+    },
+    {
+      "name": "機械維修",
+      "group": "職業興趣",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 39
+    },
+    {
+      "name": "電器維修",
+      "group": "職業興趣",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 40
+    },
+    {
+      "name": "電腦使用",
+      "group": "職業興趣",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 41
+    },
+    {
+      "name": "跳躍",
+      "group": "移動類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 42
+    },
+    {
+      "name": "動物馴養（罕）",
+      "group": "職業興趣",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 42
+    },
+    {
+      "name": "攀爬",
+      "group": "移動類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 43
+    },
+    {
+      "name": "游泳",
+      "group": "移動類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 78
+    },
+    {
+      "name": "偵查",
+      "group": "調查類",
+      "value": 35,
+      "base": 25,
+      "trained": true,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 10,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 17,
+      "extreme": 7,
+      "sourceLine": 78
+    },
+    {
+      "name": "駕駛（汽車）",
+      "group": "移動類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 79
+    },
+    {
+      "name": "聆聽",
+      "group": "調查類",
+      "value": 70,
+      "base": 20,
+      "trained": true,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 50,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 35,
+      "extreme": 14,
+      "sourceLine": 79
+    },
+    {
+      "name": "圖書館使用",
+      "group": "調查類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 80
+    },
+    {
+      "name": "估價",
+      "group": "調查類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 81
+    },
+    {
+      "name": "潛水",
+      "group": "移動類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 102
+    },
+    {
+      "name": "讀唇",
+      "group": "調查類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 102
+    },
+    {
+      "name": "騎術",
+      "group": "移動類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 103
+    },
+    {
+      "name": "克蘇魯神話",
+      "group": "調查類",
+      "value": 0,
+      "base": 0,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 103
+    },
+    {
+      "name": "潛行",
+      "group": "隱密類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 105
+    },
+    {
+      "name": "閃避",
+      "group": "戰鬥類",
+      "value": 45,
+      "base": 15,
+      "trained": true,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 30,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 22,
+      "extreme": 9,
+      "sourceLine": 105
+    },
+    {
+      "name": "追蹤",
+      "group": "隱密類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 106
+    },
+    {
+      "name": "格鬥（鬥毆）",
+      "group": "戰鬥類",
+      "value": 85,
+      "base": 25,
+      "trained": true,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 60,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 42,
+      "extreme": 17,
+      "sourceLine": 106
+    },
+    {
+      "name": "喬裝",
+      "group": "隱密類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 107
+    },
+    {
+      "name": "格鬥（劍）",
+      "group": "戰鬥類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 107
+    },
+    {
+      "name": "鎖匠",
+      "group": "隱密類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 108
+    },
+    {
+      "name": "格鬥（矛）",
+      "group": "戰鬥類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 108
+    },
+    {
+      "name": "巧手",
+      "group": "隱密類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 109
+    },
+    {
+      "name": "格鬥（斧頭）",
+      "group": "戰鬥類",
+      "value": 15,
+      "base": 15,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 7,
+      "extreme": 3,
+      "sourceLine": 109
+    },
+    {
+      "name": "格鬥（絞殺）",
+      "group": "戰鬥類",
+      "value": 55,
+      "base": 15,
+      "trained": true,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 40,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 27,
+      "extreme": 11,
+      "sourceLine": 110
+    },
+    {
+      "name": "會計",
+      "group": "學問類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 111
+    },
+    {
+      "name": "格鬥（電鋸）",
+      "group": "戰鬥類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 111
+    },
+    {
+      "name": "法律",
+      "group": "學問類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 112
+    },
+    {
+      "name": "格鬥（連枷）",
+      "group": "戰鬥類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 112
+    },
+    {
+      "name": "神秘學",
+      "group": "學問類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 113
+    },
+    {
+      "name": "格鬥（鞭子）",
+      "group": "戰鬥類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 113
+    },
+    {
+      "name": "歷史",
+      "group": "學問類",
+      "value": 5,
+      "base": 5,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 2,
+      "extreme": 1,
+      "sourceLine": 114
+    },
+    {
+      "name": "投擲",
+      "group": "戰鬥類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 114
+    },
+    {
+      "name": "自然學",
+      "group": "學問類",
+      "value": 40,
+      "base": 10,
+      "trained": true,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 30,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 20,
+      "extreme": 8,
+      "sourceLine": 115
+    },
+    {
+      "name": "射擊（弓）",
+      "group": "戰鬥類",
+      "value": 15,
+      "base": 15,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 7,
+      "extreme": 3,
+      "sourceLine": 115
+    },
+    {
+      "name": "人類學",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 116
+    },
+    {
+      "name": "射擊（手槍）",
+      "group": "戰鬥類",
+      "value": 20,
+      "base": 20,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 10,
+      "extreme": 4,
+      "sourceLine": 116
+    },
+    {
+      "name": "考古學",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 117
+    },
+    {
+      "name": "射擊（步槍／霰彈槍）",
+      "group": "戰鬥類",
+      "value": 25,
+      "base": 25,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 12,
+      "extreme": 5,
+      "sourceLine": 117
+    },
+    {
+      "name": "科學（司法科學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 118
+    },
+    {
+      "name": "射擊（衝鋒槍）",
+      "group": "戰鬥類",
+      "value": 15,
+      "base": 15,
+      "trained": false,
+      "occupation": true,
+      "occupationEligible": false,
+      "occupationMarker": "★",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 7,
+      "extreme": 3,
+      "sourceLine": 118
+    },
+    {
+      "name": "科學（數學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 119
+    },
+    {
+      "name": "射擊（機槍）",
+      "group": "戰鬥類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 119
+    },
+    {
+      "name": "科學（動物學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 120
+    },
+    {
+      "name": "射擊（重武器）",
+      "group": "戰鬥類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 120
+    },
+    {
+      "name": "科學（電子學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 121
+    },
+    {
+      "name": "射擊（火焰噴射器）",
+      "group": "戰鬥類",
+      "value": 10,
+      "base": 10,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 5,
+      "extreme": 2,
+      "sourceLine": 121
+    },
+    {
+      "name": "科學（天文學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 122
+    },
+    {
+      "name": "射擊（炮術）",
+      "group": "戰鬥類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 122
+    },
+    {
+      "name": "科學（地質學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 123
+    },
+    {
+      "name": "射擊（爆破）",
+      "group": "戰鬥類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 123
+    },
+    {
+      "name": "科學（生物學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 124
+    },
+    {
+      "name": "科學（物理）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 125
+    },
+    {
+      "name": "精神分析",
+      "group": "醫療類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 125
+    },
+    {
+      "name": "科學（化學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 126
+    },
+    {
+      "name": "急救",
+      "group": "醫療類",
+      "value": 30,
+      "base": 30,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 15,
+      "extreme": 6,
+      "sourceLine": 126
+    },
+    {
+      "name": "科學（密碼學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 127
+    },
+    {
+      "name": "醫學",
+      "group": "醫療類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 127
+    },
+    {
+      "name": "科學（氣象學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 128
+    },
+    {
+      "name": "藥學",
+      "group": "醫療類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 128
+    },
+    {
+      "name": "科學（植物學）",
+      "group": "學問類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 129
+    },
+    {
+      "name": "催眠（特）（罕）",
+      "group": "醫療類",
+      "value": 1,
+      "base": 1,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 0,
+      "extreme": 0,
+      "sourceLine": 129
+    },
+    {
+      "name": "母語（日本語）",
+      "group": "語言",
+      "value": 50,
+      "base": 50,
+      "trained": false,
+      "occupation": false,
+      "occupationEligible": false,
+      "occupationMarker": "—",
+      "occupationPoints": 0,
+      "interestPoints": 0,
+      "growthPoints": 0,
+      "developmentChecked": false,
+      "hard": 25,
+      "extreme": 10,
+      "sourceLine": 133
+    }
+  ],
+  "actions": [
+    {
+      "name": "空手",
+      "type": "attack",
+      "range": "接觸",
+      "hit": 85,
+      "damage": "1d3+1d4",
+      "notes": "所用技能：格鬥（鬥毆）；價格原文：無價（單位未提供）",
+      "uses": "1",
+      "ammo": "-",
+      "malfunction": "-",
+      "skill": "格鬥（鬥毆）",
+      "baseDamage": "1d3",
+      "damageBonus": "1d4",
+      "impale": false,
+      "price": "無價",
+      "sourceLine": 140
+    },
+    {
+      "name": "包皮鐵棍(甩棍、護身短棒)",
+      "type": "attack",
+      "range": "接觸",
+      "hit": 85,
+      "damage": "1d8+1d4",
+      "notes": "所用技能：格鬥（鬥毆）；價格原文：2 / 15（單位未提供）",
+      "uses": "1",
+      "ammo": "-",
+      "malfunction": "-",
+      "skill": "格鬥（鬥毆）",
+      "baseDamage": "1d8",
+      "damageBonus": "1d4",
+      "impale": false,
+      "price": "2 / 15",
+      "sourceLine": 141
+    },
+    {
+      "name": "催淚噴霧",
+      "type": "attack",
+      "range": "6步",
+      "hit": 85,
+      "damage": "眩暈",
+      "notes": "所用技能：格鬥（鬥毆）；價格原文：- / 10（單位未提供）",
+      "uses": "1",
+      "ammo": "25次",
+      "malfunction": "95",
+      "skill": "格鬥（鬥毆）",
+      "baseDamage": "眩暈",
+      "damageBonus": "不加 DB",
+      "impale": false,
+      "price": "- / 10",
+      "sourceLine": 142
+    },
+    {
+      "name": "大型刀具(大砍刀等)",
+      "type": "attack",
+      "range": "接觸",
+      "hit": 85,
+      "damage": "1d8+1d4",
+      "notes": "所用技能：格鬥（鬥毆）；可貫穿；價格原文：4 / 50（單位未提供）",
+      "uses": "1",
+      "ammo": "-",
+      "malfunction": "-",
+      "skill": "格鬥（鬥毆）",
+      "baseDamage": "1d8",
+      "damageBonus": "1d4",
+      "impale": true,
+      "price": "4 / 50",
+      "sourceLine": 143
+    },
+    {
+      "name": "電擊槍（接觸）",
+      "type": "attack",
+      "range": "接觸",
+      "hit": 85,
+      "damage": "1d3+眩暈",
+      "notes": "所用技能：格鬥（鬥毆）；價格原文：- / 200（單位未提供）",
+      "uses": "1",
+      "ammo": "不定",
+      "malfunction": "97",
+      "skill": "格鬥（鬥毆）",
+      "baseDamage": "1d3",
+      "damageBonus": "不加 DB",
+      "impale": false,
+      "price": "- / 200",
+      "sourceLine": 144
+    }
+  ],
+  "features": [
+    {
+      "name": "傳家寶",
+      "category": "煤油燈特徵 2,11",
+      "summary": "金色紋章戒指，相傳曾爲葉卡捷琳娜二世收藏品。",
+      "text": "原表特徵名稱為「傳家寶」，骰表結果 2,11。對應寶物為金色紋章戒指，做成吊墜藏在胸前；特徵的完整規則效果未提供。",
+      "source": "使用者角色表，第 9、28、157 行"
+    },
+    {
+      "name": "18 歲創角調整",
+      "category": "年齡調整",
+      "summary": "SIZ 75 → 70；EDU 已減 5 至 50；幸運兩次取高 55。",
+      "text": "原文要求 STR 或 SIZ 減 5、EDU 減 5、LUK 擲兩次取高。表格選擇 SIZ −5；STR 55 不變。EDU 的開卡欄已是計算後 50，不能再減一次。幸運兩次擲骰分別為 25 與 55。",
+      "source": "使用者角色表，第 3、12、81–101 行"
+    }
+  ],
+  "spells": [],
+  "slots": [],
+  "saves": [],
+  "senses": [
+    {
+      "label": "靈感",
+      "value": "55%"
+    },
+    {
+      "label": "知識",
+      "value": "50%"
+    },
+    {
+      "label": "聆聽",
+      "value": "70%"
+    },
+    {
+      "label": "偵查",
+      "value": "35%"
+    }
+  ],
+  "training": [
+    {
+      "label": "職業點",
+      "value": "210"
+    },
+    {
+      "label": "興趣點",
+      "value": "110"
+    },
+    {
+      "label": "剩餘職業點",
+      "value": "0"
+    },
+    {
+      "label": "剩餘興趣點",
+      "value": "0"
+    },
+    {
+      "label": "總配點",
+      "value": "320"
+    },
+    {
+      "label": "本職技能",
+      "value": "汽車駕駛、格鬥、射擊、心理學；社交任二（取悅、話術、恐嚇、說服）；任意兩項其他個人或時代特長"
+    },
+    {
+      "label": "母語",
+      "value": "日本語 50%"
+    },
+    {
+      "label": "額外技能點",
+      "value": "無"
+    },
+    {
+      "label": "成長配點",
+      "value": "0（已填數值欄）；其他成長欄空白"
+    },
+    {
+      "label": "技能成長勾選",
+      "value": "全部未勾選"
+    }
+  ],
+  "inventory": [
+    {
+      "name": "鋼筆",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "催淚噴霧",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "吹泡糖",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "iphone 15手機",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "電擊槍",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "打火機",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "名貴手錶（道具）",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "菲律賓魔杖",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "金色紋章戒指",
+      "quantity": 1,
+      "detail": "傳家寶；做成吊墜藏在胸前，相傳曾爲葉卡捷琳娜二世收藏品。"
+    },
+    {
+      "name": "撲克牌",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "香菸",
+      "quantity": 1,
+      "detail": "未提供"
+    },
+    {
+      "name": "棒棒糖",
+      "quantity": 1,
+      "detail": "未提供"
+    }
+  ],
+  "wealth": [
+    {
+      "label": "信譽",
+      "value": "20"
+    },
+    {
+      "label": "生活水平",
+      "value": "普通"
+    },
+    {
+      "label": "消費水平",
+      "value": "20,000日元"
+    },
+    {
+      "label": "現金",
+      "value": "80,000日元"
+    },
+    {
+      "label": "資產",
+      "value": "2,000,000日元"
+    },
+    {
+      "label": "資產內容",
+      "value": "隨身攜帶的金色紋章戒指，相傳曾爲葉卡捷琳娜二世收藏品"
+    },
+    {
+      "label": "貨幣／時代",
+      "value": "日本-現代"
+    }
+  ],
+  "background": [
+    {
+      "label": "形象描述",
+      "text": "穿着定製西裝，說一口外國口音的日本語。但遇上不禮貌的客人，那就只能用「手語」溝通。"
+    },
+    {
+      "label": "思想/信念",
+      "text": "法律在他眼裡，只是一本如何賺快錢的教科書。世界上唯一有價值的事，就是從富人手上資源再分配，以及保持雙手乾淨——這樣回家時才能毫無顧忌地擁抱家人。"
+    },
+    {
+      "label": "重要之人及理由",
+      "text": "年幼的妹妹（冬妮婭）：在妹妹眼裡，他只是個溫柔、經常寄回大把鈔票和奢侈禮物的完美哥哥。"
+    },
+    {
+      "label": "意義非凡之地",
+      "text": "俄羅斯的家"
+    },
+    {
+      "label": "性格特徵",
+      "text": "戲劇化的戰鬥狂，極度自信，有着戰鬥民族的好勇鬥狠"
+    },
+    {
+      "label": "傷勢及傷痕",
+      "text": "右手發達，是孤獨過度使用某個「神器」增強力量所留下的代價。在夏天也穿長袖襯衫將其遮掩。"
+    },
+    {
+      "label": "恐懼症及狂躁症",
+      "text": "未提供"
+    },
+    {
+      "label": "寶貴之物",
+      "text": "隨身攜帶的金色紋章戒指，做成吊墜藏在胸前"
+    },
+    {
+      "label": "生平故事",
+      "text": "俄日混血，從小就是個不知恐懼為何物的叛逆孩子。14歲那年跟隨父親到日本生活。不能適應日本社會，憑着魁梧的身形被日本黑幫相中，在地下賭場「接待」所有不請自來的貴客。"
+    },
+    {
+      "label": "特徵1",
+      "text": "傳家寶"
+    },
+    {
+      "label": "特徵2",
+      "text": "未提供"
+    },
+    {
+      "label": "學歷",
+      "text": "高中肆業"
+    },
+    {
+      "label": "心靈支柱",
+      "text": "重要之人"
+    },
+    {
+      "label": "魔法典籍、咒文及魔法物品",
+      "text": "未提供"
+    },
+    {
+      "label": "遭遇的奇異事物",
+      "text": "未提供"
+    },
+    {
+      "label": "神話相信者",
+      "text": "否（原表 FALSE）"
+    },
+    {
+      "label": "所屬組織",
+      "text": "未提供"
+    }
+  ],
+  "notes": [
+    {
+      "title": "職業備忘（原文）",
+      "text": "黑幫可能是整個城市、一部分城市的大佬, 也可能只是給這些大佬打工的馬仔。馬仔們通常 有自己的保護範圍,比如監管非法運輸和收取保 護費等等。老闆總管業務,負責交易,並要就各 種各樣的問題給馬仔們拿主意。更重要的是,老 板可以各種高人一等,只要能找到馬仔或者小弟 去幹的事,他基本是不肯污了自己的手去做的。\n黑社會在 1920 年代上升為突出的社會問題。本來僅限於在本地收收保護費和管管賭場的外國 裔黑幫,不約而同地發現了販賣私酒帶來的巨大 利潤。沒過多久,他們就掌控了城市的大片區域, 並在街上和其他黑幫火併。雖然大部分黑幫是按 來源的民族劃分——如愛爾蘭裔、意大利裔、非 洲裔和猶太裔,黑幫的成員仍然可能是任何民族。\n如今,販毒則取代其他,成為多數黑幫中來 錢最快的犯罪門路。和 1920 年代前輩的工作方法 類似,現在的黑幫老大也需要大量的小弟來負責 保衛、推廣、在街道裡推行自己的業務。\n除去販私酒和販毒以外,賣淫、保護、賭博、 腐敗等等都是這些犯罪組織的業務範圍。\n推薦關系人:街頭罪犯，警察，企業，同民族的代表。\n本職技能：汽車駕駛，格鬥，射擊，社交（任二）（取悅、話術、恐嚇、說服），心理學，任意兩項其他個人或時代特長。"
+    },
+    {
+      "title": "創角擲骰與年齡調整（原文）",
+      "text": "調查員年齡設為：18\n=======\n年齡調整：從STR或SIZ中減去5點\n（請自行手動選擇計算）。\nEDU減去5點。LUK骰兩次取高。\n=======\n（以下箭號兩項，減值5點。）\nＳＴＲ：(3+2+6) * 5 = 55 ←（可選）\nＤＥＸ：(3+1+2) * 5 = 30\nＰＯＷ：(4+6+6) * 5 = 80\nＣＯＮ：(6+6+4) * 5 = 80\nＡＰＰ：(2+3+2) * 5 = 35\nＳＩＺ：((3+6)+6) * 5 = 75 ←（可選）\nＩＮＴ：((3+2)+6) * 5 = 55\nＥＤＵ：(((3+2)+6) * 5)-5 = 50\n=======\nＬＵＫ第一次：(2+2+1) * 5 = 25\nＬＵＫ第二次： (3+3+5) * 5 = 55\nＬＵＫ最終值：55\n=======\n煤油燈特徵: 1D6&1D20 → 2,11"
+    },
+    {
+      "title": "配點分類（原表）",
+      "text": "交際 100（31%）；學問＋語言 30（9%）；職業＋移動 0（0%）；調查＋隱密 60（19%）；戰鬥 130（41%）；醫療 0（0%）；總計 320（100%）。"
+    },
+    {
+      "title": "未填技能欄位",
+      "text": "職業興趣：未提供；初始 5、合計 5（來源第 36 行）\n職業興趣：未提供；初始 5、合計 5（來源第 37 行）\n移動類：生存；初始 10、合計 10（來源第 40 行）\n移動類：生存；初始 10、合計 10（來源第 41 行）\n移動類：駕駛；初始 1、合計 1（來源第 80 行）\n移動類：駕駛；初始 1、合計 1（來源第 81 行）\n學問類：未提供；初始 1、合計 1（來源第 130 行）\n學問類：學問；初始 1、合計 1（來源第 131 行）\n自定技能：未提供；初始 1、合計 1（來源第 131 行）\n自定技能：未提供；初始 1、合計 1（來源第 132 行）\n自定技能：未提供；初始 1、合計 1（來源第 133 行）\n語言：語言；初始 1、合計 1（來源第 134 行）\n自定技能：未提供；初始 1、合計 1（來源第 134 行）\n語言：語言；初始 1、合計 1（來源第 135 行）\n自定技能：未提供；初始 1、合計 1（來源第 135 行）"
+    },
+    {
+      "title": "記錄狀態",
+      "text": "重傷、昏迷、瀕死、死亡、倒地、臨時瘋狂、不定性瘋狂：完整 Foundry JSON 均為 false。傷痕文字屬背景，不等同正在承受重傷。"
+    },
+    {
+      "title": "來源缺項",
+      "text": "魔法典籍、咒文、遭遇的奇異事物、第二特徵及恐懼症／狂躁症未提供；空陣列只代表附件沒有列出。"
+    }
+  ],
+  "conditions": [],
+  "conditionOptions": [
+    "重傷",
+    "瀕死",
+    "昏迷",
+    "臨時瘋狂",
+    "不定性瘋狂"
+  ],
+  "sourceNotes": [
+    "使用附件的可見角色欄位及技能合計作主資料，並從第 40 行完整 Foundry JSON 補回人物背景及 12 件物品；沒有讀取或更新正式角色卡。",
+    "體型開卡值 75、年齡調整 −5、最終值 70；CCFOLIA 指令仍寫 75，採用表格最終值與 Foundry 的 70。",
+    "SAN 當前 80、初始 80、上限 99；原表 (64) 與 Foundry oneFifthSanity 16 均保留作當日失去五分一的參考。HKTRPG 匯出 SAN:80/80 是初始值顯示，不採作最高上限。",
+    "MP 採表格及完整 JSON 的 16/16。第 3 行未完成範本片段 MP15/SAN16 與主資料矛盾，未採用。",
+    "幸運當前 55；上限採完整 Foundry 的 99，CCFOLIA 匯出把 max 設為當前 55。兩種來源的不同上限已明示，沒有將 55 說成規則硬上限。",
+    "技能初始值取表格「初始%」，不取 Foundry base（該匯出把最終值放在 base）；★本職、☆職業可選與實際配點分開保留。信譽初始欄原文為 9-20。",
+    "未命名技能及未指定專長不當作已學技能，保留於 unfilledSkillSlots 與筆記；所有具名技能，包括原匯出省略的科學、射擊、格鬥專長，均保留。",
+    "所有武器保留原表命中 85、射程、次數、彈數、故障值及價格。傷害 +dB 明確展開成 +1d4；電擊槍保留 +眩暈。原價格 2 / 15 等的幣別及兩欄定義未提供。",
+    "附件沒有角色專屬圖像；portrait 是既有示意插畫，不是人物外觀的來源證據。沒有提供的魔法、遭遇、第二特徵、恐懼症等標示未提供。",
+    "表格右側標示僅供娛樂的能力分析及背景隨機生成器，未當作玩家已採納背景；學歷採主欄高中肆業，不採生成分析的初中畢業。"
+  ],
+  "unfilledSkillSlots": [
+    {
+      "group": "職業興趣",
+      "name": "未提供",
+      "base": 5,
+      "value": 5,
+      "sourceLine": 36
+    },
+    {
+      "group": "職業興趣",
+      "name": "未提供",
+      "base": 5,
+      "value": 5,
+      "sourceLine": 37
+    },
+    {
+      "group": "移動類",
+      "name": "生存",
+      "base": 10,
+      "value": 10,
+      "sourceLine": 40
+    },
+    {
+      "group": "移動類",
+      "name": "生存",
+      "base": 10,
+      "value": 10,
+      "sourceLine": 41
+    },
+    {
+      "group": "移動類",
+      "name": "駕駛",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 80
+    },
+    {
+      "group": "移動類",
+      "name": "駕駛",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 81
+    },
+    {
+      "group": "學問類",
+      "name": "未提供",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 130
+    },
+    {
+      "group": "學問類",
+      "name": "學問",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 131
+    },
+    {
+      "group": "自定技能",
+      "name": "未提供",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 131
+    },
+    {
+      "group": "自定技能",
+      "name": "未提供",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 132
+    },
+    {
+      "group": "自定技能",
+      "name": "未提供",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 133
+    },
+    {
+      "group": "語言",
+      "name": "語言",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 134
+    },
+    {
+      "group": "自定技能",
+      "name": "未提供",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 134
+    },
+    {
+      "group": "語言",
+      "name": "語言",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 135
+    },
+    {
+      "group": "自定技能",
+      "name": "未提供",
+      "base": 1,
+      "value": 1,
+      "sourceLine": 135
+    }
+  ],
+  "development": {
+    "occupationTotal": 210,
+    "personalTotal": 110,
+    "occupationRemaining": 0,
+    "personalRemaining": 0,
+    "archetype": "未提供",
+    "growth": "未提供"
+  },
+  "sanity": {
+    "initial": 80,
+    "current": 80,
+    "max": 99,
+    "dailyLoss": 0,
+    "oneFifth": 16,
+    "oneFifthThreshold": 64,
+    "mythos": 0
+  },
+  "source": {
+    "type": "user-attachment",
+    "filename": "貼上的文字.txt",
+    "primary": "可見 TSV 最終值及技能合計",
+    "secondary": "第 40 行完整 Foundry JSON"
+  }
+}

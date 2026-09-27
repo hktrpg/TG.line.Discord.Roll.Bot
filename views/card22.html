@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>戰術台 — 一屏</title>
+    <link rel="stylesheet" href="/css/card-studio-nav.css">
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Noto+Sans+TC:wght@400;500;600&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body {
+            margin: 0; min-height: 100dvh; overflow: auto; display: flex; flex-direction: column;
+            background: #14181c; color: #eef0eb;
+            font: 12px/1.3 "Noto Sans TC", sans-serif;
+        }
+        .tac { flex: 1; min-height: 0; display: grid; grid-template-columns: 42px minmax(0, 1fr); }
+        .rail {
+            border-right: 1px solid #343b41; display: flex; flex-direction: column; align-items: center;
+            justify-content: space-between; padding: 10px 0; color: #75818a;
+            font: 8px/1 "Space Grotesk", sans-serif; letter-spacing: 0.16em;
+        }
+        .rail b { font: 500 22px/1 "Barlow Condensed", sans-serif; color: #e7a65b; }
+        .rail span { writing-mode: vertical-rl; }
+        .work {
+            min-height: 0; padding: 8px 14px 10px; display: grid;
+            grid-template-rows: auto auto auto; gap: 8px;
+        }
+        .head { display: flex; justify-content: space-between; align-items: flex-end; }
+        .kicker { margin: 0; font: 9px/1 "Space Grotesk", sans-serif; letter-spacing: 0.14em; color: #89949c; }
+        .kicker i { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #a4b780; margin-right: 6px; }
+        h1 { margin: 4px 0 0; font-size: 26px; font-weight: 600; }
+        h1 span { color: #e7a65b; }
+        .session { text-align: right; }
+        .session strong { display: block; font: 500 20px/1 "Barlow Condensed", sans-serif; letter-spacing: 0.04em; }
+        .session small { color: #89949c; }
+        .who { display: flex; align-items: center; gap: 10px; border-top: 1px solid #343b41; padding-top: 6px; }
+        img { width: 36px; height: 40px; object-fit: cover; object-position: 50% 18%; clip-path: polygon(0 0, 78% 0, 100% 22%, 100% 100%, 0 100%); filter: saturate(0.7); }
+        .who h2 { margin: 0; font-size: 16px; font-weight: 500; }
+        .who p { margin: 2px 0 0; color: #89949c; font-size: 11px; }
+        .cond { margin-left: auto; color: #becbb2; font-size: 11px; }
+        .cond i { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #a4b780; margin-right: 6px; }
+        .band {
+            border-top: 2px solid #e7a65b; border-bottom: 1px solid #343b41;
+            display: grid; grid-template-columns: 1.6fr repeat(4, 0.7fr); min-height: 0;
+        }
+        .bars { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; align-content: center; padding: 6px 12px 6px 0; }
+        .bar b { font-size: 10px; color: #89949c; font-weight: 500; }
+        .nums { float: right; font: 600 22px/1 "Barlow Condensed", sans-serif; }
+        .track { height: 4px; background: #33383d; margin-top: 3px; }
+        .track i { display: block; height: 100%; background: #a4b780; }
+        .bar:nth-child(2) .track i { background: #7da2b1; }
+        .bar:nth-child(3) .track i { background: #e7a65b; }
+        .num { border-left: 1px solid #343b41; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .num span { font-size: 10px; color: #89949c; }
+        .num strong { font: 500 28px/1 "Barlow Condensed", sans-serif; }
+        .cols { min-height: 0; display: grid; grid-template-columns: 1.35fr 0.8fr; gap: 16px; }
+        .cap { display: flex; justify-content: space-between; border-bottom: 1px solid #343b41; padding-bottom: 3px; font-size: 11px; }
+        .cap span { font: 8px/1.4 "Space Grotesk", sans-serif; letter-spacing: 0.12em; color: #89949c; }
+        .row { display: flex; justify-content: space-between; gap: 8px; padding: 3px 0; border-bottom: 1px solid #2a3136; }
+        .row span { font: 500 16px/1.2 "Barlow Condensed", sans-serif; color: #e7a65b; }
+        .feed .row span { font: 12px/1.35 "Noto Sans TC", sans-serif; color: #89949c; }
+        @media (max-width: 760px) {
+            body { overflow: auto; height: auto; }
+            .tac { grid-template-columns: 1fr; }
+            .rail { display: none; }
+            .band, .cols, .bars { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="studio-nav" data-studio-nav></nav>
+    <div class="tac">
+        <aside class="rail"><b>22</b><span>IN THE MOMENT</span></aside>
+        <div class="work">
+            <header class="head">
+                <div>
+                    <p class="kicker"><i></i>READY</p>
+                    <h1>輪到你了<span>。</span></h1>
+                </div>
+                <div class="session"><strong>CoC 7e</strong><small>本機試看</small></div>
+            </header>
+            <div class="who">
+                <img data-studio="image" alt="">
+                <div><h2 data-studio="name"></h2><p><span data-studio="role"></span> · <span data-studio="trait"></span></p></div>
+                <div class="cond"><i></i>保持警覺</div>
+            </div>
+            <div class="band">
+                <div class="bars" data-studio-list="stats">
+                    <template>
+                        <div class="bar"><b data-field="name"></b><span class="nums" data-field="a"></span><div class="track"><i data-field="bar"></i></div></div>
+                    </template>
+                </div>
+                <div class="num"><span>體格</span><strong>1</strong></div>
+                <div class="num"><span>DB</span><strong>+1d4</strong></div>
+                <div class="num"><span>移動</span><strong>8</strong></div>
+                <div class="num"><span>護甲</span><strong>0</strong></div>
+            </div>
+            <div class="cols">
+                <section>
+                    <div class="cap">選擇行動<span>命中 / 效果</span></div>
+                    <div data-studio-list="rolls"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                </section>
+                <aside class="feed">
+                    <div class="cap">現場<span>NOTES</span></div>
+                    <div data-studio-list="notes"><template><div class="row"><b data-field="name"></b><span data-field="value"></span></div></template></div>
+                </aside>
+            </div>
+        </div>
+    </div>
+    <script src="/common/card-studio.js"></script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+body{background:#16141a;color:#ece7df}.cards-tools,.channel{background:#100e14;color:#ece7df}.sheet{display:grid;grid-template-columns:1fr 220px}.who{grid-column:2;grid-row:1/4;flex-direction:column;align-items:stretch}.who img{width:100%;height:220px}.cell{border-bottom:1px solid #333;color:#ece7df}.roll{color:inherit;background:transparent;border:0}

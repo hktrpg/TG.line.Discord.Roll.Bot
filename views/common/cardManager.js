@@ -844,10 +844,7 @@ class CardManager {
                     updateCard() {
                         if (typeof globalThis.updateCard === 'function') {
                             globalThis.updateCard();
-                            // 更新成功後保存原始數據
-                            this.$nextTick(() => {
-                                this.saveOriginalData();
-                            });
+                            // socketManager.handleUpdateCard 只在伺服器確認成功後更新基準資料。
                         } else {
                             console.error('Global updateCard function not found');
                             this.showError(typeof wwwT === 'function' ? wwwT('save_unavailable') : 'Save is not available');

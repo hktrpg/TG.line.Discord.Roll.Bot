@@ -2446,7 +2446,9 @@ if (io) {
         }))
 
         socket.on('updateCard', safeSocketHandler('updateCard', async message => {
-            if (await limitRaterCard(socket.handshake.address)) return;
+            const requestId = typeof message?.requestId === 'string' && /^[a-z0-9.-]{1,64}$/i.test(message.requestId) ? message.requestId : null;
+            const reply = ok => socket.emit('updateCard', requestId ? { ok, requestId } : ok);
+            if (await limitRaterCard(socket.handshake.address)) { reply(false); return; }
 
             try {
                 // 🔒 使用JWT Token驗證
@@ -2457,7 +2459,7 @@ if (io) {
 
                 if (!validation.valid) {
                     console.warn('[Web Server] 🔒 Invalid JWT auth for updateCard:', validation.error);
-                    socket.emit('updateCard', false);
+                    reply(false);
                     return;
                 }
 
@@ -2477,7 +2479,7 @@ if (io) {
                 // 🔒 JWT token已經驗證了用戶身份，不需要密碼驗證
                 if (!doc) {
                     console.warn('[Web Server] 🔒 User not found for updateCard:', userName);
-                    socket.emit('updateCard', false);
+                    reply(false);
                     return;
                 }
 
@@ -2508,7 +2510,7 @@ if (io) {
                     }, message.locale);
                     if (validationError) {
                         console.warn('updateCard validation failed:', validationError);
-                        socket.emit('updateCard', false);
+                        reply(false);
                         return;
                     }
                     const dataFields = cardFieldsForMongoSet(prepared);
@@ -2528,11 +2530,11 @@ if (io) {
                     });
                 }
 
-                socket.emit('updateCard', !!temp);
+                reply(!!temp);
 
             } catch (error) {
                 console.error('[Web Server] 🔒 updateCard error:', error.message);
-                socket.emit('updateCard', false);
+                reply(false);
             }
         }))
 

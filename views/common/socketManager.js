@@ -34,6 +34,10 @@ class SocketManager {
         this.eventHandlers = new Map();
         this.publicListProcessed = false;
         this.publicCardLoadedId = null;
+        this.pendingUpdateCard = null;
+        this.pendingUpdateCardTimer = null;
+        this.updateCardSequence = 0;
+        this.lastHandledUpdateCardRequestId = null;
 
         // Retry management for card list operations
         this.cardListRetryCount = 0;
@@ -60,6 +64,13 @@ class SocketManager {
 
         this.socket.on('disconnect', (reason) => {
             debugLog(`Socket disconnected: ${reason}`, 'warn');
+            if (this.pendingUpdateCard) {
+                clearTimeout(this.pendingUpdateCardTimer);
+                this.pendingUpdateCardTimer = null;
+                this.pendingUpdateCard = null;
+                this.removeLoadingState();
+                uiManager.showError('連線中斷；角色卡儲存未獲確認，草稿仍在頁面。');
+            }
         });
 
         this.socket.on('connect_error', (error) => {
@@ -205,21 +216,40 @@ class SocketManager {
      * @param {boolean} result - 更新結果
      */
     handleUpdateCard(result) {
+        this.lastHandledUpdateCardRequestId = null;
+        const responseId = result && typeof result === 'object' ? result.requestId : null;
+        const submitted = this.pendingUpdateCard;
+        if (responseId && responseId !== submitted?.requestId) return;
+        this.pendingUpdateCard = null;
+        clearTimeout(this.pendingUpdateCardTimer);
+        this.pendingUpdateCardTimer = null;
+        if (!submitted) {
+            this.removeLoadingState();
+            return;
+        }
+        this.lastHandledUpdateCardRequestId = submitted.requestId;
+        const ok = result && typeof result === 'object' ? result.ok === true : result === true;
         debugLog(`Update card result: ${result}`, 'info');
-        if (result === true) {
+        if (ok) {
             uiManager.showPopup(true);
             debugLog('Card updated successfully', 'info');
             
             // 關閉編輯模式
             const card = cardManager.getCard();
-            if (card && card.editMode !== undefined) {
-                card.editMode = false;
-            }
-            if (card && typeof card.saveOriginalData === 'function') {
+            const sameCard = String(card?._id) === submitted.id;
+            if (sameCard && card) {
                 card.schemaVersion = Math.max(Number(card.schemaVersion) || 1, 2);
-                card.saveOriginalData();
-            } else if (card) {
-                card.schemaVersion = Math.max(Number(card.schemaVersion) || 1, 2);
+                const saved = submitted.card;
+                card.originalData = JSON.parse(JSON.stringify({
+                    name: saved.name, image: saved.image, state: saved.state, roll: saved.roll,
+                    notes: saved.notes, characterDetails: saved.characterDetails, public: saved.public,
+                    schemaVersion: card.schemaVersion,
+                }));
+                card.hasUnsavedChanges = typeof card.checkForChanges === 'function' && card.checkForChanges();
+                if (!card.hasUnsavedChanges) {
+                    card.editMode = false;
+                    card.editModeBackup = null;
+                }
             }
             
             // 移除載入狀態
@@ -493,7 +523,21 @@ class SocketManager {
      */
     emitUpdateCard(data) {
         if (this.shouldThrottleRequest('updateCard')) return;
-        this.socket.emit('updateCard', data);
+        if (this.pendingUpdateCard) {
+            uiManager.showInfo('角色卡正在儲存，請稍後再試。');
+            return;
+        }
+        const requestId = `${Date.now().toString(36)}.${++this.updateCardSequence}`;
+        this.pendingUpdateCard = { id: String(data.card._id), card: JSON.parse(JSON.stringify(data.card)), requestId };
+        const submitted = this.pendingUpdateCard;
+        this.pendingUpdateCardTimer = setTimeout(() => {
+            if (this.pendingUpdateCard !== submitted) return;
+            this.pendingUpdateCard = null;
+            this.pendingUpdateCardTimer = null;
+            this.removeLoadingState();
+            uiManager.showError('角色卡儲存未獲確認；草稿仍在頁面，可再試。');
+        }, 30000);
+        this.socket.emit('updateCard', { ...data, requestId });
     }
 
     emitImportCharacterCard(data) {

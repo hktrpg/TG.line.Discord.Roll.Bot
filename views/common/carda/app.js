@@ -9,7 +9,7 @@
     const pathId = Number(location.pathname.match(/^\/card[at](\d+)\/?$/)?.[1] || params.get('design') || 1);
     let id = Number.isInteger(pathId) && pathId >= 1 && pathId <= 20 ? pathId : 1;
     let theme = window.CardaThemes[id];
-    const state = { system: live ? (['coc', 'dnd', 'generic'].includes(params.get('system')) ? params.get('system') : 'generic') : params.get('system') === 'dnd' ? 'dnd' : 'coc', density: params.get('density') === 'open' ? 'open' : 'summary', mode: 'normal', action: 'all', spell: 'all', feature: 'all', activeSection: 'skills', activeGroup: 'core', displayMode: 'single', selectedSections: ['skills'], search: '', history: [] };
+    const state = { system: live ? (['auto', 'coc', 'dnd', 'generic'].includes(params.get('system')) ? params.get('system') : 'auto') : params.get('system') === 'dnd' ? 'dnd' : 'coc', density: params.get('density') === 'open' ? 'open' : 'summary', mode: 'normal', action: 'all', spell: 'all', feature: 'all', activeSection: 'skills', activeGroup: 'core', displayMode: 'single', selectedSections: ['skills'], search: '', history: [] };
     const dataCache = {};
     let data, original, undo = [], toastTimer, loadToken = 0;
     const labels = { attributes: ['屬性', 'ABILITY'], saves: ['豁免', 'SAVES'], senses: ['感官', 'SENSES'], training: ['熟練與語言', 'TRAINING'], skills: ['技能', 'SKILLS'], actions: ['行動與戰鬥', 'ACTIONS'], powers: ['法術', 'SPELLS'], features: ['特性與專長', 'FEATURES'], inventory: ['裝備與財產', 'INVENTORY'], background: ['背景與人物', 'BACKGROUND'], notes: ['筆記與額外資料', 'NOTES'], status: ['防禦與狀態', 'CONDITIONS'] };
@@ -133,14 +133,19 @@
         return `<div class="a-defense">${(data.defenses || []).map(d => `<span>◇ ${esc(d)}</span>`).join('')}</div><div class="a-conditions">${data.conditions.length ? data.conditions.map(c => button(esc(c) + ' ×', 'remove-condition', `data-value="${esc(c)}"`)).join('') : '<span class="a-clear-condition">目前無異常狀態</span>'}${button('+ 狀態', 'conditions')}</div>${state.system === 'dnd' ? `<label class="a-inspiration"><input type="checkbox" data-inspiration ${data.inspiration ? 'checked' : ''}> Heroic Inspiration</label><div class="a-death-saves"><span>死亡豁免</span><span>成功 ${[0, 1, 2].map(i => `<input type="checkbox" data-death="${i}" aria-label="死亡豁免成功 ${i + 1}" ${data.death?.[i] ? 'checked' : ''}>`).join('')}</span><span>失敗 ${[3, 4, 5].map(i => `<input type="checkbox" data-death="${i}" aria-label="死亡豁免失敗 ${i - 2}" ${data.death?.[i] ? 'checked' : ''}>`).join('')}</span></div>` : `<div class="a-small-copy">重傷、瀕死、昏迷及瘋狂狀態由玩家手動記錄。</div>`}${full ? history() : ''}`;
     }
     function history() { return `<div class="a-history"><h3>本次試擲</h3>${state.history.length ? state.history.slice(0, 20).map(r => `<div><strong>${esc(r.name)} <b>${r.value}</b></strong><small>${esc(r.detail)}</small></div>`).join('') : '<p class="a-muted">尚未擲骰。</p>'}</div>`; }
-    const renderers = { attributes, saves, senses, training, skills, actions, powers, features, inventory, background, notes, status };
+    const renderers = { attributes, saves, senses, training, skills, actions, powers, features, inventory, background, notes, status, other: notes };
     if (live) for (const key of Object.keys(renderers)) renderers[key] = full => live.section(key, full, { id, esc, button });
-    function block(key, placeInThemeGrid = false) { if (live && !sectionOrder().includes(key)) return ''; const [title, en] = sectionLabel(key); const placement = placeInThemeGrid ? ` style="grid-area:${key}"` : ''; return `<section class="a-block block-${key} a-block-${id}" data-record-form="${id}"${placement} aria-labelledby="heading-${id}-${key}"><header class="a-block-head"><h2 id="heading-${id}-${key}"><span class="a-section-index">${String(sectionOrder().indexOf(key) + 1).padStart(2, '0')}</span>${title}<small>${en}</small></h2>${total(key) !== undefined ? `<span class="a-count">${total(key)}</span>` : ''}${button('↗', 'expand', `data-section="${key}" aria-label="展開${title}"`)}</header><div class="a-block-body">${renderers[key](state.density === 'open')}</div></section>`; }
+    function block(key, placeInThemeGrid = false) {
+        if (live && !sectionOrder().includes(key)) return '';
+        const [title, en] = sectionLabel(key);
+        const placement = placeInThemeGrid ? ` style="grid-area:${key}"` : '';
+        return `<section class="a-block block-${key} a-block-${id}" data-record-form="${id}" data-section-key="${key}"${placement} aria-labelledby="heading-${id}-${key}"><header class="a-block-head"><h2 id="heading-${id}-${key}"><span class="a-section-index">${String(sectionOrder().indexOf(key) + 1).padStart(2, '0')}</span>${title}<small>${en}</small></h2>${total(key) !== undefined ? `<span class="a-count">${total(key)}</span>` : ''}${button('↗', 'expand', `data-section="${key}" aria-label="展開${title}"`)}</header><div class="a-block-body">${renderers[key](state.density === 'open')}</div></section>`;
+    }
     const sectionGroups = {
         core: ['attributes', 'saves', 'senses', 'status'],
         play: ['actions', 'powers'],
         build: ['skills', 'training'],
-        story: ['features', 'inventory', 'background', 'notes']
+        story: ['features', 'inventory', 'background', 'notes', 'other']
     };
     const viewGroups = () => Object.fromEntries(Object.entries(sectionGroups).map(([key, keys]) => [key, keys.filter(item => sectionOrder().includes(item))]).filter(([, keys]) => keys.length));
     function visibleSections(keys = sectionOrder()) {
@@ -160,11 +165,12 @@
         const selected = visibleSections(keys);
         return selected.length ? selected.map(key => block(key)).join('') : '<p class="a-multi-empty">尚未選擇內容；點目錄加入資料。</p>';
     }
-    function stageDisplayControls(keys = sectionOrder()) {
-        const count = visibleSections(keys).length;
+    function stageDisplayControls(keys = sectionOrder(), top = false) {
+        if (live && !top) return '';
         const scope = keys.join(',');
         const modes = [['single', '單項'], ['multi', '多選'], ['all', '全部顯示']];
-        return `<div class="a-display-controls" role="group" aria-label="內容顯示方式"><span>內容顯示</span>${modes.map(([key, label]) => button(label, 'display-mode', `data-value="${key}" data-scope="${scope}" aria-pressed="${state.displayMode === key}"`)).join('')}<small>${count} / ${keys.length}</small></div>`;
+        const controls = `<div class="a-display-controls ${top ? 't-top-display-controls' : ''}" role="group" aria-label="內容顯示方式"><span>內容顯示</span>${modes.map(([key, label]) => button(label, 'display-mode', `data-value="${key}" data-scope="${scope}" aria-pressed="${state.displayMode === key}"`)).join('')}${live ? '' : `<small>${visibleSections(keys).length} / ${keys.length}</small>`}</div>`;
+        return live && top ? `<div class="t-view-navigation">${controls}<nav class="t-section-picker" aria-label="角色資料分類">${sectionButtons(keys, state.activeSection, 'view-section', 't-section-chip')}</nav></div>` : controls;
     }
     function sectionButtons(keys, active = state.activeSection, action = 'view-section', className = 'a-section-button') {
         return keys.filter(key => sectionOrder().includes(key)).map((key, index) => { const [title] = sectionLabel(key); const pressed = state.displayMode === 'all' || (state.displayMode === 'multi' ? state.selectedSections.includes(key) : key === active); return button(`<small>${String(index + 1).padStart(2, '0')}</small><span>${title}</span>`, action, `data-section="${key}" data-index-entry data-index-label="${esc(title + ' ' + key)}" aria-pressed="${pressed}"`, className); }).join('');
@@ -178,6 +184,7 @@
         return `<div class="a-page-controls">${button('← 上一' + label, 'page-step', 'data-delta="-1"') }<span>${String(index + 1).padStart(2, '0')} / ${String(sectionOrder().length).padStart(2, '0')}　${sectionLabel(state.activeSection)[0]}</span>${button('下一' + label + ' →', 'page-step', 'data-delta="1"')}</div>`;
     }
     function chooseSection(key) {
+        if (live) state.activeGroup = Object.keys(viewGroups()).find(group => viewGroups()[group].includes(key)) || state.activeGroup;
         if (state.displayMode === 'multi') {
             const index = state.selectedSections.indexOf(key);
             if (index >= 0) state.selectedSections.splice(index, 1);
@@ -199,7 +206,7 @@
         else if (mode === 'single') {
             state.activeSection = current.includes(state.activeSection) ? state.activeSection : (current[0] || keys[0]);
             state.selectedSections = [state.activeSection];
-        } else state.selectedSections = current.length ? current : (keys.includes(state.activeSection) ? [state.activeSection] : []);
+        } else state.selectedSections = live && state.displayMode === 'all' ? [state.activeSection] : current.length ? current : (keys.includes(state.activeSection) ? [state.activeSection] : []);
         state.displayMode = mode;
         render();
     }
@@ -213,35 +220,52 @@
     }
     function designStage() {
         const all = sectionOrder();
-        const support = ['skills', 'training', 'features', 'inventory', 'background', 'notes'].filter(key => all.includes(key));
+        if (live && !all.length) return '<div class="t-no-fields">這張角色卡暫無欄位；可在「管理角色」新增資料。</div>';
+        if (live && state.density === 'summary') return `<div class="t-summary-layout" aria-label="角色資料速查">${selectedPanels(all)}</div>`;
+        const shown = live ? visibleSections(all) : all;
+        const visibleBlock = key => shown.includes(key) ? block(key) : '';
+        const support = ['skills', 'training', 'features', 'inventory', 'background', 'notes', 'other'].filter(key => all.includes(key));
         const cards = keys => keys.map(key => block(key)).join('');
         const indexList = (keys = all, cls = 'a-index-list') => `<nav class="${cls}" aria-label="角色資料目錄">${sectionButtons(keys)}</nav>`;
         switch (id) {
-            case 1: return `<div class="a-stage a-stage-dossier"><div class="a-dossier-kicker"><span>CASE FILE / ${esc(data.edition)}</span><span>已記錄 ${data.skills.length} 項技能 · ${data.actions.length} 項行動</span></div><div class="a-layout">${all.map(key => block(key, true)).join('')}</div></div>`;
-            case 2: return `<div class="a-stage a-stage-cockpit"><div class="a-cockpit-top"><div class="a-cockpit-score">${block('attributes')}${block('saves')}</div><div class="a-cockpit-main">${block('actions')}${block('powers')}</div><div class="a-cockpit-side">${block('status')}${block('senses')}</div></div><div class="a-cockpit-deck"><div class="a-cockpit-label">SUPPORT SYSTEMS <span>選擇面板，切換工作區</span></div>${stageDisplayControls(support)}${indexList(support, 'a-command-keys')}<main class="a-cockpit-support">${selectedPanels(support)}</main></div></div>`;
-            case 3: return `<div class="a-stage a-stage-ledger"><div class="a-ledger-caption"><span>角色帳簿 / ${esc(data.name)}</span><span>逐行核對 · 點數值擲骰 · ↗ 開全文</span></div><div class="a-ledger-table">${all.map((key, index) => `<div class="a-ledger-entry"><span class="a-ledger-no">${String(index + 1).padStart(2, '0')}</span>${block(key)}</div>`).join('')}</div></div>`;
+            case 1: return `<div class="a-stage a-stage-dossier"><div class="a-dossier-kicker"><span>CASE FILE / ${esc(data.edition)}</span><span>已記錄 ${data.skills.length} 項技能 · ${data.actions.length} 項行動</span></div><div class="a-layout">${shown.map(key => block(key, true)).join('')}</div></div>`;
+            case 2: {
+                const columns = [
+                    ['a-cockpit-score', ['attributes', 'saves']],
+                    ['a-cockpit-main', ['actions', 'powers']],
+                    ['a-cockpit-side', ['status', 'senses']]
+                ].filter(([, keys]) => keys.some(key => shown.includes(key)));
+                const top = columns.map(([className, keys]) => `<div class="${className}">${keys.filter(key => shown.includes(key)).map(key => block(key)).join('')}</div>`).join('');
+                const deck = !live || support.some(key => shown.includes(key)) ? `<div class="a-cockpit-deck"><div class="a-cockpit-label">SUPPORT SYSTEMS <span>選擇面板，切換工作區</span></div>${stageDisplayControls(support)}${indexList(support, 'a-command-keys')}<main class="a-cockpit-support">${selectedPanels(support)}</main></div>` : '';
+                return `<div class="a-stage a-stage-cockpit">${top ? `<div class="a-cockpit-top${live ? ' t-cockpit-top' : ''}">${top}</div>` : ''}${deck}</div>`;
+            }
+            case 3: return `<div class="a-stage a-stage-ledger"><div class="a-ledger-caption"><span>角色帳簿 / ${esc(data.name)}</span><span>逐行核對 · 點數值擲骰 · ${live ? '長文可展開' : '↗ 開全文'}</span></div><div class="a-ledger-table">${shown.map(key => `<div class="a-ledger-entry"><span class="a-ledger-no">${String(all.indexOf(key) + 1).padStart(2, '0')}</span>${block(key)}</div>`).join('')}</div></div>`;
             case 4: return `<div class="a-stage a-stage-index"><aside class="a-index-sidebar"><span class="a-index-heading">INDEX / ${all.length} 條目</span>${indexList(all)}<small>選一項，右側即時切換內容</small></aside><main class="a-index-reader">${stageDisplayControls(all)}${selectedPanels(all)}</main></div>`;
-            case 5: return `<div class="a-stage a-stage-gazette"><div class="a-gazette-masthead"><span>THE ADVENTURER'S GAZETTE</span><span>EDITION ${String(id).padStart(2, '0')} · ${esc(data.edition)}</span></div><div class="a-gazette-lead">${block('background')}${block('attributes')}</div><div class="a-layout a-gazette-columns">${all.filter(key => !['background', 'attributes'].includes(key)).map(key => block(key)).join('')}</div></div>`;
+            case 5: return `<div class="a-stage a-stage-gazette"><div class="a-gazette-masthead"><span>THE ADVENTURER'S GAZETTE</span><span>EDITION ${String(id).padStart(2, '0')} · ${esc(data.edition)}</span></div>${shown.some(key => ['background', 'attributes'].includes(key)) ? `<div class="a-gazette-lead">${visibleBlock('background')}${visibleBlock('attributes')}</div>` : ''}<div class="a-layout a-gazette-columns">${shown.filter(key => !['background', 'attributes'].includes(key)).map(key => block(key)).join('')}</div></div>`;
             case 6: return `<div class="a-stage a-stage-manuscript"><aside class="a-book-contents"><span>CONTENTS / 卷目</span>${indexList(all, 'a-chapter-list')}</aside><main class="a-manuscript-page">${stageDisplayControls(all)}<div class="a-manuscript-meta">旅人抄本 · ${esc(data.edition)} · 第 ${sectionOrder().indexOf(state.activeSection) + 1} 章</div>${selectedPanels(all)}${stagePageControls('章節')}</main></div>`;
             case 7: return `<div class="a-stage a-stage-transit"><div class="a-route-line"><span class="a-route-start">你在這裏</span>${sectionButtons(all, state.activeSection, 'view-section', 'a-route-stop')}<span class="a-route-end">記錄完畢</span></div><main class="a-route-destination"><div class="a-route-coordinates">ROUTE / ${String(all.indexOf(state.activeSection) + 1).padStart(2, '0')} · ${esc(theme.english)}</div>${stageDisplayControls(all)}${selectedPanels(all)}</main></div>`;
-            case 8: return `<div class="a-stage a-stage-blueprint"><div class="a-blueprint-ruler"><span>REF. CHARACTER STRUCTURE</span><span>1 UNIT = 1 RECORD</span></div><div class="a-blueprint-grid">${all.map((key, index) => `<div class="a-blueprint-cell"><span class="a-coordinate">${String.fromCharCode(65 + index % 4)}-${String(Math.floor(index / 4) + 1).padStart(2, '0')}</span>${block(key)}</div>`).join('')}</div><div class="a-blueprint-footer">測繪完成　/　${all.length} 個模組・${data.skills.length} 項技能</div></div>`;
-            case 9: return `<div class="a-stage a-stage-lab"><aside class="a-lab-rack"><div class="a-lab-label">LAB / MODULE SELECT</div>${stageGroupButtons()}</aside><main class="a-lab-bench"><div class="a-lab-readout"><span>ACTIVE MODULE</span><strong>${({ core: '生理與狀態', play: '操作與能力', build: '技能與訓練', story: '人物檔案' })[state.activeGroup]}</strong><i>${viewGroups()[state.activeGroup].length} 個檢測項目</i></div><div class="a-lab-modules">${cards(viewGroups()[state.activeGroup])}</div></main></div>`;
+            case 8: return `<div class="a-stage a-stage-blueprint"><div class="a-blueprint-ruler"><span>REF. CHARACTER STRUCTURE</span><span>1 UNIT = 1 RECORD</span></div><div class="a-blueprint-grid">${shown.map(key => { const index = all.indexOf(key); return `<div class="a-blueprint-cell"><span class="a-coordinate">${String.fromCharCode(65 + index % 4)}-${String(Math.floor(index / 4) + 1).padStart(2, '0')}</span>${block(key)}</div>`; }).join('')}</div><div class="a-blueprint-footer">測繪完成　/　${all.length} 個模組・${data.skills.length} 項技能</div></div>`;
+            case 9: return `<div class="a-stage a-stage-lab"><aside class="a-lab-rack"><div class="a-lab-label">LAB / MODULE SELECT</div>${stageGroupButtons()}</aside><main class="a-lab-bench"><div class="a-lab-readout"><span>ACTIVE MODULE</span><strong>${live && state.displayMode === 'all' ? '全部資料' : ({ core: '生理與狀態', play: '操作與能力', build: '技能與訓練', story: '人物檔案' })[state.activeGroup]}</strong><i>${live ? shown.length : viewGroups()[state.activeGroup].length} 個檢測項目</i></div><div class="a-lab-modules">${cards(live ? shown : viewGroups()[state.activeGroup])}</div></main></div>`;
             case 10: return `<div class="a-stage a-stage-terminal"><div class="a-terminal-bar"><span>CHARACTER SHELL / ${esc(data.edition)}</span><span>SESSION READY</span></div><div class="a-terminal-layout"><nav class="a-terminal-prompts" aria-label="輸入資料指令"><label><b>&gt;_</b><input type="search" data-index-search placeholder="搜尋模組或輸入名稱" aria-label="搜尋終端模組"></label>${sectionButtons(all, state.activeSection, 'view-section', 'a-terminal-command')}</nav><main class="a-terminal-output"><p> hktrpg@character:~$ ${esc(terminalCommand())}</p>${stageDisplayControls(all)}${selectedPanels(all)}</main></div><div class="a-terminal-status">${live ? 'LIVE CHARACTER' : 'LOCAL RECORD'} · ${esc(data.name)} · ${data.skills.length} SKILLS · ${data.actions.length} ACTIONS</div></div>`;
             case 11: return `<div class="a-stage a-stage-atlas"><div class="a-atlas-map"><div class="a-contour contour-one"></div><div class="a-contour contour-two"></div><div class="a-atlas-gridlines"></div><div class="a-map-compass">N<span>+</span></div><div class="a-map-stops">${sectionButtons(all, state.activeSection, 'view-section', 'a-map-pin')}</div><span class="a-map-caption">FIELD MAP / ${esc(data.name)}</span></div><main class="a-atlas-record"><div class="a-atlas-coordinate">COORDINATES ${String(all.indexOf(state.activeSection) + 1).padStart(2, '0')} · ${sectionLabel(state.activeSection)[1]}</div>${stageDisplayControls(all)}${selectedPanels(all)}</main></div>`;
             case 12: return `<div class="a-stage a-stage-observatory"><aside class="a-observatory-dial"><span class="a-observatory-title">能力星圖 / PROFILE</span>${radarGraphic()}<div class="a-observatory-legend">${data.attributes.map(a => `<span><b>${esc(a.key)}</b> ${a.value}</span>`).join('')}</div></aside><main class="a-observatory-console"><div class="a-orbit-nav">${sectionButtons(all, state.activeSection, 'view-section', 'a-orbit-point')}</div><div class="a-observatory-detail">${stageDisplayControls(all)}${selectedPanels(all)}</div></main></div>`;
-            case 13: return `<div class="a-stage a-stage-dispatch"><div class="a-dispatch-order"><span>部署概要</span>${block('attributes')}${block('status')}</div><div class="a-dispatch-board"><section class="a-dispatch-lane lane-act"><header><b>01</b> 主動行動</header>${block('actions')}${block('powers')}</section><section class="a-dispatch-lane lane-check"><header><b>02</b> 判定與觀察</header>${block('saves')}${block('senses')}${block('skills')}</section><section class="a-dispatch-lane lane-support"><header><b>03</b> 支援與紀錄</header>${block('training')}${block('features')}${block('inventory')}${block('background')}${block('notes')}</section></div></div>`;
+            case 13: {
+                const lane = (className, number, title, keys) => shown.some(key => keys.includes(key)) ? `<section class="a-dispatch-lane ${className}"><header><b>${number}</b> ${title}</header>${keys.map(visibleBlock).join('')}</section>` : '';
+                const overview = shown.some(key => ['attributes', 'status'].includes(key)) ? `<div class="a-dispatch-order"><span>部署概要</span>${visibleBlock('attributes')}${visibleBlock('status')}</div>` : '';
+                return `<div class="a-stage a-stage-dispatch">${overview}<div class="a-dispatch-board">${lane('lane-act', '01', '主動行動', ['actions', 'powers'])}${lane('lane-check', '02', '判定與觀察', ['saves', 'senses', 'skills'])}${lane('lane-support', '03', '支援與紀錄', ['training', 'features', 'inventory', 'background', 'notes', 'other'])}</div></div>`;
+            }
             case 14: return `<div class="a-stage a-stage-folio"><header class="a-folio-spreadhead"><span>PERSONAE / ${esc(data.edition)}</span><span>人物誌　·　${esc(data.name)}</span></header><div class="a-folio-spread"><aside class="a-folio-margin"><span>頁 ${String(all.indexOf(state.activeSection) + 1).padStart(2, '0')}</span><strong>${sectionLabel(state.activeSection)[1]}</strong><small>${esc(theme.description)}</small></aside><main class="a-folio-page">${stageDisplayControls(all)}${selectedPanels(all)}${stagePageControls('頁')}</main></div></div>`;
             case 15: return `<div class="a-stage a-stage-catalog"><aside class="a-catalog-drawer"><label class="a-catalog-search">⌕<input type="search" data-index-search placeholder="搜尋目錄" aria-label="搜尋角色卡目錄"></label>${indexList(all, 'a-catalog-list')}<small>${all.length} 個資料夾 · 選取以開啟</small></aside><main class="a-catalog-card"><div class="a-catalog-cardno">CAT. ${String(all.indexOf(state.activeSection) + 1).padStart(3, '0')} / ${esc(data.edition)}</div>${stageDisplayControls(all)}${selectedPanels(all)}</main></div>`;
             case 16: return `<div class="a-stage a-stage-fieldmanual"><header class="a-manual-header"><span>FIELD MANUAL / ${esc(data.edition)}</span><span>使用目錄或前後頁閱讀</span></header><div class="a-manual-spread"><nav class="a-manual-tabs" aria-label="手冊章節">${sectionButtons(all, state.activeSection, 'view-section', 'a-manual-tab')}</nav><main class="a-manual-leaf"><div class="a-manual-page-no">${String(all.indexOf(state.activeSection) + 1).padStart(2, '0')} — ${all.length}</div>${stageDisplayControls(all)}${selectedPanels(all)}${stagePageControls('頁')}</main></div></div>`;
-            case 17: return `<div class="a-stage a-stage-monolith"><section class="a-monolith-hero"><div class="a-monolith-deck"><span>ATTRIBUTE MONOLITH / ${esc(data.edition)}</span><p>${data.attributes.length} 項核心能力 · ${data.resources.length} 項可調資源</p></div>${block('attributes')}</section><div class="a-layout a-monolith-grid">${all.filter(key => key !== 'attributes').map(key => block(key)).join('')}</div></div>`;
-            case 18: return `<div class="a-stage a-stage-air"><div class="a-air-contents">${sectionButtons(all, state.activeSection, 'jump-section', 'a-air-link')}</div><div class="a-air-prose">${all.map(key => `<section class="a-air-chapter" id="air-${key}"><span>${sectionLabel(key)[1]}</span>${block(key)}</section>`).join('')}</div></div>`;
-            case 19: return `<div class="a-stage a-stage-circuit"><aside class="a-circuit-console"><div class="a-circuit-title">◉ LIVE CHARACTER CIRCUIT</div><div class="a-circuit-quick">${sectionButtons(['attributes', 'saves', 'actions', 'powers'], state.activeSection, 'view-section', 'a-circuit-key')}</div><div class="a-circuit-subnav">${sectionButtons(['skills', 'senses', 'status', 'training', 'features', 'inventory', 'background', 'notes'], state.activeSection)}</div></aside><main class="a-circuit-board"><div class="a-circuit-live"><i></i> INPUT / ${sectionLabel(state.activeSection)[1]}</div>${stageDisplayControls(all)}${selectedPanels(all)}</main></div>`;
+            case 17: return `<div class="a-stage a-stage-monolith">${shown.includes('attributes') ? `<section class="a-monolith-hero"><div class="a-monolith-deck"><span>ATTRIBUTE MONOLITH / ${esc(data.edition)}</span><p>${data.attributes.length} 項核心能力 · ${data.resources.length} 項可調資源</p></div>${block('attributes')}</section>` : ''}<div class="a-layout a-monolith-grid">${shown.filter(key => key !== 'attributes').map(key => block(key)).join('')}</div></div>`;
+            case 18: return `<div class="a-stage a-stage-air"><div class="a-air-contents">${sectionButtons(all, state.activeSection, 'jump-section', 'a-air-link')}</div><div class="a-air-prose">${shown.map(key => `<section class="a-air-chapter" id="air-${key}"><span>${sectionLabel(key)[1]}</span>${block(key)}</section>`).join('')}</div></div>`;
+            case 19: return `<div class="a-stage a-stage-circuit"><aside class="a-circuit-console"><div class="a-circuit-title">◉ LIVE CHARACTER CIRCUIT</div><div class="a-circuit-quick">${sectionButtons(['attributes', 'saves', 'actions', 'powers'], state.activeSection, 'view-section', 'a-circuit-key')}</div><div class="a-circuit-subnav">${sectionButtons(['skills', 'senses', 'status', 'training', 'features', 'inventory', 'background', 'notes', 'other'], state.activeSection)}</div></aside><main class="a-circuit-board"><div class="a-circuit-live"><i></i> INPUT / ${sectionLabel(state.activeSection)[1]}</div>${stageDisplayControls(all)}${selectedPanels(all)}</main></div>`;
             case 20: return `<div class="a-stage a-stage-archive"><aside class="a-archive-index"><div class="a-archive-stamp">ARCHIVE INDEX / ${all.length} RECORDS</div><div class="a-archive-timeline">${all.map((key, index) => button(`<time>${String(index + 1).padStart(2, '0')}</time>${sectionLabel(key)[0]}`, 'view-section', `data-section="${key}" aria-pressed="${sectionIsPressed(key)}"`, 'a-archive-event')).join('')}</div></aside><main class="a-archive-record"><div class="a-archive-recordhead"><span>RECORD ${String(all.indexOf(state.activeSection) + 1).padStart(2, '0')} / ${esc(data.edition)}</span><span>${live ? '角色資料庫紀錄' : '保存於本機試玩資料'}</span></div>${stageDisplayControls(all)}${selectedPanels(all)}${stagePageControls('條目')}</main></div>`;
-            default: return `<div class="a-layout">${all.map(key => block(key, true)).join('')}</div>`;
+            default: return `<div class="a-layout">${shown.map(key => block(key, true)).join('')}</div>`;
         }
     }
     function render() {
-        document.body.dataset.design = String(id); document.body.dataset.density = state.density; document.body.dataset.system = state.system;
+        document.body.dataset.design = String(id); document.body.dataset.density = state.density; document.body.dataset.system = live ? (data?.system || 'generic') : state.system;
         if (live) {
             const order = sectionOrder();
             if (!order.includes(state.activeSection)) state.activeSection = order[0];
@@ -250,7 +274,7 @@
             const focused = document.activeElement;
             const focusData = focused && root.contains(focused) && focused.dataset.act === 'adjust' ? { ...focused.dataset } : null;
             document.title = `T${id} ${theme.name} · ${data.name || '角色卡'} · HKTRPG`;
-            root.innerHTML = toolbar() + (live.isSelected() ? `<article class="a-shell" id="character-sheet">${identity()}${resourceStrip()}${live.context(button)}${designStage()}${live.footer(button, theme, id)}</article>` : live.empty());
+            root.innerHTML = toolbar() + (live.isSelected() ? `<article class="a-shell" id="character-sheet">${identity()}${resourceStrip()}${live.context(button)}${stageDisplayControls(order, true)}${designStage()}${live.footer(button, theme, id)}</article>` : live.empty());
             if (focusData) Array.from(root.querySelectorAll('[data-act="adjust"]')).find(button => button.dataset.key === focusData.key && button.dataset.delta === focusData.delta)?.focus({ preventScroll: true });
             return;
         }
@@ -307,13 +331,16 @@
             if (live && live.handle(action, el, { open, notice, render, state })) return;
             switch (action) {
                 case 'system': await loadSystem(el.dataset.value); break;
-                case 'density': state.density = el.dataset.value; updateUrl(); render(); break;
+                case 'density':
+                    state.density = el.dataset.value;
+                    if (live) state.displayMode = state.density === 'summary' ? 'all' : 'single';
+                    updateUrl(); render(); break;
                 case 'mode': state.mode = el.dataset.value; render(); break;
                 case 'expand': expand(el.dataset.section); break;
                 case 'view-section': if (sectionOrder().includes(el.dataset.section)) chooseSection(el.dataset.section); break;
                 case 'display-mode': chooseDisplayMode(el.dataset.value, el.dataset.scope || sectionOrder().join(',')); break;
                 case 'jump-section': if (sectionOrder().includes(el.dataset.section)) { state.activeSection = el.dataset.section; render(); requestAnimationFrame(() => document.getElementById('air-' + state.activeSection)?.scrollIntoView({ behavior: 'smooth', block: 'start' })); } break;
-                case 'view-group': if (viewGroups()[el.dataset.group]) { state.activeGroup = el.dataset.group; state.activeSection = viewGroups()[state.activeGroup][0]; render(); } break;
+                case 'view-group': if (viewGroups()[el.dataset.group]) { state.activeGroup = el.dataset.group; state.activeSection = viewGroups()[state.activeGroup][0]; if (live) { state.displayMode = 'multi'; state.selectedSections = viewGroups()[state.activeGroup].slice(); } render(); } break;
                 case 'page-step': { const current = Math.max(0, sectionOrder().indexOf(state.activeSection)); const next = (current + Number(el.dataset.delta) + sectionOrder().length) % sectionOrder().length; state.activeSection = sectionOrder()[next]; state.displayMode = 'single'; state.selectedSections = [state.activeSection]; render(); break; }
                 case 'close-dialog': dialog.close(); break;
                 case 'close-toast': document.getElementById('atelier-toast').hidden = true; break;
@@ -384,14 +411,19 @@
     window.addEventListener('storage', event => { if (!live && event.key === 'hktrpg.carda.shared.v1.' + state.system && !dialog.open) { try { data = M.applyPatch(original, JSON.parse(event.newValue)); render(); } catch { /* Ignore incomplete external storage. */ } } });
     if (live) {
         await live.ready;
-        state.displayMode = 'all';
+        data = live.project(state.system);
+        state.activeSection = live.sectionOrder()[0] || 'skills';
+        state.activeGroup = Object.keys(viewGroups()).find(group => viewGroups()[group].includes(state.activeSection)) || 'core';
+        state.selectedSections = [state.activeSection];
+        state.displayMode = state.density === 'summary' ? 'all' : 'single';
         live.subscribe(() => { data = live.project(state.system); render(); refreshDialog(); }, notice);
         window.addEventListener('popstate', () => {
             const route = Number(location.pathname.match(/^\/cardt(\d+)\/?$/)?.[1]);
             if (route >= 1 && route <= 20) { id = route; theme = window.CardaThemes[id]; }
             const query = new URLSearchParams(location.search);
-            state.system = ['coc', 'dnd', 'generic'].includes(query.get('system')) ? query.get('system') : 'generic';
+            state.system = ['auto', 'coc', 'dnd', 'generic'].includes(query.get('system')) ? query.get('system') : 'auto';
             state.density = query.get('density') === 'open' ? 'open' : 'summary';
+            state.displayMode = state.density === 'summary' ? 'all' : 'single';
             data = live.project(state.system); render();
         });
     }

@@ -268,13 +268,10 @@ function confirmSaveChangesAndExitEditMode() {
     if (cardManager && cardManager.getCard) {
         const card = cardManager.getCard();
         if (card) {
-            // Save changes via global updateCard, then exit edit mode
+            // 等候伺服器確認；失敗時保留編輯草稿與未儲存提示。
             if (typeof globalThis.updateCard === 'function') {
                 globalThis.updateCard();
             }
-            card.editMode = false;
-            card.editModeBackup = null;
-            card.hasUnsavedChanges = false;
         }
     }
     // 關閉模態框

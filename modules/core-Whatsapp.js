@@ -37,6 +37,7 @@ const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
 const isImageURL = require('../utils/is-image-url.js');
+const { applyPairingLink, pairingCodeLogLine } = require('../utils/whatsapp-link-mode.js');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
@@ -281,10 +282,18 @@ async function startUpInner() {
 	try {
 		cleanupChromeProfileLock();
 
-		const client = new Client({
+		// Digits only, country code, no plus. When set, WhatsApp links with a pairing
+		// code instead of a QR. The library cannot keep both link methods live.
+		const clientOptions = applyPairingLink({
 			authStrategy: new LocalAuth({ dataPath: wwebjsAuthRoot }),
 			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
+		if (clientOptions.pairWithPhoneNumber) {
+			console.log('[Whatsapp] Pairing-code link mode is on. QR will not be issued.');
+		} else if (String(process.env.WHATSAPP_PAIR_PHONE || '').trim()) {
+			console.log('[Whatsapp] WHATSAPP_PAIR_PHONE is set but not a usable number (need 8–15 digits). Staying on QR.');
+		}
+		const client = new Client(clientOptions);
 		whatsappClient = client;
 
 		// Attach all event listeners BEFORE starting initialize(), so we never miss early
@@ -293,8 +302,8 @@ async function startUpInner() {
 		// QR printing strategy:
 		// - Print the full (large) QR code *only once* per authentication session / waiting period.
 		//   The WhatsApp library emits 'qr' repeatedly (with a fresh code every ~20-30s) while waiting for scan.
-		//   Re-printing the entire ASCII QR on every refresh spams logs and causes monitoring scripts (check-qrcode.sh + ntfy)
-		//   to send repeated "needs scan" alerts even though it's the same login attempt.
+		//   Re-printing the entire ASCII QR on every refresh spams logs. check-qrcode.sh
+		//   notifies once per waiting period; `check-qrcode.sh --show` is what the admin scans.
 		// - On refreshes: log a short message only. This keeps "QR RECEIVED" string rare (once per actual need to scan).
 		// - Reset on 'disconnected' so that if auth is lost later and a *new* QR flow starts, we do show the full code again.
 		let qrCodePrintedForSession = false;
@@ -324,6 +333,14 @@ async function startUpInner() {
 			} else {
 				console.log(`[Whatsapp] QR code refreshed (could not write QR files: ${persisted.errors.join('; ') || 'unknown error'})`);
 			}
+		});
+
+		// Same moment a QR would be issued. check-qrcode.sh notifies on this line.
+		// The code itself is the secret; do not also log the phone number.
+		client.on('code', (code) => {
+			const line = pairingCodeLogLine(code);
+			if (!line) return;
+			console.log(line);
 		});
 
 		let hasEverBeenReady = false;

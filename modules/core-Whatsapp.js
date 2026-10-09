@@ -37,7 +37,7 @@ const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
 const isImageURL = require('../utils/is-image-url.js');
-const { applyPairingLink, pairingCodeLogLine } = require('../utils/whatsapp-link-mode.js');
+const { applyPairingLink, pairingCodeLogLine, installPairingRequestGuard } = require('../utils/whatsapp-link-mode.js');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
@@ -295,6 +295,8 @@ async function startUpInner() {
 		}
 		const client = new Client(clientOptions);
 		whatsappClient = client;
+		// Library calls requestPairingCode() without await. Catch the page error here.
+		if (clientOptions.pairWithPhoneNumber) installPairingRequestGuard(client);
 
 		// Attach all event listeners BEFORE starting initialize(), so we never miss early
 		// 'qr', 'authenticated', or internal state events emitted during the first moments

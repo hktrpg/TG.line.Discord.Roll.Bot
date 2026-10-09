@@ -5,6 +5,8 @@ const {
 	applyPairingLink,
 	formatPairingCode,
 	pairingCodeLogLine,
+	wrapWhatsappFrameHandler,
+	installFrameNavigationGuard,
 } = require('../utils/whatsapp-link-mode.js');
 
 describe('WhatsApp link mode', () => {
@@ -50,5 +52,63 @@ describe('WhatsApp link mode', () => {
 		expect(pairingCodeLogLine('abcdefgh')).toBe('[Whatsapp] PAIRING CODE ABCD-EFGH');
 		expect(pairingCodeLogLine('')).toBe('');
 		expect(pairingCodeLogLine('abc')).toBe('');
+	});
+
+	it('keeps a false userAgent so Chrome 101 is not forced', () => {
+		const plain = applyPairingLink({ userAgent: false, puppeteer: {} }, {});
+		const paired = applyPairingLink({ userAgent: false }, { WHATSAPP_PAIR_PHONE: '85291234567' });
+		expect(plain.userAgent).toBe(false);
+		expect(paired.userAgent).toBe(false);
+		expect(paired.pairWithPhoneNumber.phoneNumber).toBe('85291234567');
+	});
+
+	it('ignores only a subframe post_logout so linking can finish', () => {
+		const seen = [];
+		const handler = wrapWhatsappFrameHandler(function (frame) {
+			seen.push(frame.id);
+		});
+		const subframe = (id, url) => ({
+			id,
+			url: () => url,
+			parentFrame: () => ({}),
+		});
+		handler(subframe('logout-iframe', 'https://web.whatsapp.com/?post_logout=1'));
+		handler(subframe('other-iframe', 'https://web.whatsapp.com/'));
+		handler({
+			id: 'main-logout',
+			url: () => 'https://web.whatsapp.com/?post_logout=1',
+			parentFrame: () => null,
+		});
+		expect(seen).toEqual(['other-iframe', 'main-logout']);
+	});
+
+	it('installs the guard once and only wraps framenavigated', () => {
+		const events = [];
+		function Page() {}
+		Page.prototype.on = function (event, handler) {
+			events.push(event);
+			this.handlers = this.handlers || {};
+			this.handlers[event] = handler;
+			return this;
+		};
+		installFrameNavigationGuard(Page);
+		installFrameNavigationGuard(Page);
+		const page = new Page();
+		const seen = [];
+		page.on('framenavigated', (frame) => seen.push(frame.id));
+		page.on('request', () => seen.push('request'));
+		page.handlers.framenavigated({
+			id: 'iframe',
+			url: () => 'https://web.whatsapp.com/?post_logout=1',
+			parentFrame: () => ({}),
+		});
+		page.handlers.framenavigated({
+			id: 'main',
+			url: () => 'https://web.whatsapp.com/',
+			parentFrame: () => null,
+		});
+		page.handlers.request();
+		expect(events).toEqual(['framenavigated', 'request']);
+		expect(seen).toEqual(['main', 'request']);
 	});
 });

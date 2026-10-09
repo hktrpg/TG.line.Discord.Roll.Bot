@@ -45,9 +45,55 @@ function pairingCodeLogLine(code) {
 	return `[Whatsapp] PAIRING CODE ${formatted}`;
 }
 
+function isMainFrame(frame) {
+	if (!frame || typeof frame.parentFrame !== 'function') return true;
+	try {
+		return frame.parentFrame() === null;
+	} catch {
+		return true;
+	}
+}
+
+function frameUrl(frame) {
+	try {
+		return typeof frame.url === 'function' ? String(frame.url()) : '';
+	} catch {
+		return '';
+	}
+}
+
+/**
+ * whatsapp-web.js runs this on every frame. A subframe whose URL contains
+ * post_logout=1 makes it delete LocalAuth while the phone is still linking.
+ * Other iframe navigations must still be delivered; the library re-injects on them.
+ */
+function wrapWhatsappFrameHandler(handler) {
+	return function onFrameNavigated(frame) {
+		if (!isMainFrame(frame) && frameUrl(frame).includes('post_logout=1')) {
+			return;
+		}
+		return handler.call(this, frame);
+	};
+}
+
+function installFrameNavigationGuard(Page) {
+	if (!Page?.prototype?.on || Page.prototype.__hktrpgFrameGuard) return;
+	const originalOn = Page.prototype.on;
+	Page.prototype.on = function onGuarded(event, handler) {
+		if (event === 'framenavigated' && typeof handler === 'function') {
+			return originalOn.call(this, event, wrapWhatsappFrameHandler(handler));
+		}
+		return originalOn.call(this, event, handler);
+	};
+	Page.prototype.__hktrpgFrameGuard = true;
+}
+
 module.exports = {
 	resolvePairPhone,
 	applyPairingLink,
 	formatPairingCode,
 	pairingCodeLogLine,
+	isMainFrame,
+	wrapWhatsappFrameHandler,
+	installFrameNavigationGuard,
 };

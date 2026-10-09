@@ -36,11 +36,8 @@ const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
-// Same puppeteer copy whatsapp-web.js uses. Not a direct dependency of this app.
-// eslint-disable-next-line n/no-extraneous-require
-const { Page } = require('puppeteer');
 const isImageURL = require('../utils/is-image-url.js');
-const { applyPairingLink, pairingCodeLogLine, installFrameNavigationGuard } = require('../utils/whatsapp-link-mode.js');
+const { applyPairingLink, pairingCodeLogLine } = require('../utils/whatsapp-link-mode.js');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
@@ -287,14 +284,9 @@ async function startUpInner() {
 
 		// Digits only, country code, no plus. When set, WhatsApp links with a pairing
 		// code instead of a QR. The library cannot keep both link methods live.
-		// Default UA is Chrome 101 (2022). WhatsApp accepts the QR, then rejects the
-		// link: the phone shows "logging in" and "couldn't link device", and this
-		// process logs LOGOUT. false keeps the real Chrome user agent.
-		installFrameNavigationGuard(Page);
 		const clientOptions = applyPairingLink({
 			authStrategy: new LocalAuth({ dataPath: wwebjsAuthRoot }),
-			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer,
-			userAgent: false,
+			puppeteer: (isHeroku) ? herokuPuppeteer : normalPuppeteer
 		});
 		if (clientOptions.pairWithPhoneNumber) {
 			console.log('[Whatsapp] Pairing-code link mode is on. QR will not be issued.');

@@ -1,4 +1,4 @@
-FROM node:24-alpine
+FROM node:24.22.1-alpine
 
 # Install timezone data and CJK fonts for Discord-only features such as token generation.
 RUN apk update && apk add --no-cache \

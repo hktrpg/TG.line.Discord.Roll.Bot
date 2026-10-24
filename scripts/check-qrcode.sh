@@ -7,15 +7,15 @@
 #
 # Trigger lines (modules/core-Whatsapp.js):
 # - "QR RECEIVED" — first QR of an auth-waiting period (files written)
-# - "QR code refreshed" — subsequent codes (~20-30s); files are updated, full ASCII omitted from logs
-# Both must be watched: if this script starts after the first RECEIVED, only "refreshed" keeps firing.
+# - "QR code refreshed" — reminders after gaps of 5, 10, 20, 40... minutes
+# Files are updated on every QR event; core-Whatsapp.js controls announcement backoff.
+# Both must be watched so a monitor starting mid-login can still send reminders.
 #
-# Rate limit (default 10 min) prevents ntfy spam while QR keeps rotating.
+# Forward each announcement; a second cooldown would skip the five-minute reminder.
 #
 # Config via env:
 #   CONTAINER_NAME=tg-bot
 #   NTFY_TOPIC=your_super_secret_topic
-#   MIN_NOTIFY_INTERVAL_SEC=600
 #   DOCKER_BIN=docker          # or "sudo docker" if needed
 #
 # Run:
@@ -29,13 +29,11 @@ set -u
 
 CONTAINER_NAME="${CONTAINER_NAME:-tg-bot}"
 TOPIC="${NTFY_TOPIC:-YOUR_SECRET_TOPIC_HERE}"
-MIN_NOTIFY_INTERVAL_SEC="${MIN_NOTIFY_INTERVAL_SEC:-600}"
 DOCKER_BIN="${DOCKER_BIN:-docker}"
 
 # Match first QR and refreshes (do not match unrelated "QR" text).
 QR_LOG_PATTERN='\[Whatsapp\] QR RECEIVED|\[Whatsapp\] QR code refreshed'
-
-last_notify_epoch=0
+READY_LOG_PATTERN='\[Whatsapp\] Client (is ready|reconnected and is ready)'
 
 log() {
 	echo "[$(date)] $*"
@@ -54,7 +52,7 @@ send_ntfy() {
 		return 1
 	fi
 
-	if ! curl -sS --max-time 15 \
+	if ! curl -fsS --max-time 15 \
 		-H "Title: WhatsApp Login Required (${CONTAINER_NAME})" \
 		-H "Priority: high" \
 		-H "Tags: warning,mobile_phone" \
@@ -67,29 +65,13 @@ send_ntfy() {
 	return 0
 }
 
-maybe_notify() {
-	local reason="$1"
-	local current_epoch seconds_since_last
-	current_epoch=$(date +%s)
-	seconds_since_last=$((current_epoch - last_notify_epoch))
-
-	if [ "${seconds_since_last}" -lt "${MIN_NOTIFY_INTERVAL_SEC}" ]; then
-		log "Saw QR (${reason}) but skipping notify (${seconds_since_last}s < ${MIN_NOTIFY_INTERVAL_SEC}s cooldown)"
-		return 0
-	fi
-
-	if send_ntfy "${reason}"; then
-		last_notify_epoch=${current_epoch}
-	fi
-}
-
 # True if recent logs show QR activity after the latest ready event (still waiting to scan).
 has_pending_qr() {
 	local logs last_qr_line last_ready_line
 	logs=$(${DOCKER_BIN} logs --tail 400 "${CONTAINER_NAME}" 2>&1) || return 1
 
 	last_qr_line=$(printf '%s\n' "${logs}" | grep -n -E "${QR_LOG_PATTERN}" | tail -1 | cut -d: -f1)
-	last_ready_line=$(printf '%s\n' "${logs}" | grep -n '\[Whatsapp\] Client is ready' | tail -1 | cut -d: -f1)
+	last_ready_line=$(printf '%s\n' "${logs}" | grep -n -E "${READY_LOG_PATTERN}" | tail -1 | cut -d: -f1)
 
 	if [ -z "${last_qr_line}" ]; then
 		return 1
@@ -105,23 +87,23 @@ if ! ${DOCKER_BIN} inspect "${CONTAINER_NAME}" >/dev/null 2>&1; then
 	exit 1
 fi
 
-log "Starting QR monitor for '${CONTAINER_NAME}' (ntfy: ${TOPIC}, cooldown ${MIN_NOTIFY_INTERVAL_SEC}s, docker: ${DOCKER_BIN})"
+log "Starting QR monitor for '${CONTAINER_NAME}' (reminders: 5, 10, 20, 40... minutes; docker: ${DOCKER_BIN})"
 
 # Catch-up: script often starts after the one-shot "QR RECEIVED" line already scrolled by.
 if has_pending_qr; then
-	maybe_notify "already waiting at monitor start"
+	send_ntfy "already waiting at monitor start"
 else
 	log "No pending WhatsApp QR in recent logs; watching for new events..."
 fi
 
-# Follow only new lines. Process substitution keeps last_notify_epoch in this shell.
+# Follow only new announcements; QR refreshes between reminders produce no log lines.
 while IFS= read -r line || [ -n "${line}" ]; do
 	case "${line}" in
 		*'QR RECEIVED'*)
-			maybe_notify "QR RECEIVED"
+			send_ntfy "QR RECEIVED"
 			;;
 		*'QR code refreshed'*)
-			maybe_notify "QR refreshed"
+			send_ntfy "QR refreshed"
 			;;
 	esac
 done < <(${DOCKER_BIN} logs -f --tail 0 "${CONTAINER_NAME}" 2>&1 | grep --line-buffered -E "${QR_LOG_PATTERN}")

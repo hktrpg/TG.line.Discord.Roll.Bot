@@ -291,17 +291,21 @@ async function startUpInner() {
 		// 'qr', 'authenticated', or internal state events emitted during the first moments
 		// of puppeteer launch + page bootstrap.
 		// QR printing strategy:
-		// - Print the full (large) QR code *only once* per authentication session / waiting period.
-		//   The WhatsApp library emits 'qr' repeatedly (with a fresh code every ~20-30s) while waiting for scan.
-		//   Re-printing the entire ASCII QR on every refresh spams logs and causes monitoring scripts (check-qrcode.sh + ntfy)
-		//   to send repeated "needs scan" alerts even though it's the same login attempt.
-		// - On refreshes: log a short message only. This keeps "QR RECEIVED" string rare (once per actual need to scan).
-		// - Reset on 'disconnected' so that if auth is lost later and a *new* QR flow starts, we do show the full code again.
+		// - Persist every refresh, but announce immediately then after 5, 10, 20, 40... minutes.
+		// - check-qrcode.sh forwards these announcements, so logs and pushes share one schedule.
+		// - Ready/disconnected reset the schedule for the next authentication flow.
 		let qrCodePrintedForSession = false;
+		let nextQrReminderAt = 0;
+		let qrReminderIntervalMs = 5 * 60_000;
 		client.on('qr', (qr) => {
 			// Always refresh QR files — codes expire; a stale last-qr.* cannot be scanned.
 			// Do not dump QR into application logs (often collected / forwarded).
 			const persisted = persistWhatsappQrFiles(qr);
+			const now = Date.now();
+			if (qrCodePrintedForSession && now < nextQrReminderAt) return;
+			// First gap is five minutes; each reminder doubles the following gap.
+			if (qrCodePrintedForSession) qrReminderIntervalMs *= 2;
+			nextQrReminderAt = now + qrReminderIntervalMs;
 			if (process.stdout.isTTY && persisted.ascii) {
 				console.log(persisted.ascii);
 			}
@@ -330,14 +334,15 @@ async function startUpInner() {
 		let needsReadyLogAfterDisconnect = false;
 		client.on('ready', () => {
 			const now = Date.now();
+			qrCodePrintedForSession = false;
+			nextQrReminderAt = 0;
+			qrReminderIntervalMs = 5 * 60_000;
 			if (!hasEverBeenReady) {
 				hasEverBeenReady = true;
 				needsReadyLogAfterDisconnect = false;
-				qrCodePrintedForSession = false;
 				console.log('[Whatsapp] Client is ready!');
 			} else if (needsReadyLogAfterDisconnect) {
 				needsReadyLogAfterDisconnect = false;
-				qrCodePrintedForSession = false;
 				console.log('[Whatsapp] Client reconnected and is ready!');
 			} else if (now - (globalThis._lastReadyLogTs || 0) > 5000) {
 				// Very rapid duplicate ready events during a single init/connect (seen in some envs / library versions).
@@ -351,8 +356,10 @@ async function startUpInner() {
 			console.log('[WhatsApp] Client disconnected:', reason);
 			// Next successful ready after this should be announced as a reconnect.
 			needsReadyLogAfterDisconnect = true;
-			// Allow full QR to be printed again if the next flow requires scanning (e.g. session lost).
+			// Announce immediately if the next flow requires scanning (e.g. session lost).
 			qrCodePrintedForSession = false;
+			nextQrReminderAt = 0;
+			qrReminderIntervalMs = 5 * 60_000;
 			// The library will usually attempt to reconnect automatically.
 			// A new 'ready' event should fire after successful re-auth/reconnect.
 		});

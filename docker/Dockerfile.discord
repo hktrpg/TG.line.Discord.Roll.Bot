@@ -19,9 +19,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json yarn.lock ./
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN corepack enable \
-    && yarn install --non-interactive
+    && yarn install --frozen-lockfile --non-interactive
 
 COPY . .
 

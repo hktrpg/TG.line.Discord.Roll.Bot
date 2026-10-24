@@ -1,7 +1,7 @@
 FROM node:24.22.1-alpine
 
 # Install browser dependencies for WhatsApp and fonts shared by image features.
-RUN apk update && apk add --no-cache \
+RUN apk update && apk upgrade --no-cache && apk add --no-cache \
     tzdata \
     git \
     curl \

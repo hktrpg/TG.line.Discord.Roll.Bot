@@ -43,6 +43,9 @@ jobs:
         # parallel coverage on ubuntu runners they otherwise miss the health wait.
         run: yarn test --coverage --maxWorkers=2
 
+      - name: WhatsApp QR monitor script tests
+        run: yarn test:check-qrcode
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         continue-on-error: ${{ github.event_name == 'pull_request' }}

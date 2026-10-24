@@ -1,7 +1,6 @@
 "use strict";
 let variables = {};
 const fs = require('fs');
-const https = require('node:https');
 const { SlashCommandBuilder } = require('discord.js');
 const axiosRetry = require('axios-retry').default;
 const { tify: chineseTify } = require('chinese-conv');
@@ -28,9 +27,6 @@ const gameName = function (params = {}) {
 }
 
 axiosRetry(axios, { retries: 3 });
-
-/** click108 uses a chain Node/OpenSSL may reject; match former curl --insecure. */
-const astroHttpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 /**
  * DailyCache class - Manages caching for all daily data
@@ -618,19 +614,12 @@ class TwelveAstro {
 		this.Almanac = {}; // Date-based caching for almanac: { date: almanacData }
 	}
 
-	static isTlsCertificateChainError(error) {
-		return error?.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' ||
-			error?.code === 'UNABLE_TO_GET_ISSUER_CERT_LOCALLY' ||
-			error?.code === 'SELF_SIGNED_CERT_IN_CHAIN';
-	}
-
 	/**
 	 * Fetch click108 HTML via axios (not curl.exe — Windows spawn often fails with 0xC0000142).
 	 */
 	async fetchAstroHtml(url) {
 		const response = await axios.get(url, {
 			timeout: 15_000,
-			httpsAgent: astroHttpsAgent,
 			responseType: 'text',
 			headers: {
 				'User-Agent': identity,

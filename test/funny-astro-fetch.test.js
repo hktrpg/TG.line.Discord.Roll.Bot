@@ -30,8 +30,17 @@ describe('TwelveAstro fetchAstroHtml', () => {
 		expect(axios.get).toHaveBeenCalledTimes(1);
 		const [url, opts] = axios.get.mock.calls[0];
 		expect(url).toContain('click108.com.tw');
-		expect(opts.httpsAgent).toBeDefined();
+		// Use Axios/Node's default certificate verification, without a TLS bypass.
+		expect(opts.httpsAgent).toBeUndefined();
 		expect(opts.timeout).toBe(15_000);
+	});
+
+	it('propagates TLS certificate validation failures', async () => {
+		const error = Object.assign(new Error('certificate has expired'), { code: 'CERT_HAS_EXPIRED' });
+		axios.get.mockRejectedValue(error);
+		const astro = new TwelveAstro();
+		await expect(astro.fetchAstroHtml('https://example.com/x')).rejects.toBe(error);
+		expect(axios.get.mock.calls.every(([, opts]) => opts.httpsAgent === undefined)).toBe(true);
 	});
 
 	it('rejects empty body', async () => {

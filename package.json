@@ -67,7 +67,7 @@
     "basic-ftp": "6.2.3"
   },
   "dependencies": {
-    "@dice-roller/rpg-dice-roller": "5.3.2",
+    "@dice-roller/rpg-dice-roller": "5.5.1",
     "@line/bot-sdk": "^10.4.0",
     "@lunisolar/plugin-char8ex": "^0.2.5",
     "@lunisolar/plugin-fetalgod": "^0.1.4",

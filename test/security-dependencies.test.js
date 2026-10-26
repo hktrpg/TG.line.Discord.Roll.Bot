@@ -8,6 +8,7 @@ const floors = {
   'js-yaml': '4.3.2', 'ip-address': '10.7.4', axios: '1.20.0', qs: '6.16.0',
   moment: '2.31.0', browserslist: '4.28.7', 'follow-redirects': '1.16.1',
   '@humanfs/node': '0.16.8', 'brace-expansion': '2.1.7',
+  'basic-ftp': '6.2.3',
 };
 function atLeast(version, floor) {
   const a = version.split('.').map(Number), b = floor.split('.').map(Number);
@@ -20,6 +21,31 @@ function atLeast(version, floor) {
 test.each(Object.entries(floors))('%s installs a patched version', (name, floor) => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'node_modules', name, 'package.json'), 'utf8'));
   expect(atLeast(manifest.version, floor)).toBe(true);
+});
+
+test('lockfile does not retain the vulnerable legacy HTTP cache chain', () => {
+  const lock = fs.readFileSync(path.join(root, 'yarn.lock'), 'utf8');
+  expect(/^http-cache-semantics@/m.test(lock)).toBe(false);
+});
+
+test('malformed FTP listings cannot pin the parser process', () => {
+  // Bound the child process so the old quadratic parser cannot hang Jest.
+  // This exercises the installed parser with the upstream advisory's input shape.
+  const script = `
+    const { parseList } = require('basic-ftp');
+    const malformed = '-rw-r--r-- 1 ' + 'a '.repeat(65536) + '!';
+    const valid = '-rw-r--r-- 1 owner group 42 Jan 1 2020 file.txt';
+    try { parseList(malformed + '\\r\\n' + valid + '\\r\\n'); }
+    catch (error) { if (!(error instanceof Error)) throw error; }
+    console.log('completed');
+  `;
+  const result = spawnSync(process.execPath, ['-e', script], {
+    cwd: root, timeout: 3000, encoding: 'utf8',
+    env: { PATH: process.env.PATH, SystemRoot: process.env.SystemRoot, NODE_ENV: 'test' },
+  });
+  expect({ status: result.status, error: result.error?.code })
+    .toEqual({ status: 0, error: undefined });
+  expect(result.stdout).toContain('completed');
 });
 
 test('Express survives a compressed JSON body followed by invalid trailing bytes', () => {

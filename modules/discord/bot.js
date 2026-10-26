@@ -345,8 +345,6 @@ function warnInteraction10062(reason, interaction, meta = {}) {
 	console.warn(`Interaction expired (10062) [${reason}]${dur}: ${label}${ageSuffix}`);
 }
 
-// Multi-server functionality temporarily disabled
-// const multiServer = require('./multi-server')
 // const adminSecret = process.env.ADMIN_SECRET || '';
 const { rollText } = require('../chat/getRoll');
 const agenda = require('../runtime/schedule') && require('../runtime/schedule').agenda;
@@ -703,6 +701,9 @@ const courtMessage = require('../chat/logs').courtMessage || function () { };
 const newMessage = require('../chat/message');
 const healthMonitor = require('../runtime/health-monitor');
 const timerManager = require('../runtime/timer-manager');
+const chatroomRuntime = require('./chatroom-runtime').createChatroomRuntime(client, {
+	isCommand: text => Boolean(exports.analytics.findRollList(text.match(MESSAGE_SPLITOR) || []))
+});
 const { interpretShardRecoveryResults } = require('./shard-connection.js');
 const { resolveShardTopology } = require('./shard-topology.js');
 const SHARD_CONNECTION_MODULE = path.join(__dirname, 'shard-connection.js');
@@ -1149,10 +1150,13 @@ client.on('messageCreate', async message => {
 		if (isShuttingDown) return;
 		if (message.author.bot) return;
 
+		// Capture original text before the legacy parser mutates message.content.
+		const chatroomTask = chatroomRuntime.handleMessage(message);
 		// Use batch processing
 		const [, result] = await Promise.all([
 			checkMongodb.isDbOnline(),
-			handlingResponMessage(message)
+			handlingResponMessage(message),
+			chatroomTask
 		]);
 
 		// DB-triggered cluster respawn disabled: respawn causes all clusters to reconnect at once,
@@ -1166,9 +1170,6 @@ client.on('messageCreate', async message => {
 		// 	respawnCluster2();
 		// }
 
-		// Process message only if DB is likely fine, or let it run if logic handles offline DB
-		await handlingMultiServerMessage(message);
-
 		if (result?.text) {
 			return handlingSendMessage(result);
 		}
@@ -1179,6 +1180,22 @@ client.on('messageCreate', async message => {
 		endInFlightTask(taskId);
 	}
 
+});
+// Edit/delete events use only messages received by Gateway; no history fetch.
+for (const [event, method] of [['messageUpdate', 'handleUpdate'], ['messageDelete', 'handleDelete']]) {
+	client.on(event, async (...args) => {
+		const taskId = beginInFlightTask(event);
+		if (!taskId) return;
+		try { await chatroomRuntime[method](args.at(-1)); }
+		finally { endInFlightTask(taskId); }
+	});
+}
+client.on('messageDeleteBulk', async messages => {
+	const taskId = beginInFlightTask('messageDeleteBulk');
+	if (!taskId) return;
+	try {
+		await Promise.all([...messages.values()].map(message => chatroomRuntime.handleDelete(message)));
+	} finally { endInFlightTask(taskId); }
 });
 client.on('guildCreate', async guild => {
 	try {
@@ -1213,6 +1230,10 @@ client.prependListener('interactionCreate', async message => {
 	try {
 		if (isShuttingDown) return;
 		if (message.user && message.user.bot) return;
+		if (message.isChatInputCommand?.() && message.commandName === 'chatroom') {
+			await chatroomRuntime.handleInteraction(message);
+			return;
+		}
 		await __handlingInteractionMessage(message);
 	} catch (error) {
 		console.error('[Discord Bot] interactionCreate error:', (error && error.name), (error && error.message), (error && error.reason));
@@ -5077,47 +5098,6 @@ async function sendCronWebhook({ channelid, replyText, data }) {
 		}
 	}
 }
-async function handlingMultiServerMessage() {
-	return;
-	// Multi-server functionality temporarily disabled
-	/*
-	if (!process.env.mongoURL) return;
-	let target = multiServer.multiServerChecker(message.channel.id)
-	if (!target) return;
-	else {
-		//	const targetsData = target;
-		const sendMessage = multiServerTarget(message);
-		//	for (let index = 0; index < targetsData.length; index++) {
-		const targetData = target
-		try {
-			let webhook = await manageWebhook({ channelId: targetData.channelid })
-
-			// Check if webhook is valid before proceeding
-			if (webhook && webhook.webhook) {
-				let pair = (webhook && webhook.isThread) ? { threadId: targetData.channelid } : {};
-				await webhook.webhook.send({ ...sendMessage, ...pair });
-			} else {
-				console.error(`Failed to get webhook for multi-server message to channel ${targetData.channelid}`);
-			}
-		} catch (error) {
-			console.error(`Error in handlingMultiServerMessage for channel ${targetData.channelid}:`, error.message);
-		}
-		//	}
-
-	}
-	return;
-	*/
-}
-// Multi-server functionality temporarily disabled
-// function multiServerTarget(message) {
-// 	const obj = {
-// 		content: message.content,
-// 		username: message?._member?.nickname || message?._member?.displayName,
-// 		avatarURL: message.author.displayAvatarURL()
-// 	};
-// 	return obj;
-// }
-
 function __checkUserRole(groupid, message) {
 	/**
 	 * 1 - 一般使用者

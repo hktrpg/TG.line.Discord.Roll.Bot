@@ -9,6 +9,7 @@
 // Set this BEFORE requiring any modules that check for it at top level
 process.env.mongoURL = 'mongodb://localhost:27017/test';
 
+const os = require('node:os');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
@@ -40,13 +41,19 @@ describe('Database Strict Mode Tests', () => {
         if (mongoose.connection.readyState !== 0) {
             await mongoose.disconnect();
         }
-        await mongoose.connect(mongoUri);
-    });
+        // Match the native os adapter used outside Jest's CommonJS VM.
+        await mongoose.connect(mongoUri, {
+            runtimeAdapters: { os }, serverSelectionTimeoutMS: 5000
+        });
+    }, 60_000);
 
     afterAll(async () => {
-        await mongoose.disconnect();
-        await mongoServer.stop();
-    });
+        try {
+            await mongoose.disconnect();
+        } finally {
+            if (mongoServer) await mongoServer.stop();
+        }
+    }, 30_000);
 
     beforeEach(async () => {
         // Clear collections

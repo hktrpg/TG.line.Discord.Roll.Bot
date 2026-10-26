@@ -37,7 +37,6 @@
     "nth-check": "^2.0.1",
     "extend": "^2.0.2",
     "xml2js": "^0.5.0",
-    "got": "^11.8.5",
     "ws": "^8.21.0",
     "axios": "1.20.0",
     "engine.io": "6.6.11",
@@ -64,7 +63,8 @@
     "ip-address": "10.7.4",
     "moment": "2.31.0",
     "browserslist": "4.28.7",
-    "@humanfs/node": "0.16.8"
+    "@humanfs/node": "0.16.8",
+    "basic-ftp": "6.2.3"
   },
   "dependencies": {
     "@dice-roller/rpg-dice-roller": "5.3.2",
@@ -107,7 +107,7 @@
     "mathjs": "^15.2.0",
     "moment": "2.31.0",
     "moment-timezone": "^0.6.3",
-    "mongoose": "^9.8.1",
+    "mongoose": "^9.11.4",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
     "openai": "^4.24.1",

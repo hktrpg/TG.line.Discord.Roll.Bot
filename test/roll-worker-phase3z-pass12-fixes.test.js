@@ -158,10 +158,25 @@ describe('Phase 3z L6 /health counters require Bearer when token set', () => {
 });
 
 describe('Phase 3z L7 chatroom permission_denied text', () => {
-	it('z_multi-server returns permission_denied instead of silent return', () => {
-		const src = fs.readFileSync(path.join(ROOT, 'roll/z_multi-server.js'), 'utf8');
-		expect(src).toMatch(/chatroom\.permission_denied/);
-		expect(src.match(/chatroom\.permission_denied/g).length).toBeGreaterThanOrEqual(3);
+	it.each(['invite', 'join', 'confirm', 'pause', 'disconnect', 'translate'])(
+		'%s explicitly denies non-managers without mutating settings', async action => {
+			const { createChatroomService } = require('../modules/discord/chatroom-service');
+			const { createStore } = require('./chatroom-test-store');
+			const store = createStore();
+			const ensureChannel = jest.spyOn(store, 'ensureChannel');
+			const transport = { notice: jest.fn(), send: jest.fn() };
+			const service = createChatroomService({ store, transport, enabled: () => true,
+				translator: { available: () => true } });
+			await expect(service.command({ action, userId: 'member', language: 'en',
+				channel: { id: '100', guildId: '1', canManage: false, canSend: true }
+			})).rejects.toThrow('Manage Channels');
+			expect(ensureChannel).not.toHaveBeenCalled();
+			expect(store.channels.size).toBe(0);
+			expect(transport.notice).not.toHaveBeenCalled();
+			expect(transport.send).not.toHaveBeenCalled();
+		});
+
+	it('retains localized permission-denied text for legacy consumers', () => {
 		for (const locale of ['zh-tw', 'zh-hans', 'en']) {
 			const lang = JSON.parse(fs.readFileSync(path.join(ROOT, `lang/${locale}.json`), 'utf8'));
 			expect(lang.chatroom.permission_denied.length).toBeGreaterThan(5);

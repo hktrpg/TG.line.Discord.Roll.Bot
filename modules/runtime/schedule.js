@@ -19,8 +19,19 @@ let syncDiscordMaintenanceSchedule = async () => ({ cancelled: false, registered
 
 if (process.env.mongoURL) {
     const Agenda = require("agenda");
-    const dbConnector = require('../db/connector.js');
-    const mongoose = dbConnector.mongoose;
+    // Preserve shared connector startup, but Agenda owns a separate Mongo client:
+    // Mongoose's readyState cannot tell us whether Agenda's collection is ready.
+    require('../db/connector.js');
+
+    let resolveReady;
+    let rejectReady;
+    const databaseReady = new Promise((resolve, reject) => {
+        resolveReady = resolve;
+        rejectReady = reject;
+    });
+    // Initialization can fail before a command awaits readiness. Handle that
+    // rejection immediately, without converting the original promise to success.
+    databaseReady.catch(() => {});
 
     agenda = new Agenda({
         db: {
@@ -39,7 +50,16 @@ if (process.env.mongoURL) {
         processEvery: '30 seconds',
         lockLifetime: 10 * 60 * 1000,
         defaultLockLifetime: 10 * 60 * 1000
+    }, error => {
+        // Agenda 4 throws asynchronous connection errors when this callback is
+        // omitted; an `error` event listener alone cannot intercept that path.
+        if (error) rejectReady(error);
+        else resolveReady();
     });
+    // Agenda's default _ready only resolves on "ready" and never rejects. Keep
+    // one rejectable boundary for startup, ensureAgendaReady(), and Agenda
+    // operations that wait on _ready.
+    agenda._ready = databaseReady;
 
     /**
      * Load schedule document from MongoDB (singleton).
@@ -110,47 +130,11 @@ if (process.env.mongoURL) {
 
     (async function () {
         try {
-            // Wait for MongoDB connection with improved check (compatible with Mongoose 9)
-            let isConnectionReady = false;
-            let attempts = 0;
-            const maxAttempts = 30;
-
-            while (!isConnectionReady && attempts < maxAttempts) {
-                try {
-                    const health = dbConnector.checkHealth();
-                    isConnectionReady = health.isConnected && (mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2);
-                } catch {
-                    isConnectionReady = mongoose.connection.readyState === 1 || mongoose.connection.readyState === 2;
-                }
-
-                if (!isConnectionReady) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    attempts++;
-                }
-            }
-
-            if (!isConnectionReady) {
-                const readyState = mongoose.connection.readyState;
-                if (readyState === 0 || readyState === 3 || readyState === 4) {
-                    console.error(`[Schedule] MongoDB connection not ready (state: ${readyState}), cannot start Agenda`);
-                } else {
-                    console.warn(`[Schedule] MongoDB connection still connecting (state: ${readyState}), attempting to start Agenda anyway`);
-                }
-
-                if (readyState === 0 || readyState === 3 || readyState === 4) {
-                    return;
-                }
-            }
+            await databaseReady;
 
             // Roll Worker must not process Agenda jobs (platform Send handlers live on gateways).
             // Still await Agenda Mongo ready — z_schedule.schedule()/jobs() need _collection.
             if (process.env.ROLL_WORKER_MODE === 'true') {
-                try {
-                    await agenda._ready;
-                    // Silent on success — Agenda API-only ready is expected on every Worker boot.
-                } catch (error) {
-                    console.error('[Schedule] ROLL_WORKER_MODE: Agenda DB ready failed:', error?.message || error);
-                }
                 return;
             }
 
@@ -158,8 +142,9 @@ if (process.env.mongoURL) {
             // Silent on success — Agenda processor start is expected on every Gateway boot.
             await syncDiscordMaintenanceSchedule();
         } catch (error) {
-            console.error(`[Schedule] Agenda start error:`, error);
-            console.error(`[Schedule] Error stack:`, error.stack);
+            // Driver messages may contain connection details. Report the category
+            // without printing a URI, credentials, or an unfiltered error object.
+            console.error('[Schedule] Agenda initialization/start failed:', error?.code || error?.name || 'Error');
         }
     })();
 
@@ -171,7 +156,8 @@ if (process.env.mongoURL) {
     });
 
     agenda.on("error", (err) => {
-        console.error(`[Schedule] Agenda error: ${err.message}`);
+        rejectReady(err);
+        console.error('[Schedule] Agenda error:', err?.code || err?.name || 'Error');
     });
 }
 

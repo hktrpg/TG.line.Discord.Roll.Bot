@@ -10,6 +10,7 @@
 // Set environment variables BEFORE any imports
 process.env.mongoURL = 'mongodb://localhost:27017/test';
 
+const os = require('node:os');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
@@ -39,13 +40,20 @@ describe('Records Module Real Integration Tests', () => {
         if (mongoose.connection.readyState !== 0) {
             await mongoose.disconnect();
         }
-        await mongoose.connect(mongoUri);
-    });
+        // The driver dynamically imports its default os adapter; Jest's
+        // CommonJS VM requires the equivalent native adapter explicitly.
+        await mongoose.connect(mongoUri, {
+            runtimeAdapters: { os }, serverSelectionTimeoutMS: 5000
+        });
+    }, 60_000);
 
     afterAll(async () => {
-        await mongoose.disconnect();
-        await mongoServer.stop();
-    });
+        try {
+            await mongoose.disconnect();
+        } finally {
+            if (mongoServer) await mongoServer.stop();
+        }
+    }, 30_000);
 
     beforeEach(async () => {
         // Clear all collections between tests

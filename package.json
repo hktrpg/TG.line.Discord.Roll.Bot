@@ -107,7 +107,7 @@
     "mathjs": "^15.2.0",
     "moment": "2.31.0",
     "moment-timezone": "^0.6.3",
-    "mongoose": "^9.8.1",
+    "mongoose": "^9.11.4",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
     "openai": "^4.24.1",

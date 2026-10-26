@@ -20,7 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [24.x]
+        node-version: ['24.22.1']
 
     steps:
       - name: Checkout code
@@ -51,4 +51,4 @@ jobs:
         continue-on-error: ${{ github.event_name == 'pull_request' }}
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true 
+          fail_ci_if_error: true

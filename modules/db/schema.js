@@ -513,6 +513,17 @@ if (process.env.mongoURL) {
         serial: Number
     }));
 
+    models.myNameDefault = mongoose.models.myNameDefault || mongoose.model('myNameDefault', new Schema({
+        userID: { type: String, required: true },
+        groupID: { type: String, required: true },
+        myNameID: { type: Schema.Types.ObjectId, required: true }
+    }, {
+        timestamps: true,
+        indexes: [
+            { userID: 1, groupID: 1, unique: true }
+        ]
+    }));
+
     models.whatsapp = mongoose.model('whatsapp', new Schema({
         sessionData: { type: String, index: true },
     }));

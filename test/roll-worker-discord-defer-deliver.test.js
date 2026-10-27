@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * Discord defer drain: /mee (myNames) + /me (myspeck) must not editReply empty text.
+ * Discord defer drain: /mee character (myNames) + .mee speech (myspeck) must not editReply empty text.
  */
 
 const { deliverDiscordDeferred } = require('../modules/roll-worker/discord-defer-deliver');
@@ -59,7 +59,7 @@ describe('deliverDiscordDeferred', () => {
 		expect(hooks.sendToReplyChannel).not.toHaveBeenCalled();
 	});
 
-	it('/me myspeck → sendMeMessage + clear ephemeral', async () => {
+	it('.mee myspeck → sendMeMessage + clear ephemeral', async () => {
 		const interaction = makeInteraction();
 		const hooks = makeHooks();
 		const result = {

@@ -768,11 +768,12 @@ const discordCommand = [
                     .setDescription('要發言的內容')
                     .setRequired(false)),
         async execute(interaction) {
+            // One field wins: clear, then character, then message.
             if (interaction.options.getBoolean('clear')) return '.me reg del';
             const character = interaction.options.getString('character');
             if (character) return `.me reg ${character}`;
             const message = interaction.options.getString('message');
-            return message ? `.me ${message}` : '.me';
+            return message ? `.me ${message}` : '.me reg';
         }
     },
     {

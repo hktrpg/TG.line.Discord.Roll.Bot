@@ -61,6 +61,19 @@ const rollDiceCommand = async function ({
         text: ''
     };
     switch (true) {
+        case /^\.me$/i.test(mainMsg[0]): {
+            if (/^help$/i.test(mainMsg[1])) {
+                rply.text = await getHelpMessage({ locale, t });
+                rply.quotes = true;
+                return rply;
+            }
+            if (/^(reg|register|登記)$/i.test(mainMsg[1])) {
+                return handleMeRegister({ rply, translate, userid, botname, mainMsg, groupid });
+            }
+            return speakAsRegisteredMe({
+                rply, translate, inputStr, userid, botname, groupid, channelid, displayname, displaynameDiscord
+            });
+        }
         case /^\.mehistory$/i.test(mainMsg[0]): {
             if (!groupid) {
                 rply.text = translate('myname.channel_only', { command: '.mehistory' });
@@ -120,6 +133,7 @@ const rollDiceCommand = async function ({
                     }
                     const result = await schema.myName.deleteOne({ _id: myName._id });
                     if (result.deletedCount) {
+                        await clearMyNameDefault(userid, myName._id);
                         rply.text = translate('myname.delete_success', {
                             name: myName.name,
                             serial: myName.serial,
@@ -142,6 +156,7 @@ const rollDiceCommand = async function ({
             try {
                 let myNames = await schema.myName.findOneAndDelete({ userID: userid, shortName: mainMsg[2] })
                 if (myNames) {
+                    await clearMyNameDefault(userid, myNames._id);
                     rply.text = translate('myname.delete_success', {
                         name: myNames.name,
                         serial: myNames.serial,
@@ -231,52 +246,11 @@ const rollDiceCommand = async function ({
             }
             return rply;
         }
-        case /^\.me$|^\.mee$/i.test(mainMsg[0]): {
-            // Handle standard .me command
-            if (!groupid) {
-                rply.text = translate('myname.channel_only', { command: '.me' });
-                rply.quotes = true;
-                return rply;
-            }
-
-            try {
-                // Process the input by removing the command prefix
-                inputStr = inputStr.replace(/^\.mee\s*/i, ' ').replace(/^\.me\s*/i, ' ');
-                if (/^\s*$/.test(inputStr)) {
-                    rply.text = translate('myname.me_empty');
-                    rply.quotes = true;
-                    return rply;
-                }
-
-                // Create a default myName object just for the message
-                const defaultMyName = {
-                    name: userid,  // Using userid as default name
-                    imageLink: 'https://cdn.discordapp.com/embed/avatars/0.png',  // Default Discord avatar
-                };
-
-                rply.myspeck = showMessage(defaultMyName, ' ' + inputStr);
-
-                // Save this usage to the record
-                try {
-                    if (groupid) {
-                        // Content is the processed message without the command
-                        const content = inputStr.trim();
-                        // Don't await here to prevent blocking on DB operations
-                        saveMyNameRecord(channelid || groupid, userid, null, defaultMyName.name, defaultMyName.imageLink, content, displaynameDiscord, displayname, botname)
-                            .catch(error => console.error('Async error saving .me record:', error));
-                    }
-                } catch (error) {
-                    console.error('Error saving .me record:', error);
-                    // Continue anyway even if saving fails
-                }
-
-                return rply;
-            } catch (error) {
-                console.error('Error processing .me command:', error);
-                rply.text = translate('myname.process_error');
-                rply.quotes = true;
-                return rply;
-            }
+        case /^\.mee$/i.test(mainMsg[0]): {
+            // Text .mee is not a speak command. Slash /mee becomes .meN.
+            rply.text = translate('myname.me_use_mee');
+            rply.quotes = true;
+            return rply;
         }
         case /^\.me\S+/i.test(mainMsg[0]): {
             rply.text = checkBotname(botname, translate);
@@ -291,20 +265,7 @@ const rollDiceCommand = async function ({
                     rply.quotes = true;
                     return rply;
                 }
-                let checkName = checkMeName(mainMsg[0]);
-                let myName;
-                if (typeof checkName == 'number') {
-                    await ensureMyNameSerials(userid);
-                    myName = await schema.myName.findOne({ userID: userid, serial: checkName }).lean();
-                }
-                if (!myName) {
-                    try {
-                        myName = await schema.myName.findOne({ userID: userid, shortName: new RegExp('^' + convertRegex(checkName) + '$', 'i') }).lean();
-                    } catch (error) {
-                        console.error('Error finding myName by shortName:', error);
-                        return rply;
-                    }
-                }
+                const myName = await findMyNameForUser(userid, checkMeName(mainMsg[0]));
                 if (!myName) {
                     return rply;
                 }
@@ -411,6 +372,147 @@ function checkMyName(inputStr) {
         return { name: finalName[1], imageLink: finalName[2], shortName: finalName[3] };
     } catch {
         return {}
+    }
+}
+
+async function findMyNameForUser(userid, token) {
+    if (token === undefined || token === null || token === '') return null;
+    const asText = String(token);
+    if (typeof token === 'number' || /^\d+$/.test(asText)) {
+        await ensureMyNameSerials(userid);
+        const serial = typeof token === 'number' ? token : Number(asText);
+        const bySerial = await schema.myName.findOne({ userID: userid, serial }).lean();
+        if (bySerial) return bySerial;
+    }
+    try {
+        return await schema.myName.findOne({
+            userID: userid,
+            shortName: new RegExp('^' + convertRegex(asText) + '$', 'i')
+        }).lean();
+    } catch (error) {
+        console.error('Error finding myName by shortName:', error);
+        return null;
+    }
+}
+
+async function getDefaultMyName(userid, groupid) {
+    if (!schema.myNameDefault || !userid || !groupid) return null;
+    const doc = await schema.myNameDefault.findOne({ userID: userid, groupID: groupid }).lean();
+    if (!doc?.myNameID) return null;
+    const myName = await schema.myName.findById(doc.myNameID).lean();
+    if (!myName || myName.userID !== userid) {
+        await schema.myNameDefault.deleteOne({ userID: userid, groupID: groupid });
+        return null;
+    }
+    return myName;
+}
+
+async function clearMyNameDefault(userID, myNameID) {
+    try {
+        if (!schema.myNameDefault || !userID || !myNameID) return;
+        await schema.myNameDefault.deleteMany({ userID, myNameID });
+    } catch (error) {
+        console.error('Error clearing .me registration:', error);
+    }
+}
+
+function formatRegisteredMe(myName, translate) {
+    return translate('myname.me_reg_current', {
+        name: myName.name,
+        serial: myName.serial,
+        shortNameLine: myName.shortName
+            ? translate('myname.me_reg_alias', { shortName: myName.shortName })
+            : ''
+    });
+}
+
+async function handleMeRegister({ rply, translate, userid, botname, mainMsg, groupid }) {
+    rply.quotes = true;
+    rply.text = checkBotname(botname, translate);
+    if (rply.text) return rply;
+    if (!groupid) {
+        rply.text = translate('myname.channel_only', { command: '.me reg' });
+        return rply;
+    }
+    if (!schema.myNameDefault) {
+        rply.text = translate('myname.add_error');
+        return rply;
+    }
+
+    try {
+        const target = mainMsg[2];
+        if (!target) {
+            const bound = await getDefaultMyName(userid, groupid);
+            rply.text = bound ? formatRegisteredMe(bound, translate) : translate('myname.me_reg_usage');
+            return rply;
+        }
+        if (/^(del|delete|off|clear|取消)$/i.test(target)) {
+            await schema.myNameDefault.deleteOne({ userID: userid, groupID: groupid });
+            rply.text = translate('myname.me_reg_cleared');
+            return rply;
+        }
+
+        const myName = await findMyNameForUser(userid, target);
+        if (!myName) {
+            rply.text = translate('myname.me_reg_not_found');
+            return rply;
+        }
+        await schema.myNameDefault.findOneAndUpdate(
+            { userID: userid, groupID: groupid },
+            { $set: { userID: userid, groupID: groupid, myNameID: myName._id } },
+            { upsert: true }
+        );
+        rply.text = translate('myname.me_reg_success', {
+            name: myName.name,
+            serial: myName.serial,
+            shortNameLine: myName.shortName
+                ? translate('myname.me_reg_alias', { shortName: myName.shortName })
+                : ''
+        });
+        return rply;
+    } catch (error) {
+        console.error('Error registering .me character:', error);
+        rply.text = translate('myname.process_error');
+        return rply;
+    }
+}
+
+async function speakAsRegisteredMe({
+    rply, translate, inputStr, userid, botname, groupid, channelid, displayname, displaynameDiscord
+}) {
+    try {
+        const text = inputStr.replace(/^\.me\s*/i, '').trim();
+        const bound = await getDefaultMyName(userid, groupid);
+        if (!bound) {
+            rply.text = translate('myname.me_use_mee');
+            rply.quotes = true;
+            return rply;
+        }
+        if (!text) {
+            rply.text = formatRegisteredMe(bound, translate);
+            rply.quotes = true;
+            return rply;
+        }
+
+        rply.text = checkBotname(botname, translate);
+        if (rply.text) return rply;
+        if (!groupid) {
+            rply.text = translate('myname.channel_only', { command: '.me' });
+            rply.quotes = true;
+            return rply;
+        }
+
+        rply.myNames = [showMessage(bound, `.me ${text}`)];
+        saveMyNameRecord(
+            channelid || groupid, userid, bound._id, bound.name, bound.imageLink,
+            text, displaynameDiscord, displayname, botname
+        ).catch(error => console.error('Async error saving registered .me record:', error));
+        return rply;
+    } catch (error) {
+        console.error('Error processing registered .me:', error);
+        rply.text = translate('myname.process_error');
+        rply.quotes = true;
+        return rply;
     }
 }
 
@@ -652,14 +754,26 @@ const discordCommand = [
     {
         data: new SlashCommandBuilder()
             .setName('me')
-            .setDescription('角色扮演系統 - 以自己身分發言')
-            .addStringOption(option => 
+            .setDescription('登記後以該角色發言。未登記請看 .myname help')
+            .addStringOption(option =>
+                option.setName('character')
+                    .setDescription('登記這個群組的角色序號或簡稱')
+                    .setRequired(false))
+            .addBooleanOption(option =>
+                option.setName('clear')
+                    .setDescription('取消這個群組的登記')
+                    .setRequired(false))
+            .addStringOption(option =>
                 option.setName('message')
                     .setDescription('要發言的內容')
-                    .setRequired(true)),
+                    .setRequired(false)),
         async execute(interaction) {
+            // One field wins: clear, then character, then message.
+            if (interaction.options.getBoolean('clear')) return '.me reg del';
+            const character = interaction.options.getString('character');
+            if (character) return `.me reg ${character}`;
             const message = interaction.options.getString('message');
-            return `.me ${message}`;
+            return message ? `.me ${message}` : '.me reg';
         }
     },
     {

@@ -2,7 +2,7 @@
 
 /**
  * Discord defer-busy drain delivery (injected deps — unit-testable).
- * /mee → myNames webhook; /me → myspeck; else editReply / channel (honors result.quotes).
+ * Character .meN → myNames webhook; text .mee → myspeck; else editReply / channel (honors result.quotes).
  *
  * @param {object} job
  * @param {object} result

@@ -671,9 +671,6 @@ async function processMessage(msg, groupInfo, client) {
 	let rplyVal = {};
 	if (mainMsg && mainMsg[0])
 		trigger = mainMsg[0].toString().toLowerCase();
-	if (trigger == ".me" || trigger == ".mee") {
-		displaynamecheck = false;
-	}
 	const locale = await i18n.resolveLocale({ groupid, userid, botname: 'Whatsapp' });
 	const t = i18n.createTranslator(locale);
 	const waReplyTarget = {

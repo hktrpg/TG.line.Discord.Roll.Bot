@@ -44,3 +44,13 @@ test('email decryption failure is reported and never used as an email address', 
     expect(result.errors).toEqual(expect.arrayContaining([expect.stringContaining('Email decryption failed')]));
     expect(result.emailContent).not.toContain('DECRYPTION_ERROR');
 });
+
+test('a row encryption failure is reported without writing that member', async () => {
+    schema.patreonMember.findOne.mockReturnValue({ lean: async () => null });
+    security.encryptWithCryptoSecret.mockReturnValueOnce('ENCRYPTION_ERROR: unavailable');
+    const csv = 'Name,Patron Status,Tier,Email,Last Updated\nExample,Active patron,調查員,user@example.test,2026-10-01';
+    const result = await runImport(csv, { keyMode: 'newonly' });
+    expect(result.errors).toEqual(expect.arrayContaining([expect.stringContaining('Patreon field encryption failed')]));
+    expect(schema.patreonMember.create).not.toHaveBeenCalled();
+    expect(schema.patreonMember.updateOne).not.toHaveBeenCalled();
+});

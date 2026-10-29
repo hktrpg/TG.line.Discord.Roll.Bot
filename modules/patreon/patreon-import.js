@@ -250,8 +250,14 @@ key: ${key}`;
             formerByTier[tierLabel] = (formerByTier[tierLabel] || 0) + 1;
             // 悠久者 is special: Former 也會生產 — create member + KEY if not in DB yet
             if (isHonoraryLifetime && !existing) {
-                const emailEncrypted = encrypt(row['Email']);
-                const discordEncrypted = encrypt(row['Discord']);
+                let emailEncrypted, discordEncrypted;
+                try {
+                    emailEncrypted = encrypt(row['Email']);
+                    discordEncrypted = encrypt(row['Discord']);
+                } catch {
+                    errors.push(`Patreon field encryption failed for member: ${name}`);
+                    continue;
+                }
                 const zAdmin = require('../../roll/z_admin.js');
                 const key = typeof zAdmin.generatePatreonKey === 'function' ? zAdmin.generatePatreonKey() : null;
                 if (!key) {
@@ -429,8 +435,14 @@ key: ${key}`;
         // Active but tier not 調查員+ : do not add, do not create KEY; leave existing as-is (no auto OFF)
         if (level == null) continue;
 
-        const emailEncrypted = encrypt(row['Email']);
-        const discordEncrypted = encrypt(row['Discord']);
+        let emailEncrypted, discordEncrypted;
+        try {
+            emailEncrypted = encrypt(row['Email']);
+            discordEncrypted = encrypt(row['Discord']);
+        } catch {
+            errors.push(`Patreon field encryption failed for member: ${name}`);
+            continue;
+        }
 
         if (!existing) {
             // New member: add with new KEY (never regen), store encrypted

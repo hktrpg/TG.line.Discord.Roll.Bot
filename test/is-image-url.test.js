@@ -83,7 +83,12 @@ describe('is-image-url SSRF guards', () => {
 			expect(isPrivateOrReservedIp('fe80::1')).toBe(true);
 			expect(isPrivateOrReservedIp('ff02::1')).toBe(true);
 			expect(isPrivateOrReservedIp('::ffff:127.0.0.1')).toBe(true);
-			expect(isPrivateOrReservedIp('::ffff:8.8.8.8')).toBe(false);
+			expect(isPrivateOrReservedIp('::ffff:8.8.8.8')).toBe(true);
+			expect(isPrivateOrReservedIp('::ffff:7f00:1')).toBe(true);
+			expect(isPrivateOrReservedIp('fe90::1')).toBe(true);
+			expect(isPrivateOrReservedIp('febf::1')).toBe(true);
+			expect(isPrivateOrReservedIp('64:ff9b::a00:1')).toBe(true);
+			expect(isPrivateOrReservedIp('2002:7f00:1::')).toBe(true);
 			expect(isPrivateOrReservedIp('2001:4860:4860::8888')).toBe(false);
 		});
 
@@ -102,6 +107,7 @@ describe('is-image-url SSRF guards', () => {
 			expect(isClearlyUnsafeHostname('svc.internal')).toBe(true);
 			expect(isClearlyUnsafeHostname('metadata.google.internal')).toBe(true);
 			expect(isClearlyUnsafeHostname('127.0.0.1')).toBe(true);
+			expect(isClearlyUnsafeHostname('[::ffff:7f00:1]')).toBe(true);
 			expect(isClearlyUnsafeHostname('example.com')).toBe(false);
 		});
 	});

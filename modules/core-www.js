@@ -2487,6 +2487,8 @@ if (io) {
 
         // 有連線發生時增加人數
         onlineCount++;
+        // Room names remain join-by-name, but unrelated clients must not receive their events.
+        await socket.join('chat-room:公共房間');
         // 發送人數給網頁
         io.emit("online", onlineCount);
         // 發送紀錄最大值
@@ -2558,6 +2560,10 @@ if (io) {
                 socket.emit("chatRecord", [], msg);
                 return;
             }
+            for (const joinedRoom of socket.rooms) {
+                if (joinedRoom.startsWith('chat-room:')) await socket.leave(joinedRoom);
+            }
+            await socket.join(`chat-room:${roomNumber}`);
             setTimeout(async () => {
                 try {
                     const msgs = await records.chatRoomGet(roomNumber);
@@ -2585,7 +2591,7 @@ records.on("new_message", async (message) => {
             return;
         }
 
-        io.emit(message.roomNumber, message);
+        io.to(`chat-room:${message.roomNumber}`).emit(message.roomNumber, message);
         let rplyVal = {}
         let trigger = '';
         let mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
@@ -2736,7 +2742,7 @@ async function loadb(io, records, rplyVal, message) {
             roomNumber: message.roomNumber
         };
 
-        io.emit(message.roomNumber, botMessage);
+        io.to(`chat-room:${message.roomNumber}`).emit(message.roomNumber, botMessage);
         records.chatRoomPush(botMessage);
     }
 }

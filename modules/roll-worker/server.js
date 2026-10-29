@@ -108,7 +108,6 @@ function getRateLimitConfig() {
 function createRollWorkerApp(options = {}) {
 	const app = express();
 	const jsonLimit = options.jsonLimit || getJsonBodyLimit();
-	app.use(express.json({ limit: jsonLimit }));
 
 	const expectedToken = (process.env.ROLL_WORKER_TOKEN || '').trim();
 	const allowNoToken = process.env.ROLL_WORKER_ALLOW_NO_TOKEN === 'true'
@@ -213,6 +212,8 @@ function createRollWorkerApp(options = {}) {
 		}
 		return next();
 	});
+	// Reject unauthorized clients before allocating or parsing large JSON bodies.
+	app.use(express.json({ limit: jsonLimit }));
 
 	app.get('/health', (req, res) => {
 		// Probes always get ok+role. Counters/uptime require Bearer when token is configured (L6).

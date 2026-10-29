@@ -188,6 +188,8 @@ function replaceDiceLiteralsWithSums(input) {
     return out;
 }
 
+const { evaluateStoryExpression } = require('../utils/story-expression');
+
 function safeEvalCondition(expr, scope) {
     try {
         if (!expr) return true;
@@ -195,21 +197,7 @@ function safeEvalCondition(expr, scope) {
         if (/^false$/i.test(expr)) return false;
         // Preprocess dice literals like 2d20 -> concrete number
         const raw = replaceDiceLiteralsWithSums(String(expr));
-        // Block function calls and sensitive globals to avoid executing arbitrary code
-        const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(raw);
-        if (hasCall) return false;
-        // Disallow property access via dot operator entirely for safety
-        const hasDotAccess = /\./.test(raw);
-        if (hasDotAccess) return false;
-        const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
-        if (forbiddenIdents.test(raw)) return false;
-        // Very small evaluator: replace bare identifiers with scope values
-        // Allow operators: <, >, <=, >=, ==, ===, !=, !==, &&, ||, +, -, *, /, %
-        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s\d]/g;
-        const cleaned = (raw.match(allowed) || []).join('');
-        // Build a function with scope via with()
-        const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
-        return !!fn(scope);
+        return Boolean(evaluateStoryExpression(raw, scope));
     } catch {
         return false;
     }
@@ -228,17 +216,7 @@ function evalExpressionValue(expr, scope) {
         }
         const str = replaceDiceLiteralsWithSums(trimmed);
         if (str === '') return '';
-        // Block function calls and sensitive globals in value expressions
-        const hasCall = /(?:^|[^A-Za-z0-9_])(?:[A-Za-z_][A-Za-z0-9_]*\s*\(|\.\s*[A-Za-z_][A-Za-z0-9_]*\s*\()/.test(str);
-        const forbiddenIdents = /\b(?:globalThis|global|process|this|Function|constructor|require)\b/;
-        // Disallow any property access via dot operator
-        const hasDotAccess = /\./.test(str);
-        if (hasCall || hasDotAccess || forbiddenIdents.test(str)) return expr;
-        // Allow identifiers and basic operators
-        const allowed = /[A-Za-z_][A-Za-z0-9_]*|([<>]=?|==?=|!?=)|[()&|!+\-*/%\s\d]/g;
-        const cleaned = (str.match(allowed) || []).join('');
-        const fn = new Function('scope', 'with(scope){ return (' + cleaned + ') }');
-        return fn(scope);
+        return evaluateStoryExpression(str, scope);
     } catch {
         return expr;
     }

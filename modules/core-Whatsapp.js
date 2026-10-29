@@ -36,9 +36,9 @@ const wwebjsAuthRoot = process.env.WWEBJS_AUTH_DATA_PATH
 const {
 	Client, LocalAuth, MessageMedia
 } = require('whatsapp-web.js');
-const isImageURL = require('../utils/is-image-url.js');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
+const { fetchWhatsAppImage } = require('./whatsapp/safe-image');
 const SIX_MONTH = 30 * 24 * 60 * 60 * 1000 * 6;
 const isHeroku = (process.env._ && process.env._.indexOf("heroku")) > 0 ? true : false;
 // const schema = require('../modules/db/schema.js');
@@ -842,11 +842,8 @@ async function SendToReply(msg, rplyVal, userid) {
 			try {
 				if (imageMatch && imageMatch.length > 0) {
 					try {
-						let imageVaild = await isImageURL(imageMatch[0]);
-						if (imageVaild) {
-							const media = await MessageMedia.fromUrl(imageMatch[0]);
-							await msg.reply(media);
-						}
+						const media = await fetchWhatsAppImage(imageMatch[0], MessageMedia);
+						await msg.reply(media);
 					} catch (error) {
 						console.error('[WhatsApp] Image processing error:', error.message);
 					}
@@ -859,11 +856,8 @@ async function SendToReply(msg, rplyVal, userid) {
 						const chat = await msg.getChat();
 						if (imageMatch && imageMatch.length > 0) {
 							try {
-								let imageVaild = await isImageURL(imageMatch[0]);
-								if (imageVaild) {
-									const media = await MessageMedia.fromUrl(imageMatch[0]);
-									await chat.sendMessage(media);
-								}
+								const media = await fetchWhatsAppImage(imageMatch[0], MessageMedia);
+								await chat.sendMessage(media);
 							} catch (error) {
 								console.error('[WhatsApp] Image processing error:', error.message);
 							}
@@ -900,11 +894,8 @@ async function SendToId(targetid, rplyVal, client) {
 
 				if (imageMatch && imageMatch.length > 0) {
 					try {
-						let imageVaild = await isImageURL(imageMatch[0]);
-						if (imageVaild) {
-							const media = await MessageMedia.fromUrl(imageMatch[0]);
-							await client.sendMessage(targetid, media);
-						}
+						const media = await fetchWhatsAppImage(imageMatch[0], MessageMedia);
+						await client.sendMessage(targetid, media);
 					} catch (error) {
 						console.error('[WhatsApp] SendToId image error:', error.message);
 					}

@@ -14,6 +14,12 @@ const BLOCKED_HOSTNAMES = new Set([
 	'kubernetes.default',
 	'kubernetes.default.svc'
 ]);
+const blockedIPv6 = new net.BlockList();
+for (const [address, prefix] of [
+	['::', 96], ['::ffff:0:0', 96], ['fc00::', 7], ['fe80::', 10],
+	['ff00::', 8], ['2001:db8::', 32], ['2001::', 32], ['2002::', 16],
+	['64:ff9b::', 96], ['64:ff9b:1::', 48]
+]) blockedIPv6.addSubnet(address, prefix, 'ipv6');
 
 /**
  * @param {string} hostname
@@ -39,12 +45,6 @@ function isPrivateOrReservedIp(ip) {
 	const normalized = ip.toLowerCase();
 	if (normalized === '::1' || normalized === '0.0.0.0') return true;
 
-	// IPv4-mapped IPv6 (::ffff:a.b.c.d)
-	const mapped = normalized.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
-	if (mapped) {
-		return isPrivateOrReservedIp(mapped[1]);
-	}
-
 	if (net.isIPv4(normalized)) {
 		const parts = normalized.split('.').map(Number);
 		const [a, b] = parts;
@@ -54,23 +54,15 @@ function isPrivateOrReservedIp(ip) {
 		if (a === 169 && b === 254) return true;
 		if (a === 172 && b >= 16 && b <= 31) return true;
 		if (a === 192 && b === 168) return true;
+		if (a === 192 && b === 0) return true;
+		if (a === 198 && (b === 18 || b === 19)) return true;
 		if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
 		if (a >= 224) return true; // multicast / reserved
 		return false;
 	}
 
-	// IPv6 unique local / link-local / loopback / unspecified / multicast
-	if (
-		normalized.startsWith('fc') ||
-		normalized.startsWith('fd') ||
-		normalized.startsWith('fe80:') ||
-		normalized === '::' ||
-		normalized.startsWith('ff')
-	) {
-		return true;
-	}
-
-	return false;
+	// Block mapped addresses entirely, including their hexadecimal representation.
+	return blockedIPv6.check(normalized, 'ipv6');
 }
 
 /**
@@ -80,7 +72,8 @@ function isPrivateOrReservedIp(ip) {
  */
 function isClearlyUnsafeHostname(hostname) {
 	if (isBlockedHostname(hostname)) return true;
-	if (net.isIP(hostname) && isPrivateOrReservedIp(hostname)) return true;
+	const unbracketed = String(hostname).replaceAll(/^\[|\]$/g, '');
+	if (net.isIP(unbracketed) && isPrivateOrReservedIp(unbracketed)) return true;
 	return false;
 }
 

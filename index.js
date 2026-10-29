@@ -1,6 +1,8 @@
 "use strict";
 
+const cryptoWriteFormat = process.env.CRYPTO_SECRET_WRITE_FORMAT;
 require('dotenv').config({ override: true, quiet: true });
+if (cryptoWriteFormat !== undefined) process.env.CRYPTO_SECRET_WRITE_FORMAT = cryptoWriteFormat;
 process.env.DOTENV_CONFIG_QUIET = 'true';
 const fs = require('fs').promises;
 const path = require('path');

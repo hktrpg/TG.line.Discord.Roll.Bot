@@ -696,6 +696,36 @@ function decryptData(encryptedData, key = null) {
 
 /** Algorithm for CRYPTO_SECRET encryption (must match z_admin / Patreon storage). */
 const CRYPTO_SECRET_ALGORITHM = 'aes-256-ctr';
+const CRYPTO_SECRET_GCM_PREFIX = 'gcm1';
+const CRYPTO_SECRET_GCM_INFO = 'hktrpg:crypto-secret:aes-256-gcm:v1';
+
+function cryptoSecretGcmKey() {
+    const secret = process.env.CRYPTO_SECRET;
+    if (!secret) throw new Error('CRYPTO_SECRET not configured');
+    return Buffer.from(crypto.hkdfSync('sha256', Buffer.from(secret, 'utf8'), Buffer.alloc(0),
+        Buffer.from(CRYPTO_SECRET_GCM_INFO, 'utf8'), 32));
+}
+
+function encryptCryptoSecretGcm(text) {
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', cryptoSecretGcmKey(), iv);
+    cipher.setAAD(Buffer.from(CRYPTO_SECRET_GCM_INFO, 'utf8'));
+    const ciphertext = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
+    return [CRYPTO_SECRET_GCM_PREFIX, iv.toString('hex'), cipher.getAuthTag().toString('hex'), ciphertext.toString('hex')].join(':');
+}
+
+function decryptCryptoSecretGcm(text) {
+    const parts = text.split(':');
+    if (parts.length !== 4 || parts[0] !== CRYPTO_SECRET_GCM_PREFIX ||
+        !/^[0-9a-f]{24}$/i.test(parts[1]) || !/^[0-9a-f]{32}$/i.test(parts[2]) ||
+        !/^(?:[0-9a-f]{2})*$/i.test(parts[3])) {
+        throw new Error('Invalid authenticated ciphertext');
+    }
+    const decipher = crypto.createDecipheriv('aes-256-gcm', cryptoSecretGcmKey(), Buffer.from(parts[1], 'hex'));
+    decipher.setAAD(Buffer.from(CRYPTO_SECRET_GCM_INFO, 'utf8'));
+    decipher.setAuthTag(Buffer.from(parts[2], 'hex'));
+    return Buffer.concat([decipher.update(Buffer.from(parts[3], 'hex')), decipher.final()]).toString('utf8');
+}
 
 /**
  * Get 32-byte key from CRYPTO_SECRET (pad or truncate for AES-256-CTR).
@@ -727,6 +757,9 @@ function encryptWithCryptoSecret(text) {
     if (text == null) text = '';
     if (typeof text !== 'string') text = String(text);
     try {
+        const format = process.env.CRYPTO_SECRET_WRITE_FORMAT || 'ctr';
+        if (format === 'gcm-v1') return encryptCryptoSecretGcm(text);
+        if (format !== 'ctr') throw new Error('Invalid CRYPTO_SECRET_WRITE_FORMAT');
         const iv = crypto.randomBytes(16);
         const cipher = crypto.createCipheriv(CRYPTO_SECRET_ALGORITHM, Buffer.from(password, 'utf8'), iv);
         let encrypted = cipher.update(text, 'utf8');
@@ -751,6 +784,7 @@ function decryptWithCryptoSecret(text) {
     }
     if (!text || typeof text !== 'string') return '';
     try {
+        if (text.startsWith(CRYPTO_SECRET_GCM_PREFIX)) return decryptCryptoSecretGcm(text);
         const textParts = text.split(':');
         const iv = Buffer.from(textParts.shift(), 'hex');
         const encryptedText = Buffer.from(textParts.join(':'), 'hex');

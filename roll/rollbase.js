@@ -4,7 +4,8 @@ const {
   Random,
   nodeCrypto
 } = require("random-js");
-const { DiceRoll } = require('@dice-roller/rpg-dice-roller');
+const { DiceRoll, NumberGenerator } = require('@dice-roller/rpg-dice-roller');
+NumberGenerator.generator.engine = nodeCrypto;
 const random = new Random(nodeCrypto);
 const { SlashCommandBuilder } = require('discord.js');
 const { MessageFlags } = require('discord.js');

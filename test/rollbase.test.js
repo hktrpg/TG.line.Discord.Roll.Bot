@@ -43,6 +43,7 @@ jest.mock('random-js', () => ({
 
 // Mock @dice-roller/rpg-dice-roller
 jest.mock('@dice-roller/rpg-dice-roller', () => ({
+  NumberGenerator: { generator: {} },
   DiceRoller: jest.fn(),
   DiceRoll: jest.fn().mockImplementation((notation) => ({
     output: `Rolled ${notation}: 15`
@@ -271,4 +272,4 @@ describe('Rollbase Module Tests', () => {
   afterAll(() => {
     process.env = originalProcessEnv;
   });
-}); 
+});

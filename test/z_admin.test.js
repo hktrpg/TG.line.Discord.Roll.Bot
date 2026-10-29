@@ -26,6 +26,7 @@ jest.mock('crypto', () => ({
 }));
 
 jest.mock('../modules/db/schema.js', () => ({
+  patreonMember: { findOne: jest.fn(), updateOne: jest.fn(), findOneAndUpdate: jest.fn() },
   accountPW: {
     findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
@@ -83,6 +84,26 @@ const checkTools = require('../modules/chat/check.js');
 describe('Admin Module Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  test('regen key encryption failure does not clear VIPs or update the member', async () => {
+    const security = require('../utils/security.js');
+    const sync = require('../modules/patreon/patreon-sync.js');
+    const crypto = require('crypto');
+    const originalBytes = crypto.randomBytes.getMockImplementation();
+    crypto.randomBytes.mockReturnValue(Buffer.alloc(16, 1));
+    const hash = jest.spyOn(security, 'hashPatreonKey').mockReturnValue('hash');
+    const encrypt = jest.spyOn(security, 'encryptWithCryptoSecret').mockReturnValue('ENCRYPTION_ERROR: test');
+    const clear = jest.spyOn(sync, 'clearVipEntriesByPatreonKey');
+    schema.patreonMember.findOne.mockResolvedValue({ patreonName: 'Example', keyHash: 'old' });
+    try {
+      await adminModule.rollDiceCommand({ mainMsg: ['.root', 'regenkeypatreon', 'Example'], userid: 'test_admin_id' });
+      expect(clear).not.toHaveBeenCalled();
+      expect(schema.patreonMember.updateOne).not.toHaveBeenCalled();
+    } finally {
+      crypto.randomBytes.mockImplementation(originalBytes);
+      hash.mockRestore(); encrypt.mockRestore(); clear.mockRestore();
+    }
   });
 
   test('Test gameName returns correct name', () => {
@@ -303,4 +324,4 @@ describe('Admin Module Tests', () => {
     expect(result.type).toBe('text');
     expect(result.text).toBe('重覆用戶名稱');
   });
-}); 
+});

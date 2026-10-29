@@ -17,8 +17,8 @@ const VIP = require('./veryImportantPerson.js');
 function encryptOrThrow(text) {
     if (text == null || text === '') return '';
     const enc = security.encryptWithCryptoSecret(String(text));
-    if (typeof enc === 'string' && enc.startsWith('ENCRYPTION_ERROR')) {
-        throw new Error(enc);
+    if (typeof enc !== 'string' || !enc || enc.startsWith('ENCRYPTION_ERROR')) {
+        throw new Error('Patreon field encryption failed');
     }
     return enc;
 }
@@ -125,11 +125,7 @@ function getDisplayKey(doc) {
     } else if (decryptedKey && decryptedKey.startsWith('DECRYPTION_ERROR')) {
         console.warn('[patreon-import] getDisplayKey: Decryption failed for keyEncrypted. Error:', decryptedKey);
     } else {
-        console.warn(
-            '[patreon-import] getDisplayKey: Decryption resulted in invalid key format.',
-            'Original encrypted data:', doc.keyEncrypted,
-            'Decrypted output:', decryptedKey
-        );
+        console.warn('[patreon-import] getDisplayKey: Decryption resulted in invalid key format.');
     }
     return null;
 }
@@ -234,6 +230,17 @@ key: ${key}`;
         const lastUpdatedDate = lastUpdatedStr ? new Date(lastUpdatedStr.replace(' ', 'T')) : null;
 
         const existing = await schema.patreonMember.findOne({ patreonName: name }).lean();
+        // Do not overwrite or change a member whose authenticated data cannot be read.
+        const badAuthenticatedField = existing && ['keyEncrypted', 'emailEncrypted', 'discordEncrypted'].find((field) => {
+            const value = existing[field];
+            if (typeof value !== 'string' || !value.startsWith('gcm1')) return false;
+            const decrypted = security.decryptWithCryptoSecret(value);
+            return typeof decrypted !== 'string' || decrypted.startsWith('DECRYPTION_ERROR');
+        });
+        if (badAuthenticatedField) {
+            errors.push(`Authenticated data decryption failed for Patreon member: ${name} (${badAuthenticatedField})`);
+            continue;
+        }
         const isHonoraryLifetime = level === patreonTiers.LEVEL_HONORARY_LIFETIME;
 
         // Former patron: normally do not add new members; if was ON -> turn OFF and report.
@@ -572,7 +579,9 @@ key: ${key}`;
                 keyMessages.push(`${t('admin.patreon_import_current_key', { name: member.patreonName, tier: tierLabel })}\n${displayKey}`);
                 if (generateEmail) {
                     const email = member.emailEncrypted ? security.decryptWithCryptoSecret(member.emailEncrypted) : null;
-                    if (email) {
+                    if (typeof email === 'string' && email.startsWith('DECRYPTION_ERROR')) {
+                        errors.push(`Email decryption failed for Patreon member: ${member.patreonName}`);
+                    } else if (email) {
                         emailBlocks.push(generateEmailBlock(member.patreonName, email, displayKey));
                     }
                 }

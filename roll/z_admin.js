@@ -10,6 +10,13 @@ const os = require('node:os');
 const v8 = require('node:v8');
 const { SlashCommandBuilder } = require('discord.js');
 const security = require('../utils/security.js');
+function encryptPatreonKeyOrThrow(key) {
+    const encrypted = security.encryptWithCryptoSecret(key);
+    if (typeof encrypted !== 'string' || !encrypted || encrypted.startsWith('ENCRYPTION_ERROR')) {
+        throw new Error('Patreon key encryption failed');
+    }
+    return encrypted;
+}
 const { parseAdminSecrets } = require('../utils/admin-ids.js');
 // CRYPTO_SECRET is used via security.encryptWithCryptoSecret / decryptWithCryptoSecret
 let password = security.getCryptoSecretKey && security.getCryptoSecretKey();
@@ -1563,7 +1570,7 @@ const rollDiceCommand = async function ({
                         newKeyPlain = generatePatreonKey();
                         const normalized = (newKeyPlain || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                         setFields.keyHash = security.hashPatreonKey(normalized);
-                        setFields.keyEncrypted = security.encryptWithCryptoSecret(newKeyPlain);
+                        setFields.keyEncrypted = encryptPatreonKeyOrThrow(newKeyPlain);
                     }
                     // Set key so legacy unique index key_1 has no duplicate null (E11000)
                     setFields.key = (existed && existed.keyHash) ? existed.keyHash : setFields.keyHash;
@@ -1617,11 +1624,11 @@ const rollDiceCommand = async function ({
                         rply.text = translate('admin.patreon_member_not_found', { name: patreonNameRegen });
                         return rply;
                     }
-                    await patreonSync.clearVipEntriesByPatreonKey(doc);
                     const newKey = generatePatreonKey();
                     const normalized = (newKey || '').replaceAll(/\s/g, '').replaceAll('-', '').toUpperCase();
                     const keyHash = security.hashPatreonKey(normalized);
-                    const keyEncrypted = security.encryptWithCryptoSecret(newKey);
+                    const keyEncrypted = encryptPatreonKeyOrThrow(newKey);
+                    await patreonSync.clearVipEntriesByPatreonKey(doc);
                     await schema.patreonMember.updateOne(
                         { patreonName: patreonNameRegen },
                         { $set: { keyHash, keyEncrypted, key: keyHash } }

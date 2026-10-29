@@ -30,6 +30,7 @@ const pipeline = promisify(stream.pipeline);
 const { createWriteStream } = require('fs');
 const { PermissionFlagsBits, SlashCommandBuilder } = require('discord.js');
 const moment = require('moment-timezone');
+const { secureRandomString } = require('../utils/secure-id');
 const { hasExportHistoryMessages } = require('../modules/roll-worker/export-history');
 const {
 	getExportDir,
@@ -520,8 +521,8 @@ const rollDiceCommand = async function ({
             }
             data = await fs.readFile(__dirname + '/../views/discordlog-new.html', 'utf8')
             // 在 rollDiceCommand 中使用
-            let key = makeid(16); // 使用16位元的金鑰
-            let randomLink = makeid(7);
+            let key = secureRandomString(16);
+            let randomLink = secureRandomString(7);
             let encryptedData = encryptExportPayload(newRawDate, key);
             // discordlog-new.html reads encrypted payload from window.aesData.
             const escapedEncryptedData = JSON.stringify(encryptedData);
@@ -748,15 +749,6 @@ const rollDiceCommand = async function ({
 
 
 
-function makeid(length) {
-    let result = '';
-    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
-}
 const millisToMinutesAndSeconds = (millis, translate) => {
     const t = translate || require('../modules/i18n/i18n.js').createTranslator(require('../modules/i18n/i18n.js').DEFAULT_LOCALE);
     // Only negate if the value is negative (user is still in cooldown)

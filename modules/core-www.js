@@ -2493,23 +2493,33 @@ if (io) {
         io.emit("online", onlineCount);
         // 發送紀錄最大值
         socket.emit("maxRecord", records.chatRoomGetMax());
-        setTimeout(async () => {
-            try {
-                const msgs = await records.chatRoomGet("公共房間");
-                socket.emit("chatRecord", msgs, "公共房間");
-            } catch (error) {
-                console.error('[Web Server] Failed to get chat room messages:', error);
-                socket.emit("chatRecord", [], "公共房間");
-            }
-        }, 200);
+        let roomHistoryGeneration = 0;
+        // Older clients expect unsolicited public-room history on connection.
+        // Protocol 2 clients request their current room after chatReady instead.
+        if (socket.handshake.query?.chatHistoryProtocol !== '2') {
+            const initialHistoryGeneration = roomHistoryGeneration;
+            setTimeout(async () => {
+                try {
+                    if (initialHistoryGeneration !== roomHistoryGeneration) return;
+                    const msgs = await records.chatRoomGet("公共房間");
+                    if (initialHistoryGeneration !== roomHistoryGeneration) return;
+                    socket.emit("chatRecord", msgs, "公共房間");
+                } catch (error) {
+                    if (initialHistoryGeneration !== roomHistoryGeneration) return;
+                    console.error('[Web Server] Failed to get chat room messages:', error);
+                    socket.emit("chatRecord", [], "公共房間", { error: true });
+                }
+            }, 200);
+        }
 
 
         socket.on("greet", () => {
             socket.emit("greet", onlineCount);
         });
 
-        socket.on("send", safeSocketHandler('send', async (msg) => {
-            if (await limitRaterChatRoom(socket.handshake.address)) return;
+        socket.on("send", safeSocketHandler('send', async (msg, acknowledge) => {
+            const reply = (result) => { if (typeof acknowledge === 'function') acknowledge(result); };
+            if (await limitRaterChatRoom(socket.handshake.address)) { reply({ ok: false, code: 'rejected' }); return; }
 
             // 🔒 使用安全的輸入驗證
             const validation = security.validateChatMessage(msg);
@@ -2525,6 +2535,7 @@ if (io) {
                     code: validation.error.replaceAll(/\s+/g, '_').toUpperCase(),
                     originalError: validation.error
                 });
+                reply({ ok: false, code: 'rejected' });
                 return;
             }
 
@@ -2545,42 +2556,63 @@ if (io) {
                 locale
             };
 
-            records.chatRoomPush(payload);
+            try {
+                await records.chatRoomPush(payload);
+                reply({ ok: true });
+            } catch (error) {
+                console.error('[Web Server] Chat message save failed:', error?.message || error);
+                reply({ ok: false, code: 'unconfirmed' });
+            }
         }));
 
-        socket.on("newRoom", safeSocketHandler('newRoom', async (msg) => {
-            if (await limitRaterChatRoom(socket.handshake.address)) return;
-            // Room id must be a plain string. Objects such as { $ne: "" } would be
-            // interpreted as MongoDB operators by chatRoomGet.
-            if (typeof msg !== 'string') return;
-            const roomNumber = msg.trim();
-            // Reply with the same id the client is waiting on. A silent return
-            // leaves isHistoryLoading set and the room blank.
-            if (!roomNumber || roomNumber.length > 50) {
-                socket.emit("chatRecord", [], msg);
-                return;
-            }
-            for (const joinedRoom of socket.rooms) {
-                if (joinedRoom.startsWith('chat-room:')) await socket.leave(joinedRoom);
-            }
-            await socket.join(`chat-room:${roomNumber}`);
-            setTimeout(async () => {
-                try {
-                    const msgs = await records.chatRoomGet(roomNumber);
-                    socket.emit("chatRecord", msgs, roomNumber);
-                } catch (error) {
-                    console.error('[Web Server] Failed to get chat room messages:', error);
-                    socket.emit("chatRecord", [], roomNumber);
+        let roomJoinChain = Promise.resolve();
+        socket.on("newRoom", (msg, request, acknowledge) => {
+            if (typeof request === 'function') { acknowledge = request; request = null; }
+            const requestId = Number.isSafeInteger(request?.requestId) ? request.requestId : null;
+            const generation = ++roomHistoryGeneration;
+            const reply = (result) => { if (typeof acknowledge === 'function') acknowledge(result); };
+            roomJoinChain = roomJoinChain.then(async () => {
+                if (generation !== roomHistoryGeneration) { reply({ ok: false }); return; }
+                if (await limitRaterChatRoom(socket.handshake.address)) { reply({ ok: false }); return; }
+                if (generation !== roomHistoryGeneration) { reply({ ok: false }); return; }
+                // Reject objects that could be interpreted as MongoDB operators.
+                if (typeof msg !== 'string') { reply({ ok: false }); return; }
+                const roomNumber = msg.trim();
+                if (!roomNumber || roomNumber.length > 50) {
+                    socket.emit("chatRecord", [], msg);
+                    reply({ ok: false });
+                    return;
                 }
-            }, 150);
-
-        }));
+                for (const joinedRoom of socket.rooms) {
+                    if (joinedRoom.startsWith('chat-room:')) await socket.leave(joinedRoom);
+                }
+                await socket.join(`chat-room:${roomNumber}`);
+                if (generation !== roomHistoryGeneration) { reply({ ok: false }); return; }
+                reply({ ok: true, room: roomNumber });
+                setTimeout(async () => {
+                    try {
+                        if (generation !== roomHistoryGeneration) return;
+                        const msgs = await records.chatRoomGet(roomNumber);
+                        if (generation !== roomHistoryGeneration) return;
+                        socket.emit("chatRecord", msgs, roomNumber, { requestId });
+                    } catch (error) {
+                        if (generation !== roomHistoryGeneration) return;
+                        console.error('[Web Server] Failed to get chat room messages:', error);
+                        socket.emit("chatRecord", [], roomNumber, { error: true, requestId });
+                    }
+                }, 150);
+            }).catch((error) => {
+                console.error('[Web Server] Failed to join chat room:', error?.message || error);
+                reply({ ok: false });
+            });
+        });
 
         socket.on('disconnect', () => {
             // 有人離線了，扣人
             onlineCount = (onlineCount < 0) ? 0 : onlineCount -= 1;
             io.emit("online", onlineCount);
         });
+        socket.emit('chatReady');
     });
 }
 
@@ -2647,7 +2679,7 @@ records.on("new_message", async (message) => {
         if (rplyVal?.deferred) return;
         if (rplyVal && rplyVal.text) {
             rplyVal.text = '\n' + rplyVal.text
-            loadb(io, records, rplyVal, message);
+            await loadb(io, records, rplyVal, message);
         }
     } catch (error) {
         console.error('[Web Server] new_message handler error:', error?.message || error);
@@ -2732,18 +2764,20 @@ function validateCardPayload(card, locale = i18n.DEFAULT_LOCALE) {
 async function loadb(io, records, rplyVal, message) {
     const baseTime = new Date(message.time).getTime(); // Ensure message.time is parsed as a Date object
     const messages = rplyVal.text.toString().match(/[\s\S]{1,2000}/g) || [];
+    const namePrefix = 'HKTRPG -> ';
+    const userName = String(message.name || 'Sad').slice(0, 50 - namePrefix.length).replace(/[\uD800-\uDBFF]$/, '');
 
     for (let i = 0; i < messages.length; i++) {
         const messageTime = new Date(baseTime + 1 + i); // Increment time by 1ms for each part
         const botMessage = {
-            name: 'HKTRPG -> ' + (message.name || 'Sad'),
+            name: namePrefix + userName,
             msg: messages[i],
             time: messageTime,
             roomNumber: message.roomNumber
         };
 
-        io.to(`chat-room:${message.roomNumber}`).emit(message.roomNumber, botMessage);
-        records.chatRoomPush(botMessage);
+        const savedMessage = await records.chatRoomPush(botMessage);
+        io.to(`chat-room:${message.roomNumber}`).emit(message.roomNumber, savedMessage);
     }
 }
 

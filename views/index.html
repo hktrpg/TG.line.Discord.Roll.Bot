@@ -1419,6 +1419,11 @@
         #header .nav-link {
             color: var(--text-color) !important;
             padding: 0.5rem 1rem;
+            white-space: nowrap;
+        }
+
+        #header .navbar-nav > .nav-item {
+            flex-shrink: 0;
         }
 
         #header .dropdown-menu {
@@ -2504,6 +2509,14 @@
             socket: null,
             reconnectAttempts: 0,
             isConnected: false,
+            hasConnected: false,
+            chatReady: false,
+            chatReadyTimer: null,
+            readyRoom: null,
+            historyFailed: false,
+            joinEpoch: 0,
+            reconnectHistoryRoom: null,
+            displayedMessageIds: new Set(),
             isHistoryLoading: true,
             pendingLive: []
         };
@@ -2872,6 +2885,22 @@
 
         // Socket.IO Management
         const socketManager = {
+            joinRoom: async (room) => {
+                const epoch = ++state.joinEpoch;
+                state.readyRoom = null;
+                if (!state.socket?.connected || !state.chatReady) return;
+                try {
+                    const result = await state.socket.timeout(10000).emitWithAck('newRoom', room, { requestId: epoch });
+                    if (epoch !== state.joinEpoch || room !== chatroomManager.currentRoom) return;
+                    if (!result?.ok || result.room !== room) throw new Error('Room join failed');
+                    state.readyRoom = room;
+                } catch (error) {
+                    if (epoch !== state.joinEpoch || room !== chatroomManager.currentRoom) return;
+                    state.isHistoryLoading = false;
+                    console.error('Failed to join room:', error);
+                    alert(rt('roll_room_unavailable') || '聊天室尚未連線，請稍後再試。');
+                }
+            },
             init: () => {
                 const socketOptions = typeof getWwwSocketIoOptions === 'function'
                     ? getWwwSocketIoOptions({
@@ -2891,6 +2920,7 @@
                                     || 'zh-tw')
                         }
                     };
+                socketOptions.query = { ...socketOptions.query, chatHistoryProtocol: '2' };
                 state.socket = io(socketOptions);
 
                 socketManager.setupEventListeners();
@@ -2899,13 +2929,43 @@
             setupEventListeners: () => {
                 state.socket.on('connect', () => {
                     state.isConnected = true;
+                    state.chatReady = false;
+                    state.readyRoom = null;
+                    clearTimeout(state.chatReadyTimer);
+                    state.chatReadyTimer = setTimeout(() => {
+                        state.chatReadyTimer = null;
+                        if (state.socket?.connected && !state.chatReady &&
+                            chatroomManager.currentRoom !== CONFIG.PERSONAL_ROOM) {
+                            alert(rt('roll_server_not_ready') || '伺服器尚未就緒或版本不相容，請稍後再試。');
+                        }
+                    }, 10000);
                     state.reconnectAttempts = 0;
+                    if (state.hasConnected && chatroomManager.currentRoom !== CONFIG.PERSONAL_ROOM) {
+                        const room = chatroomManager.currentRoom;
+                        state.reconnectHistoryRoom = room;
+                        state.isHistoryLoading = true;
+                        state.pendingLive = [];
+                    }
+                    state.hasConnected = true;
                     console.log('Connected to server');
                 });
 
                 state.socket.on('disconnect', () => {
                     state.isConnected = false;
+                    clearTimeout(state.chatReadyTimer);
+                    state.chatReadyTimer = null;
+                    state.chatReady = false;
+                    state.readyRoom = null;
+                    state.joinEpoch++;
                     console.log('Disconnected from server');
+                });
+
+                state.socket.on('chatReady', () => {
+                    clearTimeout(state.chatReadyTimer);
+                    state.chatReadyTimer = null;
+                    state.chatReady = true;
+                    const room = chatroomManager.currentRoom;
+                    if (room !== CONFIG.PERSONAL_ROOM) socketManager.joinRoom(room);
                 });
 
                 state.socket.on('connect_error', (error) => {
@@ -2920,7 +2980,7 @@
                     state.max_record = amount;
                 });
 
-                state.socket.on('chatRecord', async (msgs, roomNumber) => {
+                state.socket.on('chatRecord', async (msgs, roomNumber, status) => {
                     // 如果 roomNumber 未定義（舊版伺服器），且 msgs 有內容，則從第一條訊息推斷
                     const batchRoom = roomNumber || (Array.isArray(msgs) && msgs.length > 0 ? msgs[0].roomNumber : null);
                     const currentRoom = chatroomManager.currentRoom;
@@ -2930,11 +2990,44 @@
                         if (batchRoom) console.log(`🔄 Ignoring history for room ${batchRoom}, current: ${currentRoom}`);
                         return;
                     }
+                    if (status?.requestId !== state.joinEpoch) return;
+
+                    const seenIds = new Set();
+                    const renderPending = async () => {
+                        while (state.pendingLive.length && chatroomManager.currentRoom === batchRoom &&
+                            status.requestId === state.joinEpoch) {
+                            const msg = state.pendingLive.shift();
+                            const id = msg._id?.toString();
+                            if (id && seenIds.has(id)) continue;
+                            if (id) seenIds.add(id);
+                            await uiManager.addMessageToBox(msg);
+                        }
+                    };
+
+                    if (status?.error) {
+                        state.historyFailed = true;
+                        state.reconnectHistoryRoom = null;
+                        await renderPending();
+                        if (chatroomManager.currentRoom === batchRoom && status.requestId === state.joinEpoch) {
+                            state.isHistoryLoading = false;
+                        }
+                        if (chatroomManager.currentRoom === batchRoom && status.requestId === state.joinEpoch) {
+                            alert(rt('roll_history_unavailable') || '無法載入聊天室紀錄，請稍後重試。');
+                        }
+                        return;
+                    }
+                    state.historyFailed = false;
+
+                    if (state.reconnectHistoryRoom === batchRoom) {
+                        const content = document.getElementById('content');
+                        if (content) content.innerHTML = '';
+                        state.displayedMessageIds.clear();
+                        state.reconnectHistoryRoom = null;
+                    }
 
                     // 2. 如果 msgs 是空的，表示該房間沒有歷史紀錄
                     if (!Array.isArray(msgs) || msgs.length === 0) {
                         console.log(`📜 No history for room ${batchRoom}`);
-                        state.isHistoryLoading = false;
                         // 沖掉可能積壓的 live 訊息
                         if (state.pendingLive.length) {
                             state.pendingLive.sort((a, b) => {
@@ -2945,10 +3038,10 @@
                                 const idb = (b._id || '').toString();
                                 return ida.localeCompare(idb);
                             });
-                            for (const msg of state.pendingLive) {
-                                await uiManager.addMessageToBox(msg);
-                            }
-                            state.pendingLive = [];
+                            await renderPending();
+                        }
+                        if (chatroomManager.currentRoom === batchRoom && status.requestId === state.joinEpoch) {
+                            state.isHistoryLoading = false;
                         }
                         return;
                     }
@@ -2973,18 +3066,19 @@
                     
                     for (const msg of msgs) {
                         // 🐛 FIX: 每次新增訊息前都檢查房間，防止切換房間時污染
-                        if (chatroomManager.currentRoom !== batchRoom) {
+                        if (chatroomManager.currentRoom !== batchRoom || status.requestId !== state.joinEpoch) {
                             console.warn(`⚠️ Room changed during history load, aborting (${batchRoom} → ${chatroomManager.currentRoom})`);
                             break;
                         }
                         
                         if (msg.roomNumber === batchRoom) {
+                            if (msg._id) seenIds.add(msg._id.toString());
                             await uiManager.addMessageToBox(msg);
                         }
                     }
                     
                     // 只有在房間未改變時才繼續
-                    if (chatroomManager.currentRoom !== batchRoom) {
+                    if (chatroomManager.currentRoom !== batchRoom || status.requestId !== state.joinEpoch) {
                         console.log(`🔄 History load aborted for room ${batchRoom}`);
                         return;
                     }
@@ -3001,12 +3095,11 @@
                             const idb = (b._id || '').toString();
                             return ida.localeCompare(idb);
                         });
-                        for (const msg of state.pendingLive) {
-                            await uiManager.addMessageToBox(msg);
-                        }
-                        state.pendingLive = [];
+                        await renderPending();
                     }
-                    state.isHistoryLoading = false;
+                    if (chatroomManager.currentRoom === batchRoom && status.requestId === state.joinEpoch) {
+                        state.isHistoryLoading = false;
+                    }
                 });
 
                 state.socket.on(state.currentRoom, (message) => {
@@ -3178,17 +3271,28 @@
 
                     if (state.socket) {
                         try {
+                            if (!state.socket.connected || state.readyRoom !== formData.roomNumber) {
+                                alert(rt('roll_room_unavailable') || '聊天室尚未連線，請稍後再試。');
+                                return;
+                            }
                             // 與伺服器通訊維持原有格式（伺服器端會在前綴加上換行）
-                            state.socket.emit("send", formData);
+                            const result = await state.socket.timeout(40000).emitWithAck("send", formData);
+                            if (!result?.ok) {
+                                if (result?.code === 'rejected') {
+                                    alert(rt('roll_send_failed') || '發送訊息失敗，請稍後再試');
+                                    return;
+                                }
+                                throw new Error('Message save was not confirmed');
+                            }
                             utils.setLocalStorage("name", nameInput.value);
-                            msgInput.value = '';
+                            if (msgInput.value === plainMsg) msgInput.value = '';
                             
                             // Reset textarea height and char count
                             uiManager.autoResizeTextarea();
                             uiManager.updateCharCount();
                         } catch (error) {
                             console.error('Failed to send message:', error);
-                            alert(rt('roll_send_failed') || '發送訊息失敗，請稍後再試');
+                            alert(rt('roll_send_unconfirmed') || '無法確認訊息是否已儲存，請先查看聊天室再重試。');
                         } finally {
                             // 🔒 Security: 完成提交
                             securityManager.setSubmitting(false);
@@ -3202,6 +3306,8 @@
 
             addMessageToBox: async (message) => {
                 if (!message || !message.msg) return;
+                const messageId = message._id?.toString();
+                if (messageId && state.displayedMessageIds.has(messageId)) return;
 
                 const container = document.getElementById("container-content");
 
@@ -3250,6 +3356,14 @@
 
                 const content = document.getElementById("content");
                 content.appendChild(msgBox);
+                if (messageId) {
+                    state.displayedMessageIds.add(messageId);
+                    // Bound memory while covering messages that recently left the view.
+                    const limit = Math.max(200, (Number(state.max_record) || CONFIG.MAX_MESSAGES) * 2);
+                    while (state.displayedMessageIds.size > limit) {
+                        state.displayedMessageIds.delete(state.displayedMessageIds.values().next().value);
+                    }
+                }
 
                 if (content.children.length > state.max_record) {
                     content.removeChild(content.firstChild);
@@ -4439,7 +4553,15 @@
             },
 
             switchRoom: (roomName) => {
-                if (chatroomManager.currentRoom === roomName) return;
+                if (chatroomManager.currentRoom === roomName) {
+                    if (roomName !== CONFIG.PERSONAL_ROOM && (state.readyRoom !== roomName || state.historyFailed) &&
+                        state.socket?.connected && state.chatReady) {
+                        state.reconnectHistoryRoom = roomName;
+                        state.isHistoryLoading = true;
+                        socketManager.joinRoom(roomName);
+                    }
+                    return;
+                }
 
                 // 移除舊房間的事件監聽器（僅非個人小屋）
                 if (state.socket && chatroomManager.currentRoom !== CONFIG.PERSONAL_ROOM) {
@@ -4449,6 +4571,11 @@
                 // 更新房間狀態
                 chatroomManager.currentRoom = roomName;
                 state.currentRoom = roomName;
+                state.reconnectHistoryRoom = null;
+                state.historyFailed = false;
+                state.displayedMessageIds.clear();
+                state.readyRoom = null;
+                state.joinEpoch++;
                 localStorage.setItem('lastRoom', roomName);
 
                 // 清空聊天內容
@@ -4483,7 +4610,7 @@
                     // 發送切換房間事件（連線房）
                     state.isHistoryLoading = true;
                     state.pendingLive = [];
-                    state.socket.emit("newRoom", roomName);
+                    socketManager.joinRoom(roomName);
                     // Names the server will not query never get a history reply on older builds.
                     const roomId = typeof roomName === 'string' ? roomName.trim() : '';
                     if (!roomId || roomId.length > 50) {

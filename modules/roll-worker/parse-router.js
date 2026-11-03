@@ -554,7 +554,7 @@ async function parseInput(params = {}, options = {}) {
 				error: errMsg,
 				hint: isTimeout
 					? (moduleName === 'openai'
-						? 'OpenAI/upstream no response within ROLL_WORKER_TIMEOUT_MS (Worker may still be fine)'
+						? 'OpenAI/upstream no response within the request timeout (Worker may still be fine)'
 						: 'parse exceeded ROLL_WORKER_TIMEOUT_MS (Worker may still be fine)')
 					: 'fail-closed module; no local replay',
 			});

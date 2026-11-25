@@ -9,7 +9,10 @@ const { setTimeout: delay } = require('node:timers/promises');
 const { isEnvEnabled } = require('../../utils/env-flag');
 const i18n = require('../i18n/i18n');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
-const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('./social-post-media');
+const {
+    readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages,
+    xPostRoute, redditPostRoute, redditVideoRoute, redditPhotoRoute,
+} = require('./social-post-media');
 const { createVideoScratch, hasVideoCapacity, watchVideoDownload } = require('./social-video-runtime');
 const { getVideoExecutables } = require('./social-video-tools');
 
@@ -84,8 +87,15 @@ const sources = [
     {
         extractor: 'twitter.*',
         hosts: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com', 'mobile.twitter.com'],
-        path: /^\/(?:[\w]+\/status|i\/web\/status)\/\d+(?:\/video\/\d+)?\/?$/,
+        path: xPostRoute,
     },
+    {
+        extractor: 'reddit',
+        hosts: ['reddit.com', 'www.reddit.com', 'old.reddit.com', 'new.reddit.com', 'sh.reddit.com', 'm.reddit.com'],
+        path: redditPostRoute,
+    },
+    { extractor: 'reddit', hosts: ['v.redd.it'], path: redditVideoRoute },
+    { extractor: 'reddit', hosts: ['i.redd.it'], path: redditPhotoRoute },
     {
         extractor: 'instagram.*',
         hosts: ['instagram.com', 'www.instagram.com'],
@@ -175,17 +185,25 @@ function checkDownloaderMetadata(stdout) {
 }
 
 async function resolveShareLink(link) {
+    const videoShare = new URL(link.url).pathname.startsWith('/share/v/');
     const signal = AbortSignal.timeout(8000);
     for (let redirects = 0; link.redirect && redirects < 5; redirects++) {
         const response = await fetch(link.url, { redirect: 'manual', signal });
         await response.body?.cancel();
         const location = response.headers.get('location');
-        if (link.story && response.ok) return parseLink(link.url);
+        if ((link.story || link.storyPost) && response.ok) return parseLink(link.url);
         if (response.status < 300 || response.status >= 400 || !location) {
             if (response.status >= 400) throw Object.assign(new Error('Facebook share link returned an error'), { status: response.status });
             throw new VideoRequestError('Facebook 分享連結未能轉到影片。請貼原始公開貼文或 Reel 連結。');
         }
-        link = parseLink(new URL(location, link.url).href, true);
+        const destination = new URL(location, link.url);
+        if (videoShare && link.story && destination.origin === new URL(link.url).origin
+            && /^\/login\/?$/.test(destination.pathname)) {
+            // Facebook can require login for the share's story route even when its canonical post is public.
+            link = { ...parseLink(link.url), redirect: true, storyPost: true };
+            continue;
+        }
+        link = parseLink(destination.href, true);
         if (link?.extractor !== 'facebook.*') throw new VideoRequestError('Facebook 分享連結轉到不支援的頁面。請貼原始公開貼文或 Reel 連結。');
     }
     if (link.redirect) throw new VideoRequestError('Facebook 分享連結轉址次數過多。請貼原始公開貼文或 Reel 連結。');
@@ -242,6 +260,7 @@ async function stagePostTracks(tracks, input, directory, maxBytes, ffmpeg, optio
 }
 
 async function downloadSocialVideo(link, directory, maxBytes, primary) {
+    checkVideoDuration(primary?.duration);
     const input = join(directory, 'source.mp4');
     const output = join(directory, 'social-video.mp4');
     const sizeFilter = `[filesize<=?${MAX_SOURCE_BYTES}][filesize_approx<=?${MAX_SOURCE_BYTES}]`;

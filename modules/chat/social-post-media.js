@@ -13,6 +13,13 @@ const mediaDomains = ['cdninstagram.com', 'fbcdn.net'];
 const threadsHosts = ['threads.com', 'www.threads.com', 'threads.net', 'www.threads.net'];
 const instagramHosts = ['instagram.com', 'www.instagram.com'];
 const facebookHosts = ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'];
+const xMediaHosts = ['pbs.twimg.com', 'video.twimg.com'];
+const redditPhotoHosts = ['i.redd.it', 'preview.redd.it'];
+const redditVideoHost = 'v.redd.it';
+const xPostRoute = /^\/(?:\w+\/status|i\/web\/status)\/(\d{1,20})(?:\/(?:video|photo)\/\d+)?\/?$/;
+const redditPostRoute = /^\/(?:r|user)\/[\w-]+\/comments\/([a-z0-9]+)(?:\/[\w-]+)?\/?$/i;
+const redditVideoRoute = /^\/([a-z0-9]+)(?:\/DASHPlaylist\.mpd)?\/?$/i;
+const redditPhotoRoute = /^\/[\w.-]+\.(?:jpe?g|png)$/i;
 
 function safeURL(value, allowed) {
     try {
@@ -24,7 +31,8 @@ function safeURL(value, allowed) {
 }
 
 function mediaURL(value) {
-    return safeURL(value, url => mediaDomains.some(domain => url.hostname === domain || url.hostname.endsWith(`.${domain}`)))?.href;
+    return safeURL(value, ({ hostname }) => xMediaHosts.includes(hostname) || redditPhotoHosts.includes(hostname)
+        || hostname === redditVideoHost || mediaDomains.some(domain => hostname === domain || hostname.endsWith(`.${domain}`)))?.href;
 }
 
 async function fetchBounded(url, allowed, { headers, signal, bytes, method = 'GET' }) {
@@ -170,8 +178,112 @@ function matchMetaPost($, code, maxBytes) {
     return found ? selectPostMedia(parts) : null;
 }
 
+function selectRendition(variants, maxBytes, duration, audioBitrate = 0) {
+    variants.sort((left, right) => right.bitrate - left.bitrate);
+    if (!(duration > 0)) return variants[0]?.url;
+    const maxBitrate = maxBytes * 8 * 0.9 / duration - audioBitrate;
+    return (variants.find(variant => variant.bitrate > 0 && variant.bitrate <= maxBitrate) ?? variants.at(-1))?.url;
+}
+
+async function readXMedia(original, maxBytes) {
+    const id = xPostRoute.exec(original.pathname)?.[1];
+    if (!id) return null;
+    // The token is derived from the public post ID by X's embed client.
+    const token = (Number(id) / 1e15 * Math.PI).toString(36).replace(/[0.]/g, '');
+    const url = new URL('https://cdn.syndication.twimg.com/tweet-result');
+    url.search = new URLSearchParams({ id, token });
+    const bytes = MIB;
+    let post;
+    try {
+        const { response } = await fetchBounded(url.href, target => target.origin === url.origin
+            && target.pathname === url.pathname && target.searchParams.get('id') === id, {
+            signal: AbortSignal.timeout(8000), bytes,
+        });
+        post = JSON.parse((await readBody(response, bytes)).toString('utf8'));
+    } catch (error) {
+        // Keep the existing video extractor available when public embeds are unavailable.
+        if ([401, 403, 404, 429].includes(error.status)) return null;
+        throw error;
+    }
+    if (post?.id_str !== id || !Array.isArray(post.mediaDetails)) return null;
+
+    const videos = post.mediaDetails.filter(media => media?.type === 'video' || media?.type === 'animated_gif');
+    for (const media of videos) {
+        const duration = Number(media.video_info?.duration_millis) / 1000;
+        const variants = Array.isArray(media.video_info?.variants) ? media.video_info.variants : [];
+        const mp4 = variants.filter(variant => variant?.content_type === 'video/mp4').map(variant => ({
+            url: safeURL(variant.url, target => target.hostname === 'video.twimg.com')?.href,
+            bitrate: Number(variant.bitrate) || 0,
+        })).filter(variant => variant.url);
+        const video = selectRendition(mp4, maxBytes, duration);
+        if (video) return { kind: 'video', url: video, duration };
+    }
+    if (videos.length) return null;
+
+    const photos = post.mediaDetails.filter(media => media?.type === 'photo').map(media => ({
+        image: safeURL(media.media_url_https, target => target.hostname === 'pbs.twimg.com' && target.pathname.startsWith('/media/'))?.href,
+    }));
+    return selectPostMedia(photos);
+}
+
+async function readRedditVideo(id, maxBytes) {
+    const url = `https://${redditVideoHost}/${id}/DASHPlaylist.mpd`;
+    const bytes = 256 * 1024;
+    const { response } = await fetchBounded(url, target => target.hostname === redditVideoHost
+        && target.pathname === `/${id}/DASHPlaylist.mpd`, { signal: AbortSignal.timeout(8000), bytes });
+    const $ = load((await readBody(response, bytes)).toString('utf8'), { xmlMode: true });
+    const manifest = $('MPD').first();
+    if (manifest.attr('type') !== 'static' || $('Period').length !== 1) return { kind: 'unavailable' };
+    const time = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/.exec(manifest.attr('mediaPresentationDuration') || '');
+    const duration = time ? (Number(time[1] || 0) * 3600 + Number(time[2] || 0) * 60 + Number(time[3] || 0)) : undefined;
+    const tracks = $('Representation').toArray().map(element => {
+        const track = $(element);
+        const path = track.children('BaseURL').first().text().trim();
+        return {
+            url: /^(?:DASH_[\w.-]+|audio)$/.test(path) ? new URL(path, url).href : undefined,
+            codec: track.attr('codecs') || '',
+            bitrate: Number(track.attr('bandwidth')) || 0,
+        };
+    }).filter(track => track.url);
+    const audio = tracks.find(track => track.codec.startsWith('mp4a'));
+    const video = selectRendition(tracks.filter(track => track.codec.startsWith('avc1')), maxBytes, duration, audio?.bitrate);
+    return video ? { kind: 'video', tracks: { video, audio: audio?.url }, duration } : { kind: 'unavailable' };
+}
+
+async function readRedditMedia(original, maxBytes) {
+    if (original.hostname === 'i.redd.it' && redditPhotoRoute.test(original.pathname)) {
+        return { kind: 'images', urls: [original.href] };
+    }
+    if (original.hostname === redditVideoHost) {
+        const videoId = redditVideoRoute.exec(original.pathname)?.[1];
+        return videoId ? readRedditVideo(videoId, maxBytes) : { kind: 'unavailable' };
+    }
+
+    const postId = redditPostRoute.exec(original.pathname)?.[1];
+    if (!postId) return { kind: 'unavailable' };
+    const embed = new URL(original.pathname, 'https://embed.reddit.com');
+    const bytes = 2 * MIB;
+    const { response } = await fetchBounded(embed.href, target => target.origin === embed.origin
+        && redditPostRoute.exec(target.pathname)?.[1] === postId, { signal: AbortSignal.timeout(8000), bytes });
+    const $ = load((await readBody(response, bytes)).toString('utf8'), { scriptingEnabled: false });
+    const post = $(`#t3_${postId}-embed-wrapper #embed-container`).first();
+    if (!post.length) return { kind: 'unavailable' };
+    const player = post.find(`shreddit-player[post-id="t3_${postId}"]`).first();
+    if (player.length) {
+        const video = safeURL(player.attr('src'), target => target.hostname === redditVideoHost);
+        const videoId = /^\/([a-z0-9]+)\/HLSPlaylist\.m3u8$/i.exec(video?.pathname ?? '')?.[1];
+        return videoId ? readRedditVideo(videoId, maxBytes) : { kind: 'unavailable' };
+    }
+    const photos = post.find('shreddit-aspect-ratio img[src]').toArray().map(element => ({
+        image: safeURL($(element).attr('src'), target => redditPhotoHosts.includes(target.hostname))?.href,
+    }));
+    return selectPostMedia(photos);
+}
+
 async function readPrimaryMedia(link, maxBytes = 20 * MIB) {
     const original = new URL(link.url);
+    if (link.extractor === 'twitter.*') return readXMedia(original, maxBytes);
+    if (link.extractor === 'reddit') return readRedditMedia(original, maxBytes);
     const threads = link.extractor === 'threads';
     const instagram = link.extractor === 'instagram.*';
     const route = threads ? threadRoute : instagram ? instagramRoute : facebookRoute;
@@ -235,4 +347,7 @@ async function downloadPostImages(urls, directory) {
     return images;
 }
 
-module.exports = { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages };
+module.exports = {
+    readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages,
+    xPostRoute, redditPostRoute, redditVideoRoute, redditPhotoRoute,
+};

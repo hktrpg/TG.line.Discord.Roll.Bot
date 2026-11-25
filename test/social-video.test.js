@@ -22,6 +22,7 @@ jest.mock('node:os', () => ({
 }));
 jest.mock('../modules/chat/social-video-quota', () => ({ acquireVideoLease: jest.fn(), reserveVideoQuota: jest.fn() }));
 jest.mock('../modules/chat/social-post-media', () => ({
+    ...jest.requireActual('../modules/chat/social-post-media'),
     readPrimaryMedia: jest.fn(), postVideoLength: jest.fn(), downloadPostVideo: jest.fn(), downloadPostImages: jest.fn(),
 }));
 jest.mock('../modules/patreon/veryImportantPerson', () => ({
@@ -117,6 +118,18 @@ test('recognizes supported links, including Telegram text entities, and removes 
 });
 
 test.each([
+    ['https://x.com/user/status/123/photo/1?s=1', 'twitter.*'],
+    ['https://www.reddit.com/r/aww/comments/abc/example/?share=1', 'reddit'],
+    ['https://v.redd.it/example', 'reddit'],
+    ['https://i.redd.it/example.jpg', 'reddit'],
+])('recognizes a supported X or Reddit media link (%s)', (url, extractor) => {
+    expect(findSocialVideoLink(url)).toMatchObject({ url: url.split('?')[0], extractor });
+});
+
+test.each([
+    'https://reddit.com.evil.example/r/aww/comments/abc/example/',
+    'https://v.redd.it/unknown/../../arbitrary/path',
+    'https://i.redd.it/example.exe',
     'http://facebook.com/reel/123',
     'https://facebook.com.evil.example/reel/123',
     'https://www.facebook.com@evil.example/reel/123',
@@ -597,6 +610,28 @@ test('follows a Facebook video share through story.php and a localized video slu
     expect(fetcher).toHaveBeenNthCalledWith(2, `https://www.facebook.com${story}`, expect.anything());
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/watch/?v=789');
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('resolves a Facebook video share through its public canonical post when story.php redirects to login', async () => {
+    const share = 'https://www.facebook.com/share/v/19sWN9xGhY/?mibextid=wwXIfr';
+    const fetcher = jest.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(null, { status: 302, headers: {
+            location: '/story.php?story_fbid=1867816297994985&id=100063738685814',
+        } }))
+        .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: '/login/?next=private' } }))
+        .mockResolvedValueOnce(new Response(null, { status: 302, headers: {
+            location: '/incgmedia/videos/%E7%89%87%E5%90%8D/1867816297994985/',
+        } }));
+    const request = telegram({ text: '.video ' + share });
+
+    await handleSocialVideo(request);
+
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(fetcher).toHaveBeenNthCalledWith(3, 'https://www.facebook.com/100063738685814/posts/1867816297994985/', expect.anything());
+    expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/watch/?v=1867816297994985');
+    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), {
+        url: 'https://www.facebook.com/share/v/19sWN9xGhY/',
+    });
 });
 
 test('compresses a short clip that exceeds the Discord cap and refunds a rejected upload', async () => {

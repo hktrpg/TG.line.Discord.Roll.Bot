@@ -95,6 +95,70 @@ test('does not substitute the video thumbnail if the post says it has a video an
         .resolves.toMatchObject({ kind: 'video' });
 });
 
+test('reads X photos from the requested public post and ignores the quoted post', async () => {
+    const url = 'https://pbs.twimg.com/media/target.jpg';
+    jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({
+        id_str: '123',
+        mediaDetails: [{ type: 'photo', media_url_https: url }, { type: 'photo', media_url_https: 'https://unrelated.example/photo.jpg' }],
+        quoted_tweet: { mediaDetails: [{ type: 'photo', media_url_https: 'https://pbs.twimg.com/media/quote.jpg' }] },
+    }));
+    await expect(readPrimaryMedia({ url: 'https://x.com/user/status/123/photo/1', extractor: 'twitter.*' }))
+        .resolves.toEqual({ kind: 'images', urls: [url] });
+});
+
+test('chooses a bounded X MP4 rendition ahead of any attached photo', async () => {
+    const url = 'https://video.twimg.com/clip/small.mp4';
+    jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({
+        id_str: '123',
+        mediaDetails: [
+            { type: 'photo', media_url_https: 'https://pbs.twimg.com/media/target.jpg' },
+            { type: 'video', video_info: { duration_millis: 20_000, variants: [
+                { content_type: 'application/x-mpegURL', url: 'https://video.twimg.com/clip/master.m3u8' },
+                { content_type: 'video/mp4', bitrate: 5_000_000, url: 'https://video.twimg.com/clip/big.mp4' },
+                { content_type: 'video/mp4', bitrate: 500_000, url },
+            ] } },
+        ],
+    }));
+    await expect(readPrimaryMedia({ url: 'https://x.com/user/status/123', extractor: 'twitter.*' }, 2 * 1024 * 1024))
+        .resolves.toEqual({ kind: 'video', url, duration: 20 });
+});
+
+test('keeps only the main Reddit embed images in album order', async () => {
+    const first = 'https://preview.redd.it/post-1.jpg?width=640&auto=webp';
+    const second = 'https://i.redd.it/post-2.png';
+    const html = `
+      <div id="t3_other-embed-wrapper"><div id="embed-container">
+          <shreddit-aspect-ratio><img src="https://i.redd.it/other.jpg"></shreddit-aspect-ratio>
+      </div></div>
+      <div id="t3_abc-embed-wrapper"><div id="embed-container">
+          <img src="https://i.redd.it/avatar.jpg">
+          <shreddit-aspect-ratio><img src="${first}"><img src="${second}"></shreddit-aspect-ratio>
+          <shreddit-aspect-ratio><img src="https://unrelated.example/photo.jpg"></shreddit-aspect-ratio>
+      </div></div>`;
+    const fetcher = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(html));
+    await expect(readPrimaryMedia({ url: 'https://www.reddit.com/r/aww/comments/abc/album/', extractor: 'reddit' }))
+        .resolves.toEqual({ kind: 'images', urls: [first, second] });
+    expect(fetcher).toHaveBeenCalledWith('https://embed.reddit.com/r/aww/comments/abc/album/', expect.anything());
+});
+
+test('selects a native Reddit video and its separate audio without opening foreign tracks', async () => {
+    const html = `<div id="t3_abc-embed-wrapper"><div id="embed-container">
+      <shreddit-player post-id="t3_abc" src="https://v.redd.it/clip/HLSPlaylist.m3u8?f=hd"></shreddit-player>
+    </div></div>`;
+    const manifest = `<MPD type="static" mediaPresentationDuration="PT1M2.5S"><Period><AdaptationSet>
+      <Representation codecs="avc1.123" bandwidth="300000"><BaseURL>DASH_360.mp4</BaseURL></Representation>
+      <Representation codecs="avc1.123" bandwidth="1000000"><BaseURL>https://unrelated.example/clip.mp4</BaseURL></Representation>
+      <Representation codecs="mp4a.40.2" bandwidth="128000"><BaseURL>audio</BaseURL></Representation>
+    </AdaptationSet></Period></MPD>`;
+    const fetcher = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(html)).mockResolvedValueOnce(new Response(manifest));
+    await expect(readPrimaryMedia({ url: 'https://www.reddit.com/r/aww/comments/abc/video/', extractor: 'reddit' }))
+        .resolves.toEqual({
+            kind: 'video', duration: 62.5,
+            tracks: { video: 'https://v.redd.it/clip/DASH_360.mp4', audio: 'https://v.redd.it/clip/audio' },
+        });
+    expect(fetcher).toHaveBeenNthCalledWith(2, 'https://v.redd.it/clip/DASHPlaylist.mpd', expect.anything());
+});
+
 test('validates CDN redirects and writes only supported image formats within the file-size limit', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'test-social-photo-'));
     try {

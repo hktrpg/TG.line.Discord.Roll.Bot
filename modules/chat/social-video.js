@@ -330,7 +330,7 @@ const failureMessages = {
     groupDisabled: '這個群組尚未啟用 .video，請群組管理員檢查影片功能設定。',
     dmDisabled: '此 bot 尚未啟用私訊影片功能。',
     link: '請在 .video 後貼上支援的公開貼文連結，或用 .video 回覆含有連結的訊息。',
-    reference: '讀不到原訊息，或原訊息沒有支援的公開貼文連結。',
+    reference: '未能從原訊息讀到支援的公開連結，請直接輸入 .video <完整連結>。',
     threads: 'Threads 媒體擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
     cooldown: '影片請求太頻繁，請稍後再試。',
@@ -354,7 +354,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     if (!config || !/^\d+$/.test(actor)) return;
     const allEnabled = isEnvEnabled('SOCIAL_VIDEO_ENABLED');
     if (process.env.SOCIAL_VIDEO_ENABLED !== undefined && !allEnabled) return;
-    const command = /^(?:\.video|\/video(?:@(\w+))?)(?:\s|$)/i.exec(text || '');
+    const command = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
     if (command?.[1] && command[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
     const reply = reason => sendText(failureMessages[reason]).catch(() => {});
     if (!allEnabled) {
@@ -370,7 +370,8 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         }
     }
     let link = findSocialVideoLink(text, urls);
-    const referenceRequested = command && getRepliedMessage && !text.slice(command[0].length).trim();
+    const referenceRequested = command && getRepliedMessage &&
+        /^[\s\p{Default_Ignorable_Code_Point}]*$/u.test(text.slice(command[0].length));
     if (!link && !referenceRequested) {
         if (command) await reply('link');
         return;

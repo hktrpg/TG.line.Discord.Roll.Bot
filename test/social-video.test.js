@@ -7,6 +7,7 @@ const { viplevelCheckGroup, viplevelCheckUser } = require('../modules/patreon/ve
 const { acquireVideoLease, reserveVideoQuota } = require('../modules/chat/social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('../modules/chat/social-post-media');
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
+const { socialVideoInput, telegramVideoReply } = require('../modules/chat/telegram-social-video');
 const i18n = require('../modules/i18n/i18n');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
@@ -202,6 +203,46 @@ test('an addressed Telegram reply can use a hidden link from the original captio
     await handleSocialVideo(request);
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/456/');
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test.each([
+    ['same-chat reply', { reply_to_message: { text: 'https://www.facebook.com/reel/456/' } }],
+    ['quoted text without a full reply', { quote: { text: 'https://www.facebook.com/reel/456/' } }],
+    ['preview URL in the original', { reply_to_message: {
+        text: 'Tap the preview',
+        link_preview_options: { url: 'https://www.facebook.com/reel/456/' },
+    } }],
+    ['external preview URL', { external_reply: { link_preview_options: { url: 'https://www.facebook.com/reel/456/' } } }],
+    ['original caption before quote', {
+        reply_to_message: { caption: 'Tap to watch', caption_entities: [{ type: 'text_link', url: 'https://www.facebook.com/reel/456/' }] },
+        quote: { text: 'https://www.facebook.com/reel/789/' },
+    }],
+])('the Telegram adapter resolves a bare reply using %s', async (_kind, fields) => {
+    const message = { text: '.video', ...fields };
+    const request = telegram({ ...socialVideoInput(message), getRepliedMessage: telegramVideoReply(message) });
+
+    await handleSocialVideo(request);
+
+    expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/456/');
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('Telegram metadata without a supported URL prompts for the full link without reserving quota', async () => {
+    const request = telegram({ text: '.video', getRepliedMessage: telegramVideoReply({ external_reply: {} }) });
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('.video <完整連結>'));
+    expect(acquireVideoLease).not.toHaveBeenCalled();
+    expect(reserveVideoQuota).not.toHaveBeenCalled();
+});
+
+test.each(['.video \u200B', '.video\u200B'])('a Telegram .video reply ignores invisible trailing characters (%s)', async text => {
+    const getRepliedMessage = jest.fn().mockResolvedValue({ text: 'https://www.facebook.com/reel/456/' });
+    const request = telegram({ text, getRepliedMessage });
+    await handleSocialVideo(request);
+    expect(getRepliedMessage).toHaveBeenCalledTimes(1);
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendText).not.toHaveBeenCalled();
 });
 
 test('a link in the command wins and a regular reply does not fetch the referenced message', async () => {

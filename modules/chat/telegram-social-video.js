@@ -3,10 +3,17 @@
 const { findSocialVideoLink } = require('./social-video');
 
 function socialVideoInput(message) {
-    return {
-        text: message.text ?? message.caption,
-        urls: (message.entities ?? message.caption_entities)?.filter(entity => entity.type === 'text_link').map(entity => entity.url),
-    };
+    const text = message.text ?? message.caption;
+    const entities = message.entities ?? message.caption_entities ?? [];
+    const urls = [];
+    for (const { type, url, offset, length } of entities) {
+        if (type === 'text_link') {
+            urls.push(url);
+        } else if (type === 'url' && typeof text === 'string') {
+            urls.push(text.slice(offset, offset + length));
+        }
+    }
+    return { text, urls };
 }
 
 function telegramVideoReply(message) {

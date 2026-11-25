@@ -227,6 +227,37 @@ test.each([
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
 });
 
+test.each([['text', 'entities'], ['caption', 'caption_entities']])(
+    'reads the exact Telegram URL entity from a replied %s even when other characters touch it',
+    async (bodyField, entitiesField) => {
+        const prefix = '🎲 ';
+        const url = 'https://www.facebook.com/reel/456/';
+        const message = {
+            text: '.video',
+            reply_to_message: {
+                [bodyField]: prefix + url + '\u200B附註',
+                [entitiesField]: [{ type: 'url', offset: prefix.length, length: url.length }],
+            },
+        };
+        const request = telegram({ ...socialVideoInput(message), getRepliedMessage: telegramVideoReply(message) });
+
+        await handleSocialVideo(request);
+
+        expect(request.sendVideo).toHaveBeenCalledTimes(1);
+        expect(execFile.mock.calls[0][1].at(-1)).toBe(url);
+    },
+);
+
+test('a bare Telegram command without reply data explains that the reply details were missing', async () => {
+    const request = telegram({ text: '.video' });
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(
+        '未收到可供讀取的回覆資料。請直接輸入 .video <完整連結>。'
+    );
+    expect(reserveVideoQuota).not.toHaveBeenCalled();
+});
+
 test('Telegram metadata without a supported URL prompts for the full link without reserving quota', async () => {
     const request = telegram({ text: '.video', getRepliedMessage: telegramVideoReply({ external_reply: {} }) });
     await handleSocialVideo(request);

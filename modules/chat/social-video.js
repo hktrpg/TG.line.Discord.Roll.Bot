@@ -328,7 +328,8 @@ function socialVideoFailureDetails({ platform, stage, link, groupId, userId, err
 const failureMessages = {
     groupDisabled: '這個群組尚未啟用 .video，請群組管理員檢查影片功能設定。',
     dmDisabled: '此 bot 尚未啟用私訊影片功能。',
-    link: '請在 .video 後貼上支援的公開貼文連結，例如 Facebook Reel 或 Threads 貼文。',
+    link: '請在 .video 後貼上支援的公開貼文連結，或用 .video 回覆含有連結的訊息。',
+    reference: '讀不到原訊息，或原訊息沒有支援的公開貼文連結。',
     vip: '這個群組或你的帳戶需要有 VIP 資格才可取片。私訊時需要個人 VIP。',
     threads: 'Threads 媒體擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
@@ -344,9 +345,10 @@ const failureMessages = {
 
 /**
  * Use group quota first. A non-VIP group can use the sender's personal quota.
+ * A bare command can lazily resolve the replied message's text and link URLs.
  * The upload callback must finish before it resolves, since the file is then removed.
  */
-async function handleSocialVideo({ platform, groupId, userId, commandBotName, text, urls, sendVideo, sendImages, sendText }) {
+async function handleSocialVideo({ platform, groupId, userId, commandBotName, text, urls, getRepliedMessage, sendVideo, sendImages, sendText }) {
     const config = platforms[platform];
     const actor = String(userId || '');
     if (!config || !/^\d+$/.test(actor)) return;
@@ -367,8 +369,9 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             return;
         }
     }
-    const link = findSocialVideoLink(text, urls);
-    if (!link) {
+    let link = findSocialVideoLink(text, urls);
+    const referenceRequested = command && getRepliedMessage && !text.slice(command[0].length).trim();
+    if (!link && !referenceRequested) {
         if (command) await reply('link');
         return;
     }
@@ -391,6 +394,13 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         if (!groupVip && await viplevelCheckUser(actor, platform) < 1) {
             if (command) await reply('vip');
             return;
+        }
+        if (!link) {
+            stage = 'reference';
+            const original = await getRepliedMessage();
+            link = findSocialVideoLink(original?.text, original?.urls);
+            if (!link) return await reply('reference');
+            stage = 'service';
         }
         if (link.extractor === 'threads' && !allEnabled && !isEnvEnabled('SOCIAL_VIDEO_THREADS_ENABLED')) {
             await reply('threads');

@@ -177,6 +177,69 @@ test('an explicit false master flag disables legacy entry points', async () => {
     expect(execFile).not.toHaveBeenCalled();
 });
 
+test('a bare Discord .video reply resolves the Facebook link from the original message', async () => {
+    jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+        new Response(null, { status: 302, headers: { location: '/reel/789/' } }),
+    );
+    const getRepliedMessage = jest.fn().mockResolvedValue({
+        text: 'Look at this https://www.facebook.com/share/r/19mRFFe9Ha/?mibextid=wwXIfr',
+    });
+    const request = telegram({ platform: 'Discord', groupId: '456', text: '.video', getRepliedMessage });
+    await handleSocialVideo(request);
+    expect(getRepliedMessage).toHaveBeenCalledTimes(1);
+    expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/789/');
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('an addressed Telegram reply can use a hidden link from the original caption', async () => {
+    const request = telegram({
+        text: '/video@HKTRPGBot ', commandBotName: 'HKTRPGBot',
+        getRepliedMessage: jest.fn().mockResolvedValue({
+            text: 'Watch the clip', urls: ['https://www.facebook.com/reel/456/'],
+        }),
+    });
+    await handleSocialVideo(request);
+    expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/456/');
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('a link in the command wins and a regular reply does not fetch the referenced message', async () => {
+    const getRepliedMessage = jest.fn();
+    await handleSocialVideo(telegram({ text: 'nice clip', getRepliedMessage }));
+    const request = telegram({ text: '.video https://www.facebook.com/reel/789/', getRepliedMessage });
+    await handleSocialVideo(request);
+    expect(getRepliedMessage).not.toHaveBeenCalled();
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test.each([undefined, { text: 'No links here' }])('an unavailable reply link costs no quota', async original => {
+    const request = telegram({ text: '.video', getRepliedMessage: jest.fn().mockResolvedValue(original) });
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('原訊息'));
+    expect(acquireVideoLease).not.toHaveBeenCalled();
+    expect(reserveVideoQuota).not.toHaveBeenCalled();
+});
+
+test('a failed Discord reference lookup gives the reply error without reserving quota', async () => {
+    const request = telegram({
+        platform: 'Discord', groupId: '456', text: '.video',
+        getRepliedMessage: jest.fn().mockRejectedValue(new Error('Unknown message')),
+    });
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('原訊息'));
+    expect(acquireVideoLease).not.toHaveBeenCalled();
+});
+
+test('non-VIPs cannot fetch a replied message through the video command', async () => {
+    viplevelCheckGroup.mockResolvedValue(0);
+    viplevelCheckUser.mockResolvedValue(0);
+    const getRepliedMessage = jest.fn();
+    const request = telegram({ text: '.video', getRepliedMessage });
+    await handleSocialVideo(request);
+    expect(getRepliedMessage).not.toHaveBeenCalled();
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('VIP 資格'));
+});
+
 test('explains VIP and link validation to a sender who invokes the command explicitly', async () => {
     process.env.SOCIAL_VIDEO_GROUP_COMMAND_ENABLED = 'true';
     viplevelCheckGroup.mockResolvedValue(0);

@@ -44,6 +44,13 @@ let robotName = ""
 const EXPUP = require('./chat/level').EXPUP || function () { };
 const courtMessage = require('./chat/logs').courtMessage || function () { };
 
+function socialVideoInput(message) {
+    return {
+        text: message.text ?? message.caption,
+        urls: (message.entities ?? message.caption_entities)?.filter(entity => entity.type === 'text_link').map(entity => entity.url),
+    };
+}
+
 TGclient.on('message:text', (ctx) => {
     if (ctx.from?.is_bot) return;
 
@@ -51,13 +58,14 @@ TGclient.on('message:text', (ctx) => {
     if (socialVideoGroup || ctx.chat.type === 'private') {
         const reply = { reply_parameters: { message_id: ctx.message.message_id } };
         if (ctx.message.is_topic_message) reply.message_thread_id = ctx.message.message_thread_id;
+        const original = ctx.message.reply_to_message;
         void handleSocialVideo({
             platform: 'Telegram',
             groupId: socialVideoGroup ? ctx.chat.id : undefined,
             userId: ctx.from?.id,
             commandBotName: ctx.me.username,
-            text: ctx.message.text,
-            urls: ctx.message.entities?.filter(entity => entity.type === 'text_link').map(entity => entity.url),
+            ...socialVideoInput(ctx.message),
+            getRepliedMessage: original ? () => socialVideoInput(original) : undefined,
             sendVideo: video => ctx.replyWithVideo(new InputFile(video), { ...reply, supports_streaming: true }, AbortSignal.timeout(45_000)),
             sendImages: images => {
                 const signal = AbortSignal.timeout(45_000);

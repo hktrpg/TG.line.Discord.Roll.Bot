@@ -1156,6 +1156,18 @@ client.on('messageCreate', async message => {
 		const isDirectMessage = !message.guildId && message.channel?.type === ChannelType.DM;
 		if ((message.guildId || isDirectMessage) && !message.webhookId) {
 			const reply = { message_reference: { message_id: message.id }, allowed_mentions: { parse: [], replied_user: false } };
+			const reference = message.type === Discord.MessageType.Reply ? message.reference : null;
+			let getRepliedMessage;
+			if (reference?.messageId && (reference.channelId ?? message.channelId) === message.channelId) {
+				getRepliedMessage = async () => {
+					const cached = message.channel?.messages?.cache.get(reference.messageId);
+					const original = cached && !cached.partial ? cached
+						: await message.client.rest.get(Discord.Routes.channelMessage(message.channelId, reference.messageId), {
+							signal: AbortSignal.timeout(5000),
+						});
+					return { text: original.content, urls: original.embeds?.map(embed => embed.url).filter(Boolean) };
+				};
+			}
 			const sendAttachments = async attachments => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
 				body: reply,
 				files: await Promise.all(attachments.map(async ({ file, name, contentType }) => ({ name, data: await readFile(file), contentType }))),
@@ -1166,6 +1178,7 @@ client.on('messageCreate', async message => {
 				groupId: message.guildId,
 				userId: message.author.id,
 				text: message.content,
+				getRepliedMessage,
 				sendVideo: file => sendAttachments([{ file, name: 'social-video.mp4', contentType: 'video/mp4' }]),
 				sendImages: sendAttachments,
 				sendText: content => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {

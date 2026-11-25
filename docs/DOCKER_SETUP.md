@@ -124,7 +124,9 @@ dependencies available. Downloads happen during setup. The bot does not fetch
 new executables while handling a link.
 
 In a group, paste a public link as a VIP group member or a personal VIP.
-Personal VIPs can also paste links in DMs.
+Personal VIPs can also paste links in DMs. To fetch a link from an existing
+message, reply to it with `.video`. A link typed after `.video` takes
+precedence over the original message.
 The same MongoDB database is required to share quota across installations.
 
 ## Included files

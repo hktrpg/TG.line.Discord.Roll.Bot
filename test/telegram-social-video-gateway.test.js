@@ -10,7 +10,7 @@ const botInfo = { id: 100, is_bot: true, first_name: 'Local Test', username: 'Lo
 const user = { id: 101, is_bot: false, first_name: 'Test Sender', username: 'TestSender' };
 const chat = { id: -100_123, type: 'supergroup', title: 'Local Fixture' };
 
-async function runTelegramCommand(deliver, failUpload = false, text = '.video ' + url) {
+async function runTelegramCommand(deliver, failUpload = false, text = '.video ' + url, replyTo) {
     const calls = [];
     const delivery = [];
     let handleUpdate;
@@ -60,7 +60,7 @@ async function runTelegramCommand(deliver, failUpload = false, text = '.video ' 
     }, {}, { env: { TELEGRAM_CHANNEL_SECRET: '100:synthetic-test-token' } });
     await handleUpdate({
         update_id: 200,
-        message: { message_id: 500, chat, from: user, text, is_topic_message: true, message_thread_id: 10 },
+        message: { message_id: 500, chat, from: user, text, is_topic_message: true, message_thread_id: 10, reply_to_message: replyTo },
     });
     expect(delivery).toHaveLength(1);
     const [result] = await Promise.allSettled(delivery);
@@ -75,6 +75,24 @@ test('Telegram sends a mention and original link before deleting the successful 
     expect(calls[0].payload).toMatchObject({
         caption: '@TestSender: 已下載 ' + url,
         caption_entities: [{ type: 'text_mention', offset: 0, length: '@TestSender'.length, user }],
+        message_thread_id: 10,
+    });
+    expect(calls[0].payload.reply_parameters).toBeUndefined();
+    expect(calls[1].payload).toMatchObject({ chat_id: chat.id, message_id: 500 });
+});
+
+test('Telegram delivers a .video reply with a caption and deletes only the command', async () => {
+    const original = { message_id: 499, chat, from: user, text: url };
+    const { calls, result } = await runTelegramCommand(async input => {
+        expect(input.telegramMessage).toEqual({ id: 500, replyToId: original.message_id });
+        const { text } = await input.getRepliedMessage();
+        await input.sendVideo('fake.mp4', { url: text });
+    }, false, '.video', original);
+
+    expect(result.status).toBe('fulfilled');
+    expect(calls.map(call => call.method)).toEqual(['sendVideo', 'deleteMessage']);
+    expect(calls[0].payload).toMatchObject({
+        caption: '@TestSender: 已下載 ' + url,
         message_thread_id: 10,
     });
     expect(calls[0].payload.reply_parameters).toBeUndefined();

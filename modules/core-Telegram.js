@@ -78,6 +78,10 @@ TGclient.on('message:text', (ctx) => {
             groupId: socialVideoGroup ? ctx.chat.id : undefined,
             userId: ctx.from?.id,
             commandBotName: ctx.me.username,
+            telegramMessage: {
+                id: ctx.message.message_id,
+                replyToId: ctx.message.reply_to_message?.message_id,
+            },
             ...socialVideoInput(ctx.message),
             getRepliedMessage: telegramVideoReply(ctx.message),
             sendVideo: (video, download) => sendMedia(

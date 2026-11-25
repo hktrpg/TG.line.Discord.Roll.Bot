@@ -25,6 +25,7 @@ const platforms = {
 };
 let active = false;
 let nextBusyReply = 0;
+let automaticTelegramJob;
 const telegramQueue = [];
 let servingTelegramQueue = false;
 
@@ -449,7 +450,9 @@ function videoErrorMessage(error, stage, fallback) {
  * A bare command can lazily resolve the replied message's text and link URLs.
  * The upload callback must finish before it resolves, since the file is then removed.
  */
-async function handleSocialVideo({ platform, groupId, userId, commandBotName, text, urls, getRepliedMessage, sendVideo, sendImages, sendText }) {
+async function handleSocialVideo({
+    platform, groupId, userId, commandBotName, telegramMessage, text, urls, getRepliedMessage, sendVideo, sendImages, sendText,
+}) {
     const config = platforms[platform];
     const actor = String(userId || '');
     if (!config || !/^\d+$/.test(actor)) return;
@@ -457,7 +460,11 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     if (process.env.SOCIAL_VIDEO_ENABLED !== undefined && !allEnabled) return;
     const command = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
     if (command?.[1] && command[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
-    const reply = (reason, message = failureMessages[reason]) => sendText(message).catch(() => {});
+    let automaticJob;
+    const reply = (reason, message = failureMessages[reason]) => {
+        if (automaticJob) automaticTelegramJob = undefined;
+        return (automaticJob?.command?.sendText ?? sendText)(message).catch(() => {});
+    };
     if (!allEnabled) {
         if (groupId) {
             const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
@@ -537,6 +544,15 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,
         };
         if (queueCommand) {
+            // An author replying to their own active auto-download can take over before upload starts.
+            const job = automaticTelegramJob;
+            if (referenceRequested && job && !job.command
+                && job.messageId === telegramMessage?.replyToId && job.groupId === groupId
+                && job.actor === actor && job.url === link.url
+                && job.scope === recipient.scope) {
+                job.command = { sendVideo, sendImages, sendText };
+                return;
+            }
             const limit = Math.min(4, Math.floor(level)) * 3;
             const ticket = enqueueTelegramVideo(`${recipient.scope}:${recipient.id}`, limit);
             if (!ticket) return await reply('busy', `影片隊列已滿。VIP LV ${level} 最多可以等候 ${limit} 條請求。`);
@@ -575,6 +591,10 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             await reply(reservation.reason);
             return;
         }
+        if (platform === 'Telegram' && !queueCommand && telegramMessage?.id) {
+            automaticJob = { messageId: telegramMessage.id, groupId, actor, url: link.url, scope: recipient.scope };
+            automaticTelegramJob = automaticJob;
+        }
         stage = 'download';
         post = await resolveShareLink(link);
         const primary = await readPrimaryMedia(post, config.maxBytes).catch(error => {
@@ -588,16 +608,17 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             await reply(primary?.kind === 'empty' ? 'empty' : 'download');
             return;
         }
-        const delivery = queueCommand ? [{ url: link.url }] : [];
-        if (primary?.kind === 'images') {
-            const images = await downloadPostImages(primary.urls, directory);
-            stage = 'upload';
-            await sendImages(images, ...delivery);
-            return;
-        }
-        const video = await downloadSocialVideo(post, directory, config.maxBytes, primary);
+        const isImages = primary?.kind === 'images';
+        const media = isImages
+            ? await downloadPostImages(primary.urls, directory)
+            : await downloadSocialVideo(post, directory, config.maxBytes, primary);
+        if (automaticJob) automaticTelegramJob = undefined;
+        const delivery = queueCommand || automaticJob?.command ? [{ url: link.url }] : [];
+        const send = isImages
+            ? (automaticJob?.command?.sendImages ?? sendImages)
+            : (automaticJob?.command?.sendVideo ?? sendVideo);
         stage = 'upload';
-        await sendVideo(video, ...delivery);
+        await send(media, ...delivery);
     } catch (error) {
         const status = Number(error?.error_code || error?.status);
         if (reservation?.refund) {
@@ -611,6 +632,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         }));
         await reply(replyKey, videoErrorMessage(error, stage, replyKey));
     } finally {
+        if (automaticJob) automaticTelegramJob = undefined;
         try {
             if (directory) await rm(directory, { recursive: true, force: true });
         } catch (cleanupError) {

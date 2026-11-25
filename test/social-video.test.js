@@ -248,6 +248,47 @@ test.each([['text', 'entities'], ['caption', 'caption_entities']])(
     },
 );
 
+test.each([null, { kind: 'empty' }])('a Telegram .video reply takes over its own active download (%j)', async primary => {
+    const downloading = Promise.withResolvers();
+    const finishDownload = Promise.withResolvers();
+    readPrimaryMedia.mockImplementationOnce(() => {
+        downloading.resolve();
+        return finishDownload.promise;
+    });
+    const original = telegram({ telegramMessage: { id: 500 } });
+    const request = telegram({
+        text: '.video',
+        telegramMessage: { id: 501, replyToId: 500 },
+        getRepliedMessage: telegramVideoReply({ reply_to_message: { text: original.text } }),
+    });
+    const queued = Promise.withResolvers();
+    request.sendText.mockImplementation(async () => { queued.resolve('queued'); });
+
+    const autoTask = handleSocialVideo(original);
+    let commandTask;
+    try {
+        await downloading.promise;
+        commandTask = handleSocialVideo(request);
+        await expect(Promise.race([commandTask, queued.promise])).resolves.toBeUndefined();
+    } finally {
+        finishDownload.resolve(primary);
+        await Promise.all([autoTask, commandTask]);
+    }
+
+    expect(original.sendVideo).not.toHaveBeenCalled();
+    expect(original.sendText).not.toHaveBeenCalled();
+    expect(reserveVideoQuota).toHaveBeenCalledTimes(1);
+    if (primary) {
+        expect(request.sendVideo).not.toHaveBeenCalled();
+        expect(request.sendText).toHaveBeenCalledTimes(1);
+        expect(refund).toHaveBeenCalledTimes(1);
+    } else {
+        expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: original.text });
+        expect(request.sendText).not.toHaveBeenCalled();
+        expect(execFile.mock.calls.filter(([program]) => program === 'yt-dlp')).toHaveLength(1);
+    }
+});
+
 test('a bare Telegram command without reply data explains that the reply details were missing', async () => {
     const request = telegram({ text: '.video' });
     await handleSocialVideo(request);

@@ -2488,15 +2488,17 @@ if (io) {
         // 有連線發生時增加人數
         onlineCount++;
         // Room names remain join-by-name, but unrelated clients must not receive their events.
-        await socket.join('chat-room:公共房間');
+        if (socket.handshake.query?.chatHistoryProtocol !== '3') {
+            await socket.join('chat-room:公共房間');
+        }
         // 發送人數給網頁
         io.emit("online", onlineCount);
         // 發送紀錄最大值
         socket.emit("maxRecord", records.chatRoomGetMax());
         let roomHistoryGeneration = 0;
         // Older clients expect unsolicited public-room history on connection.
-        // Protocol 2 clients request their current room after chatReady instead.
-        if (socket.handshake.query?.chatHistoryProtocol !== '2') {
+        // Newer clients request their current room after chatReady.
+        if (!['2', '3'].includes(socket.handshake.query?.chatHistoryProtocol)) {
             const initialHistoryGeneration = roomHistoryGeneration;
             setTimeout(async () => {
                 try {
@@ -2566,6 +2568,18 @@ if (io) {
         }));
 
         let roomJoinChain = Promise.resolve();
+        const chatRoomPrefix = socket.handshake.query?.chatHistoryProtocol === '3' ? 'chat-live:' : 'chat-room:';
+        async function leaveChatRooms() {
+            for (const room of socket.rooms) {
+                if (room.startsWith(chatRoomPrefix)) await socket.leave(room);
+            }
+        }
+        socket.on("leaveRoom", () => {
+            roomHistoryGeneration++;
+            roomJoinChain = roomJoinChain.then(leaveChatRooms).catch(error => {
+                console.error('[Web Server] Failed to leave chat room:', error?.message || error);
+            });
+        });
         socket.on("newRoom", (msg, request, acknowledge) => {
             if (typeof request === 'function') { acknowledge = request; request = null; }
             const requestId = Number.isSafeInteger(request?.requestId) ? request.requestId : null;
@@ -2583,10 +2597,8 @@ if (io) {
                     reply({ ok: false });
                     return;
                 }
-                for (const joinedRoom of socket.rooms) {
-                    if (joinedRoom.startsWith('chat-room:')) await socket.leave(joinedRoom);
-                }
-                await socket.join(`chat-room:${roomNumber}`);
+                await leaveChatRooms();
+                await socket.join(chatRoomPrefix + roomNumber);
                 if (generation !== roomHistoryGeneration) { reply({ ok: false }); return; }
                 reply({ ok: true, room: roomNumber });
                 setTimeout(async () => {
@@ -2616,6 +2628,14 @@ if (io) {
     });
 }
 
+const reservedSocketEvents = new Set(['connect', 'connect_error', 'disconnect', 'disconnecting', 'newListener', 'removeListener']);
+function emitChatMessage(io, roomNumber, message) {
+    io.to(`chat-live:${roomNumber}`).emit('chatMessage', message);
+    if (!reservedSocketEvents.has(roomNumber)) {
+        io.to(`chat-room:${roomNumber}`).emit(roomNumber, message);
+    }
+}
+
 records.on("new_message", async (message) => {
     try {
         // 廣播訊息到聊天室
@@ -2623,7 +2643,7 @@ records.on("new_message", async (message) => {
             return;
         }
 
-        io.to(`chat-room:${message.roomNumber}`).emit(message.roomNumber, message);
+        emitChatMessage(io, message.roomNumber, message);
         let rplyVal = {}
         let trigger = '';
         let mainMsg = message.msg.match(MESSAGE_SPLITOR); // 定義輸入字串
@@ -2777,7 +2797,7 @@ async function loadb(io, records, rplyVal, message) {
         };
 
         const savedMessage = await records.chatRoomPush(botMessage);
-        io.to(`chat-room:${message.roomNumber}`).emit(message.roomNumber, savedMessage);
+        emitChatMessage(io, message.roomNumber, savedMessage);
     }
 }
 

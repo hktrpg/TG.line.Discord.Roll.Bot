@@ -71,6 +71,9 @@ describe('is-image-url SSRF guards', () => {
 			expect(isPrivateOrReservedIp('100.64.1.1')).toBe(true);
 			expect(isPrivateOrReservedIp('0.0.0.0')).toBe(true);
 			expect(isPrivateOrReservedIp('224.0.0.1')).toBe(true);
+			expect(isPrivateOrReservedIp('192.0.0.8')).toBe(true);
+			expect(isPrivateOrReservedIp('192.0.2.1')).toBe(true);
+			expect(isPrivateOrReservedIp('192.0.78.12')).toBe(false);
 			expect(isPrivateOrReservedIp('8.8.8.8')).toBe(false);
 			expect(isPrivateOrReservedIp('1.1.1.1')).toBe(false);
 		});

@@ -35,7 +35,7 @@ test('socket handshake announces the versioned history protocol and preserves lo
     context.io = jest.fn(() => socket);
     manager.init();
     expect(context.io).toHaveBeenCalledWith(expect.objectContaining({
-        query: { lang: 'zh-tw', chatHistoryProtocol: '2' },
+        query: { lang: 'zh-tw', chatHistoryProtocol: '3' },
     }));
 });
 
@@ -92,6 +92,18 @@ test('deduplicates a message present in history and buffered live events', async
     await handlers.chatRecord([msg], '房間A', { requestId: 0 });
     expect(uiManager.addMessageToBox).toHaveBeenCalledTimes(1);
     expect(state.pendingLive).toHaveLength(0);
+});
+
+test('delivers live messages for a room named chatReady without restarting its handshake', () => {
+    const { state, socket, handlers, chatroomManager, uiManager } = setup('chatReady');
+    state.isHistoryLoading = false;
+    const message = { roomNumber: 'chatReady', msg: 'hello', time: 1 };
+    handlers.chatMessage(message);
+    expect(uiManager.addMessageToBox).toHaveBeenCalledWith(message);
+    expect(socket.emitWithAck).not.toHaveBeenCalled();
+    chatroomManager.currentRoom = '個人小屋';
+    handlers.chatMessage(message);
+    expect(uiManager.addMessageToBox).toHaveBeenCalledTimes(1);
 });
 
 test('ignores an older history response for the same room', async () => {

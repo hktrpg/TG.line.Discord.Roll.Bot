@@ -16,9 +16,10 @@ test('versioned room join connects the real client handler to the real server ha
     const serverHandlers = {};
     const timers = [];
     const rendering = [];
-    const roomMessage = { _id: 'record-1', roomNumber: 'room', msg: 'hello', time: 1 };
+    const room = 'chatReady';
+    const roomMessage = { _id: 'record-1', roomNumber: room, msg: 'hello', time: 1 };
     const server = {
-        handshake: { address: 'test' }, rooms: new Set(),
+        handshake: { address: 'test', query: { chatHistoryProtocol: '3' } }, rooms: new Set(),
         on: (event, fn) => { serverHandlers[event] = fn; },
         join: async room => { server.rooms.add(room); },
         leave: async room => { server.rooms.delete(room); },
@@ -35,9 +36,9 @@ test('versioned room join connects the real client handler to the real server ha
         limitRaterChatRoom: async () => false, setTimeout: fn => timers.push(fn),
         console: { error() {} }, Promise, Number,
     });
-    const state = { socket: client, currentRoom: 'room', joinEpoch: 0, pendingLive: [], displayedMessageIds: new Set() };
+    const state = { socket: client, currentRoom: room, joinEpoch: 0, pendingLive: [], displayedMessageIds: new Set() };
     const uiManager = { addMessageToBox: jest.fn(async () => {}) };
-    const context = { state, uiManager, chatroomManager: { currentRoom: 'room' },
+    const context = { state, uiManager, chatroomManager: { currentRoom: room },
         CONFIG: { DEFAULT_ROOM: 'public', PERSONAL_ROOM: 'personal' },
         document: { getElementById: () => ({ innerHTML: '' }) },
         console: { log() {}, warn() {}, error() {} }, setTimeout() {}, clearTimeout() {}, alert() {}, rt: () => '', Date, Set };
@@ -46,10 +47,17 @@ test('versioned room join connects the real client handler to the real server ha
     clientHandlers.connect();
     clientHandlers.chatReady();
     await new Promise(setImmediate);
-    expect(state.readyRoom).toBe('room');
-    expect(server.rooms.has('chat-room:room')).toBe(true);
+    expect(state.readyRoom).toBe(room);
+    expect(server.rooms.has('chat-live:' + room)).toBe(true);
     state.isHistoryLoading = true;
-    state.pendingLive.push(roomMessage);
+    const emitStart = serverSource.indexOf('const reservedSocketEvents =');
+    const emitEnd = serverSource.indexOf('records.on("new_message"', emitStart);
+    const io = { to: target => ({ emit: (event, ...args) => {
+        if (server.rooms.has(target)) server.emit(event, ...args);
+    } }) };
+    const emit = new vm.Script(serverSource.slice(emitStart, emitEnd) + 'emitChatMessage').runInNewContext();
+    emit(io, room, roomMessage);
+    expect(state.pendingLive).toEqual([roomMessage]);
     await timers.shift()();
     await Promise.all(rendering);
     expect(uiManager.addMessageToBox).toHaveBeenCalledTimes(1);

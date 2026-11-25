@@ -5,6 +5,7 @@ const vm = require('node:vm');
 
 test.each([
     [{ chatHistoryProtocol: '2' }, 0],
+    [{ chatHistoryProtocol: '3' }, 0],
     [{}, 1],
 ])('initial public history respects the client protocol', async (query, expectedQueries) => {
     const source = fs.readFileSync(path.join(__dirname, '../modules/core-www.js'), 'utf8');
@@ -51,6 +52,34 @@ test('discard an older history query when the same room is joined again', async 
     expect(socket.emit).toHaveBeenCalledTimes(1);
     expect(socket.emit.mock.calls[0][1]).toEqual([{ _id: 'new' }]);
     expect(socket.emit.mock.calls[0][3].requestId).toBe(2);
+});
+
+test('leaving a protocol 3 room cancels its pending history and subscription', async () => {
+    const source = fs.readFileSync(path.join(__dirname, '../modules/core-www.js'), 'utf8');
+    const start = source.indexOf('let roomJoinChain = Promise.resolve();');
+    const end = source.indexOf("socket.on('disconnect'", start);
+    const handlers = {};
+    const timers = [];
+    const socket = {
+        handshake: { address: 'test', query: { chatHistoryProtocol: '3' } },
+        rooms: new Set(['socket-id']),
+        on: (event, handler) => { handlers[event] = handler; },
+        emit: jest.fn(),
+        join: room => socket.rooms.add(room),
+        leave: room => socket.rooms.delete(room),
+    };
+    const records = { chatRoomGet: jest.fn() };
+    new vm.Script(source.slice(start, end)).runInNewContext({
+        socket, records, roomHistoryGeneration: 0, limitRaterChatRoom: async () => false,
+        setTimeout: fn => timers.push(fn), console: { error: jest.fn() },
+    });
+    await new Promise(resolve => handlers.newRoom('chatReady', { requestId: 1 }, resolve));
+    expect(socket.rooms.has('chat-live:chatReady')).toBe(true);
+    handlers.leaveRoom();
+    await new Promise(setImmediate);
+    await timers.shift()();
+    expect([...socket.rooms]).toEqual(['socket-id']);
+    expect(records.chatRoomGet).not.toHaveBeenCalled();
 });
 
 test('legacy newRoom signature still joins and receives history without a request id', async () => {

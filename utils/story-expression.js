@@ -1,5 +1,7 @@
 'use strict';
 
+const reservedIdentifiers = new Set(['globalThis', 'global', 'process', 'this', 'Function', 'constructor', 'require']);
+
 // Small expression interpreter: only primitives from own scope properties are visible.
 // No property access, calls, assignments or JavaScript evaluation.
 function evaluateStoryExpression(input, scope = {}) {
@@ -11,7 +13,7 @@ function evaluateStoryExpression(input, scope = {}) {
         if (!input.slice(pos).trim()) break;
         pattern.lastIndex = pos;
         const match = pattern.exec(input);
-        if (!match) throw new Error('Invalid expression token');
+        if (!match || reservedIdentifiers.has(match[1])) throw new Error('Invalid expression token');
         tokens.push(match[1]);
         pos = pattern.lastIndex;
         if (tokens.length > 512) throw new Error('Expression too long');
@@ -32,10 +34,12 @@ function evaluateStoryExpression(input, scope = {}) {
             result = token === '!' ? !value : token === '+' ? +value : -value;
         } else if (/^\d+$/.test(token || '')) result = Number(token);
         else if (token === 'true' || token === 'false') result = token === 'true';
+        else if (token === 'null') result = null;
+        else if (token === 'undefined' && !Object.hasOwn(scope, token)) result = undefined;
         else if (!execute && /^[A-Za-z_][A-Za-z0-9_]*$/.test(token || '')) result = undefined;
         else if (token && Object.hasOwn(scope, token)) {
             result = scope[token];
-            if (!['string', 'number', 'boolean'].includes(typeof result) && result !== null) throw new Error('Invalid scope value');
+            if (!['string', 'number', 'boolean', 'undefined'].includes(typeof result) && result !== null) throw new Error('Invalid scope value');
         } else throw new Error('Unknown identifier');
         depth--;
         return result;

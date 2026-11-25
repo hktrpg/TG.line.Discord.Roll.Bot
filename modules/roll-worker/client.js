@@ -71,8 +71,8 @@ function isAxiosTimeoutError(error) {
 		|| /timeout of \d+ms exceeded/i.test(msg);
 }
 
-function noteParseTimeout(error) {
-	const { url, timeoutMs } = getConfig();
+function noteParseTimeout(error, timeoutMs) {
+	const { url } = getConfig();
 	const log = linkLogForEnv();
 	const warn = typeof log.warn === 'function' ? log.warn.bind(log) : console.warn.bind(console);
 	warn(
@@ -209,7 +209,7 @@ async function parseWithUrl(baseUrl, params, options = {}) {
 	} catch (error) {
 		if (trackPrimaryLink) {
 			// Timeout ≠ dead Worker (OpenAI/upstream often exceeds ROLL_WORKER_TIMEOUT_MS).
-			if (isAxiosTimeoutError(error)) noteParseTimeout(error);
+			if (isAxiosTimeoutError(error)) noteParseTimeout(error, timeoutMs);
 			else noteTransportDown(error);
 		}
 		throw error;

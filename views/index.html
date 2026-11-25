@@ -2920,7 +2920,7 @@
                                     || 'zh-tw')
                         }
                     };
-                socketOptions.query = { ...socketOptions.query, chatHistoryProtocol: '2' };
+                socketOptions.query = { ...socketOptions.query, chatHistoryProtocol: '3' };
                 state.socket = io(socketOptions);
 
                 socketManager.setupEventListeners();
@@ -3102,7 +3102,9 @@
                     }
                 });
 
-                state.socket.on(state.currentRoom, (message) => {
+                state.socket.on('chatMessage', (message) => {
+                    const room = chatroomManager.currentRoom;
+                    if (room === CONFIG.PERSONAL_ROOM || message?.roomNumber !== room) return;
                     if (state.isHistoryLoading) {
                         state.pendingLive.push(message);
                         return;
@@ -4563,16 +4565,12 @@
                     return;
                 }
 
-                // 移除舊房間的事件監聽器（僅非個人小屋）
-                if (state.socket && chatroomManager.currentRoom !== CONFIG.PERSONAL_ROOM) {
-                    state.socket.off(chatroomManager.currentRoom);
-                }
-
                 // 更新房間狀態
                 chatroomManager.currentRoom = roomName;
                 state.currentRoom = roomName;
                 state.reconnectHistoryRoom = null;
                 state.historyFailed = false;
+                state.pendingLive = [];
                 state.displayedMessageIds.clear();
                 state.readyRoom = null;
                 state.joinEpoch++;
@@ -4591,6 +4589,7 @@
 
                 // 個人小屋：從本地載入歷史
                 if (roomName === CONFIG.PERSONAL_ROOM) {
+                    if (state.socket?.connected) state.socket.emit('leaveRoom');
                     state.isHistoryLoading = true;
                     const history = personalStorage.load(CONFIG.PERSONAL_ROOM);
                     try {
@@ -4609,21 +4608,12 @@
                 } else if (state.socket) {
                     // 發送切換房間事件（連線房）
                     state.isHistoryLoading = true;
-                    state.pendingLive = [];
                     socketManager.joinRoom(roomName);
                     // Names the server will not query never get a history reply on older builds.
                     const roomId = typeof roomName === 'string' ? roomName.trim() : '';
                     if (!roomId || roomId.length > 50) {
                         state.isHistoryLoading = false;
                     }
-                    // 新增新房間的事件監聽器
-                    state.socket.on(roomName, (message) => {
-                        if (state.isHistoryLoading) {
-                            state.pendingLive.push(message);
-                            return;
-                        }
-                        uiManager.addMessageToBox(message);
-                    });
                 }
 
                 // 更新房間顯示

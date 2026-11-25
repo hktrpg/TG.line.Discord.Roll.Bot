@@ -42,8 +42,9 @@ It processes the first supported link and the first video in that post.
    pass the same directory to `yt-dlp --plugin-dirs <directory> --list-extractors`
    when checking it. The image build argument does not install the Threads plugin.
 
-Both gateways must use the same MongoDB database. The feature uses one shared
-job slot and keeps daily counters in `socialVideoQuotas`. At Hong Kong midnight,
+Both gateways must use the same MongoDB database. All Discord clusters and
+shards share one job slot with the Telegram gateway. The slot and daily counters
+live in the `socialVideoQuotas` collection. At Hong Kong midnight,
 the quota renews. Personal VIPs get 20 successful uploads per day and a
 30-second cooldown. VIP groups get 60 per day, with 10 per sender, a 15-second
 group cooldown and a 30-second sender cooldown. Attempt limits are twice the

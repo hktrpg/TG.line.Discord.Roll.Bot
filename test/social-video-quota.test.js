@@ -35,6 +35,41 @@ test('shares one lease and releases only the token held by the caller', async ()
     await expect(acquireVideoLease()).resolves.toBeNull();
 });
 
+test('two isolated Discord workers can only start one video job against the shared collection', async () => {
+    let storedLease;
+    collection.updateOne.mockImplementation(async (query, update) => {
+        expect(query._id).toBe('active-job');
+        if (storedLease?.expiresAt > query.expiresAt.$lte) {
+            throw Object.assign(new Error('Lease already exists'), { code: 11_000 });
+        }
+        storedLease = update.$set;
+        return { acknowledged: true };
+    });
+    collection.deleteOne.mockImplementation(async ({ token }) => {
+        if (storedLease?.token !== token) return { deletedCount: 0 };
+        storedLease = undefined;
+        return { deletedCount: 1 };
+    });
+
+    const workers = [];
+    for (let worker = 0; worker < 2; worker++) {
+        jest.isolateModules(() => {
+            require('../modules/db/connector').mongoose.connection.db.collection.mockReturnValue(collection);
+            workers.push(require('../modules/chat/social-video-quota').acquireVideoLease);
+        });
+    }
+    expect(workers[0]).not.toBe(workers[1]);
+    const results = await Promise.all(workers.map(acquire => acquire()));
+    expect(results.filter(Boolean)).toHaveLength(1);
+
+    const winner = results.find(Boolean);
+    const retry = workers[results.indexOf(null)];
+    await winner.release();
+    const lease = await retry();
+    expect(lease).not.toBeNull();
+    await lease.release();
+});
+
 test.each([
     [personal, { used: 20 }, 'quota'],
     [personal, { attempts: 40 }, 'quota'],

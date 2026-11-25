@@ -7,6 +7,7 @@ const { viplevelCheckGroup, viplevelCheckUser } = require('../modules/patreon/ve
 const { acquireVideoLease, reserveVideoQuota } = require('../modules/chat/social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('../modules/chat/social-post-media');
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
+const i18n = require('../modules/i18n/i18n');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
 jest.mock('../modules/chat/social-video-tools', () => ({
@@ -248,7 +249,23 @@ test('explains VIP and link validation to a sender who invokes the command expli
     await handleSocialVideo(request);
     expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('公開貼文連結'));
     await handleSocialVideo({ ...request, text: '.video https://www.facebook.com/reel/123' });
-    expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('VIP 資格'));
+    expect(request.sendText).toHaveBeenLastCalledWith('此功能需要群組 VIP 或個人 VIP 資格。\n\n💎 前往 Patreon 查看 HKTRPG VIP 會員方案：\nhttps://www.patreon.com/HKTRPG/membership');
+    expect(execFile).not.toHaveBeenCalled();
+});
+
+test.each(['Telegram', 'Discord'])('shows the localized personal VIP membership prompt in a %s DM', async platform => {
+    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
+    viplevelCheckUser.mockResolvedValue(0);
+    jest.spyOn(i18n, 'resolveLocale').mockResolvedValue('en');
+
+    const request = telegram({ platform, groupId: null, text: '.video https://www.facebook.com/reel/123' });
+    await handleSocialVideo(request);
+
+    expect(i18n.resolveLocale).toHaveBeenCalledWith({ groupid: null, userid: '123' });
+    expect(request.sendText).toHaveBeenCalledWith(
+        'This feature requires personal VIP membership.\n\n💎 View HKTRPG VIP membership plans on Patreon:\nhttps://www.patreon.com/HKTRPG/membership'
+    );
+    expect(viplevelCheckGroup).not.toHaveBeenCalled();
     expect(execFile).not.toHaveBeenCalled();
 });
 

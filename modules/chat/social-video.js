@@ -6,6 +6,7 @@ const { constants, setPriority } = require('node:os');
 const { join } = require('node:path');
 const { promisify } = require('node:util');
 const { isEnvEnabled } = require('../../utils/env-flag');
+const i18n = require('../i18n/i18n');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('./social-post-media');
 const { createVideoScratch, hasVideoCapacity, watchVideoDownload } = require('./social-video-runtime');
@@ -330,7 +331,6 @@ const failureMessages = {
     dmDisabled: '此 bot 尚未啟用私訊影片功能。',
     link: '請在 .video 後貼上支援的公開貼文連結，或用 .video 回覆含有連結的訊息。',
     reference: '讀不到原訊息，或原訊息沒有支援的公開貼文連結。',
-    vip: '這個群組或你的帳戶需要有 VIP 資格才可取片。私訊時需要個人 VIP。',
     threads: 'Threads 媒體擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
     cooldown: '影片請求太頻繁，請稍後再試。',
@@ -392,7 +392,11 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
         const groupVip = groupId && await viplevelCheckGroup(String(groupId), platform) >= 1;
         if (!groupVip && await viplevelCheckUser(actor, platform) < 1) {
-            if (command) await reply('vip');
+            if (command) {
+                const locale = await i18n.resolveLocale({ groupid: groupId, userid: actor });
+                const key = groupId ? 'common.patreon.group_or_personal_vip_required' : 'common.patreon.personal_vip_required';
+                await sendText(i18n.createTranslator(locale)(key)).catch(() => {});
+            }
             return;
         }
         if (!link) {

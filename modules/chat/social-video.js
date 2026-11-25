@@ -279,6 +279,51 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
     return output;
 }
 
+function sanitizeSocialVideoLogText(value, maxLength = 400) {
+    return String(value || '')
+        .replaceAll(/[\r\n\t]+/g, ' ')
+        .replaceAll(/https?:\/\/(?:[^@\s/]+@)?[^\s/]+[^\s]*/gi, '[url]')
+        .trim()
+        .slice(0, maxLength);
+}
+
+function socialVideoTarget(link) {
+    const target = link?.url;
+    if (!target) return;
+    try {
+        const url = new URL(target);
+        return `${url.hostname}${url.pathname}`;
+    } catch {
+        return;
+    }
+}
+
+function socialVideoFailureDetails({ platform, stage, link, groupId, userId, error, reply }) {
+    const status = Number(error?.error_code || error?.status);
+    const output = error?.stderr ?? error?.stdout;
+    const command = typeof error?.cmd === 'string' ? error.cmd.split(/[/\\]/).pop() : undefined;
+    const details = {
+        platform,
+        stage,
+        reply,
+        extractor: link?.extractor,
+        target: socialVideoTarget(link),
+        groupId: groupId ? String(groupId) : undefined,
+        userId,
+        code: error?.code,
+        status: Number.isFinite(status) && status > 0 ? status : undefined,
+        name: error?.name,
+        message: sanitizeSocialVideoLogText(error?.message || error),
+        command,
+        killed: error?.killed || undefined,
+        signal: error?.signal || undefined,
+    };
+    if (typeof output === 'string' && output.trim()) {
+        details.detail = sanitizeSocialVideoLogText(output);
+    }
+    return Object.fromEntries(Object.entries(details).filter(([, value]) => value !== undefined && value !== ''));
+}
+
 const failureMessages = {
     groupDisabled: '這個群組尚未啟用 .video，請群組管理員檢查影片功能設定。',
     dmDisabled: '此 bot 尚未啟用私訊影片功能。',
@@ -333,6 +378,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     let lease;
     let reservation;
     let directory;
+    let post;
     let stage = 'service';
     try {
         const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
@@ -362,7 +408,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             return;
         }
         stage = 'download';
-        const post = await resolveShareLink(link);
+        post = await resolveShareLink(link);
         const primary = await readPrimaryMedia(post, config.maxBytes).catch(error => {
             // Video routes on Instagram retain the existing downloader for provider layout changes.
             if (post.extractor === 'instagram.*' && /\/reel\//.test(new URL(post.url).pathname)) return null;
@@ -389,13 +435,19 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             await reservation.refund().catch(() => console.warn('[Social video] Could not refund video quota'));
         }
         // The downloader and API errors may contain user links or request credentials.
-        console.warn(`[Social video] ${platform}: ${stage} failed`);
-        await reply(error?.code === 'SOCIAL_VIDEO_CAPACITY' ? 'capacity' : stage);
+        const replyKey = error?.code === 'SOCIAL_VIDEO_CAPACITY' ? 'capacity' : stage;
+        console.warn('[Social video] request failed', socialVideoFailureDetails({
+            platform, stage, link: post || link, groupId, userId: actor, error, reply: replyKey,
+        }));
+        await reply(replyKey);
     } finally {
         try {
             if (directory) await rm(directory, { recursive: true, force: true });
-        } catch {
-            console.warn('[Social video] Could not remove temporary files');
+        } catch (cleanupError) {
+            console.warn('[Social video] Could not remove temporary files', {
+                message: sanitizeSocialVideoLogText(cleanupError?.message),
+                code: cleanupError?.code,
+            });
         } finally {
             if (lease) await lease.release().catch(() => console.warn('[Social video] Could not release video slot'));
             if (localSlot) active = false;

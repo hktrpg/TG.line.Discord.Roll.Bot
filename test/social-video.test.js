@@ -391,12 +391,109 @@ test.each([
     jest.spyOn(Date, 'now').mockReturnValue(now);
     reserveVideoQuota.mockResolvedValue({ reason: 'cooldown', retryAt: now + remainingMs });
 
-    const request = telegram();
+    const request = telegram({ platform: 'Discord', groupId: '456' });
     await handleSocialVideo(request);
 
     expect(request.sendText).toHaveBeenCalledWith(message);
     expect(execFile).not.toHaveBeenCalled();
     expect(release).toHaveBeenCalledTimes(1);
+});
+
+test.each([[1, 3], [2, 6], [3, 9], [4, 12], [7, 12]])(
+    'queues %d group-VIP requests with capacity %d and processes them in arrival order',
+    async (level, limit) => {
+        viplevelCheckGroup.mockResolvedValue(level);
+        const firstStarted = Promise.withResolvers();
+        const continueFirst = Promise.withResolvers();
+        const order = [];
+        const text = '.video https://www.facebook.com/reel/123';
+        const first = telegram({ text });
+        first.sendVideo.mockImplementation(async () => {
+            firstStarted.resolve();
+            await continueFirst.promise;
+            order.push(0);
+        });
+        const firstTask = handleSocialVideo(first);
+        const tasks = [firstTask];
+        try {
+            await firstStarted.promise;
+            for (let index = 1; index <= limit; index++) {
+                const next = telegram({ text, userId: 123 + index });
+                const queued = Promise.withResolvers();
+                next.sendText.mockImplementation(async message => queued.resolve(message));
+                next.sendVideo.mockImplementation(async () => { order.push(index); });
+                tasks.push(handleSocialVideo(next));
+                await expect(queued.promise).resolves.toContain('已加入影片隊列');
+                expect(next.sendVideo).not.toHaveBeenCalled();
+            }
+            const overflow = telegram({ text, userId: 1000 });
+            await handleSocialVideo(overflow);
+            expect(overflow.sendText).toHaveBeenCalledWith(expect.stringContaining('最多可以等候 ' + limit));
+            expect(overflow.sendVideo).not.toHaveBeenCalled();
+        } finally {
+            continueFirst.resolve();
+            await Promise.all(tasks);
+        }
+        expect(order).toEqual(Array.from({ length: limit + 1 }, (_, index) => index));
+    },
+);
+
+test('personal VIP uses one waiting limit across private chats and non-VIP groups', async () => {
+    process.env.SOCIAL_VIDEO_ENABLED = 'true';
+    viplevelCheckGroup.mockResolvedValue(0);
+    viplevelCheckUser.mockResolvedValue(1);
+    const text = '.video https://www.facebook.com/reel/123';
+    const started = Promise.withResolvers();
+    const unblock = Promise.withResolvers();
+    const first = telegram({ text, groupId: null });
+    first.sendVideo.mockImplementation(async () => {
+        started.resolve();
+        await unblock.promise;
+    });
+    const running = [handleSocialVideo(first)];
+    try {
+        await started.promise;
+        for (const groupId of [-100_123, null, -100_456]) {
+            const waiting = Promise.withResolvers();
+            const request = telegram({ text, groupId });
+            request.sendText.mockImplementation(async message => waiting.resolve(message));
+            running.push(handleSocialVideo(request));
+            await expect(waiting.promise).resolves.toContain('已加入影片隊列');
+        }
+        const overflow = telegram({ text, groupId: -100_789 });
+        await handleSocialVideo(overflow);
+        expect(overflow.sendText).toHaveBeenCalledWith(expect.stringContaining('最多可以等候 3'));
+    } finally {
+        unblock.resolve();
+        await Promise.all(running);
+    }
+    expect(reserveVideoQuota).toHaveBeenCalledTimes(4);
+    for (const [, recipient] of reserveVideoQuota.mock.calls) {
+        expect(recipient).toMatchObject({ scope: 'user', id: '123', userId: '123' });
+    }
+});
+
+test('a Telegram .video waits through a successful cooldown without sending a rate-limit error', async () => {
+    reserveVideoQuota.mockResolvedValueOnce({ reason: 'cooldown', retryAt: Date.now() + 1 });
+    const request = telegram({ text: '.video https://www.facebook.com/reel/123' });
+
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('已加入影片隊列'));
+    expect(request.sendText.mock.calls.every(([message]) => !message.includes('太頻繁'))).toBe(true);
+    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: 'https://www.facebook.com/reel/123' });
+    expect(release).toHaveBeenCalledTimes(2);
+});
+
+test('an uncertain Telegram upload failure restores cooldown without returning the upload allowance', async () => {
+    const request = telegram({ text: '.video https://www.facebook.com/reel/123' });
+    request.sendVideo.mockRejectedValue(new Error('connection failed'));
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    await handleSocialVideo(request);
+
+    expect(refund).toHaveBeenCalledWith({ keepUpload: true });
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('上傳失敗'));
 });
 
 test('reports a group quota limit without downloading or falling back to personal quota', async () => {

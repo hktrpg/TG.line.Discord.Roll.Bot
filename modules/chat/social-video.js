@@ -5,6 +5,7 @@ const { rm, stat } = require('node:fs/promises');
 const { constants, setPriority } = require('node:os');
 const { join } = require('node:path');
 const { promisify } = require('node:util');
+const { setTimeout: delay } = require('node:timers/promises');
 const { isEnvEnabled } = require('../../utils/env-flag');
 const i18n = require('../i18n/i18n');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
@@ -24,6 +25,24 @@ const platforms = {
 };
 let active = false;
 let nextBusyReply = 0;
+const telegramQueue = [];
+let servingTelegramQueue = false;
+
+function nextTelegramJob() {
+    const next = telegramQueue.shift();
+    servingTelegramQueue = Boolean(next);
+    if (next) next.start(nextTelegramJob);
+}
+
+function enqueueTelegramVideo(key, limit) {
+    if (telegramQueue.filter(job => job.key === key).length >= limit) return null;
+    const waiting = servingTelegramQueue || active;
+    const turn = new Promise(start => {
+        telegramQueue.push({ key, start });
+        if (!servingTelegramQueue) nextTelegramJob();
+    });
+    return { turn, waiting };
+}
 
 const sources = [
     {
@@ -465,6 +484,25 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         await reply('busy');
     }
 
+    const queueCommand = platform === 'Telegram' && Boolean(command);
+    let queueNotice = false;
+    async function notifyQueued() {
+        if (queueNotice) return;
+        queueNotice = true;
+        await reply('busy', '已加入影片隊列，輪到時會自動處理。');
+    }
+
+    async function acquireQueueLease() {
+        let jobLease = await acquireVideoLease();
+        while (!jobLease) {
+            await notifyQueued();
+            await delay(1000);
+            jobLease = await acquireVideoLease();
+        }
+        return jobLease;
+    }
+
+    let leaveQueue;
     let localSlot = false;
     let lease;
     let reservation;
@@ -473,8 +511,10 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     let stage = 'service';
     try {
         const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
-        const groupVip = groupId && await viplevelCheckGroup(String(groupId), platform) >= 1;
-        if (!groupVip && await viplevelCheckUser(actor, platform) < 1) {
+        const groupLevel = groupId ? await viplevelCheckGroup(String(groupId), platform) : 0;
+        const groupVip = groupLevel >= 1;
+        const level = groupVip ? groupLevel : await viplevelCheckUser(actor, platform);
+        if (level < 1) {
             if (command) {
                 const locale = await i18n.resolveLocale({ groupid: groupId, userid: actor });
                 const key = groupId ? 'common.patreon.group_or_personal_vip_required' : 'common.patreon.personal_vip_required';
@@ -493,18 +533,36 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             await reply('threads');
             return;
         }
-        if (active) return await busy();
+        const recipient = {
+            platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,
+        };
+        if (queueCommand) {
+            const limit = Math.min(4, Math.floor(level)) * 3;
+            const ticket = enqueueTelegramVideo(`${recipient.scope}:${recipient.id}`, limit);
+            if (!ticket) return await reply('busy', `影片隊列已滿。VIP LV ${level} 最多可以等候 ${limit} 條請求。`);
+            if (ticket.waiting) void notifyQueued();
+            leaveQueue = await ticket.turn;
+            while (active) await delay(250);
+        } else if (active || servingTelegramQueue) {
+            return await busy();
+        }
         active = true;
         localSlot = true;
-        lease = await acquireVideoLease();
+        lease = queueCommand ? await acquireQueueLease() : await acquireVideoLease();
         if (!lease) return await busy();
         stage = 'scratch';
         directory = await createVideoScratch();
         stage = 'service';
         if (!await hasVideoCapacity()) return await reply('capacity');
-        reservation = await reserveVideoQuota(lease, {
-            platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,
-        });
+        reservation = await reserveVideoQuota(lease, recipient);
+        while (queueCommand && reservation.reason === 'cooldown') {
+            await lease.release();
+            lease = undefined;
+            await notifyQueued();
+            await delay(Math.max(1, reservation.retryAt - Date.now()));
+            lease = await acquireQueueLease();
+            reservation = await reserveVideoQuota(lease, recipient);
+        }
         if (reservation.reason === 'cooldown') {
             const seconds = Math.ceil((reservation.retryAt - Date.now()) / 1000);
             const message = seconds > 0
@@ -530,19 +588,21 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             await reply(primary?.kind === 'empty' ? 'empty' : 'download');
             return;
         }
+        const delivery = queueCommand ? [{ url: link.url }] : [];
         if (primary?.kind === 'images') {
             const images = await downloadPostImages(primary.urls, directory);
             stage = 'upload';
-            await sendImages(images);
+            await sendImages(images, ...delivery);
             return;
         }
         const video = await downloadSocialVideo(post, directory, config.maxBytes, primary);
         stage = 'upload';
-        await sendVideo(video);
+        await sendVideo(video, ...delivery);
     } catch (error) {
         const status = Number(error?.error_code || error?.status);
-        if (reservation?.refund && (stage !== 'upload' || (status >= 400 && status < 500))) {
-            await reservation.refund().catch(() => console.warn('[Social video] Could not refund video quota'));
+        if (reservation?.refund) {
+            const keepUpload = stage === 'upload' && !(status >= 400 && status < 500);
+            await reservation.refund({ keepUpload }).catch(() => console.warn('[Social video] Could not refund video quota'));
         }
         // The downloader and API errors may contain user links or request credentials.
         const replyKey = error?.code === 'SOCIAL_VIDEO_CAPACITY' ? 'capacity' : stage;
@@ -561,6 +621,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         } finally {
             if (lease) await lease.release().catch(() => console.warn('[Social video] Could not release video slot'));
             if (localSlot) active = false;
+            leaveQueue?.();
         }
     }
 }

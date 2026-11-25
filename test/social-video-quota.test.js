@@ -114,7 +114,28 @@ test('charges group and member, refunds only the upload and uses a new row at Ho
     const [query, charge] = collection.updateOne.mock.calls[0];
     expect(charge.$inc).toEqual({ used: 1, attempts: 1, 'members.456.used': 1, 'members.456.attempts': 1 });
     await reservation.refund();
-    expect(collection.updateOne.mock.calls[1].slice(0, 2)).toEqual([query, { $inc: { used: -1, 'members.456.used': -1 } }]);
+    expect(collection.updateOne.mock.calls[1].slice(0, 2)).toEqual([
+        { ...query, last: time, attempts: 1 },
+        { $inc: { used: -1, 'members.456.used': -1 }, $unset: { last: '', 'members.456.last': '' } },
+    ]);
     await reserveVideoQuota({ collection }, group, time + 30_000);
     expect(collection.updateOne.mock.calls[2][0]._id).not.toBe(query._id);
+});
+
+test('restores previous cooldown timestamps without returning the attempt or an uncertain upload', async () => {
+    const previous = time - 60_000;
+    collection.findOne.mockResolvedValue({
+        attempts: 2,
+        last: previous,
+        members: { 456: { last: previous - 1000 } },
+    });
+    const reservation = await reserveVideoQuota({ collection }, group, time);
+    const [query] = collection.updateOne.mock.calls[0];
+
+    await reservation.refund({ keepUpload: true });
+
+    expect(collection.updateOne.mock.calls[1].slice(0, 2)).toEqual([
+        { ...query, last: time, attempts: 3 },
+        { $set: { last: previous, 'members.456.last': previous - 1000 } },
+    ]);
 });

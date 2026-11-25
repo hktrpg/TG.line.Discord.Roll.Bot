@@ -73,7 +73,26 @@ async function reserveVideoQuota(lease, { platform, scope, id, userId }, time = 
         refund[`members.${userId}.used`] = -1;
     }
     await collection.updateOne({ _id: quotaId }, { $inc: inc, $set: set }, { ...databaseOptions, upsert: true });
-    return { refund: () => collection.updateOne({ _id: quotaId }, { $inc: refund }, databaseOptions) };
+
+    const restore = {};
+    const unset = {};
+    function restoreLast(field, previous) {
+        if (previous === undefined) unset[field] = '';
+        else restore[field] = previous;
+    }
+    restoreLast('last', row?.last);
+    if (group) restoreLast(`members.${userId}.last`, actor?.last);
+    return {
+        refund: ({ keepUpload = false } = {}) => collection.updateOne(
+            { _id: quotaId, last: time, attempts: (row?.attempts ?? 0) + 1 },
+            {
+                ...(!keepUpload && { $inc: refund }),
+                ...(Object.keys(restore).length > 0 && { $set: restore }),
+                ...(Object.keys(unset).length > 0 && { $unset: unset }),
+            },
+            databaseOptions,
+        ),
+    };
 }
 
 module.exports = { acquireVideoLease, reserveVideoQuota };

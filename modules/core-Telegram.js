@@ -50,8 +50,29 @@ TGclient.on('message:text', (ctx) => {
 
     const socialVideoGroup = ctx.chat.type === 'group' || ctx.chat.type === 'supergroup';
     if (socialVideoGroup || ctx.chat.type === 'private') {
-        const reply = { reply_parameters: { message_id: ctx.message.message_id } };
-        if (ctx.message.is_topic_message) reply.message_thread_id = ctx.message.message_thread_id;
+        const topic = ctx.message.is_topic_message ? { message_thread_id: ctx.message.message_thread_id } : {};
+        const reply = { ...topic, reply_parameters: { message_id: ctx.message.message_id, allow_sending_without_reply: true } };
+
+        async function sendMedia(send, download) {
+            let options = reply;
+            if (download) {
+                const mention = `@${ctx.from.username || ctx.from.first_name}`;
+                const prefix = `${mention}: 已下載 `;
+                const displayed = prefix.length + download.url.length <= 1024 ? download.url : '原始連結';
+                const caption_entities = [{ type: 'text_mention', offset: 0, length: mention.length, user: ctx.from }];
+                if (displayed !== download.url) {
+                    caption_entities.push({ type: 'text_link', offset: prefix.length, length: displayed.length, url: download.url });
+                }
+                options = { ...topic, caption: prefix + displayed, caption_entities };
+            }
+            await send(options, AbortSignal.timeout(45_000));
+            if (download) {
+                await ctx.deleteMessage(AbortSignal.timeout(5000)).catch(error => {
+                    console.warn('[Telegram] Could not delete the delivered .video command', error.error_code || error.name);
+                });
+            }
+        }
+
         void handleSocialVideo({
             platform: 'Telegram',
             groupId: socialVideoGroup ? ctx.chat.id : undefined,
@@ -59,12 +80,20 @@ TGclient.on('message:text', (ctx) => {
             commandBotName: ctx.me.username,
             ...socialVideoInput(ctx.message),
             getRepliedMessage: telegramVideoReply(ctx.message),
-            sendVideo: video => ctx.replyWithVideo(new InputFile(video), { ...reply, supports_streaming: true }, AbortSignal.timeout(45_000)),
-            sendImages: images => {
-                const signal = AbortSignal.timeout(45_000);
-                if (images.length === 1) return ctx.replyWithPhoto(new InputFile(images[0].file), reply, signal);
-                return ctx.replyWithMediaGroup(images.map(({ file }) => ({ type: 'photo', media: new InputFile(file) })), reply, signal);
-            },
+            sendVideo: (video, download) => sendMedia(
+                (options, signal) => ctx.replyWithVideo(new InputFile(video), { ...options, supports_streaming: true }, signal),
+                download,
+            ),
+            sendImages: (images, download) => sendMedia((options, signal) => {
+                if (images.length === 1) return ctx.replyWithPhoto(new InputFile(images[0].file), options, signal);
+                const { caption, caption_entities, ...albumOptions } = options;
+                const album = images.map(({ file }, index) => ({
+                    type: 'photo',
+                    media: new InputFile(file),
+                    ...(index === 0 && { caption, caption_entities }),
+                }));
+                return ctx.replyWithMediaGroup(album, albumOptions, signal);
+            }, download),
             sendText: content => ctx.reply(content, reply, AbortSignal.timeout(5000)),
         });
     }

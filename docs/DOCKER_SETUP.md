@@ -7,6 +7,44 @@ Images:
 
 Also see [roll-worker.md](./roll-worker.md) for Gateway / Primary / Standby naming.
 
+## VIP social video reposts
+
+In an enabled VIP group, paste a public Facebook Reel or video, X post, Instagram
+Reel or post, or TikTok video. HKTRPG replies to the original message with an MP4
+attachment in the same Telegram topic or Discord channel. It processes the first
+supported link and the first video in that post.
+
+1. Make `yt-dlp` and `ffmpeg` available in the gateway. When building either
+   Dockerfile in this repo, set the build argument `INSTALL_SOCIAL_VIDEO=true`.
+   For Compose, set that argument under the gateway's `build.args`. Keep the
+   downloader current as provider sites change. To point to another installation,
+   set the gateway's `SOCIAL_VIDEO_YTDLP_PATH` or `SOCIAL_VIDEO_FFMPEG_PATH` to the
+   relevant absolute executable path.
+2. Set `SOCIAL_VIDEO_TELEGRAM_GROUP_IDS` on the Telegram gateway and/or
+   `SOCIAL_VIDEO_DISCORD_GUILD_IDS` on the Discord gateway to comma-separated
+   group or server IDs. Empty values leave this feature disabled. The chat or
+   server also needs an existing group VIP level of at least 1. The bot must be
+   able to read ordinary group messages and attach files. For Telegram, the bot
+   must be a group admin or have BotFather group privacy disabled.
+3. For Threads, install a compatible Threads extractor in the gateway's
+   yt-dlp environment, verify that `yt-dlp --list-extractors` shows `threads`,
+   and set `SOCIAL_VIDEO_THREADS_ENABLED=true`. A third-party extractor is
+   available from [yt-dlp-threads](https://github.com/tribixbite/yt-dlp-threads).
+   To load it from a dedicated plugin directory, set
+   `SOCIAL_VIDEO_THREADS_PLUGIN_DIR` to the absolute path to that directory and
+   pass the same directory to `yt-dlp --plugin-dirs <directory> --list-extractors`
+   when checking it. The standard image build only installs yt-dlp and FFmpeg.
+
+Telegram accepts up to 49 MB from this feature and Discord up to 20 MiB. It
+skips live streams and videos with a known duration longer than five minutes.
+Each gateway process handles two jobs at a time and accepts one request per
+group every 15 seconds. Links posted while the process or group is busy are
+ignored. Facebook share links must redirect to a supported Facebook video URL.
+Private posts and provider login prompts can prevent retrieval.
+
+The uploaded copy lives in the chat. HKTRPG removes the temporary server files
+after the upload attempt. Chat deletion and retention settings apply to the copy.
+
 ## Included files
 
 - `.dockerignore`

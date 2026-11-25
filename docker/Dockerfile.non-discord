@@ -15,6 +15,9 @@ RUN apk update && apk upgrade --no-cache && apk add --no-cache \
     font-noto-cjk \
     && rm -rf /var/cache/apk/*
 
+ARG INSTALL_SOCIAL_VIDEO=false
+RUN if [ "$INSTALL_SOCIAL_VIDEO" = "true" ]; then apk add --no-cache yt-dlp ffmpeg; fi
+
 ENV TZ=Asia/Taipei
 ENV LANG=zh_TW.UTF-8
 ENV LC_ALL=zh_TW.UTF-8

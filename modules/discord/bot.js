@@ -20,6 +20,7 @@ const clusterProtection = require('../runtime/cluster-protection.js');
 const dbProtectionLayer = require('../db/protection-layer.js');
 const dbConnector = require('../db/connector.js');
 const checkMongodb = require('../db/watchdog.js');
+const { handleSocialVideo } = require('../chat/social-video');
 
 exports.analytics = require('../analytics');
 const parseRouter = require('../roll-worker/parse-router');
@@ -1146,10 +1147,21 @@ async function getOwnerClusterIdByGuild(guildId) {
 client.on('messageCreate', async message => {
 	const taskId = beginInFlightTask('messageCreate');
 	if (!taskId) return;
+	let socialVideoTask;
 	try {
 		if (isShuttingDown) return;
 		if (message.author.bot) return;
 
+		if (message.guildId && !message.webhookId) {
+			const allowedMentions = { parse: [], repliedUser: false };
+			socialVideoTask = handleSocialVideo({
+				platform: 'Discord',
+				groupId: message.guildId,
+				text: message.content,
+				sendVideo: video => message.reply({ files: [video], allowedMentions }),
+				sendText: content => message.reply({ content, allowedMentions }),
+			});
+		}
 		// Capture original text before the legacy parser mutates message.content.
 		const chatroomTask = chatroomRuntime.handleMessage(message);
 		// Use batch processing
@@ -1177,6 +1189,7 @@ client.on('messageCreate', async message => {
 	} catch (error) {
 		console.error('[Discord Bot] messageCreate error:', error?.message);
 	} finally {
+		await socialVideoTask;
 		endInFlightTask(taskId);
 	}
 

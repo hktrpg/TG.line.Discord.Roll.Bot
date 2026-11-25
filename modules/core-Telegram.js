@@ -2,7 +2,7 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
-const { Bot, GrammyError, HttpError } = require('grammy');
+const { Bot, GrammyError, HttpError, InputFile } = require('grammy');
 const WebSocket = require('ws');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
@@ -12,6 +12,7 @@ exports.analytics = require('./analytics');
 const parseRouter = require('./roll-worker/parse-router');
 const deferQueue = require('./roll-worker/defer-queue');
 const darkRolling = require('./roll-worker/dark-rolling');
+const { handleSocialVideo } = require('./chat/social-video');
 
 deferQueue.registerDeliverer('Telegram', async (job, result) => {
 	const text = result?.text || '';
@@ -45,6 +46,19 @@ const courtMessage = require('./chat/logs').courtMessage || function () { };
 
 TGclient.on('message:text', (ctx) => {
     if (ctx.from?.is_bot) return;
+
+    if (ctx.chat.type === 'group' || ctx.chat.type === 'supergroup') {
+        const reply = { reply_parameters: { message_id: ctx.message.message_id } };
+        if (ctx.message.is_topic_message) reply.message_thread_id = ctx.message.message_thread_id;
+        void handleSocialVideo({
+            platform: 'Telegram',
+            groupId: ctx.chat.id,
+            text: ctx.message.text,
+            urls: ctx.message.entities?.filter(entity => entity.type === 'text_link').map(entity => entity.url),
+            sendVideo: video => ctx.replyWithVideo(new InputFile(video), { ...reply, supports_streaming: true }),
+            sendText: content => ctx.reply(content, reply),
+        });
+    }
 
     (async () => {
         let inputStr = ctx.message.text;

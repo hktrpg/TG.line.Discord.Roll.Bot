@@ -9,26 +9,30 @@ Also see [roll-worker.md](./roll-worker.md) for Gateway / Primary / Standby nami
 
 ## VIP social video reposts
 
-In an enabled VIP group or a personal VIP DM, paste a public Facebook Reel or
-video, X post, Instagram Reel or post, or TikTok video. HKTRPG replies to the
-original message with an MP4 attachment in the same chat, topic or channel.
+Paste a public Facebook Reel or video, X post, Instagram Reel or post, or TikTok
+video. HKTRPG replies with an MP4 attachment in the same chat, topic or channel.
 It processes the first supported link and the first video in that post.
 
-1. Make `yt-dlp` and `ffmpeg` available in the gateway. When building either
+1. Make `yt-dlp`, `ffmpeg`, `ffprobe` and `nice` available in the gateway. When building either
    Dockerfile in this repo, set the build argument `INSTALL_SOCIAL_VIDEO=true`.
    For Compose, set that argument under the gateway's `build.args`. Keep the
    downloader current as provider sites change. To point to another installation,
-   set the gateway's `SOCIAL_VIDEO_YTDLP_PATH` or `SOCIAL_VIDEO_FFMPEG_PATH` to the
-   relevant absolute executable path.
+   configure the executable paths with `SOCIAL_VIDEO_YTDLP_PATH` and
+   `SOCIAL_VIDEO_FFMPEG_PATH`. If ffprobe is in a separate directory, configure
+   `SOCIAL_VIDEO_FFPROBE_PATH` as well.
 2. Set `SOCIAL_VIDEO_TELEGRAM_GROUP_IDS` on the Telegram gateway and/or
    `SOCIAL_VIDEO_DISCORD_GUILD_IDS` on the Discord gateway to comma-separated
-   group or server IDs. Empty values leave this feature disabled. The chat or
-   server also needs an existing group VIP level of at least 1. The bot must be
-   able to read ordinary group messages and attach files. For Telegram, the bot
+   group or server IDs where regular links should trigger the bot. To allow
+   `.video <link>` in other groups, set `SOCIAL_VIDEO_GROUP_COMMAND_ENABLED=true`.
+   In Telegram groups with privacy mode enabled, use `/video@BotUsername <link>`.
+   A VIP group uses its group quota. In a group without group VIP, the sender
+   needs personal VIP and uses the same allowance as in DMs. A VIP group with
+   exhausted quota waits for its quota reset. The bot must be able to read the
+   triggering messages and attach files. For Telegram automatic reposts, the bot
    must be a group admin or have BotFather group privacy disabled.
 3. To enable DMs, set `SOCIAL_VIDEO_DM_ENABLED=true` on the Telegram or Discord
    gateway. The sending account needs an existing personal VIP level of at least
-   1 on that platform. Group use still requires the configured group VIP.
+   1 on that platform.
 4. For Threads, install a compatible Threads extractor in the gateway's
    yt-dlp environment, verify that `yt-dlp --list-extractors` shows `threads`,
    and set `SOCIAL_VIDEO_THREADS_ENABLED=true`. A third-party extractor is
@@ -36,18 +40,32 @@ It processes the first supported link and the first video in that post.
    To load it from a dedicated plugin directory, set
    `SOCIAL_VIDEO_THREADS_PLUGIN_DIR` to the absolute path to that directory and
    pass the same directory to `yt-dlp --plugin-dirs <directory> --list-extractors`
-   when checking it. The standard image build only installs yt-dlp and FFmpeg.
+   when checking it. The image build argument does not install the Threads plugin.
 
-Telegram accepts up to 49 MB from this feature and Discord up to 20 MiB. It
-skips live streams and videos with a known duration longer than five minutes.
-Each gateway process handles two jobs at a time. Groups have a 15-second
-cooldown, and personal VIPs have a 30-second DM cooldown. Links posted while
-the process or recipient is busy are ignored. Facebook share links must
-redirect to a supported Facebook video URL.
-Private posts and provider login prompts can prevent retrieval.
+Both gateways must use the same MongoDB database. The feature uses one shared
+job slot and keeps daily counters in `socialVideoQuotas`. At Hong Kong midnight,
+the quota renews. Personal VIPs get 20 successful uploads per day and a
+30-second cooldown. VIP groups get 60 per day, with 10 per sender, a 15-second
+group cooldown and a 30-second sender cooldown. Attempt limits are twice the
+upload limits. An ambiguous upload timeout can consume an upload allowance.
 
-The uploaded copy lives in the chat. HKTRPG removes the temporary server files
-after the upload attempt. Chat deletion and retention settings apply to the copy.
+The source limit is 30 MiB and five minutes. Attachment caps are 30 MiB on
+Telegram and 20 MiB on Discord. Compatible files are remuxed without encoding.
+If the attachment is too big or uses incompatible codecs, a source at most
+90 seconds, 1080p or equivalent, and 30 fps can be converted with one low-priority
+encoder thread for up to 30 seconds. Live streams and larger inputs are skipped.
+Before starting, the host must have 256 MiB available and a memory-limited
+container must have 128 MiB of cgroup v2 headroom. To encode, the host must have
+512 MiB available, the container needs 256 MiB of headroom, and the one-minute
+load must be below 75% of at least two available CPUs.
+
+Video files are staged on Linux tmpfs and removed after the attempt. The default
+is `/dev/shm`. Set `SOCIAL_VIDEO_TMP_DIR` to a dedicated tmpfs when the gateway
+shares that mount with Chromium or another workload. The feature requires at
+least 62 MiB free on a 64 MiB tmpfs, and stops if that check fails.
+After a gateway crash, the next job can remove expired scratch directories.
+Keep host swap policy in mind when configuring tmpfs. The uploaded copy lives in
+the chat and follows its deletion and retention settings.
 
 ## Included files
 

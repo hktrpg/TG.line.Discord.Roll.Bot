@@ -1,6 +1,7 @@
 /* eslint-disable n/no-process-exit */
 "use strict";
 const fs = require('node:fs');
+const { readFile } = require('node:fs/promises');
 const path = require('node:path');
 
 const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
@@ -1154,14 +1155,21 @@ client.on('messageCreate', async message => {
 
 		const isDirectMessage = !message.guildId && message.channel?.type === ChannelType.DM;
 		if ((message.guildId || isDirectMessage) && !message.webhookId) {
-			const allowedMentions = { parse: [], repliedUser: false };
+			const reply = { message_reference: { message_id: message.id }, allowed_mentions: { parse: [], replied_user: false } };
 			socialVideoTask = handleSocialVideo({
 				platform: 'Discord',
 				groupId: message.guildId,
-				userId: isDirectMessage ? message.author.id : undefined,
+				userId: message.author.id,
 				text: message.content,
-				sendVideo: video => message.reply({ files: [video], allowedMentions }),
-				sendText: content => message.reply({ content, allowedMentions }),
+				sendVideo: async video => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
+					body: reply,
+					files: [{ name: 'social-video.mp4', data: await readFile(video), contentType: 'video/mp4' }],
+					signal: AbortSignal.timeout(45_000),
+				}),
+				sendText: content => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
+					body: { ...reply, content },
+					signal: AbortSignal.timeout(5000),
+				}),
 			});
 		}
 		// Capture original text before the legacy parser mutates message.content.

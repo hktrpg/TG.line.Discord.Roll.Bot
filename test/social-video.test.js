@@ -1,37 +1,70 @@
 'use strict';
 
 const { execFile } = require('node:child_process');
-const { writeFile, stat } = require('node:fs/promises');
+const { readFile, writeFile, stat, statfs, truncate } = require('node:fs/promises');
+const { tmpdir } = require('node:os');
 const { viplevelCheckGroup, viplevelCheckUser } = require('../modules/patreon/veryImportantPerson');
+const { acquireVideoLease, reserveVideoQuota } = require('../modules/chat/social-video-quota');
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
+jest.mock('node:fs/promises', () => ({
+    ...jest.requireActual('node:fs/promises'), readFile: jest.fn(), statfs: jest.fn(),
+}));
+jest.mock('node:os', () => ({
+    ...jest.requireActual('node:os'), platform: () => 'linux', availableParallelism: () => 2, loadavg: () => [0, 0, 0],
+}));
+jest.mock('../modules/chat/social-video-quota', () => ({ acquireVideoLease: jest.fn(), reserveVideoQuota: jest.fn() }));
 jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(),
     viplevelCheckUser: jest.fn(),
 }));
 
 const originalEnv = process.env;
+const scratchRoot = tmpdir();
+let sourceBytes;
+let videoDuration;
+let refund;
+let release;
 
 beforeEach(() => {
-    jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
     process.env = {
         ...originalEnv,
         SOCIAL_VIDEO_TELEGRAM_GROUP_IDS: '-100123',
         SOCIAL_VIDEO_DISCORD_GUILD_IDS: '456',
         SOCIAL_VIDEO_DM_ENABLED: 'false',
+        SOCIAL_VIDEO_GROUP_COMMAND_ENABLED: 'false',
+        SOCIAL_VIDEO_TMP_DIR: scratchRoot,
     };
     viplevelCheckGroup.mockResolvedValue(1);
     viplevelCheckUser.mockResolvedValue(1);
+    refund = jest.fn().mockResolvedValue();
+    release = jest.fn().mockResolvedValue();
+    acquireVideoLease.mockResolvedValue({ release });
+    reserveVideoQuota.mockResolvedValue({ refund });
+    statfs.mockResolvedValue({ type: 0x01_02_19_94, blocks: 16_384, bavail: 16_384, bsize: 4096 });
+    readFile.mockImplementation(file => Promise.resolve(file === '/proc/meminfo' ? 'MemAvailable: 1048576 kB' : 'max'));
+    sourceBytes = 5;
+    videoDuration = 10;
     execFile.mockImplementation((command, args, options, callback) => {
-        const output = command === 'yt-dlp' ? args[args.indexOf('--output') + 1] : args.at(-1);
-        void writeFile(output, 'video').then(() => callback(null), callback);
+        if (command === 'ffprobe') {
+            callback(null, { stdout: JSON.stringify({
+                streams: [{ codec_type: 'video', codec_name: 'h264', width: 720, height: 1280, avg_frame_rate: '30/1' }],
+                format: { duration: videoDuration },
+            }) });
+            return;
+        }
+        const output = args.at(-1);
+        if (command === 'yt-dlp') {
+            const source = args[args.indexOf('--output') + 1];
+            void writeFile(source, 'video').then(() => truncate(source, sourceBytes)).then(() => callback(null), callback);
+        } else {
+            void writeFile(output, 'video').then(() => callback(null), callback);
+        }
     });
 });
 
 afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
     jest.restoreAllMocks();
     jest.resetAllMocks();
     process.env = originalEnv;
@@ -41,6 +74,7 @@ function telegram(options = {}) {
     return {
         platform: 'Telegram',
         groupId: -100_123,
+        userId: 123,
         text: 'https://www.facebook.com/reel/123',
         sendVideo: jest.fn().mockResolvedValue(),
         sendText: jest.fn().mockResolvedValue(),
@@ -78,10 +112,11 @@ test.each([
     expect(findSocialVideoLink(url)).toBeNull();
 });
 
-test('requires an enabled group and a group VIP match before using the downloader', async () => {
+test('requires an enabled group and a VIP match before using the downloader', async () => {
     await handleSocialVideo(telegram({ groupId: -100_999 }));
     expect(viplevelCheckGroup).not.toHaveBeenCalled();
     viplevelCheckGroup.mockResolvedValue(0);
+    viplevelCheckUser.mockResolvedValue(0);
     await handleSocialVideo(telegram());
     expect(viplevelCheckGroup).toHaveBeenCalledWith('-100123', 'Telegram');
     expect(execFile).not.toHaveBeenCalled();
@@ -103,28 +138,49 @@ test.each(['Telegram', 'Discord'])('personal VIP can use an enabled %s DM', asyn
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
 });
 
-test('personal VIP does not authorize an unconfigured or non-VIP group', async () => {
-    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
+test('consumes group quota first even when the sender is a personal VIP', async () => {
+    await handleSocialVideo(telegram());
+    expect(reserveVideoQuota).toHaveBeenCalledWith(expect.anything(), {
+        platform: 'Telegram', scope: 'group', id: '-100123', userId: '123',
+    });
+    expect(viplevelCheckUser).not.toHaveBeenCalled();
+});
+
+test('a personal VIP uses personal quota and receives the file in a non-VIP group', async () => {
+    process.env.SOCIAL_VIDEO_GROUP_COMMAND_ENABLED = 'true';
     viplevelCheckGroup.mockResolvedValue(0);
-    await handleSocialVideo(telegram({ groupId: -100_999, userId: 123 }));
-    await handleSocialVideo(telegram({ userId: 123 }));
+    const request = telegram({
+        groupId: -100_999,
+        commandBotName: 'HKTRPGBot',
+        text: '/video@HKTRPGBot https://www.facebook.com/reel/123',
+    });
+    await handleSocialVideo({ ...request, commandBotName: 'OtherBot' });
+    expect(viplevelCheckUser).not.toHaveBeenCalled();
+    await handleSocialVideo(request);
+    expect(reserveVideoQuota).toHaveBeenCalledWith(expect.anything(), {
+        platform: 'Telegram', scope: 'user', id: '123', userId: '123',
+    });
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('reports a group quota limit without downloading or falling back to personal quota', async () => {
+    reserveVideoQuota.mockResolvedValue({ reason: 'quota' });
+    const request = telegram();
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('額度'));
     expect(viplevelCheckUser).not.toHaveBeenCalled();
     expect(execFile).not.toHaveBeenCalled();
 });
 
-test('applies a 30-second cooldown per personal VIP while another VIP can download', async () => {
-    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
-    const first = telegram({ groupId: null, userId: 123 });
-    const second = telegram({ groupId: null, userId: 456 });
-    await handleSocialVideo(first);
-    jest.advanceTimersByTime(29_999);
-    await handleSocialVideo(first);
-    expect(first.sendVideo).toHaveBeenCalledTimes(1);
-    await handleSocialVideo(second);
-    expect(second.sendVideo).toHaveBeenCalledTimes(1);
-    jest.advanceTimersByTime(1);
-    await handleSocialVideo(first);
-    expect(first.sendVideo).toHaveBeenCalledTimes(2);
+test('does not download when the shared slot is occupied or when the scratch filesystem is on disk', async () => {
+    acquireVideoLease.mockResolvedValueOnce(null);
+    const request = telegram();
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('另一段影片'));
+    statfs.mockResolvedValueOnce({ type: 1, blocks: 16_384, bavail: 16_384, bsize: 4096 });
+    await handleSocialVideo(request);
+    expect(execFile).not.toHaveBeenCalled();
+    expect(release).toHaveBeenCalledTimes(1);
 });
 
 test('resolves a Facebook share to a Reel, uploads the file, then cleans up', async () => {
@@ -139,7 +195,7 @@ test('resolves a Facebook share to a Reel, uploads the file, then cleans up', as
     await handleSocialVideo(request);
     expect(fetcher).toHaveBeenCalledWith('https://www.facebook.com/share/r/abc/', expect.objectContaining({ redirect: 'manual' }));
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/123/');
-    expect(execFile.mock.calls[0][1]).toContain('49000000');
+    expect(execFile.mock.calls[0][1]).toContain(String(30 * 1024 * 1024));
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
     await expect(stat(request.sendVideo.mock.calls[0][0])).rejects.toMatchObject({ code: 'ENOENT' });
 });
@@ -155,13 +211,37 @@ test('rejects a Facebook redirect to a different host before fetching it', async
     expect(request.sendText).toHaveBeenCalledTimes(1);
 });
 
-test('applies the Discord cap and cleans up after an upload failure', async () => {
+test('compresses a short clip that exceeds the Discord cap and refunds a rejected upload', async () => {
+    sourceBytes = 21 * 1024 * 1024;
     const request = telegram({ platform: 'Discord', groupId: '456' });
-    request.sendVideo.mockRejectedValue(new Error('Upload failed'));
+    request.sendVideo.mockRejectedValue(Object.assign(new Error('Upload failed'), { status: 403 }));
     await handleSocialVideo(request);
-    expect(execFile.mock.calls[0][1]).toContain(String(20 * 1024 * 1024));
+    const encoding = execFile.mock.calls.find(([, args]) => args.includes('libx264'));
+    expect(encoding?.[1]).toContain(String(20 * 1024 * 1024));
+    expect(encoding?.[2].timeout).toBe(30_000);
     expect(request.sendText).toHaveBeenCalledTimes(1);
+    expect(refund).toHaveBeenCalledTimes(1);
     await expect(stat(request.sendVideo.mock.calls[0][0])).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+test('rejects an oversized long clip before encoding and refunds the upload quota', async () => {
+    sourceBytes = 21 * 1024 * 1024;
+    videoDuration = 91;
+    const request = telegram({ platform: 'Discord', groupId: '456' });
+    await handleSocialVideo(request);
+    expect(execFile).toHaveBeenCalledTimes(2);
+    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(refund).toHaveBeenCalledTimes(1);
+});
+
+test('skips encoding on low memory after allowing a lighter download', async () => {
+    sourceBytes = 21 * 1024 * 1024;
+    readFile.mockImplementation(file => Promise.resolve(file === '/proc/meminfo' ? 'MemAvailable: 400000 kB' : 'max'));
+    const request = telegram({ platform: 'Discord', groupId: '456' });
+    await handleSocialVideo(request);
+    expect(execFile).toHaveBeenCalledTimes(2);
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('資源不足'));
+    expect(refund).toHaveBeenCalledTimes(1);
 });
 
 test('requires opt-in for the Threads extractor', async () => {
@@ -170,7 +250,6 @@ test('requires opt-in for the Threads extractor', async () => {
     await handleSocialVideo(request);
     expect(request.sendText).toHaveBeenCalledTimes(1);
     expect(execFile).not.toHaveBeenCalled();
-    jest.runOnlyPendingTimers();
     process.env.SOCIAL_VIDEO_THREADS_ENABLED = 'true';
     await handleSocialVideo(request);
     expect(execFile.mock.calls[0][1]).toContain('threads');

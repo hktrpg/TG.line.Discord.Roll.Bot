@@ -54,11 +54,12 @@ TGclient.on('message:text', (ctx) => {
         void handleSocialVideo({
             platform: 'Telegram',
             groupId: socialVideoGroup ? ctx.chat.id : undefined,
-            userId: ctx.chat.type === 'private' ? ctx.from?.id : undefined,
+            userId: ctx.from?.id,
+            commandBotName: ctx.me.username,
             text: ctx.message.text,
             urls: ctx.message.entities?.filter(entity => entity.type === 'text_link').map(entity => entity.url),
-            sendVideo: video => ctx.replyWithVideo(new InputFile(video), { ...reply, supports_streaming: true }),
-            sendText: content => ctx.reply(content, reply),
+            sendVideo: video => ctx.replyWithVideo(new InputFile(video), { ...reply, supports_streaming: true }, AbortSignal.timeout(45_000)),
+            sendText: content => ctx.reply(content, reply, AbortSignal.timeout(5000)),
         });
     }
 

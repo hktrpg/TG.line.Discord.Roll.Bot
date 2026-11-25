@@ -37,10 +37,15 @@ async function fetchBounded(url, allowed, { headers, signal, bytes, method = 'GE
             url = new URL(location, url).href;
             continue;
         }
-        if (!response.ok || (method !== 'HEAD' && !response.body) || Number(response.headers.get('content-length')) > bytes) {
+        if (!response.ok) {
             await response.body?.cancel();
-            throw new Error('Media is inaccessible or too large');
+            throw Object.assign(new Error('Media is inaccessible'), { status: response.status });
         }
+        if (Number(response.headers.get('content-length')) > bytes) {
+            await response.body?.cancel();
+            throw Object.assign(new Error('Media is too large'), { code: 'SOCIAL_VIDEO_FETCH_LIMIT', limit: bytes });
+        }
+        if (method !== 'HEAD' && !response.body) throw new Error('Media response has no body');
         return { response, url };
     }
     throw new Error('Too many media redirects');
@@ -50,7 +55,9 @@ async function* limitBytes(body, limit) {
     let received = 0;
     for await (const chunk of Readable.fromWeb(body)) {
         received += chunk.length;
-        if (received > limit) throw new Error('Media exceeded byte limit');
+        if (received > limit) {
+            throw Object.assign(new Error('Media exceeded byte limit'), { code: 'SOCIAL_VIDEO_FETCH_LIMIT', limit });
+        }
         yield chunk;
     }
 }

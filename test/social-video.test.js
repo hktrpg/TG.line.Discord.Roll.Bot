@@ -68,9 +68,9 @@ beforeEach(() => {
         const output = args.at(-1);
         if (command === 'yt-dlp') {
             const source = args[args.indexOf('--output') + 1];
-            void writeFile(source, 'video').then(() => truncate(source, sourceBytes)).then(() => callback(null), callback);
+            void writeFile(source, 'video').then(() => truncate(source, sourceBytes)).then(() => callback(null, { stdout: '' }), callback);
         } else {
-            void writeFile(output, 'video').then(() => callback(null), callback);
+            void writeFile(output, 'video').then(() => callback(null, { stdout: '' }), callback);
         }
     });
 });
@@ -474,6 +474,50 @@ test('compresses a short clip that exceeds the Discord cap and refunds a rejecte
     await expect(stat(request.sendVideo.mock.calls[0][0])).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
+test.each([
+    ['811.456 NA', /13 分 32 秒.*5 分鐘上限/],
+    ['NA true', /直播.*已錄製/],
+])('explains rejection metadata from yt-dlp %s before checking for a source file', async (metadata, expected) => {
+    execFile.mockImplementationOnce((_tool, _args, _options, callback) => {
+        callback(null, { stdout: 'HKTRPG_VIDEO ' + metadata + '\n' });
+    });
+    const request = telegram();
+
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(expected));
+    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(refund).toHaveBeenCalledTimes(1);
+    expect(execFile.mock.calls[0][1]).toContain('--no-simulate');
+});
+
+test('explains the clip-length limit when FFprobe discovers it after download', async () => {
+    videoDuration = 301;
+    const request = telegram();
+
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(/5 分 1 秒.*5 分鐘上限/));
+    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(refund).toHaveBeenCalledTimes(1);
+});
+
+test.each([
+    [Object.assign(new Error('Private URL - do not expose'), {status: 403}), /來源平台拒絕存取（HTTP 403）/],
+    [Object.assign(new Error('Private URL - do not expose'), {code: 'SOCIAL_VIDEO_FETCH_LIMIT', limit: 3 * 1024 * 1024}), /3 MiB.*上限/],
+    [Object.assign(new Error('Private URL - do not expose'), {name: 'TimeoutError'}), /來源媒體逾時/],
+])('explains known source limits without echoing the raw error', async (error, expected) => {
+    readPrimaryMedia.mockRejectedValueOnce(error);
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const request = telegram();
+
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(expected));
+    expect(request.sendText.mock.calls[0][0]).not.toContain(error.message);
+    expect(refund).toHaveBeenCalledTimes(1);
+});
+
 test('rejects an oversized long clip before encoding and refunds the upload quota', async () => {
     sourceBytes = 21 * 1024 * 1024;
     videoDuration = 91;
@@ -481,6 +525,7 @@ test('rejects an oversized long clip before encoding and refunds the upload quot
     await handleSocialVideo(request);
     expect(execFile).toHaveBeenCalledTimes(2);
     expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(/1 分 31 秒.*1 分 30 秒.*20 MiB/));
     expect(refund).toHaveBeenCalledTimes(1);
 });
 

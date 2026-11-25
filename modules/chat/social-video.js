@@ -16,6 +16,8 @@ const runFile = promisify(execFile);
 const MIB = 1024 * 1024;
 const MAX_SOURCE_BYTES = 30 * MIB;
 const MAX_DURATION = 300;
+const MAX_TRANSCODE_DURATION = 90;
+const MAX_TRANSCODE_FPS = 30;
 const platforms = {
     Telegram: { groups: 'SOCIAL_VIDEO_TELEGRAM_GROUP_IDS', maxBytes: MAX_SOURCE_BYTES },
     Discord: { groups: 'SOCIAL_VIDEO_DISCORD_GUILD_IDS', maxBytes: 20 * MIB },
@@ -128,6 +130,30 @@ function findSocialVideoLink(text, urls = []) {
     return null;
 }
 
+class VideoRequestError extends Error {}
+
+function formatVideoDuration(duration) {
+    const seconds = Math.ceil(duration);
+    const minutes = Math.floor(seconds / 60);
+    return minutes > 0 ? `${minutes} 分 ${seconds % 60} 秒` : `${seconds} 秒`;
+}
+
+function checkVideoDuration(duration) {
+    if (Number.isFinite(duration) && duration > MAX_DURATION) {
+        throw new VideoRequestError(`影片片長約 ${formatVideoDuration(duration)}，超過 ${MAX_DURATION / 60} 分鐘上限。請試一段較短的影片。`);
+    }
+}
+
+function checkDownloaderMetadata(stdout) {
+    // pre_process runs before yt-dlp skips a video rejected by --match-filter.
+    const match = /^HKTRPG_VIDEO (\d+(?:\.\d+)?|NA|null) (true|false|NA|null)\r?$/m.exec(stdout ?? '');
+    if (!match) return;
+    if (match[2] === 'true') {
+        throw new VideoRequestError('這是直播，影片功能只支援已錄製的公開影片。');
+    }
+    checkVideoDuration(Number(match[1]));
+}
+
 async function resolveShareLink(link) {
     const signal = AbortSignal.timeout(8000);
     for (let redirects = 0; link.redirect && redirects < 5; redirects++) {
@@ -136,12 +162,13 @@ async function resolveShareLink(link) {
         const location = response.headers.get('location');
         if (link.story && response.ok) return parseLink(link.url);
         if (response.status < 300 || response.status >= 400 || !location) {
-            throw new Error('Unresolved Facebook share link');
+            if (response.status >= 400) throw Object.assign(new Error('Facebook share link returned an error'), { status: response.status });
+            throw new VideoRequestError('Facebook 分享連結未能轉到影片。請貼原始公開貼文或 Reel 連結。');
         }
         link = parseLink(new URL(location, link.url).href, true);
-        if (link?.extractor !== 'facebook.*') throw new Error('Unsupported Facebook redirect');
+        if (link?.extractor !== 'facebook.*') throw new VideoRequestError('Facebook 分享連結轉到不支援的頁面。請貼原始公開貼文或 Reel 連結。');
     }
-    if (link.redirect) throw new Error('Too many Facebook redirects');
+    if (link.redirect) throw new VideoRequestError('Facebook 分享連結轉址次數過多。請貼原始公開貼文或 Reel 連結。');
     return link;
 }
 
@@ -164,9 +191,10 @@ async function probeVideo(file, ffprobe, options) {
     const video = streams?.find(stream => stream.codec_type === 'video');
     const audio = streams?.find(stream => stream.codec_type === 'audio');
     const duration = Number(format?.duration);
-    if (!video || !Number.isFinite(duration) || duration <= 0 || duration > MAX_DURATION) {
-        throw new Error('Invalid video duration');
+    if (!video || !Number.isFinite(duration) || duration <= 0) {
+        throw new VideoRequestError('無法辨識影片軌或片長。請試另一段可正常播放的公開影片。');
     }
+    checkVideoDuration(duration);
     return { video, audio, duration };
 }
 
@@ -227,14 +255,28 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
             '--skip-playlist-after-errors', '1', '--no-playlist', '--playlist-items', '1',
             '--no-progress', '--socket-timeout', '10', '--retries', '0', '--extractor-retries', '0',
             '--limit-rate', '4M',
+            '--print', 'pre_process:HKTRPG_VIDEO %(duration)j %(is_live)j', '--no-simulate',
             '--match-filter', `!is_live & duration <=? ${MAX_DURATION}`, '--max-filesize', String(MAX_SOURCE_BYTES),
             ...ffmpegArgs, '--format-sort', 'res:720', '--format', `${singleFormat}/${videoFormat}+${audioFormat}/${videoFormat}`,
             '--merge-output-format', 'mp4', '--output', input, '--', link.url,
         ], { ...options, timeout: 45_000 });
-        await watchVideoDownload(execution, directory);
+        const { stdout } = await watchVideoDownload(execution, directory).catch(error => {
+            checkDownloaderMetadata(error.stdout);
+            if (/Requested format is not available/i.test(error.stderr ?? '')) {
+                throw new VideoRequestError(`來源沒有符合下載條件的 MP4 版本（來源上限 ${MAX_SOURCE_BYTES / MIB} MiB）。請試較小的影片或原始公開連結。`);
+            }
+            throw error;
+        });
+        checkDownloaderMetadata(stdout);
     }
-    const source = await stat(input);
-    if (!source.isFile() || source.size === 0 || source.size > MAX_SOURCE_BYTES) throw new Error('Invalid video size');
+    const source = await stat(input).catch(error => {
+        if (error.code !== 'ENOENT') throw error;
+        throw new VideoRequestError(`來源沒有提供可下載的 MP4 版本。請確認貼文公開，並試用 ${MAX_SOURCE_BYTES / MIB} MiB 以下的影片。`);
+    });
+    if (!source.isFile() || source.size === 0) throw new VideoRequestError('來源影片檔案為空，請試另一段可播放的公開影片。');
+    if (source.size > MAX_SOURCE_BYTES) {
+        throw new VideoRequestError(`來源影片為 ${(source.size / MIB).toFixed(1)} MiB，超過 ${MAX_SOURCE_BYTES / MIB} MiB 上限。請試較小的影片。`);
+    }
     const { video, audio, duration } = await probeVideo(input, ffprobe, options);
     const transcode = source.size + 65_536 > maxBytes || video.codec_name !== 'h264' || (audio && audio.codec_name !== 'aac');
     let encoding = ['-c', 'copy'];
@@ -242,9 +284,14 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
         const [frames, seconds] = String(video.avg_frame_rate).split('/').map(Number);
         const frameRate = frames / seconds;
         const { width, height } = video;
-        if (duration > 90 || !(width > 0 && height > 0 && width * height <= 1920 * 1080)
-            || Math.max(width, height) > 1920 || !(frameRate > 0 && frameRate <= 30)) {
-            throw new Error('Video exceeds transcode limits');
+        if (duration > MAX_TRANSCODE_DURATION) {
+            throw new VideoRequestError(`這段影片需要轉檔，但片長約 ${formatVideoDuration(duration)}。轉檔上限為 ${formatVideoDuration(MAX_TRANSCODE_DURATION)}，${maxBytes / MIB} MiB 以下也需使用相容的 H.264／AAC 格式才能直接處理。`);
+        }
+        if (!(width > 0 && height > 0 && width * height <= 1920 * 1080) || Math.max(width, height) > 1920) {
+            throw new VideoRequestError('這段影片需要轉檔，但解像度不符合 1080p 或等效畫面大小的上限。請試較低解像度的版本。');
+        }
+        if (!(frameRate > 0 && frameRate <= MAX_TRANSCODE_FPS)) {
+            throw new VideoRequestError(`這段影片需要轉檔，但幀率無法確認或超過 ${MAX_TRANSCODE_FPS} fps。請試幀率較低的版本。`);
         }
         if (!await hasVideoCapacity(true)) {
             const error = new Error('Server is too busy for video encoding');
@@ -275,9 +322,14 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
     }
     await execution;
     const file = await stat(output);
-    if (!file.isFile() || file.size === 0 || file.size > maxBytes) throw new Error('Invalid upload size');
+    if (!file.isFile() || file.size === 0) throw new VideoRequestError('影片處理未能產生可上傳的檔案，請試另一段公開影片。');
+    if (file.size > maxBytes) {
+        throw new VideoRequestError(`處理後的影片超過本平台 ${maxBytes / MIB} MiB 附件上限。請試較小的影片。`);
+    }
     const ready = await probeVideo(output, ffprobe, options);
-    if (ready.duration < duration - 0.5) throw new Error('Incomplete video');
+    if (ready.duration < duration - 0.5) {
+        throw new VideoRequestError(`處理後的影片只有約 ${formatVideoDuration(ready.duration)}，原片約 ${formatVideoDuration(duration)}。請試較短或較小的影片，本平台的附件上限為 ${maxBytes / MIB} MiB。`);
+    }
     return output;
 }
 
@@ -333,15 +385,45 @@ const failureMessages = {
     telegramReplyMissing: '未收到可供讀取的回覆資料。請直接輸入 .video <完整連結>。',
     reference: '未能從原訊息讀到支援的公開連結，請直接輸入 .video <完整連結>。',
     threads: 'Threads 媒體擷取尚未啟用。',
-    busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
+    busy: 'Bot 正在處理另一段影片，一次只處理一個請求。請等完成後再試。',
     quota: '今天的影片額度已用完，香港時間午夜重設。',
     capacity: '伺服器目前資源不足，請稍後再試或貼較小的影片。',
     empty: '主貼文沒有可取得的影片或圖片。',
-    scratch: '媒體暫存未啟用或空間不足。請檢查伺服器的暫存設定。',
-    download: '無法取得可上傳的媒體。請確認貼文公開，或試試較短、較小的影片及原始連結。',
+    scratch: '媒體暫存位置不可用。伺服器需要可寫入的暫存目錄及足夠空間（Linux 至少 62 MiB，Windows 至少 64 MiB）。',
+    download: `來源未提供可用的媒體，或伺服器未能處理來源檔案。請試原始公開連結，影片須在 ${MAX_DURATION / 60} 分鐘及 ${MAX_SOURCE_BYTES / MIB} MiB 以內。`,
     upload: '媒體上傳失敗或逾時。請確認 bot 可以傳送附件，再稍後重試。',
     service: '影片功能暫時無法使用，請稍後再試。',
 };
+
+function videoErrorMessage(error, stage, fallback) {
+    if (error instanceof VideoRequestError) return error.message;
+    if (stage !== 'download' && stage !== 'upload') return failureMessages[fallback];
+
+    if (error.code === 'ENOENT' && error.syscall?.startsWith('spawn ')) {
+        return '本機或伺服器無法啟動所需的媒體工具。請管理員檢查 yt-dlp、FFmpeg 和 FFprobe 的安裝。';
+    }
+    if (error.code === 'SOCIAL_VIDEO_FETCH_LIMIT') {
+        return `來源資料超過本次 ${Number((error.limit / MIB).toFixed(2))} MiB 讀取上限。請試較小的媒體。`;
+    }
+    const status = Number(error.error_code || error.status);
+    const service = stage === 'upload' ? '聊天平台' : '來源平台';
+    if (Number.isInteger(status) && status >= 400 && status < 600) {
+        if (status === 401 || status === 403) {
+            return stage === 'upload'
+                ? `聊天平台拒絕上傳（HTTP ${status}）。請檢查 Bot 有冇傳送附件嘅權限。`
+                : `來源平台拒絕存取（HTTP ${status}）。請確認貼文可以在未登入時公開開啟。`;
+        }
+        if (status === 429) return `${service}暫時限制請求（HTTP 429）。請稍後再試。`;
+        return `${service}回傳 HTTP ${status}，未能${stage === 'upload' ? '上傳附件' : '取得媒體'}。請稍後再試或使用另一個公開連結。`;
+    }
+    if (error.name === 'AbortError' || error.name === 'TimeoutError' || error.cause?.code === 'ETIMEDOUT') {
+        return stage === 'upload' ? '上傳附件逾時，請稍後再試。' : '讀取或下載來源媒體逾時，請稍後再試或使用較短較小的影片。';
+    }
+    if (stage === 'download' && error.killed) {
+        return '下載或轉檔程序超過處理時間或暫存限制而停止。請試較短、較小的影片。';
+    }
+    return failureMessages[fallback];
+}
 
 /**
  * Use group quota first. A non-VIP group can use the sender's personal quota.
@@ -356,7 +438,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     if (process.env.SOCIAL_VIDEO_ENABLED !== undefined && !allEnabled) return;
     const command = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
     if (command?.[1] && command[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
-    const reply = reason => sendText(failureMessages[reason]).catch(() => {});
+    const reply = (reason, message = failureMessages[reason]) => sendText(message).catch(() => {});
     if (!allEnabled) {
         if (groupId) {
             const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
@@ -467,7 +549,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         console.warn('[Social video] request failed', socialVideoFailureDetails({
             platform, stage, link: post || link, groupId, userId: actor, error, reply: replyKey,
         }));
-        await reply(replyKey);
+        await reply(replyKey, videoErrorMessage(error, stage, replyKey));
     } finally {
         try {
             if (directory) await rm(directory, { recursive: true, force: true });

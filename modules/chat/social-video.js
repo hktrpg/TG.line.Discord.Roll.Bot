@@ -1,19 +1,19 @@
 "use strict";
 
 const { execFile } = require('node:child_process');
-const { lstat, mkdtemp, readFile, readdir, rm, stat, statfs } = require('node:fs/promises');
-const { availableParallelism, loadavg, platform: hostPlatform } = require('node:os');
-const { dirname, isAbsolute, join } = require('node:path');
+const { rm, stat } = require('node:fs/promises');
+const { constants, platform: hostPlatform, setPriority } = require('node:os');
+const { dirname, join } = require('node:path');
 const { promisify } = require('node:util');
 const { isEnvEnabled } = require('../../utils/env-flag');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('./social-post-media');
+const { createVideoScratch, hasVideoCapacity, watchWindowsDownload } = require('./social-video-runtime');
 
 const runFile = promisify(execFile);
 const MIB = 1024 * 1024;
 const MAX_SOURCE_BYTES = 30 * MIB;
 const MAX_DURATION = 300;
-const scratchPrefix = 'hktrpg-social-video-';
 const platforms = {
     Telegram: { groups: 'SOCIAL_VIDEO_TELEGRAM_GROUP_IDS', maxBytes: MAX_SOURCE_BYTES },
     Discord: { groups: 'SOCIAL_VIDEO_DISCORD_GUILD_IDS', maxBytes: 20 * MIB },
@@ -152,48 +152,6 @@ function subprocessEnv(directory) {
     };
 }
 
-async function createVideoScratch() {
-    const root = process.env.SOCIAL_VIDEO_TMP_DIR || '/dev/shm';
-    if (!isAbsolute(root)) throw new Error('Video scratch path must be absolute');
-    const fs = await statfs(root);
-    // Linux TMPFS_MAGIC. Require bounded RAM-backed storage, including in custom deployments.
-    if (fs.type !== 0x01_02_19_94 || fs.blocks * fs.bsize > 64 * MIB) {
-        throw new Error('Video scratch must be a bounded Linux tmpfs');
-    }
-    // A gateway crash can leave a job directory until its shared lease has expired.
-    const cutoff = Date.now() - 240_000;
-    for (const name of await readdir(root)) {
-        if (!/^hktrpg-social-video-[a-z\d]{6}$/i.test(name)) continue;
-        const path = join(root, name);
-        const file = await lstat(path);
-        if (file.isDirectory() && file.uid === process.getuid?.() && file.mtimeMs < cutoff) {
-            await rm(path, { recursive: true, force: true });
-        }
-    }
-    const available = await statfs(root);
-    if (available.bavail * available.bsize < 62 * MIB) {
-        throw new Error('Video scratch needs 62 MiB free on a bounded tmpfs');
-    }
-    return mkdtemp(join(root, scratchPrefix));
-}
-
-async function hasVideoCapacity(encoding = false) {
-    if (hostPlatform() !== 'linux') return false;
-    const cpus = availableParallelism();
-    if (encoding && (cpus < 2 || loadavg()[0] >= cpus * 0.75)) return false;
-    const memory = await readFile('/proc/meminfo', 'utf8');
-    const available = Number(/^MemAvailable:\s+(\d+)/m.exec(memory)?.[1]) * 1024;
-    if (!(available >= (encoding ? 512 : 256) * MIB)) return false;
-
-    const limit = await readFile('/sys/fs/cgroup/memory.max', 'utf8').catch(error => {
-        if (error.code === 'ENOENT') return 'max';
-        throw error;
-    });
-    if (limit.trim() === 'max') return true;
-    const used = await readFile('/sys/fs/cgroup/memory.current', 'utf8');
-    return Number(limit) - Number(used) >= (encoding ? 256 : 128) * MIB;
-}
-
 async function probeVideo(file, ffprobe, options) {
     const { stdout } = await runFile(ffprobe, [
         '-v', 'error', '-max_alloc', String(64 * MIB), '-protocol_whitelist', 'file,pipe', '-f', 'mov',
@@ -244,7 +202,8 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
     const ffmpegPath = process.env.SOCIAL_VIDEO_FFMPEG_PATH;
     const ffmpeg = ffmpegPath || 'ffmpeg';
     const ffmpegArgs = ffmpegPath ? ['--ffmpeg-location', ffmpegPath] : [];
-    const ffprobe = process.env.SOCIAL_VIDEO_FFPROBE_PATH || (ffmpegPath ? join(dirname(ffmpegPath), 'ffprobe') : 'ffprobe');
+    const ffprobeName = hostPlatform() === 'win32' ? 'ffprobe.exe' : 'ffprobe';
+    const ffprobe = process.env.SOCIAL_VIDEO_FFPROBE_PATH || (ffmpegPath ? join(dirname(ffmpegPath), ffprobeName) : ffprobeName);
     if (primary?.url || primary?.tracks) {
         const { url, tracks } = primary;
         const bytes = url && tracks ? await postVideoLength(url).catch(() => 0) : 0;
@@ -264,7 +223,7 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
             await stagePostTracks(tracks, input, directory, maxBytes, ffmpeg, options);
         }
     } else {
-        await runFile(process.env.SOCIAL_VIDEO_YTDLP_PATH || 'yt-dlp', [
+        const execution = runFile(process.env.SOCIAL_VIDEO_YTDLP_PATH || 'yt-dlp', [
             '--ignore-config', '--no-cache-dir', '--no-plugin-dirs', '--use-extractors', link.extractor,
             '--skip-playlist-after-errors', '1', '--no-playlist', '--playlist-items', '1',
             '--no-progress', '--socket-timeout', '10', '--retries', '0', '--extractor-retries', '0',
@@ -272,6 +231,7 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
             ...ffmpegArgs, '--format-sort', 'res:720', '--format', `${singleFormat}/${videoFormat}+${audioFormat}/${videoFormat}`,
             '--merge-output-format', 'mp4', '--output', input, '--', link.url,
         ], { ...options, timeout: 45_000 });
+        await watchWindowsDownload(execution, directory);
     }
     const source = await stat(input);
     if (!source.isFile() || source.size === 0 || source.size > MAX_SOURCE_BYTES) throw new Error('Invalid video size');
@@ -303,9 +263,17 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
         '-map', '0:v:0', '-map', '0:a:0?', ...encoding,
         '-movflags', '+faststart', '-fs', String(maxBytes), output,
     ];
-    const lowPriority = transcode && hostPlatform() === 'linux';
-    await runFile(lowPriority ? 'nice' : ffmpeg, lowPriority ? ['-n', '10', ffmpeg, ...args] : args,
-        { ...options, timeout: transcode ? 30_000 : 10_000 });
+    const execution = runFile(ffmpeg, args, { ...options, timeout: transcode ? 30_000 : 10_000 });
+    if (transcode && execution.child?.pid) {
+        try {
+            setPriority(execution.child.pid, constants.priority.PRIORITY_BELOW_NORMAL);
+        } catch (error) {
+            execution.child.kill('SIGKILL');
+            await execution.catch(() => {});
+            throw error;
+        }
+    }
+    await execution;
     const file = await stat(output);
     if (!file.isFile() || file.size === 0 || file.size > maxBytes) throw new Error('Invalid upload size');
     const ready = await probeVideo(output, ffprobe, options);
@@ -324,6 +292,7 @@ const failureMessages = {
     quota: '今天的影片額度已用完，香港時間午夜重設。',
     capacity: '伺服器目前資源不足，請稍後再試或貼較小的影片。',
     empty: '主貼文沒有可取得的影片或圖片。',
+    scratch: '媒體暫存未啟用或空間不足。請檢查伺服器的暫存設定。',
     download: '無法取得可上傳的媒體。請確認貼文公開，或試試較短、較小的影片及原始連結。',
     upload: '媒體上傳失敗或逾時。請確認 bot 可以傳送附件，再稍後重試。',
     service: '影片功能暫時無法使用，請稍後再試。',
@@ -383,7 +352,9 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         localSlot = true;
         lease = await acquireVideoLease();
         if (!lease) return await busy();
+        stage = 'scratch';
         directory = await createVideoScratch();
+        stage = 'service';
         if (!await hasVideoCapacity()) return await reply('capacity');
         reservation = await reserveVideoQuota(lease, {
             platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,

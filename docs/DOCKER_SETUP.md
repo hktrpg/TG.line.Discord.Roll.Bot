@@ -16,10 +16,9 @@ chooses the first playable video attached to the main post, or up to four attach
 images when the post has no video. Facebook cards attached to the main post
 can supply a preview image. Replies and quoted posts are ignored.
 
-1. Make `yt-dlp`, `ffmpeg`, `ffprobe` and `nice` available in the gateway. When building either
-   Dockerfile in this repo, set the build argument `INSTALL_SOCIAL_VIDEO=true`.
-   For Compose, set that argument under the gateway's `build.args`. Keep the
-   downloader current as provider sites change. To point to another installation,
+1. Make `yt-dlp`, `ffmpeg` and `ffprobe` available to the gateway. Use the
+   platform-specific installation instructions below. Keep the downloader
+   current as provider sites change. To point to another installation,
    configure the executable paths with `SOCIAL_VIDEO_YTDLP_PATH` and
    `SOCIAL_VIDEO_FFMPEG_PATH`. If ffprobe is in a separate directory, configure
    `SOCIAL_VIDEO_FFPROBE_PATH` as well.
@@ -57,18 +56,95 @@ video, the bot can combine that rendition with its audio without re-encoding.
 If the attachment is too big or uses incompatible codecs, a source at most
 90 seconds, 1080p or equivalent, and 30 fps can be converted with one low-priority
 encoder thread for up to 30 seconds. Live streams and larger inputs are skipped.
-Before starting, the host must have 256 MiB available and a memory-limited
-container must have 128 MiB of cgroup v2 headroom. To encode, the host must have
-512 MiB available, the container needs 256 MiB of headroom, and the one-minute
-load must be below 75% of at least two available CPUs.
+Before starting, the host must have 256 MiB available. Encoding requires
+512 MiB and at least two available CPUs. Linux checks that one-minute load is
+below 75% of available CPUs. When the container has a memory limit, it also
+requires 128 MiB of cgroup v2 headroom to start or 256 MiB to encode. Windows
+samples CPU activity and requires more than 25% idle time before encoding.
+Both platforms run the encoder below normal priority.
 
-Video files are staged on Linux tmpfs and removed after the attempt. The default
-is `/dev/shm`. Set `SOCIAL_VIDEO_TMP_DIR` to a dedicated tmpfs when the gateway
-shares that mount with Chromium or another workload. The feature requires at
-least 62 MiB free on a 64 MiB tmpfs, and stops if that check fails.
-After a gateway crash, the next job can remove expired scratch directories.
-Keep host swap policy in mind when configuring tmpfs. The uploaded copy lives in
-the chat and follows its deletion and retention settings.
+Job files are removed after each attempt. After a gateway crash, the next job
+can remove expired scratch directories. The uploaded copy lives in the chat
+and follows its deletion and retention settings.
+
+### Docker on Linux or Docker Desktop
+
+Set `INSTALL_SOCIAL_VIDEO: "true"` under `build.args` for the Discord and/or
+Telegram gateway. Keep the gateway's current `build.context` and
+`build.dockerfile` entries. The image installs yt-dlp, FFmpeg and FFprobe.
+The gateway must run from the newly built image. Editing the runtime env file
+only updates feature settings. The default scratch path is the container's
+`/dev/shm`, which needs at least 62 MiB free on a 64 MiB tmpfs. If another
+workload shares that space, give the gateway a dedicated 64 MiB tmpfs and set
+`SOCIAL_VIDEO_TMP_DIR` to its mount path.
+
+### Native Windows
+
+Install the tools as the account that will run the bot. In PowerShell with WinGet:
+
+```powershell
+winget install --source winget --exact --id Gyan.FFmpeg
+winget install --source winget --exact --id yt-dlp.yt-dlp
+```
+
+Open a new PowerShell session and verify the tools:
+
+```powershell
+yt-dlp --version
+ffmpeg -version
+ffprobe -version
+```
+
+Set `SOCIAL_VIDEO_WINDOWS_TEMP_ENABLED=true` in the checkout's `.env`.
+Windows uses a dedicated scratch subdirectory in the running user's temp
+directory and checks for at least 64 MiB free. On a regular drive, media bytes
+are briefly written to disk and removed after use. For a RAM-only setup, point
+`SOCIAL_VIDEO_TMP_DIR` to a private directory on a RAM drive with sufficient
+free space, or use Docker Desktop with Linux containers. If a service account
+cannot resolve a tool on PATH, set its absolute executable path in the env
+variables above. Use the executable itself, including `.exe`.
+
+### Native Linux
+
+Install FFmpeg with FFprobe and a current yt-dlp under the bot's account.
+For example, on Debian or Ubuntu:
+
+```sh
+sudo apt install ffmpeg pipx
+pipx install 'yt-dlp[default]'
+pipx ensurepath
+```
+
+Open a new shell and check `yt-dlp --version`, `ffmpeg -version`, and
+`ffprobe -version`. For another distribution, use its FFmpeg package and
+the [official yt-dlp installation options](https://github.com/yt-dlp/yt-dlp/wiki/Installation).
+
+The default scratch path is `/dev/shm`. If its mount exceeds 64 MiB, set up a
+dedicated 64 MiB tmpfs and set `SOCIAL_VIDEO_TMP_DIR` to that path. This example
+creates a mount for the account running the commands:
+
+```sh
+sudo install -d -m 0700 /run/hktrpg-media
+sudo mount -t tmpfs -o "size=64m,mode=0700,uid=$(id -u),gid=$(id -g),nosuid,nodev,noexec" tmpfs /run/hktrpg-media
+```
+
+Set `SOCIAL_VIDEO_TMP_DIR=/run/hktrpg-media`. A manual mount lasts until reboot.
+For a long-running host, configure the mount through its service setup.
+
+### Start and check the native gateway
+
+Use the Node.js version required by `package.json`. For a fresh checkout, create
+`.env` from `.env.copy` and set the normal gateway token, `mongoURL`, and
+the applicable media flags above. From the project directory:
+
+```sh
+corepack yarn install --frozen-lockfile
+corepack yarn start
+```
+
+In an enabled group, paste a public link as a VIP group member or a personal
+VIP. In a group where only the command is enabled, use `.video <link>`.
+The same MongoDB database is required to share quota across installations.
 
 ## Included files
 

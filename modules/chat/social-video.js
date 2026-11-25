@@ -85,7 +85,7 @@ function parseLink(value) {
 }
 
 function findSocialVideoLink(text, urls = []) {
-    const candidates = String(text || '').matchAll(/https:\/\/[^\s<>"`]+/gi);
+    const candidates = String(text || '').matchAll(/https:\/\/[^\s<>"`[\]()]+/gi);
     for (const match of candidates) {
         const link = parseLink(match[0].replace(/[)\]}.!,;，。！？]+$/, ''));
         if (link) return link;
@@ -247,6 +247,10 @@ async function downloadSocialVideo(link, directory, maxBytes) {
 }
 
 const failureMessages = {
+    groupDisabled: '這個群組尚未啟用 .video，請群組管理員檢查影片功能設定。',
+    dmDisabled: '此 bot 尚未啟用私訊影片功能。',
+    link: '請在 .video 後貼上支援的公開影片連結，例如 Facebook Reel 或 X 影片貼文。',
+    vip: '這個群組或你的帳戶需要有 VIP 資格才可取片。私訊時需要個人 VIP。',
     threads: 'Threads 影片擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
     cooldown: '影片請求太頻繁，請稍後再試。',
@@ -265,18 +269,25 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     const config = platforms[platform];
     const actor = String(userId || '');
     if (!config || !/^\d+$/.test(actor)) return;
+    const command = /^(?:\.video|\/video(?:@(\w+))?)(?:\s|$)/i.exec(text || '');
+    if (command?.[1] && command[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
+    const reply = reason => sendText(failureMessages[reason]).catch(() => {});
     if (groupId) {
         const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
-        const command = /^(?:\.video|\/video(?:@(\w+))?)(?:\s|$)/i.exec(text || '');
-        const addressedToBot = command && (!command[1] || command[1].toLowerCase() === commandBotName?.toLowerCase());
-        if (!configured && !(addressedToBot && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) return;
+        if (!configured && !(command && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) {
+            if (command) await reply('groupDisabled');
+            return;
+        }
     } else if (!isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) {
+        if (command) await reply('dmDisabled');
         return;
     }
     const link = findSocialVideoLink(text, urls);
-    if (!link) return;
+    if (!link) {
+        if (command) await reply('link');
+        return;
+    }
 
-    const reply = reason => sendText(failureMessages[reason]).catch(() => {});
     async function busy() {
         if (Date.now() < nextBusyReply) return;
         nextBusyReply = Date.now() + 10_000;
@@ -291,7 +302,10 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     try {
         const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
         const groupVip = groupId && await viplevelCheckGroup(String(groupId), platform) >= 1;
-        if (!groupVip && await viplevelCheckUser(actor, platform) < 1) return;
+        if (!groupVip && await viplevelCheckUser(actor, platform) < 1) {
+            if (command) await reply('vip');
+            return;
+        }
         if (link.extractor === 'threads' && !isEnvEnabled('SOCIAL_VIDEO_THREADS_ENABLED')) {
             await reply('threads');
             return;

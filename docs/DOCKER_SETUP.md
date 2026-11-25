@@ -30,6 +30,7 @@ It processes the first supported link and the first video in that post.
    exhausted quota waits for its quota reset. The bot must be able to read the
    triggering messages and attach files. For Telegram automatic reposts, the bot
    must be a group admin or have BotFather group privacy disabled.
+   A Discord server command uses the group setting even if the DM switch is enabled.
 3. To enable DMs, set `SOCIAL_VIDEO_DM_ENABLED=true` on the Telegram or Discord
    gateway. The sending account needs an existing personal VIP level of at least
    1 on that platform.

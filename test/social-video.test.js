@@ -96,6 +96,8 @@ test('recognizes supported links, including Telegram text entities, and removes 
         url: 'https://x.com/user/status/123',
         extractor: 'twitter.*',
     });
+    const reel = 'https://www.facebook.com/share/r/abc/';
+    expect(findSocialVideoLink(`.video [${reel}](${reel})`)?.url).toBe(reel);
     expect(findSocialVideoLink('https://www.facebook.com/watch/?v=123&tracking=1')?.url)
         .toBe('https://www.facebook.com/watch/?v=123');
 });
@@ -119,6 +121,28 @@ test('requires an enabled group and a VIP match before using the downloader', as
     viplevelCheckUser.mockResolvedValue(0);
     await handleSocialVideo(telegram());
     expect(viplevelCheckGroup).toHaveBeenCalledWith('-100123', 'Telegram');
+    expect(execFile).not.toHaveBeenCalled();
+});
+
+test('a Discord guild command explains why the DM flag alone does not enable it', async () => {
+    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
+    const request = telegram({
+        platform: 'Discord', groupId: '999', text: '.video https://www.facebook.com/share/r/19mRFFe9Ha/?mibextid=wwXIfr',
+    });
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('群組尚未啟用'));
+    expect(execFile).not.toHaveBeenCalled();
+});
+
+test('explains VIP and link validation to a sender who invokes the command explicitly', async () => {
+    process.env.SOCIAL_VIDEO_GROUP_COMMAND_ENABLED = 'true';
+    viplevelCheckGroup.mockResolvedValue(0);
+    viplevelCheckUser.mockResolvedValue(0);
+    const request = telegram({ platform: 'Discord', groupId: '999', text: '.video' });
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('公開影片連結'));
+    await handleSocialVideo({ ...request, text: '.video https://www.facebook.com/reel/123' });
+    expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('VIP 資格'));
     expect(execFile).not.toHaveBeenCalled();
 });
 

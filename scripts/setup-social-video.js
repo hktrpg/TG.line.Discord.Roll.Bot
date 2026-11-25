@@ -4,7 +4,7 @@ const { execFile } = require('node:child_process');
 const { createHash } = require('node:crypto');
 const { createWriteStream } = require('node:fs');
 const { chmod, copyFile, link, mkdir, mkdtemp, readdir, rename, rm } = require('node:fs/promises');
-const { dirname, join } = require('node:path');
+const { basename, dirname, join } = require('node:path');
 const { Readable } = require('node:stream');
 const { pipeline } = require('node:stream/promises');
 const { promisify } = require('node:util');
@@ -42,12 +42,21 @@ async function fetchYtDlp(target, archive) {
 
 async function locateYtDlp(root, target) {
     const name = `yt-dlp${target.extension}`;
-    // Official one-directory archives contain the executable beside its _internal directory.
-    if (isExecutable(join(root, name))) return root;
-    for (const item of await readdir(root, { withFileTypes: true })) {
-        if (item.isDirectory() && isExecutable(join(root, item.name, name))) return join(root, item.name);
+    const assetName = `${basename(target.file, '.zip')}${target.extension}`;
+    const entries = await readdir(root, { withFileTypes: true });
+    const directories = [root, ...entries.filter(item => item.isDirectory()).map(item => join(root, item.name))];
+    // Keep the launcher beside its _internal directory when normalizing platform-specific names.
+    for (const directory of directories) {
+        const destination = join(directory, name);
+        if (isExecutable(destination)) return directory;
+
+        const source = join(directory, assetName);
+        if (isExecutable(source)) {
+            await rename(source, destination);
+            return directory;
+        }
     }
-    throw new Error(`Expected ${name} in the yt-dlp archive`);
+    throw new Error(`Expected ${name} or ${assetName} in ${target.file}`);
 }
 
 async function stageFfmpeg(packageName, destination) {
@@ -132,4 +141,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { run };
+module.exports = { locateYtDlp, run };

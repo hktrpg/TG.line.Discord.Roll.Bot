@@ -9,9 +9,12 @@ Also see [roll-worker.md](./roll-worker.md) for Gateway / Primary / Standby nami
 
 ## VIP social video reposts
 
-Paste a public Facebook Reel or video, X post, Instagram Reel or post, or TikTok
-video. HKTRPG replies with an MP4 attachment in the same chat, topic or channel.
-It processes the first supported link and the first video in that post.
+Paste a public Facebook Reel or post, Instagram Reel or post, Threads post, X
+video post, or TikTok video. HKTRPG replies in the same chat, topic or channel.
+It processes the first supported link. For Facebook, Instagram and Threads it
+chooses the first playable video attached to the main post, or up to four attached
+images when the post has no video. Facebook cards attached to the main post
+can supply a preview image. Replies and quoted posts are ignored.
 
 1. Make `yt-dlp`, `ffmpeg`, `ffprobe` and `nice` available in the gateway. When building either
    Dockerfile in this repo, set the build argument `INSTALL_SOCIAL_VIDEO=true`.
@@ -34,14 +37,10 @@ It processes the first supported link and the first video in that post.
 3. To enable DMs, set `SOCIAL_VIDEO_DM_ENABLED=true` on the Telegram or Discord
    gateway. The sending account needs an existing personal VIP level of at least
    1 on that platform.
-4. For Threads, install a compatible Threads extractor in the gateway's
-   yt-dlp environment, verify that `yt-dlp --list-extractors` shows `threads`,
-   and set `SOCIAL_VIDEO_THREADS_ENABLED=true`. A third-party extractor is
-   available from [yt-dlp-threads](https://github.com/tribixbite/yt-dlp-threads).
-   To load it from a dedicated plugin directory, set
-   `SOCIAL_VIDEO_THREADS_PLUGIN_DIR` to the absolute path to that directory and
-   pass the same directory to `yt-dlp --plugin-dirs <directory> --list-extractors`
-   when checking it. The image build argument does not install the Threads plugin.
+4. For Threads, set `SOCIAL_VIDEO_THREADS_ENABLED=true`. The bot reads public
+   post data directly, including `/share/` links. Images must be JPEG or PNG
+   and no larger than 3 MiB each. A login wall or changes to provider pages can
+   prevent retrieval.
 
 Both gateways must use the same MongoDB database. All Discord clusters and
 shards share one job slot with the Telegram gateway. The slot and daily counters
@@ -53,6 +52,8 @@ upload limits. An ambiguous upload timeout can consume an upload allowance.
 
 The source limit is 30 MiB and five minutes. Attachment caps are 30 MiB on
 Telegram and 20 MiB on Discord. Compatible files are remuxed without encoding.
+If Instagram or Threads offers a smaller compatible rendition of the same
+video, the bot can combine that rendition with its audio without re-encoding.
 If the attachment is too big or uses incompatible codecs, a source at most
 90 seconds, 1080p or equivalent, and 30 fps can be converted with one low-priority
 encoder thread for up to 30 seconds. Live streams and larger inputs are skipped.

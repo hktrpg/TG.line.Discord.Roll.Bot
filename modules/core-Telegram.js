@@ -59,6 +59,11 @@ TGclient.on('message:text', (ctx) => {
             text: ctx.message.text,
             urls: ctx.message.entities?.filter(entity => entity.type === 'text_link').map(entity => entity.url),
             sendVideo: video => ctx.replyWithVideo(new InputFile(video), { ...reply, supports_streaming: true }, AbortSignal.timeout(45_000)),
+            sendImages: images => {
+                const signal = AbortSignal.timeout(45_000);
+                if (images.length === 1) return ctx.replyWithPhoto(new InputFile(images[0].file), reply, signal);
+                return ctx.replyWithMediaGroup(images.map(({ file }) => ({ type: 'photo', media: new InputFile(file) })), reply, signal);
+            },
             sendText: content => ctx.reply(content, reply, AbortSignal.timeout(5000)),
         });
     }

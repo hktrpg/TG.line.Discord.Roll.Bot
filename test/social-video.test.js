@@ -5,6 +5,7 @@ const { readFile, writeFile, stat, statfs, truncate } = require('node:fs/promise
 const { tmpdir } = require('node:os');
 const { viplevelCheckGroup, viplevelCheckUser } = require('../modules/patreon/veryImportantPerson');
 const { acquireVideoLease, reserveVideoQuota } = require('../modules/chat/social-video-quota');
+const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('../modules/chat/social-post-media');
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
@@ -15,6 +16,9 @@ jest.mock('node:os', () => ({
     ...jest.requireActual('node:os'), platform: () => 'linux', availableParallelism: () => 2, loadavg: () => [0, 0, 0],
 }));
 jest.mock('../modules/chat/social-video-quota', () => ({ acquireVideoLease: jest.fn(), reserveVideoQuota: jest.fn() }));
+jest.mock('../modules/chat/social-post-media', () => ({
+    readPrimaryMedia: jest.fn(), postVideoLength: jest.fn(), downloadPostVideo: jest.fn(), downloadPostImages: jest.fn(),
+}));
 jest.mock('../modules/patreon/veryImportantPerson', () => ({
     viplevelCheckGroup: jest.fn(),
     viplevelCheckUser: jest.fn(),
@@ -42,6 +46,7 @@ beforeEach(() => {
     release = jest.fn().mockResolvedValue();
     acquireVideoLease.mockResolvedValue({ release });
     reserveVideoQuota.mockResolvedValue({ refund });
+    readPrimaryMedia.mockResolvedValue(null);
     statfs.mockResolvedValue({ type: 0x01_02_19_94, blocks: 16_384, bavail: 16_384, bsize: 4096 });
     readFile.mockImplementation(file => Promise.resolve(file === '/proc/meminfo' ? 'MemAvailable: 1048576 kB' : 'max'));
     sourceBytes = 5;
@@ -77,6 +82,7 @@ function telegram(options = {}) {
         userId: 123,
         text: 'https://www.facebook.com/reel/123',
         sendVideo: jest.fn().mockResolvedValue(),
+        sendImages: jest.fn().mockResolvedValue(),
         sendText: jest.fn().mockResolvedValue(),
         ...options,
     };
@@ -100,6 +106,8 @@ test('recognizes supported links, including Telegram text entities, and removes 
     expect(findSocialVideoLink(`.video [${reel}](${reel})`)?.url).toBe(reel);
     expect(findSocialVideoLink('https://www.facebook.com/watch/?v=123&tracking=1')?.url)
         .toBe('https://www.facebook.com/watch/?v=123');
+    expect(findSocialVideoLink(String.raw`https://www.facebook.com/story.php?story_fbid=1607357098088246\&id=Philipslightinghongkong\&seo_visit=1`)?.url)
+        .toBe('https://www.facebook.com/Philipslightinghongkong/posts/1607357098088246/');
 });
 
 test.each([
@@ -140,7 +148,7 @@ test('explains VIP and link validation to a sender who invokes the command expli
     viplevelCheckUser.mockResolvedValue(0);
     const request = telegram({ platform: 'Discord', groupId: '999', text: '.video' });
     await handleSocialVideo(request);
-    expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('公開影片連結'));
+    expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('公開貼文連結'));
     await handleSocialVideo({ ...request, text: '.video https://www.facebook.com/reel/123' });
     expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('VIP 資格'));
     expect(execFile).not.toHaveBeenCalled();
@@ -235,6 +243,20 @@ test('rejects a Facebook redirect to a different host before fetching it', async
     expect(request.sendText).toHaveBeenCalledTimes(1);
 });
 
+test('follows a Facebook video share through story.php and a localized video slug', async () => {
+    const story = '/story.php?story_fbid=123&id=456&tracking=abc';
+    const fetcher = jest.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: story } }))
+        .mockResolvedValueOnce(new Response(null, {
+            status: 302, headers: { location: '/page/videos/%E8%B2%93/789/' },
+        }));
+    const request = telegram({ text: 'https://www.facebook.com/share/v/abc/' });
+    await handleSocialVideo(request);
+    expect(fetcher).toHaveBeenNthCalledWith(2, `https://www.facebook.com${story}`, expect.anything());
+    expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/watch/?v=789');
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
 test('compresses a short clip that exceeds the Discord cap and refunds a rejected upload', async () => {
     sourceBytes = 21 * 1024 * 1024;
     const request = telegram({ platform: 'Discord', groupId: '456' });
@@ -275,7 +297,39 @@ test('requires opt-in for the Threads extractor', async () => {
     expect(request.sendText).toHaveBeenCalledTimes(1);
     expect(execFile).not.toHaveBeenCalled();
     process.env.SOCIAL_VIDEO_THREADS_ENABLED = 'true';
+    readPrimaryMedia.mockResolvedValue({ kind: 'video', url: 'https://scontent.cdninstagram.com/video.mp4' });
+    downloadPostVideo.mockImplementation((url, file) => writeFile(file, 'video'));
     await handleSocialVideo(request);
-    expect(execFile.mock.calls[0][1]).toContain('threads');
+    expect(downloadPostVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('posts images for a photo-only story and shares the normal daily quota', async () => {
+    const image = 'https://scontent.xx.fbcdn.net/attachment.jpg';
+    const attachment = { file: 'photo.jpg', name: 'social-photo-1.jpg', contentType: 'image/jpeg' };
+    readPrimaryMedia.mockResolvedValue({ kind: 'images', urls: [image] });
+    downloadPostImages.mockResolvedValue([attachment]);
+    const request = telegram({
+        platform: 'Discord', groupId: '456',
+        text: 'https://www.facebook.com/story.php?story_fbid=1607357098088246&id=Philipslightinghongkong',
+    });
+    await handleSocialVideo(request);
+    expect(reserveVideoQuota).toHaveBeenCalledTimes(1);
+    expect(request.sendImages).toHaveBeenCalledWith([attachment]);
+    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(execFile).not.toHaveBeenCalled();
+});
+
+test('uses the source audio and smaller video rendition before considering encoding', async () => {
+    const original = 'https://scontent.cdninstagram.com/progressive.mp4';
+    const tracks = { video: 'https://scontent.cdninstagram.com/video.mp4', audio: 'https://scontent.cdninstagram.com/audio.m4a' };
+    readPrimaryMedia.mockResolvedValue({ kind: 'video', url: original, tracks });
+    postVideoLength.mockResolvedValue(23_795_532);
+    downloadPostVideo.mockImplementation((url, file) => writeFile(file, 'part'));
+    videoDuration = 94;
+    const request = telegram({ platform: 'Discord', groupId: '456', text: 'https://www.instagram.com/reel/DfttAgLhlWw/' });
+    await handleSocialVideo(request);
+    expect(downloadPostVideo.mock.calls.map(([url]) => url)).toEqual([tracks.video, tracks.audio]);
+    expect(execFile.mock.calls.some(([, args]) => args.includes('libx264'))).toBe(false);
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
 });

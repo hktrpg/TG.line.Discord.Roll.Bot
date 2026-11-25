@@ -7,6 +7,7 @@ const { dirname, isAbsolute, join } = require('node:path');
 const { promisify } = require('node:util');
 const { isEnvEnabled } = require('../../utils/env-flag');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
+const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('./social-post-media');
 
 const runFile = promisify(execFile);
 const MIB = 1024 * 1024;
@@ -24,7 +25,13 @@ const sources = [
     {
         extractor: 'facebook.*',
         hosts: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
-        path: /^\/(?:reels?\/\d+|(?:[\w.-]+\/)?videos\/(?:[\w.-]+\/)?\d+)\/?$/,
+        path: /^\/reels?\/\d+\/?$/,
+    },
+    {
+        extractor: 'facebook.*',
+        hosts: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
+        path: /^\/(?:[\w.-]+\/)?videos\/(?:[^/]+\/)?\d+\/?$/,
+        videoPath: true,
     },
     {
         extractor: 'facebook.*',
@@ -35,7 +42,18 @@ const sources = [
     {
         extractor: 'facebook.*',
         hosts: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
-        path: /^\/share\/(?:r|v)\/[\w-]+\/?$/,
+        path: /^\/[\w.-]+\/posts\/(?:[^/]+\/)?(?:\d+|pfbid[\w]+)\/?$/i,
+    },
+    {
+        extractor: 'facebook.*',
+        hosts: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
+        path: /^\/(?:story|permalink)\.php$/,
+        story: true,
+    },
+    {
+        extractor: 'facebook.*',
+        hosts: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
+        path: /^\/share\/(?:r|v|p)\/[\w-]+\/?$/,
         redirect: true,
     },
     { extractor: 'facebook.*', hosts: ['fb.watch'], path: /^\/[\w-]+\/?$/, redirect: true },
@@ -47,7 +65,7 @@ const sources = [
     {
         extractor: 'instagram.*',
         hosts: ['instagram.com', 'www.instagram.com'],
-        path: /^\/(?:reel|p|tv)\/[\w-]+\/?$/,
+        path: /^\/(?:[\w.-]+\/)?(?:reel|p|tv)\/[\w-]+\/?$/,
     },
     {
         extractor: 'tiktok',
@@ -66,16 +84,27 @@ const sources = [
     },
 ];
 
-function parseLink(value) {
+function parseLink(value, followStory = false) {
     let url;
     try {
-        url = new URL(value);
+        url = new URL(String(value).replaceAll(String.raw`\&`, '&'));
     } catch {
         return null;
     }
     if (url.protocol !== 'https:' || url.username || url.password || url.port) return null;
     const source = sources.find(({ hosts, path }) => hosts.includes(url.hostname) && path.test(url.pathname));
     if (!source) return null;
+    if (source.story) {
+        const owner = url.searchParams.get('id') || '';
+        const postId = url.searchParams.get('story_fbid') || '';
+        if (!/^[\w.-]+$/.test(owner) || !/^(?:\d+|pfbid[\w]+)$/i.test(postId)) return null;
+        if (followStory) return { url: url.href, extractor: source.extractor, redirect: true, story: true };
+        return parseLink(`https://www.facebook.com/${owner}/posts/${postId}/`);
+    }
+    if (source.videoPath) {
+        const id = url.pathname.split('/').findLast(Boolean);
+        return parseLink(`https://www.facebook.com/watch/?v=${id}`);
+    }
     const videoId = source.queryParam && url.searchParams.get(source.queryParam);
     if (source.queryParam && !/^\d+$/.test(videoId || '')) return null;
     url.search = '';
@@ -103,14 +132,15 @@ async function resolveShareLink(link) {
         const response = await fetch(link.url, { redirect: 'manual', signal });
         await response.body?.cancel();
         const location = response.headers.get('location');
+        if (link.story && response.ok) return parseLink(link.url);
         if (response.status < 300 || response.status >= 400 || !location) {
             throw new Error('Unresolved Facebook share link');
         }
-        link = parseLink(new URL(location, link.url).href);
+        link = parseLink(new URL(location, link.url).href, true);
         if (link?.extractor !== 'facebook.*') throw new Error('Unsupported Facebook redirect');
     }
     if (link.redirect) throw new Error('Too many Facebook redirects');
-    return link.url;
+    return link;
 }
 
 function subprocessEnv(directory) {
@@ -180,7 +210,30 @@ async function probeVideo(file, ffprobe, options) {
     return { video, audio, duration };
 }
 
-async function downloadSocialVideo(link, directory, maxBytes) {
+async function stagePostTracks(tracks, input, directory, maxBytes, ffmpeg, options) {
+    const video = join(directory, 'post-video-track.mp4');
+    const audio = join(directory, 'post-audio-track.m4a');
+    const signal = AbortSignal.timeout(30_000);
+    const byteLimit = maxBytes - 65_536;
+    await downloadPostVideo(tracks.video, video, byteLimit, signal);
+    const extraInput = [];
+    const extraMap = [];
+    if (tracks.audio) {
+        const file = await stat(video);
+        await downloadPostVideo(tracks.audio, audio, byteLimit - file.size, signal);
+        extraInput.push('-protocol_whitelist', 'file,pipe', '-i', audio);
+        extraMap.push('-map', '1:a:0');
+    }
+    await runFile(ffmpeg, [
+        '-nostdin', '-v', 'error', '-max_alloc', String(64 * MIB),
+        '-protocol_whitelist', 'file,pipe', '-i', video, ...extraInput,
+        '-map', '0:v:0', ...extraMap, '-c', 'copy', input,
+    ], { ...options, timeout: 10_000 });
+    await rm(video, { force: true });
+    await rm(audio, { force: true });
+}
+
+async function downloadSocialVideo(link, directory, maxBytes, primary) {
     const input = join(directory, 'source.mp4');
     const output = join(directory, 'social-video.mp4');
     const sizeFilter = `[filesize<=?${MAX_SOURCE_BYTES}][filesize_approx<=?${MAX_SOURCE_BYTES}]`;
@@ -188,23 +241,38 @@ async function downloadSocialVideo(link, directory, maxBytes) {
     const audioFormat = `ba[ext=m4a][protocol=https]${sizeFilter}`;
     const singleFormat = `b[ext=mp4][protocol=https]${sizeFilter}`;
     const options = { env: subprocessEnv(directory), cwd: directory, windowsHide: true, maxBuffer: 64 * 1024, killSignal: 'SIGKILL' };
-    const url = await resolveShareLink(link);
-    const threadsPluginDir = process.env.SOCIAL_VIDEO_THREADS_PLUGIN_DIR;
-    let pluginArgs = ['--no-plugin-dirs'];
-    if (link.extractor === 'threads') {
-        pluginArgs = threadsPluginDir ? ['--no-plugin-dirs', '--plugin-dirs', threadsPluginDir] : [];
-    }
     const ffmpegPath = process.env.SOCIAL_VIDEO_FFMPEG_PATH;
+    const ffmpeg = ffmpegPath || 'ffmpeg';
     const ffmpegArgs = ffmpegPath ? ['--ffmpeg-location', ffmpegPath] : [];
     const ffprobe = process.env.SOCIAL_VIDEO_FFPROBE_PATH || (ffmpegPath ? join(dirname(ffmpegPath), 'ffprobe') : 'ffprobe');
-    await runFile(process.env.SOCIAL_VIDEO_YTDLP_PATH || 'yt-dlp', [
-        '--ignore-config', '--no-cache-dir', ...pluginArgs, '--use-extractors', link.extractor,
-        '--skip-playlist-after-errors', '1', '--no-playlist', '--playlist-items', '1',
-        '--no-progress', '--socket-timeout', '10', '--retries', '0', '--extractor-retries', '0',
-        '--match-filter', `!is_live & duration <=? ${MAX_DURATION}`, '--max-filesize', String(MAX_SOURCE_BYTES),
-        ...ffmpegArgs, '--format-sort', 'res:720', '--format', `${singleFormat}/${videoFormat}+${audioFormat}/${videoFormat}`,
-        '--merge-output-format', 'mp4', '--output', input, '--', url,
-    ], { ...options, timeout: 45_000 });
+    if (primary?.url || primary?.tracks) {
+        const { url, tracks } = primary;
+        const bytes = url && tracks ? await postVideoLength(url).catch(() => 0) : 0;
+        let useTracks = Boolean(tracks && (!url || bytes + 65_536 > maxBytes));
+        if (!useTracks) {
+            try {
+                await downloadPostVideo(url, input, MAX_SOURCE_BYTES);
+                const downloaded = await stat(input);
+                useTracks = Boolean(tracks && downloaded.size + 65_536 > maxBytes);
+            } catch (error) {
+                if (!tracks) throw error;
+                useTracks = true;
+            }
+        }
+        if (useTracks) {
+            await rm(input, { force: true });
+            await stagePostTracks(tracks, input, directory, maxBytes, ffmpeg, options);
+        }
+    } else {
+        await runFile(process.env.SOCIAL_VIDEO_YTDLP_PATH || 'yt-dlp', [
+            '--ignore-config', '--no-cache-dir', '--no-plugin-dirs', '--use-extractors', link.extractor,
+            '--skip-playlist-after-errors', '1', '--no-playlist', '--playlist-items', '1',
+            '--no-progress', '--socket-timeout', '10', '--retries', '0', '--extractor-retries', '0',
+            '--match-filter', `!is_live & duration <=? ${MAX_DURATION}`, '--max-filesize', String(MAX_SOURCE_BYTES),
+            ...ffmpegArgs, '--format-sort', 'res:720', '--format', `${singleFormat}/${videoFormat}+${audioFormat}/${videoFormat}`,
+            '--merge-output-format', 'mp4', '--output', input, '--', link.url,
+        ], { ...options, timeout: 45_000 });
+    }
     const source = await stat(input);
     if (!source.isFile() || source.size === 0 || source.size > MAX_SOURCE_BYTES) throw new Error('Invalid video size');
     const { video, audio, duration } = await probeVideo(input, ffprobe, options);
@@ -229,7 +297,6 @@ async function downloadSocialVideo(link, directory, maxBytes) {
             '-threads:v', '1', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '96k', '-ac', '2',
         ];
     }
-    const ffmpeg = ffmpegPath || 'ffmpeg';
     const args = [
         '-nostdin', '-v', 'error', '-max_alloc', String(64 * MIB), '-filter_threads', '1', '-threads', '1',
         '-protocol_whitelist', 'file,pipe', '-f', 'mov', '-i', input,
@@ -249,15 +316,16 @@ async function downloadSocialVideo(link, directory, maxBytes) {
 const failureMessages = {
     groupDisabled: '這個群組尚未啟用 .video，請群組管理員檢查影片功能設定。',
     dmDisabled: '此 bot 尚未啟用私訊影片功能。',
-    link: '請在 .video 後貼上支援的公開影片連結，例如 Facebook Reel 或 X 影片貼文。',
+    link: '請在 .video 後貼上支援的公開貼文連結，例如 Facebook Reel 或 Threads 貼文。',
     vip: '這個群組或你的帳戶需要有 VIP 資格才可取片。私訊時需要個人 VIP。',
-    threads: 'Threads 影片擷取尚未啟用。',
+    threads: 'Threads 媒體擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
     cooldown: '影片請求太頻繁，請稍後再試。',
     quota: '今天的影片額度已用完，香港時間午夜重設。',
     capacity: '伺服器目前資源不足，請稍後再試或貼較小的影片。',
-    download: '無法取得可上傳的影片。請確認貼文公開，或試試較短、較小的影片及原始連結。',
-    upload: '影片上傳失敗或逾時。請確認 bot 可以傳送附件，再稍後重試。',
+    empty: '主貼文沒有可取得的影片或圖片。',
+    download: '無法取得可上傳的媒體。請確認貼文公開，或試試較短、較小的影片及原始連結。',
+    upload: '媒體上傳失敗或逾時。請確認 bot 可以傳送附件，再稍後重試。',
     service: '影片功能暫時無法使用，請稍後再試。',
 };
 
@@ -265,7 +333,7 @@ const failureMessages = {
  * Use group quota first. A non-VIP group can use the sender's personal quota.
  * The upload callback must finish before it resolves, since the file is then removed.
  */
-async function handleSocialVideo({ platform, groupId, userId, commandBotName, text, urls, sendVideo, sendText }) {
+async function handleSocialVideo({ platform, groupId, userId, commandBotName, text, urls, sendVideo, sendImages, sendText }) {
     const config = platforms[platform];
     const actor = String(userId || '');
     if (!config || !/^\d+$/.test(actor)) return;
@@ -325,7 +393,25 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             return;
         }
         stage = 'download';
-        const video = await downloadSocialVideo(link, directory, config.maxBytes);
+        const post = await resolveShareLink(link);
+        const primary = await readPrimaryMedia(post, config.maxBytes).catch(error => {
+            // Video routes on Instagram retain the existing downloader for provider layout changes.
+            if (post.extractor === 'instagram.*' && /\/reel\//.test(new URL(post.url).pathname)) return null;
+            throw error;
+        });
+        if (primary?.kind === 'empty' || primary?.kind === 'unavailable'
+            || (post.extractor === 'threads' && !primary?.url && !primary?.tracks && primary?.kind !== 'images')) {
+            if (reservation?.refund) await reservation.refund().catch(() => console.warn('[Social video] Could not refund video quota'));
+            await reply(primary?.kind === 'empty' ? 'empty' : 'download');
+            return;
+        }
+        if (primary?.kind === 'images') {
+            const images = await downloadPostImages(primary.urls, directory);
+            stage = 'upload';
+            await sendImages(images);
+            return;
+        }
+        const video = await downloadSocialVideo(post, directory, config.maxBytes, primary);
         stage = 'upload';
         await sendVideo(video);
     } catch (error) {

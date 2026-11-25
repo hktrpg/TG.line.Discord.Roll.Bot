@@ -1156,16 +1156,18 @@ client.on('messageCreate', async message => {
 		const isDirectMessage = !message.guildId && message.channel?.type === ChannelType.DM;
 		if ((message.guildId || isDirectMessage) && !message.webhookId) {
 			const reply = { message_reference: { message_id: message.id }, allowed_mentions: { parse: [], replied_user: false } };
+			const sendAttachments = async attachments => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
+				body: reply,
+				files: await Promise.all(attachments.map(async ({ file, name, contentType }) => ({ name, data: await readFile(file), contentType }))),
+				signal: AbortSignal.timeout(45_000),
+			});
 			socialVideoTask = handleSocialVideo({
 				platform: 'Discord',
 				groupId: message.guildId,
 				userId: message.author.id,
 				text: message.content,
-				sendVideo: async video => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
-					body: reply,
-					files: [{ name: 'social-video.mp4', data: await readFile(video), contentType: 'video/mp4' }],
-					signal: AbortSignal.timeout(45_000),
-				}),
+				sendVideo: file => sendAttachments([{ file, name: 'social-video.mp4', contentType: 'video/mp4' }]),
+				sendImages: sendAttachments,
 				sendText: content => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
 					body: { ...reply, content },
 					signal: AbortSignal.timeout(5000),

@@ -71,19 +71,42 @@ test('two isolated Discord workers can only start one video job against the shar
 });
 
 test.each([
-    [personal, { used: 20 }, 'quota'],
-    [personal, { attempts: 40 }, 'quota'],
-    [personal, { last: time - 29_999 }, 'cooldown'],
-    [group, { used: 60 }, 'quota'],
-    [group, { attempts: 120 }, 'quota'],
-    [group, { last: time - 14_999 }, 'cooldown'],
-    [group, { members: { 456: { used: 10 } } }, 'quota'],
-    [group, { members: { 456: { attempts: 20 } } }, 'quota'],
-    [group, { members: { 456: { last: time - 29_999 } } }, 'cooldown'],
-])('enforces the quota and cooldown for %j with %j', async (recipient, row, reason) => {
+    [personal, { used: 20 }, { reason: 'quota' }],
+    [personal, { attempts: 40 }, { reason: 'quota' }],
+    [personal, { last: time - 29_999 }, { reason: 'cooldown', retryAt: time + 1 }],
+    [group, { used: 60 }, { reason: 'quota' }],
+    [group, { attempts: 120 }, { reason: 'quota' }],
+    [group, { last: time - 14_999 }, { reason: 'cooldown', retryAt: time + 1 }],
+    [group, { members: { 456: { used: 10 } } }, { reason: 'quota' }],
+    [group, { members: { 456: { attempts: 20 } } }, { reason: 'quota' }],
+    [group, { members: { 456: { last: time - 29_999 } } }, { reason: 'cooldown', retryAt: time + 1 }],
+    [group, { last: time - 500, members: { 456: { last: time - 29_000 } } }, { reason: 'cooldown', retryAt: time + 14_500 }],
+    [group, { last: time - 500, members: { 456: { last: time - 1000 } } }, { reason: 'cooldown', retryAt: time + 29_000 }],
+])('enforces the quota and cooldown for %j with %j', async (recipient, row, outcome) => {
     collection.findOne.mockResolvedValue(row);
-    await expect(reserveVideoQuota({ collection }, recipient, time)).resolves.toEqual({ reason });
+    await expect(reserveVideoQuota({ collection }, recipient, time)).resolves.toEqual(outcome);
     expect(collection.updateOne).not.toHaveBeenCalled();
+});
+
+test('reports midnight as the retry time when the daily row changes before the cooldown ends', async () => {
+    const midnight = time + 30_000;
+    const last = midnight - 1500;
+    collection.findOne.mockResolvedValue({ last });
+
+    await expect(reserveVideoQuota({ collection }, personal, last + 500)).resolves.toEqual({
+        reason: 'cooldown',
+        retryAt: midnight,
+    });
+    expect(collection.updateOne).not.toHaveBeenCalled();
+});
+
+test('accepts a request at the exact cooldown boundary', async () => {
+    collection.findOne.mockResolvedValue({ last: time - 30_000 });
+
+    await expect(reserveVideoQuota({ collection }, personal, time)).resolves.toEqual({
+        refund: expect.any(Function),
+    });
+    expect(collection.updateOne).toHaveBeenCalledTimes(1);
 });
 
 test('charges group and member, refunds only the upload and uses a new row at Hong Kong midnight', async () => {

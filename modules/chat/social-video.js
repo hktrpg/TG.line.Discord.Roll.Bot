@@ -334,7 +334,6 @@ const failureMessages = {
     reference: '未能從原訊息讀到支援的公開連結，請直接輸入 .video <完整連結>。',
     threads: 'Threads 媒體擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，請稍後再貼一次。',
-    cooldown: '影片請求太頻繁，請稍後再試。',
     quota: '今天的影片額度已用完，香港時間午夜重設。',
     capacity: '伺服器目前資源不足，請稍後再試或貼較小的影片。',
     empty: '主貼文沒有可取得的影片或圖片。',
@@ -424,6 +423,14 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
         reservation = await reserveVideoQuota(lease, {
             platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,
         });
+        if (reservation.reason === 'cooldown') {
+            const seconds = Math.ceil((reservation.retryAt - Date.now()) / 1000);
+            const message = seconds > 0
+                ? `影片請求太頻繁，請等 ${seconds} 秒再試。`
+                : '影片請求的冷卻時間已結束，可以再試。';
+            await sendText(message).catch(() => {});
+            return;
+        }
         if (reservation.reason) {
             await reply(reservation.reason);
             return;

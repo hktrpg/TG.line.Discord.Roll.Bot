@@ -382,6 +382,23 @@ test('a personal VIP uses personal quota and receives the file in a non-VIP grou
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
 });
 
+test.each([
+    [17_001, '影片請求太頻繁，請等 18 秒再試。'],
+    [1, '影片請求太頻繁，請等 1 秒再試。'],
+    [0, '影片請求的冷卻時間已結束，可以再試。'],
+])('reports the cooldown with %d ms remaining at reply time', async (remainingMs, message) => {
+    const now = Date.parse('2026-11-25T15:00:00Z');
+    jest.spyOn(Date, 'now').mockReturnValue(now);
+    reserveVideoQuota.mockResolvedValue({ reason: 'cooldown', retryAt: now + remainingMs });
+
+    const request = telegram();
+    await handleSocialVideo(request);
+
+    expect(request.sendText).toHaveBeenCalledWith(message);
+    expect(execFile).not.toHaveBeenCalled();
+    expect(release).toHaveBeenCalledTimes(1);
+});
+
 test('reports a group quota limit without downloading or falling back to personal quota', async () => {
     reserveVideoQuota.mockResolvedValue({ reason: 'quota' });
     const request = telegram();

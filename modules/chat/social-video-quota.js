@@ -52,8 +52,12 @@ async function reserveVideoQuota(lease, { platform, scope, id, userId }, time = 
     const group = scope === 'group';
     const limit = group ? 60 : 20;
     const cooldown = group ? 15_000 : 30_000;
-    if (time - (row?.last || 0) < cooldown || (group && time - (actor?.last || 0) < 30_000)) {
-        return { reason: 'cooldown' };
+    const scopeReadyAt = (Number(row?.last) || 0) + cooldown;
+    const memberReadyAt = group ? (Number(actor?.last) || 0) + 30_000 : 0;
+    const readyAt = Math.max(scopeReadyAt, memberReadyAt);
+    if (time < readyAt) {
+        const nextDay = (day + 1) * DAY - HK_OFFSET;
+        return { reason: 'cooldown', retryAt: Math.min(readyAt, nextDay) };
     }
     if (row?.used >= limit || row?.attempts >= 2 * limit || actor?.used >= 10 || actor?.attempts >= 20) {
         return { reason: 'quota' };

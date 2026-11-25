@@ -9,9 +9,6 @@ RUN apk update && apk upgrade --no-cache && apk add --no-cache \
     font-noto-cjk \
     && rm -rf /var/cache/apk/*
 
-ARG INSTALL_SOCIAL_VIDEO=false
-RUN if [ "$INSTALL_SOCIAL_VIDEO" = "true" ]; then apk add --no-cache yt-dlp ffmpeg; fi
-
 ENV TZ=Asia/Taipei
 ENV LANG=zh_TW.UTF-8
 ENV LC_ALL=zh_TW.UTF-8
@@ -23,7 +20,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
 WORKDIR /app
 
 COPY package.json yarn.lock ./
+COPY modules/chat/social-video-tools.js ./modules/chat/social-video-tools.js
+COPY scripts/setup-social-video.js ./scripts/setup-social-video.js
 ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV HKTRPG_SOCIAL_VIDEO_TOOLS_DIR=/opt/hktrpg-media-tools
 RUN corepack enable \
     && yarn install --frozen-lockfile --non-interactive
 
@@ -33,5 +33,6 @@ COPY . .
 #    && chown -R node:node /app/log /app/export /app/temp
 
 USER node
+RUN node scripts/setup-social-video.js --check
 
 CMD ["node", "index.js"]

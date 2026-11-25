@@ -9,6 +9,9 @@ const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
+jest.mock('../modules/chat/social-video-tools', () => ({
+    getVideoExecutables: () => ({ ytDlp: 'yt-dlp', ffmpeg: 'ffmpeg', ffprobe: 'ffprobe' }),
+}));
 jest.mock('node:fs/promises', () => ({
     ...jest.requireActual('node:fs/promises'), readFile: jest.fn(), statfs: jest.fn(),
 }));

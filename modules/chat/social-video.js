@@ -2,13 +2,14 @@
 
 const { execFile } = require('node:child_process');
 const { rm, stat } = require('node:fs/promises');
-const { constants, platform: hostPlatform, setPriority } = require('node:os');
-const { dirname, join } = require('node:path');
+const { constants, setPriority } = require('node:os');
+const { join } = require('node:path');
 const { promisify } = require('node:util');
 const { isEnvEnabled } = require('../../utils/env-flag');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('./social-post-media');
 const { createVideoScratch, hasVideoCapacity, watchWindowsDownload } = require('./social-video-runtime');
+const { getVideoExecutables } = require('./social-video-tools');
 
 const runFile = promisify(execFile);
 const MIB = 1024 * 1024;
@@ -199,11 +200,8 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
     const audioFormat = `ba[ext=m4a][protocol=https]${sizeFilter}`;
     const singleFormat = `b[ext=mp4][protocol=https]${sizeFilter}`;
     const options = { env: subprocessEnv(directory), cwd: directory, windowsHide: true, maxBuffer: 64 * 1024, killSignal: 'SIGKILL' };
-    const ffmpegPath = process.env.SOCIAL_VIDEO_FFMPEG_PATH;
-    const ffmpeg = ffmpegPath || 'ffmpeg';
-    const ffmpegArgs = ffmpegPath ? ['--ffmpeg-location', ffmpegPath] : [];
-    const ffprobeName = hostPlatform() === 'win32' ? 'ffprobe.exe' : 'ffprobe';
-    const ffprobe = process.env.SOCIAL_VIDEO_FFPROBE_PATH || (ffmpegPath ? join(dirname(ffmpegPath), ffprobeName) : ffprobeName);
+    const { ytDlp, ffmpeg, ffprobe, ffmpegLocation } = getVideoExecutables();
+    const ffmpegArgs = ffmpegLocation ? ['--ffmpeg-location', ffmpegLocation] : [];
     if (primary?.url || primary?.tracks) {
         const { url, tracks } = primary;
         const bytes = url && tracks ? await postVideoLength(url).catch(() => 0) : 0;
@@ -223,7 +221,7 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
             await stagePostTracks(tracks, input, directory, maxBytes, ffmpeg, options);
         }
     } else {
-        const execution = runFile(process.env.SOCIAL_VIDEO_YTDLP_PATH || 'yt-dlp', [
+        const execution = runFile(ytDlp, [
             '--ignore-config', '--no-cache-dir', '--no-plugin-dirs', '--use-extractors', link.extractor,
             '--skip-playlist-after-errors', '1', '--no-playlist', '--playlist-items', '1',
             '--no-progress', '--socket-timeout', '10', '--retries', '0', '--extractor-retries', '0',

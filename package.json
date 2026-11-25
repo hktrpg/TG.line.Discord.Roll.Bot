@@ -9,6 +9,9 @@
   },
   "main": "index.js",
   "scripts": {
+    "postinstall": "node -e \"if (require('node:fs').existsSync('./scripts/setup-social-video.js')) require('./scripts/setup-social-video.js').run('postinstall')\"",
+    "setup:social-video": "node scripts/setup-social-video.js",
+    "check:social-video": "node scripts/setup-social-video.js --check",
     "start": "node --max-old-space-size=3072 index.js",
     "start:roll-worker": "node roll-worker.js",
     "start:roll-worker:primary": "node -e \"process.env.ROLL_WORKER_PORT=process.env.ROLL_WORKER_PORT||'20612';require('./roll-worker.js')\"",
@@ -90,6 +93,7 @@
     "dotenv": "^17.2.0",
     "emoji-regex": "^10.0.0",
     "express": "^4.22.2",
+    "extract-zip": "2.0.1",
     "fuse.js": "^7.5.0",
     "geopattern": "^1.2.3",
     "gif-encoder": "^0.7.2",
@@ -150,6 +154,10 @@
       "<rootDir>/test/**/*.test.js",
       "<rootDir>/test/**/*.spec.js"
     ]
+  },
+  "optionalDependencies": {
+    "@derhuerst/ffprobe-static": "5.3.0",
+    "ffmpeg-static": "5.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

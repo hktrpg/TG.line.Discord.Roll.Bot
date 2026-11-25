@@ -24,24 +24,19 @@ can supply a preview image. Replies and quoted posts are ignored.
    `SOCIAL_VIDEO_FFMPEG_PATH`. If ffprobe is in a separate directory, configure
    `SOCIAL_VIDEO_FFPROBE_PATH` as well. Explicit paths take precedence over
    the bundle. Clear old overrides when switching to the bundled tools.
-2. Set `SOCIAL_VIDEO_TELEGRAM_GROUP_IDS` on the Telegram gateway and/or
-   `SOCIAL_VIDEO_DISCORD_GUILD_IDS` on the Discord gateway to comma-separated
-   group or server IDs where regular links should trigger the bot. To allow
-   `.video <link>` in other groups, set `SOCIAL_VIDEO_GROUP_COMMAND_ENABLED=true`.
-   In Telegram groups with privacy mode enabled, use `/video@BotUsername <link>`.
-   A VIP group uses its group quota. In a group without group VIP, the sender
-   needs personal VIP and uses the same allowance as in DMs. A VIP group with
-   exhausted quota waits for its quota reset. The bot must be able to read the
-   triggering messages and attach files. For Telegram automatic reposts, the bot
-   must be a group admin or have BotFather group privacy disabled.
-   A Discord server command uses the group setting even if the DM switch is enabled.
-3. To enable DMs, set `SOCIAL_VIDEO_DM_ENABLED=true` on the Telegram or Discord
-   gateway. The sending account needs an existing personal VIP level of at least
-   1 on that platform.
-4. For Threads, set `SOCIAL_VIDEO_THREADS_ENABLED=true`. The bot reads public
-   post data directly, including `/share/` links. Images must be JPEG or PNG
-   and no larger than 3 MiB each. A login wall or changes to provider pages can
-   prevent retrieval.
+2. Set `SOCIAL_VIDEO_ENABLED=true` in the gateway's environment. This enables
+   automatic links in groups and DMs, `.video <link>`, Threads, and Windows
+   temporary storage. Set it to `false` to turn the feature off. Existing
+   deployments using individual media switches retain their settings if the
+   new switch is unset.
+
+A VIP group uses its group quota. In other groups and in DMs, the sender
+needs personal VIP. The bot must be able to read messages and attach files.
+For Telegram automatic group reposts, make the bot a group admin or disable
+its BotFather privacy mode. With privacy mode enabled, use
+`/video@BotUsername <link>` to address the bot explicitly. Threads accepts
+public post and `/share/` links. Images must be JPEG or PNG and at most 3 MiB
+each. A provider login wall can prevent retrieval.
 
 Both gateways must use the same MongoDB database. All Discord clusters and
 shards share one job slot with the Telegram gateway. The slot and daily counters
@@ -75,8 +70,8 @@ The standard Discord and Telegram Docker builds install and check the three
 media tools automatically. Use the newly built image for this release. The
 tools stay outside `/app/node_modules` in the image, so a mounted dependency
 volume will not hide them. The default scratch path is the container's
-`/dev/shm`, which needs at least 62 MiB free on a 64 MiB tmpfs. If another
-workload shares that space, give the gateway a dedicated 64 MiB tmpfs and set
+`/dev/shm`, which needs at least 62 MiB free. If another workload shares
+that space, give the gateway a dedicated tmpfs and set
 `SOCIAL_VIDEO_TMP_DIR` to its mount path.
 
 ### Native Windows
@@ -84,9 +79,9 @@ workload shares that space, give the gateway a dedicated 64 MiB tmpfs and set
 The installer supports x64 Windows. Run the standard install and check
 commands below as the account that will run the bot.
 
-Set `SOCIAL_VIDEO_WINDOWS_TEMP_ENABLED=true` in the checkout's `.env`.
-Windows uses a dedicated scratch subdirectory in the running user's temp
-directory and checks for at least 64 MiB free. On a regular drive, media bytes
+With `SOCIAL_VIDEO_ENABLED=true`, Windows uses a dedicated scratch
+subdirectory in the running user's temp directory and checks for at least
+64 MiB free. On a regular drive, media bytes
 are briefly written to disk and removed after use. For a RAM-only setup, point
 `SOCIAL_VIDEO_TMP_DIR` to a private directory on a RAM drive with sufficient
 free space, or use Docker Desktop with Linux containers.
@@ -99,9 +94,9 @@ requiring a system Python installation. The bundled FFmpeg and FFprobe come
 from pinned npm packages. For another architecture, install compatible
 tools and set their executable paths using the variables above.
 
-The default scratch path is `/dev/shm`. If its mount exceeds 64 MiB, set up a
-dedicated 64 MiB tmpfs and set `SOCIAL_VIDEO_TMP_DIR` to that path. This example
-creates a mount for the account running the commands:
+The default scratch path is `/dev/shm`, a tmpfs on standard Linux installations.
+If it lacks free space, set `SOCIAL_VIDEO_TMP_DIR` to a dedicated tmpfs. This
+example creates a mount for the account running the commands:
 
 ```sh
 sudo install -d -m 0700 /run/hktrpg-media
@@ -115,7 +110,7 @@ For a long-running host, configure the mount through its service setup.
 
 Use the Node.js version required by `package.json`. For a fresh checkout, create
 `.env` from `.env.copy` and set the normal gateway token, `mongoURL`, and
-the applicable media flags above. From the project directory:
+`SOCIAL_VIDEO_ENABLED=true`. From the project directory:
 
 ```sh
 corepack yarn install --frozen-lockfile
@@ -128,8 +123,8 @@ If the install skipped lifecycle scripts or a download failed, retry with
 dependencies available. Downloads happen during setup. The bot does not fetch
 new executables while handling a link.
 
-In an enabled group, paste a public link as a VIP group member or a personal
-VIP. In a group where only the command is enabled, use `.video <link>`.
+In a group, paste a public link as a VIP group member or a personal VIP.
+Personal VIPs can also paste links in DMs.
 The same MongoDB database is required to share quota across installations.
 
 ## Included files

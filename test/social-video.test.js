@@ -43,6 +43,7 @@ beforeEach(() => {
         SOCIAL_VIDEO_GROUP_COMMAND_ENABLED: 'false',
         SOCIAL_VIDEO_TMP_DIR: scratchRoot,
     };
+    delete process.env.SOCIAL_VIDEO_ENABLED;
     viplevelCheckGroup.mockResolvedValue(1);
     viplevelCheckUser.mockResolvedValue(1);
     refund = jest.fn().mockResolvedValue();
@@ -142,6 +143,37 @@ test('a Discord guild command explains why the DM flag alone does not enable it'
     });
     await handleSocialVideo(request);
     expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('群組尚未啟用'));
+    expect(execFile).not.toHaveBeenCalled();
+});
+
+test('the main flag alone automatically handles a link in any VIP guild', async () => {
+    process.env.SOCIAL_VIDEO_ENABLED = 'true';
+    delete process.env.SOCIAL_VIDEO_DISCORD_GUILD_IDS;
+    const request = telegram({ platform: 'Discord', groupId: '999' });
+    await handleSocialVideo(request);
+    expect(viplevelCheckGroup).toHaveBeenCalledWith('999', 'Discord');
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('the main flag enables Threads in DMs even when legacy switches are off', async () => {
+    process.env.SOCIAL_VIDEO_ENABLED = 'true';
+    process.env.SOCIAL_VIDEO_THREADS_ENABLED = 'false';
+    const image = 'https://scontent.cdninstagram.com/photo.jpg';
+    readPrimaryMedia.mockResolvedValue({ kind: 'images', urls: [image] });
+    downloadPostImages.mockResolvedValue([{ file: 'photo.jpg' }]);
+    const request = telegram({ groupId: null, text: 'https://www.threads.com/share/abc' });
+    await handleSocialVideo(request);
+    expect(viplevelCheckUser).toHaveBeenCalledWith('123', 'Telegram');
+    expect(request.sendImages).toHaveBeenCalledTimes(1);
+});
+
+test('an explicit false master flag disables legacy entry points', async () => {
+    process.env.SOCIAL_VIDEO_ENABLED = 'false';
+    process.env.SOCIAL_VIDEO_GROUP_COMMAND_ENABLED = 'true';
+    const request = telegram({ text: '.video https://www.facebook.com/reel/123' });
+    await handleSocialVideo(request);
+    expect(viplevelCheckGroup).not.toHaveBeenCalled();
+    expect(request.sendText).not.toHaveBeenCalled();
     expect(execFile).not.toHaveBeenCalled();
 });
 

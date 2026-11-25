@@ -26,7 +26,9 @@ async function createVideoScratch() {
     const windows = system === 'win32';
     const configured = process.env.SOCIAL_VIDEO_TMP_DIR;
     if (system !== 'linux' && !windows) throw new Error('Social video requires Linux or Windows');
-    if (windows && !isEnvEnabled('SOCIAL_VIDEO_WINDOWS_TEMP_ENABLED')) {
+    const windowsTempFlag = process.env.SOCIAL_VIDEO_ENABLED === undefined
+        ? 'SOCIAL_VIDEO_WINDOWS_TEMP_ENABLED' : 'SOCIAL_VIDEO_ENABLED';
+    if (windows && !isEnvEnabled(windowsTempFlag)) {
         throw new Error('Windows temporary video storage is disabled');
     }
     const base = configured || (windows ? tmpdir() : '/dev/shm');
@@ -39,9 +41,7 @@ async function createVideoScratch() {
         if (!folder.isDirectory()) throw new Error('Windows video scratch must be a directory');
     } else {
         const fs = await statfs(root);
-        if (fs.type !== 0x01_02_19_94 || fs.blocks * fs.bsize > 64 * MIB) {
-            throw new Error('Video scratch must be a bounded Linux tmpfs');
-        }
+        if (fs.type !== 0x01_02_19_94) throw new Error('Video scratch must be on Linux tmpfs');
     }
     // Reclaim scratch from crashed jobs after the shared lease has expired.
     await cleanScratch(root, windows);
@@ -89,8 +89,8 @@ async function hasVideoCapacity(encoding = false) {
     return Number(limit) - Number(used) >= (encoding ? 256 : 128) * MIB;
 }
 
-function watchWindowsDownload(execution, directory) {
-    if (platform() !== 'win32' || !execution.child?.pid) return execution;
+function watchVideoDownload(execution, directory) {
+    if (!execution.child?.pid) return execution;
     let finished = false;
     let checking = false;
     const timer = setInterval(async () => {
@@ -117,4 +117,4 @@ function watchWindowsDownload(execution, directory) {
     });
 }
 
-module.exports = { createVideoScratch, hasVideoCapacity, watchWindowsDownload };
+module.exports = { createVideoScratch, hasVideoCapacity, watchVideoDownload };

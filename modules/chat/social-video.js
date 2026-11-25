@@ -8,7 +8,7 @@ const { promisify } = require('node:util');
 const { isEnvEnabled } = require('../../utils/env-flag');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('./social-post-media');
-const { createVideoScratch, hasVideoCapacity, watchWindowsDownload } = require('./social-video-runtime');
+const { createVideoScratch, hasVideoCapacity, watchVideoDownload } = require('./social-video-runtime');
 const { getVideoExecutables } = require('./social-video-tools');
 
 const runFile = promisify(execFile);
@@ -225,11 +225,12 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
             '--ignore-config', '--no-cache-dir', '--no-plugin-dirs', '--use-extractors', link.extractor,
             '--skip-playlist-after-errors', '1', '--no-playlist', '--playlist-items', '1',
             '--no-progress', '--socket-timeout', '10', '--retries', '0', '--extractor-retries', '0',
+            '--limit-rate', '4M',
             '--match-filter', `!is_live & duration <=? ${MAX_DURATION}`, '--max-filesize', String(MAX_SOURCE_BYTES),
             ...ffmpegArgs, '--format-sort', 'res:720', '--format', `${singleFormat}/${videoFormat}+${audioFormat}/${videoFormat}`,
             '--merge-output-format', 'mp4', '--output', input, '--', link.url,
         ], { ...options, timeout: 45_000 });
-        await watchWindowsDownload(execution, directory);
+        await watchVideoDownload(execution, directory);
     }
     const source = await stat(input);
     if (!source.isFile() || source.size === 0 || source.size > MAX_SOURCE_BYTES) throw new Error('Invalid video size');
@@ -349,18 +350,22 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
     const config = platforms[platform];
     const actor = String(userId || '');
     if (!config || !/^\d+$/.test(actor)) return;
+    const allEnabled = isEnvEnabled('SOCIAL_VIDEO_ENABLED');
+    if (process.env.SOCIAL_VIDEO_ENABLED !== undefined && !allEnabled) return;
     const command = /^(?:\.video|\/video(?:@(\w+))?)(?:\s|$)/i.exec(text || '');
     if (command?.[1] && command[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
     const reply = reason => sendText(failureMessages[reason]).catch(() => {});
-    if (groupId) {
-        const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
-        if (!configured && !(command && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) {
-            if (command) await reply('groupDisabled');
+    if (!allEnabled) {
+        if (groupId) {
+            const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
+            if (!configured && !(command && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) {
+                if (command) await reply('groupDisabled');
+                return;
+            }
+        } else if (!isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) {
+            if (command) await reply('dmDisabled');
             return;
         }
-    } else if (!isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) {
-        if (command) await reply('dmDisabled');
-        return;
     }
     const link = findSocialVideoLink(text, urls);
     if (!link) {
@@ -387,7 +392,7 @@ async function handleSocialVideo({ platform, groupId, userId, commandBotName, te
             if (command) await reply('vip');
             return;
         }
-        if (link.extractor === 'threads' && !isEnvEnabled('SOCIAL_VIDEO_THREADS_ENABLED')) {
+        if (link.extractor === 'threads' && !allEnabled && !isEnvEnabled('SOCIAL_VIDEO_THREADS_ENABLED')) {
             await reply('threads');
             return;
         }

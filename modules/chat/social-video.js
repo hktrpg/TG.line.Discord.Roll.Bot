@@ -470,15 +470,17 @@ function videoErrorMessage(error, stage, fallback) {
  * The upload callback must finish before it resolves, since the file is then removed.
  */
 async function handleSocialVideo({
-    platform, groupId, userId, commandBotName, telegramMessage, text, urls, getRepliedMessage, sendVideo, sendImages, sendText,
+    platform, groupId, userId, commandBotName, telegramMessage, text, urls, getRepliedMessage, promptForLink, sendVideo, sendImages, sendText,
 }) {
     const config = platforms[platform];
     const actor = String(userId || '');
     if (!config || !/^\d+$/.test(actor)) return;
     const allEnabled = isEnvEnabled('SOCIAL_VIDEO_ENABLED');
     if (process.env.SOCIAL_VIDEO_ENABLED !== undefined && !allEnabled) return;
-    const command = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
-    if (command?.[1] && command[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
+    const matchedCommand = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
+    if (matchedCommand?.[1] && matchedCommand[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
+    const telegram = platform === 'Telegram';
+    const command = Boolean(matchedCommand || (telegram && telegramMessage?.linkPromptReply));
     let automaticJob;
     const reply = (reason, message = failureMessages[reason]) => {
         if (automaticJob) automaticTelegramJob = undefined;
@@ -497,9 +499,10 @@ async function handleSocialVideo({
         }
     }
     let link = findSocialVideoLink(text, urls);
-    const bareCommand = command && /^[\s\p{Default_Ignorable_Code_Point}]*$/u.test(text.slice(command[0].length));
+    const bareCommand = matchedCommand && /^[\s\p{Default_Ignorable_Code_Point}]*$/u.test(text.slice(matchedCommand[0].length));
     const referenceRequested = bareCommand && getRepliedMessage;
-    if (!link && !referenceRequested) {
+    const needsLinkPrompt = telegram && !link && bareCommand && !referenceRequested && matchedCommand[0].startsWith('/') && promptForLink;
+    if (!link && !referenceRequested && !needsLinkPrompt) {
         if (command) await reply(platform === 'Telegram' && bareCommand ? 'telegramReplyMissing' : 'link');
         return;
     }
@@ -510,7 +513,7 @@ async function handleSocialVideo({
         await reply('busy');
     }
 
-    const queueCommand = platform === 'Telegram' && Boolean(command);
+    const queueCommand = telegram && command;
     let queueNotice = false;
     async function notifyQueued() {
         if (queueNotice) return;
@@ -546,6 +549,10 @@ async function handleSocialVideo({
                 const key = groupId ? 'common.patreon.group_or_personal_vip_required' : 'common.patreon.personal_vip_required';
                 await sendText(i18n.createTranslator(locale)(key)).catch(() => {});
             }
+            return;
+        }
+        if (needsLinkPrompt) {
+            await promptForLink().catch(() => reply('link'));
             return;
         }
         if (!link) {

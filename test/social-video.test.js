@@ -302,6 +302,26 @@ test.each([null, { kind: 'empty' }])('a Telegram .video reply takes over its own
     }
 });
 
+test('a bare Telegram /video from the menu prompts for a link without using quota', async () => {
+    const promptForLink = jest.fn().mockResolvedValue();
+    const request = telegram({ text: '/video@HKTRPGBot', commandBotName: 'HKTRPGBot', promptForLink });
+
+    await handleSocialVideo(request);
+
+    expect(promptForLink).toHaveBeenCalledTimes(1);
+    expect(reserveVideoQuota).not.toHaveBeenCalled();
+    expect(request.sendText).not.toHaveBeenCalled();
+});
+
+test('a reply to a Telegram /video prompt uses the command delivery for the supplied link', async () => {
+    const request = telegram({ telegramMessage: { linkPromptReply: true }, promptForLink: jest.fn() });
+
+    await handleSocialVideo(request);
+
+    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: request.text });
+    expect(request.promptForLink).not.toHaveBeenCalled();
+});
+
 test('a bare Telegram command without reply data explains that the reply details were missing', async () => {
     const request = telegram({ text: '.video' });
     await handleSocialVideo(request);

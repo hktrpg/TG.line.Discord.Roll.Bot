@@ -16,6 +16,17 @@ function socialVideoInput(message) {
     return { text, urls };
 }
 
+const videoLinkPrompt = '請你回覆呢則訊息，貼上公開貼文連結。';
+const videoLinkPromptMention = { type: 'text_mention', offset: 1, length: 1 };
+
+function isTelegramVideoLinkReply(message, botId) {
+    const prompt = message.reply_to_message;
+    if (!message.from?.id || !prompt || prompt.from?.id !== botId || prompt.text !== videoLinkPrompt) return false;
+    return prompt.entities?.some(entity => entity.type === videoLinkPromptMention.type
+        && entity.offset === videoLinkPromptMention.offset && entity.length === videoLinkPromptMention.length
+        && entity.user?.id === message.from.id) ?? false;
+}
+
 function telegramVideoReply(message) {
     const { reply_to_message: original, quote, external_reply: external } = message;
     if (!original && !quote && !external) return;
@@ -33,4 +44,6 @@ function telegramVideoReply(message) {
     };
 }
 
-module.exports = { socialVideoInput, telegramVideoReply };
+module.exports = {
+    socialVideoInput, telegramVideoReply, isTelegramVideoLinkReply, videoLinkPrompt, videoLinkPromptMention,
+};

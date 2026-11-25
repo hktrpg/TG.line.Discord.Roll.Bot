@@ -3,7 +3,7 @@
 const { readFileSync } = require('node:fs');
 const { compileFunction } = require('node:vm');
 const grammy = require('grammy');
-const { socialVideoInput, telegramVideoReply } = require('../modules/chat/telegram-social-video');
+const telegramVideo = require('../modules/chat/telegram-social-video');
 
 const url = 'https://www.facebook.com/reel/123';
 const botInfo = { id: 100, is_bot: true, first_name: 'Local Test', username: 'LocalTestBot' };
@@ -46,7 +46,7 @@ async function runTelegramCommand(deliver, failUpload = false, text = '.video ' 
         './roll-worker/defer-queue': { registerDeliverer: () => {} },
         './roll-worker/dark-rolling': {},
         './chat/social-video': { handleSocialVideo(input) { delivery.push(Promise.resolve().then(() => deliver(input))); } },
-        './chat/telegram-social-video': { socialVideoInput, telegramVideoReply },
+        './chat/telegram-social-video': telegramVideo,
         './chat/message': {},
         './i18n/i18n.js': { resolveLocale: async () => 'zh-tw' },
         './chat/level': {},
@@ -84,7 +84,7 @@ test('Telegram sends a mention and original link before deleting the successful 
 test('Telegram delivers a .video reply with a caption and deletes only the command', async () => {
     const original = { message_id: 499, chat, from: user, text: url };
     const { calls, result } = await runTelegramCommand(async input => {
-        expect(input.telegramMessage).toEqual({ id: 500, replyToId: original.message_id });
+        expect(input.telegramMessage).toMatchObject({ id: 500, replyToId: original.message_id });
         const { text } = await input.getRepliedMessage();
         await input.sendVideo('fake.mp4', { url: text });
     }, false, '.video', original);
@@ -97,6 +97,36 @@ test('Telegram delivers a .video reply with a caption and deletes only the comma
     });
     expect(calls[0].payload.reply_parameters).toBeUndefined();
     expect(calls[1].payload).toMatchObject({ chat_id: chat.id, message_id: 500 });
+});
+
+test('a bare /video can reply with a selective input prompt in the same topic', async () => {
+    const { calls, result } = await runTelegramCommand(input => input.promptForLink(), false, '/video');
+    expect(result.status).toBe('fulfilled');
+    expect(calls.map(call => call.method)).toEqual(['sendMessage']);
+    expect(calls[0].payload).toMatchObject({
+        text: telegramVideo.videoLinkPrompt,
+        message_thread_id: 10,
+        reply_parameters: { message_id: 500 },
+        reply_markup: { force_reply: true, selective: true },
+        entities: [{ ...telegramVideo.videoLinkPromptMention, user }],
+    });
+});
+
+test('only the intended user can use a /video link prompt as an explicit request', async () => {
+    const prompt = {
+        message_id: 499, chat, from: botInfo, text: telegramVideo.videoLinkPrompt,
+        entities: [{ ...telegramVideo.videoLinkPromptMention, user }],
+    };
+    const { calls, result } = await runTelegramCommand(async input => {
+        expect(input.telegramMessage.linkPromptReply).toBe(true);
+        await input.sendVideo('fake.mp4', { url });
+    }, false, url, prompt);
+
+    expect(result.status).toBe('fulfilled');
+    expect(calls.map(call => call.method)).toEqual(['sendVideo']);
+    expect(calls[0].payload.caption).toBe('@TestSender: 已下載 ' + url);
+    expect(telegramVideo.isTelegramVideoLinkReply({ reply_to_message: prompt, from: { id: 102 } }, botInfo.id)).toBe(false);
+    expect(telegramVideo.isTelegramVideoLinkReply({ reply_to_message: prompt, from: user }, 103)).toBe(false);
 });
 
 test('Telegram keeps the command when the attachment fails to send', async () => {

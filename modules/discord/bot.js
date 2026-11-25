@@ -1,6 +1,7 @@
 /* eslint-disable n/no-process-exit */
 "use strict";
 const fs = require('node:fs');
+const { readFile } = require('node:fs/promises');
 const path = require('node:path');
 
 const { ClusterClient, getInfo, AutoResharderClusterClient } = require('discord-hybrid-sharding');
@@ -20,6 +21,7 @@ const clusterProtection = require('../runtime/cluster-protection.js');
 const dbProtectionLayer = require('../db/protection-layer.js');
 const dbConnector = require('../db/connector.js');
 const checkMongodb = require('../db/watchdog.js');
+const { handleSocialVideo } = require('../chat/social-video');
 
 exports.analytics = require('../analytics');
 const parseRouter = require('../roll-worker/parse-router');
@@ -1146,10 +1148,45 @@ async function getOwnerClusterIdByGuild(guildId) {
 client.on('messageCreate', async message => {
 	const taskId = beginInFlightTask('messageCreate');
 	if (!taskId) return;
+	let socialVideoTask;
 	try {
 		if (isShuttingDown) return;
 		if (message.author.bot) return;
 
+		const isDirectMessage = !message.guildId && message.channel?.type === ChannelType.DM;
+		if ((message.guildId || isDirectMessage) && !message.webhookId) {
+			const reply = { message_reference: { message_id: message.id }, allowed_mentions: { parse: [], replied_user: false } };
+			const reference = message.type === Discord.MessageType.Reply ? message.reference : null;
+			let getRepliedMessage;
+			if (reference?.messageId && (reference.channelId ?? message.channelId) === message.channelId) {
+				getRepliedMessage = async () => {
+					const cached = message.channel?.messages?.cache.get(reference.messageId);
+					const original = cached && !cached.partial ? cached
+						: await message.client.rest.get(Discord.Routes.channelMessage(message.channelId, reference.messageId), {
+							signal: AbortSignal.timeout(5000),
+						});
+					return { text: original.content, urls: original.embeds?.map(embed => embed.url).filter(Boolean) };
+				};
+			}
+			const sendAttachments = async attachments => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
+				body: reply,
+				files: await Promise.all(attachments.map(async ({ file, name, contentType }) => ({ name, data: await readFile(file), contentType }))),
+				signal: AbortSignal.timeout(45_000),
+			});
+			socialVideoTask = handleSocialVideo({
+				platform: 'Discord',
+				groupId: message.guildId,
+				userId: message.author.id,
+				text: message.content,
+				getRepliedMessage,
+				sendVideo: file => sendAttachments([{ file, name: 'social-video.mp4', contentType: 'video/mp4' }]),
+				sendImages: sendAttachments,
+				sendText: content => message.client.rest.post(Discord.Routes.channelMessages(message.channelId), {
+					body: { ...reply, content },
+					signal: AbortSignal.timeout(5000),
+				}),
+			});
+		}
 		// Capture original text before the legacy parser mutates message.content.
 		const chatroomTask = chatroomRuntime.handleMessage(message);
 		// Use batch processing
@@ -1177,6 +1214,7 @@ client.on('messageCreate', async message => {
 	} catch (error) {
 		console.error('[Discord Bot] messageCreate error:', error?.message);
 	} finally {
+		await socialVideoTask;
 		endInFlightTask(taskId);
 	}
 

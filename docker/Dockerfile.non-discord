@@ -28,7 +28,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
 WORKDIR /app
 
 COPY package.json yarn.lock ./
+COPY modules/chat/social-video-tools.js ./modules/chat/social-video-tools.js
+COPY scripts/setup-social-video.js ./scripts/setup-social-video.js
 ENV PUPPETEER_SKIP_DOWNLOAD=true
+ENV HKTRPG_SOCIAL_VIDEO_TOOLS_DIR=/opt/hktrpg-media-tools
 RUN corepack enable \
     && yarn install --frozen-lockfile --non-interactive
 
@@ -38,5 +41,6 @@ COPY . .
 #    && chown -R node:node /app/log /app/export /app/temp /app/.wwebjs_auth
 
 USER node
+RUN node scripts/setup-social-video.js --check
 
 CMD ["node", "index.js"]

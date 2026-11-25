@@ -7,6 +7,128 @@ Images:
 
 Also see [roll-worker.md](./roll-worker.md) for Gateway / Primary / Standby naming.
 
+## VIP social video reposts
+
+Paste a public Facebook Reel or post, Instagram Reel or post, Threads post, X
+video post, or TikTok video. HKTRPG replies in the same chat, topic or channel.
+It processes the first supported link. For Facebook, Instagram and Threads it
+chooses the first playable video attached to the main post, or up to four attached
+images when the post has no video. Facebook cards attached to the main post
+can supply a preview image. Replies and quoted posts are ignored.
+
+1. Install the project dependencies with `corepack yarn install --frozen-lockfile`
+   or build the Docker image. This installs the gateway's private copies of
+   `yt-dlp`, `ffmpeg` and `ffprobe`. There is no manual PATH setup. To use
+   another installation,
+   configure the executable paths with `SOCIAL_VIDEO_YTDLP_PATH` and
+   `SOCIAL_VIDEO_FFMPEG_PATH`. If ffprobe is in a separate directory, configure
+   `SOCIAL_VIDEO_FFPROBE_PATH` as well. Explicit paths take precedence over
+   the bundle. Clear old overrides when switching to the bundled tools.
+2. Set `SOCIAL_VIDEO_ENABLED=true` in the gateway's environment. This enables
+   automatic links in groups and DMs, `.video <link>`, Threads, and Windows
+   temporary storage. Set it to `false` to turn the feature off. Existing
+   deployments using individual media switches retain their settings if the
+   new switch is unset.
+
+A VIP group uses its group quota. In other groups and in DMs, the sender
+needs personal VIP. The bot must be able to read messages and attach files.
+For Telegram automatic group reposts, make the bot a group admin or disable
+its BotFather privacy mode. With privacy mode enabled, use
+`/video@BotUsername <link>` to address the bot explicitly. Threads accepts
+public post and `/share/` links. Images must be JPEG or PNG and at most 3 MiB
+each. A provider login wall can prevent retrieval.
+
+Both gateways must use the same MongoDB database. All Discord clusters and
+shards share one job slot with the Telegram gateway. The slot and daily counters
+live in the `socialVideoQuotas` collection. At Hong Kong midnight,
+the quota renews. Personal VIPs get 20 successful uploads per day and a
+30-second cooldown. VIP groups get 60 per day, with 10 per sender, a 15-second
+group cooldown and a 30-second sender cooldown. Attempt limits are twice the
+upload limits. An ambiguous upload timeout can consume an upload allowance.
+
+The source limit is 30 MiB and five minutes. Attachment caps are 30 MiB on
+Telegram and 20 MiB on Discord. Compatible files are remuxed without encoding.
+If Instagram or Threads offers a smaller compatible rendition of the same
+video, the bot can combine that rendition with its audio without re-encoding.
+If the attachment is too big or uses incompatible codecs, a source at most
+90 seconds, 1080p or equivalent, and 30 fps can be converted with one low-priority
+encoder thread for up to 30 seconds. Live streams and larger inputs are skipped.
+Before starting, the host must have 256 MiB available. Encoding requires
+512 MiB and at least two available CPUs. Linux checks that one-minute load is
+below 75% of available CPUs. When the container has a memory limit, it also
+requires 128 MiB of cgroup v2 headroom to start or 256 MiB to encode. Windows
+samples CPU activity and requires more than 25% idle time before encoding.
+Both platforms run the encoder below normal priority.
+
+Job files are removed after each attempt. After a gateway crash, the next job
+can remove expired scratch directories. The uploaded copy lives in the chat
+and follows its deletion and retention settings.
+
+### Docker on Linux or Docker Desktop
+
+The standard Discord and Telegram Docker builds install and check the three
+media tools automatically. Use the newly built image for this release. The
+tools stay outside `/app/node_modules` in the image, so a mounted dependency
+volume will not hide them. The default scratch path is the container's
+`/dev/shm`, which needs at least 62 MiB free. If another workload shares
+that space, give the gateway a dedicated tmpfs and set
+`SOCIAL_VIDEO_TMP_DIR` to its mount path.
+
+### Native Windows
+
+The installer supports x64 Windows. Run the standard install and check
+commands below as the account that will run the bot.
+
+With `SOCIAL_VIDEO_ENABLED=true`, Windows uses a dedicated scratch
+subdirectory in the running user's temp directory and checks for at least
+64 MiB free. On a regular drive, media bytes
+are briefly written to disk and removed after use. For a RAM-only setup, point
+`SOCIAL_VIDEO_TMP_DIR` to a private directory on a RAM drive with sufficient
+free space, or use Docker Desktop with Linux containers.
+
+### Native Linux
+
+The installer supports x64 and ARM64 Linux on glibc and Alpine musl.
+It selects a pinned, SHA-256-verified yt-dlp release for the host without
+requiring a system Python installation. The bundled FFmpeg and FFprobe come
+from pinned npm packages. For another architecture, install compatible
+tools and set their executable paths using the variables above.
+
+The default scratch path is `/dev/shm`, a tmpfs on standard Linux installations.
+If it lacks free space, set `SOCIAL_VIDEO_TMP_DIR` to a dedicated tmpfs. This
+example creates a mount for the account running the commands:
+
+```sh
+sudo install -d -m 0700 /run/hktrpg-media
+sudo mount -t tmpfs -o "size=64m,mode=0700,uid=$(id -u),gid=$(id -g),nosuid,nodev,noexec" tmpfs /run/hktrpg-media
+```
+
+Set `SOCIAL_VIDEO_TMP_DIR=/run/hktrpg-media`. A manual mount lasts until reboot.
+For a long-running host, configure the mount through its service setup.
+
+### Start and check the native gateway
+
+Use the Node.js version required by `package.json`. For a fresh checkout, create
+`.env` from `.env.copy` and set the normal gateway token, `mongoURL`, and
+`SOCIAL_VIDEO_ENABLED=true`. From the project directory:
+
+```sh
+corepack yarn install --frozen-lockfile
+corepack yarn check:social-video
+corepack yarn start
+```
+
+If the install skipped lifecycle scripts or a download failed, retry with
+`corepack yarn setup:social-video` from the full checkout with optional npm
+dependencies available. Downloads happen during setup. The bot does not fetch
+new executables while handling a link.
+
+In a group, paste a public link as a VIP group member or a personal VIP.
+Personal VIPs can also paste links in DMs. To fetch a link from an existing
+message, reply to it with `.video`. A link typed after `.video` takes
+precedence over the original message.
+The same MongoDB database is required to share quota across installations.
+
 ## Included files
 
 - `.dockerignore`

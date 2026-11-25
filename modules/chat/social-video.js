@@ -10,7 +10,7 @@ const { isEnvEnabled } = require('../../utils/env-flag');
 const runFile = promisify(execFile);
 const DOWNLOAD_TIMEOUT = 60_000;
 const MAX_CONCURRENT = 2;
-const GROUP_COOLDOWN = 15_000;
+const COOLDOWN = { group: 15_000, user: 30_000 };
 const platforms = {
     Telegram: { groups: 'SOCIAL_VIDEO_TELEGRAM_GROUP_IDS', maxBytes: 49_000_000 },
     Discord: { groups: 'SOCIAL_VIDEO_DISCORD_GUILD_IDS', maxBytes: 20 * 1024 * 1024 },
@@ -155,33 +155,37 @@ async function downloadSocialVideo(link, directory, maxBytes) {
 }
 
 const failureMessages = {
-    threads: '這個群組的 Threads 影片擷取尚未啟用。',
+    threads: 'Threads 影片擷取尚未啟用。',
     download: '無法取得可上傳的影片。請確認貼文公開，或試試較短的影片及原始影片連結。',
     upload: '已取得影片，但無法上傳到這個頻道。請檢查 bot 的附件權限。',
 };
 
 /**
- * Repost the first supported video link in a configured VIP group. Reply callbacks
- * must finish uploading before they resolve, since the temporary file is then removed.
+ * Repost the first supported link in a configured VIP group or an enabled personal
+ * VIP DM. Gateways pass userId only for DMs. The upload callback must finish before
+ * it resolves, since the temporary file is then removed.
  */
-async function handleSocialVideo({ platform, groupId, text, urls, sendVideo, sendText }) {
+async function handleSocialVideo({ platform, groupId, userId, text, urls, sendVideo, sendText }) {
     const config = platforms[platform];
-    if (!config || !groupId) return;
-    const id = String(groupId);
-    if (!process.env[config.groups]?.split(',').some(group => group.trim() === id)) return;
+    if (!config || (!groupId && !userId)) return;
+    const scope = groupId ? 'group' : 'user';
+    const id = String(groupId || userId);
+    if (scope === 'group' && !process.env[config.groups]?.split(',').some(group => group.trim() === id)) return;
+    if (scope === 'user' && !isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) return;
     const link = findSocialVideoLink(text, urls);
     if (!link) return;
 
-    const key = `${platform}:${id}`;
+    const key = `${platform}:${scope}:${id}`;
     if (active.size >= MAX_CONCURRENT || active.has(key) || recent.has(key)) return;
     active.add(key);
     let directory;
     let stage = 'VIP check';
     try {
-        const { viplevelCheckGroup } = require('../patreon/veryImportantPerson');
-        if (await viplevelCheckGroup(id, platform) < 1) return;
+        const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
+        const checkVip = scope === 'group' ? viplevelCheckGroup : viplevelCheckUser;
+        if (await checkVip(id, platform) < 1) return;
 
-        recent.set(key, setTimeout(() => recent.delete(key), GROUP_COOLDOWN).unref());
+        recent.set(key, setTimeout(() => recent.delete(key), COOLDOWN[scope]).unref());
         if (link.extractor === 'threads' && !isEnvEnabled('SOCIAL_VIDEO_THREADS_ENABLED')) {
             stage = 'threads';
             await sendText(failureMessages.threads);

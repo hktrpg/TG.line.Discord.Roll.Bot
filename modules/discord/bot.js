@@ -1152,11 +1152,13 @@ client.on('messageCreate', async message => {
 		if (isShuttingDown) return;
 		if (message.author.bot) return;
 
-		if (message.guildId && !message.webhookId) {
+		const isDirectMessage = !message.guildId && message.channel?.type === ChannelType.DM;
+		if ((message.guildId || isDirectMessage) && !message.webhookId) {
 			const allowedMentions = { parse: [], repliedUser: false };
 			socialVideoTask = handleSocialVideo({
 				platform: 'Discord',
 				groupId: message.guildId,
+				userId: isDirectMessage ? message.author.id : undefined,
 				text: message.content,
 				sendVideo: video => message.reply({ files: [video], allowedMentions }),
 				sendText: content => message.reply({ content, allowedMentions }),

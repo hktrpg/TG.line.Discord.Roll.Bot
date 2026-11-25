@@ -9,10 +9,10 @@ Also see [roll-worker.md](./roll-worker.md) for Gateway / Primary / Standby nami
 
 ## VIP social video reposts
 
-In an enabled VIP group, paste a public Facebook Reel or video, X post, Instagram
-Reel or post, or TikTok video. HKTRPG replies to the original message with an MP4
-attachment in the same Telegram topic or Discord channel. It processes the first
-supported link and the first video in that post.
+In an enabled VIP group or a personal VIP DM, paste a public Facebook Reel or
+video, X post, Instagram Reel or post, or TikTok video. HKTRPG replies to the
+original message with an MP4 attachment in the same chat, topic or channel.
+It processes the first supported link and the first video in that post.
 
 1. Make `yt-dlp` and `ffmpeg` available in the gateway. When building either
    Dockerfile in this repo, set the build argument `INSTALL_SOCIAL_VIDEO=true`.
@@ -26,7 +26,10 @@ supported link and the first video in that post.
    server also needs an existing group VIP level of at least 1. The bot must be
    able to read ordinary group messages and attach files. For Telegram, the bot
    must be a group admin or have BotFather group privacy disabled.
-3. For Threads, install a compatible Threads extractor in the gateway's
+3. To enable DMs, set `SOCIAL_VIDEO_DM_ENABLED=true` on the Telegram or Discord
+   gateway. The sending account needs an existing personal VIP level of at least
+   1 on that platform. Group use still requires the configured group VIP.
+4. For Threads, install a compatible Threads extractor in the gateway's
    yt-dlp environment, verify that `yt-dlp --list-extractors` shows `threads`,
    and set `SOCIAL_VIDEO_THREADS_ENABLED=true`. A third-party extractor is
    available from [yt-dlp-threads](https://github.com/tribixbite/yt-dlp-threads).
@@ -37,9 +40,10 @@ supported link and the first video in that post.
 
 Telegram accepts up to 49 MB from this feature and Discord up to 20 MiB. It
 skips live streams and videos with a known duration longer than five minutes.
-Each gateway process handles two jobs at a time and accepts one request per
-group every 15 seconds. Links posted while the process or group is busy are
-ignored. Facebook share links must redirect to a supported Facebook video URL.
+Each gateway process handles two jobs at a time. Groups have a 15-second
+cooldown, and personal VIPs have a 30-second DM cooldown. Links posted while
+the process or recipient is busy are ignored. Facebook share links must
+redirect to a supported Facebook video URL.
 Private posts and provider login prompts can prevent retrieval.
 
 The uploaded copy lives in the chat. HKTRPG removes the temporary server files

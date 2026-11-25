@@ -2,18 +2,27 @@
 
 const { execFile } = require('node:child_process');
 const { writeFile, stat } = require('node:fs/promises');
-const { viplevelCheckGroup } = require('../modules/patreon/veryImportantPerson');
+const { viplevelCheckGroup, viplevelCheckUser } = require('../modules/patreon/veryImportantPerson');
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
-jest.mock('../modules/patreon/veryImportantPerson', () => ({ viplevelCheckGroup: jest.fn() }));
+jest.mock('../modules/patreon/veryImportantPerson', () => ({
+    viplevelCheckGroup: jest.fn(),
+    viplevelCheckUser: jest.fn(),
+}));
 
 const originalEnv = process.env;
 
 beforeEach(() => {
     jest.useFakeTimers({ doNotFake: ['nextTick', 'queueMicrotask'] });
-    process.env = { ...originalEnv, SOCIAL_VIDEO_TELEGRAM_GROUP_IDS: '-100123', SOCIAL_VIDEO_DISCORD_GUILD_IDS: '456' };
+    process.env = {
+        ...originalEnv,
+        SOCIAL_VIDEO_TELEGRAM_GROUP_IDS: '-100123',
+        SOCIAL_VIDEO_DISCORD_GUILD_IDS: '456',
+        SOCIAL_VIDEO_DM_ENABLED: 'false',
+    };
     viplevelCheckGroup.mockResolvedValue(1);
+    viplevelCheckUser.mockResolvedValue(1);
     execFile.mockImplementation((command, args, options, callback) => {
         const output = command === 'yt-dlp' ? args[args.indexOf('--output') + 1] : args.at(-1);
         void writeFile(output, 'video').then(() => callback(null), callback);
@@ -76,6 +85,46 @@ test('requires an enabled group and a group VIP match before using the downloade
     await handleSocialVideo(telegram());
     expect(viplevelCheckGroup).toHaveBeenCalledWith('-100123', 'Telegram');
     expect(execFile).not.toHaveBeenCalled();
+});
+
+test.each(['Telegram', 'Discord'])('personal VIP can use an enabled %s DM', async platform => {
+    const request = telegram({ platform, groupId: null, userId: 123 });
+    await handleSocialVideo(request);
+    expect(viplevelCheckUser).not.toHaveBeenCalled();
+
+    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
+    viplevelCheckUser.mockResolvedValueOnce(0);
+    await handleSocialVideo(request);
+    expect(execFile).not.toHaveBeenCalled();
+
+    await handleSocialVideo(request);
+    expect(viplevelCheckUser).toHaveBeenLastCalledWith('123', platform);
+    expect(viplevelCheckGroup).not.toHaveBeenCalled();
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+});
+
+test('personal VIP does not authorize an unconfigured or non-VIP group', async () => {
+    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
+    viplevelCheckGroup.mockResolvedValue(0);
+    await handleSocialVideo(telegram({ groupId: -100_999, userId: 123 }));
+    await handleSocialVideo(telegram({ userId: 123 }));
+    expect(viplevelCheckUser).not.toHaveBeenCalled();
+    expect(execFile).not.toHaveBeenCalled();
+});
+
+test('applies a 30-second cooldown per personal VIP while another VIP can download', async () => {
+    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
+    const first = telegram({ groupId: null, userId: 123 });
+    const second = telegram({ groupId: null, userId: 456 });
+    await handleSocialVideo(first);
+    jest.advanceTimersByTime(29_999);
+    await handleSocialVideo(first);
+    expect(first.sendVideo).toHaveBeenCalledTimes(1);
+    await handleSocialVideo(second);
+    expect(second.sendVideo).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(1);
+    await handleSocialVideo(first);
+    expect(first.sendVideo).toHaveBeenCalledTimes(2);
 });
 
 test('resolves a Facebook share to a Reel, uploads the file, then cleans up', async () => {

@@ -7,7 +7,6 @@ const { join } = require('node:path');
 const { promisify } = require('node:util');
 const { setTimeout: delay } = require('node:timers/promises');
 const { isEnvEnabled } = require('../../utils/env-flag');
-const i18n = require('../i18n/i18n');
 const { acquireVideoLease, reserveVideoQuota } = require('./social-video-quota');
 const {
     readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages,
@@ -494,27 +493,23 @@ async function handleSocialVideo({
             // The chat platform may reject a status message.
         }
     };
+    let disabledMessage;
     if (!allEnabled) {
         if (groupId) {
             const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
             if (!configured && !(command && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) {
-                if (command) await reply(failureMessages.groupDisabled);
-                return;
+                disabledMessage = failureMessages.groupDisabled;
             }
         } else if (!isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) {
-            if (command) await reply(failureMessages.dmDisabled);
-            return;
+            disabledMessage = failureMessages.dmDisabled;
         }
     }
+    if (!command && disabledMessage) return;
     let link = findSocialVideoLink(text, urls);
+    if (!command && !link) return;
     const bareCommand = matchedCommand && /^[\s\p{Default_Ignorable_Code_Point}]*$/u.test(text.slice(matchedCommand[0].length));
     const referenceRequested = bareCommand && getRepliedMessage;
     const needsLinkPrompt = telegram && !link && bareCommand && !referenceRequested && matchedCommand[0].startsWith('/') && promptForLink;
-    if (!link && !referenceRequested && !needsLinkPrompt) {
-        if (command) await reply(failureMessages.link);
-        return;
-    }
-
     async function busy() {
         if (!command) {
             const now = Date.now();
@@ -548,20 +543,16 @@ async function handleSocialVideo({
     let reservation;
     let directory;
     let post;
-    let stage = 'service';
+    let stage = 'eligibility';
     try {
         const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
         const groupLevel = groupId ? await viplevelCheckGroup(String(groupId), platform) : 0;
         const groupVip = groupLevel >= 1;
         const level = groupVip ? groupLevel : await viplevelCheckUser(actor, platform);
-        if (level < 1) {
-            if (command) {
-                const locale = await i18n.resolveLocale({ groupid: groupId, userid: actor });
-                const key = groupId ? 'common.patreon.group_or_personal_vip_required' : 'common.patreon.personal_vip_required';
-                await reply(i18n.createTranslator(locale)(key));
-            }
-            return;
-        }
+        if (!(level >= 1)) return;
+        stage = 'service';
+        if (disabledMessage) return await reply(disabledMessage);
+        if (!link && !referenceRequested && !needsLinkPrompt) return await reply(failureMessages.link);
         if (needsLinkPrompt) {
             await promptForLink().catch(() => reply(failureMessages.link));
             return;
@@ -674,7 +665,7 @@ async function handleSocialVideo({
             platform, stage, link: post || link, groupId, userId: actor, error, reply: replyKey,
         }));
         stopHandoff();
-        await reply(videoErrorMessage(error, stage, replyKey));
+        if (stage !== 'eligibility') await reply(videoErrorMessage(error, stage, replyKey));
     } finally {
         stopHandoff();
         try {

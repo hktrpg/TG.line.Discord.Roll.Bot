@@ -8,7 +8,6 @@ const { acquireVideoLease, reserveVideoQuota } = require('../modules/chat/social
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('../modules/chat/social-post-media');
 const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
 const { socialVideoInput, telegramVideoReply } = require('../modules/chat/telegram-social-video');
-const i18n = require('../modules/i18n/i18n');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
 jest.mock('../modules/chat/social-video-tools', () => ({
@@ -443,41 +442,46 @@ test('a failed Discord reference lookup gives the reply error without reserving 
     expect(acquireVideoLease).not.toHaveBeenCalled();
 });
 
-test('non-VIPs cannot fetch a replied message through the video command', async () => {
+test.each([
+    ['Telegram', -100_123],
+    ['Telegram', -100_999],
+    ['Telegram', null],
+    ['Discord', '456'],
+    ['Discord', '999'],
+    ['Discord', null],
+])('%s silently ignores video commands without VIP access in chat %s', async (platform, groupId) => {
     viplevelCheckGroup.mockResolvedValue(0);
     viplevelCheckUser.mockResolvedValue(0);
     const getRepliedMessage = jest.fn();
-    const request = telegram({ text: '.video', getRepliedMessage });
-    await handleSocialVideo(request);
-    expect(getRepliedMessage).not.toHaveBeenCalled();
-    expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('VIP 資格'));
-});
+    const promptForLink = jest.fn();
+    const deleteCommand = jest.fn();
+    const request = telegram({ platform, groupId, promptForLink, deleteCommand });
+    const messages = ['.video', '.video https://www.facebook.com/reel/123'];
+    if (platform === 'Telegram') messages.push('/video');
 
-test('explains VIP and link validation to a sender who invokes the command explicitly', async () => {
-    process.env.SOCIAL_VIDEO_GROUP_COMMAND_ENABLED = 'true';
-    viplevelCheckGroup.mockResolvedValue(0);
-    viplevelCheckUser.mockResolvedValue(0);
-    const request = telegram({ platform: 'Discord', groupId: '999', text: '.video' });
-    await handleSocialVideo(request);
-    expect(request.sendText).toHaveBeenLastCalledWith(expect.stringContaining('公開貼文連結'));
-    await handleSocialVideo({ ...request, text: '.video https://www.facebook.com/reel/123' });
-    expect(request.sendText).toHaveBeenLastCalledWith('此功能需要群組 VIP 或個人 VIP 資格。\n\n💎 前往 Patreon 查看 HKTRPG VIP 會員方案：\nhttps://www.patreon.com/HKTRPG/membership');
+    for (const text of messages) await handleSocialVideo({ ...request, text });
+    await handleSocialVideo({ ...request, text: '.video', getRepliedMessage });
+
+    expect(viplevelCheckUser).toHaveBeenCalled();
+    expect(getRepliedMessage).not.toHaveBeenCalled();
+    expect(promptForLink).not.toHaveBeenCalled();
+    expect(request.sendText).not.toHaveBeenCalled();
+    expect(request.sendMedia).not.toHaveBeenCalled();
+    expect(deleteCommand).not.toHaveBeenCalled();
+    expect(reserveVideoQuota).not.toHaveBeenCalled();
     expect(execFile).not.toHaveBeenCalled();
 });
 
-test.each(['Telegram', 'Discord'])('shows the localized personal VIP membership prompt in a %s DM', async platform => {
-    process.env.SOCIAL_VIDEO_DM_ENABLED = 'true';
-    viplevelCheckUser.mockResolvedValue(0);
-    jest.spyOn(i18n, 'resolveLocale').mockResolvedValue('en');
+test('a failed VIP lookup keeps the video command silent', async () => {
+    viplevelCheckUser.mockRejectedValue(new Error('Database unavailable'));
+    const request = telegram({ groupId: null, text: '/video', promptForLink: jest.fn() });
+    const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
-    const request = telegram({ platform, groupId: null, text: '.video https://www.facebook.com/reel/123' });
     await handleSocialVideo(request);
 
-    expect(i18n.resolveLocale).toHaveBeenCalledWith({ groupid: null, userid: '123' });
-    expect(request.sendText).toHaveBeenCalledWith(
-        'This feature requires personal VIP membership.\n\n💎 View HKTRPG VIP membership plans on Patreon:\nhttps://www.patreon.com/HKTRPG/membership'
-    );
-    expect(viplevelCheckGroup).not.toHaveBeenCalled();
+    expect(warn).toHaveBeenCalledWith('[Social video] request failed', expect.objectContaining({ stage: 'eligibility' }));
+    expect(request.sendText).not.toHaveBeenCalled();
+    expect(request.promptForLink).not.toHaveBeenCalled();
     expect(execFile).not.toHaveBeenCalled();
 });
 

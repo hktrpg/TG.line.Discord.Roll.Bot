@@ -7,21 +7,21 @@ const reservedIdentifiers = new Set(['globalThis', 'global', 'process', 'this', 
 function evaluateStoryExpression(input, scope = {}) {
     if (typeof input !== 'string' || input.length > 2048) throw new Error('Invalid expression');
     const tokens = [];
-    const pattern = /\s*(===|!==|==|!=|<=|>=|&&|\|\||[()+\-*/%<>!]|\d+|[A-Za-z_][A-Za-z0-9_]*)/y;
+    const pattern = /\s*(===|!==|==|!=|<=|>=|&&|\|\||\*\*|[()+\-*/%<>!]|(?<number>0[xX][\da-fA-F]+|0[bB][01]+|0[oO][0-7]+|\d+(?:[eE][+-]?\d+)?)|[A-Za-z_][A-Za-z0-9_]*)/y;
     let pos = 0;
     while (pos < input.length) {
         if (!input.slice(pos).trim()) break;
         pattern.lastIndex = pos;
         const match = pattern.exec(input);
         if (!match || reservedIdentifiers.has(match[1])) throw new Error('Invalid expression token');
-        tokens.push(match[1]);
+        tokens.push(match.groups.number === undefined ? match[1] : Number(match.groups.number));
         pos = pattern.lastIndex;
         if (tokens.length > 512) throw new Error('Expression too long');
     }
     let index = 0;
     let depth = 0;
     const precedence = { '||': 1, '&&': 2, '==': 3, '!=': 3, '===': 3, '!==': 3,
-        '<': 4, '<=': 4, '>': 4, '>=': 4, '+': 5, '-': 5, '*': 6, '/': 6, '%': 6 };
+        '<': 4, '<=': 4, '>': 4, '>=': 4, '+': 5, '-': 5, '*': 6, '/': 6, '%': 6, '**': 7 };
     function primary(execute) {
         if (++depth > 64) throw new Error('Expression nesting limit');
         const token = tokens[index++];
@@ -31,8 +31,9 @@ function evaluateStoryExpression(input, scope = {}) {
             if (tokens[index++] !== ')') throw new Error('Missing closing parenthesis');
         } else if (token === '!' || token === '+' || token === '-') {
             const value = primary(execute);
+            if (tokens[index] === '**') throw new Error('Parentheses required around an exponentiation base with a unary operator');
             result = token === '!' ? !value : token === '+' ? +value : -value;
-        } else if (/^\d+$/.test(token || '')) result = Number(token);
+        } else if (typeof token === 'number') result = token;
         else if (token === 'true' || token === 'false') result = token === 'true';
         else if (token === 'null') result = null;
         else if (token === 'undefined' && !Object.hasOwn(scope, token)) result = undefined;
@@ -49,7 +50,7 @@ function evaluateStoryExpression(input, scope = {}) {
         while (Object.hasOwn(precedence, tokens[index]) && precedence[tokens[index]] >= min) {
             const op = tokens[index++];
             const evaluateRight = execute && (op !== '&&' || Boolean(left)) && (op !== '||' || !left);
-            const right = expression(precedence[op] + 1, evaluateRight);
+            const right = expression(precedence[op] + (op === '**' ? 0 : 1), evaluateRight);
             if (!execute) { left = undefined; continue; }
             switch (op) {
                 case '||': left = left || right; break;
@@ -68,6 +69,7 @@ function evaluateStoryExpression(input, scope = {}) {
                 case '*': left *= right; break;
                 case '/': left /= right; break;
                 case '%': left %= right; break;
+                case '**': left **= right; break;
                 default: throw new Error('Invalid operator');
             }
         }

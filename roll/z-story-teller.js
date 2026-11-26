@@ -22,6 +22,8 @@ try {
 const memoryRuns = new Map();
 
 const STORY_ALIAS_RE = /^[A-Za-z0-9_-]{1,64}$/;
+// Single pipes separate choice fields. Double pipes belong to the condition.
+const RUN_DESIGN_CHOICE_RE = /^->(?<text>[^|]+)\|\s*(?<action>[^|\s]+)\s*(?:\|\s*(?:if=(?<condition>(?:[^|]|\|\|)+)|(?<fallback>else)\s*))?(?:\|\s*stat=(?<stats>[^|]+))?$/i;
 const STORY_TELLER_DIR = path.resolve(__dirname, 'storyTeller');
 const STORY_TEST_DIR = path.resolve(__dirname, '..', 'test');
 
@@ -792,38 +794,20 @@ function compileRunDesignToStory(runDesignText, { alias, title }) {
             continue;
         }
         if (/^\[choice\]/i.test(line)) { continue; }
-        if ((m = line.match(/^->\s*([\s\S]+?)\s*\|\s*([^|\s]+)([\s\S]*)$/))) {
-            const page = ensurePage(currentPageId || '0');
-            const choice = { text: m[1].trim(), action: m[2].trim() };
-            const rest = String(m[3] || '');
-            if (rest && rest.includes('|')) {
-                const segs = rest.split('|').map(s => String(s).trim()).filter(Boolean);
-                for (const seg of segs) {
-                    if (!seg) continue;
-                    if (/^else$/i.test(seg)) {
-                        choice.isElse = true;
-                        continue;
-                    }
-                    const mmIf = seg.match(/^if=(.*)$/i);
-                    if (mmIf) {
-                        choice.condition = mmIf[1].trim();
-                        continue;
-                    }
-                    const mmStat = seg.match(/^stat=(.*)$/i);
-                    if (mmStat) {
-                        const sc = {};
-                        for (const pair of String(mmStat[1]).split(',')) {
-                            const p = pair.trim();
-                            if (!p) continue;
-                            const mm = p.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
-                            if (mm) sc[mm[1]] = (mm[2] === '+') ? Number(mm[3]) : -Number(mm[3]);
-                        }
-                        if (Object.keys(sc).length > 0) choice.statChanges = sc;
-                        continue;
-                    }
+        if ((m = line.match(RUN_DESIGN_CHOICE_RE))) {
+            const { text, action, condition, fallback, stats } = m.groups;
+            const choice = { text: text.trim(), action };
+            if (condition) choice.condition = condition.trim();
+            if (fallback) choice.isElse = true;
+            if (stats) {
+                const statChanges = {};
+                for (const pair of stats.split(',')) {
+                    const change = pair.trim().match(/^([A-Za-z_][A-Za-z0-9_]*)\s*([+-])\s*(\d+)$/);
+                    if (change) statChanges[change[1]] = Number(change[2] + change[3]);
                 }
+                if (Object.keys(statChanges).length > 0) choice.statChanges = statChanges;
             }
-            page.choices.push(choice);
+            ensurePage(currentPageId || '0').choices.push(choice);
             continue;
         }
     }
@@ -1225,7 +1209,7 @@ function validateRunDesignLines(rawText, t = getT()) {
         /^\[random\]\s*(\d+)%$/i,
         /^\[set(?:\|[^\]]+)?\]\s*([^=\s]+)\s*=\s*[\s\S]+$/i,
         /^\[choice\]/i,
-        /^->\s*[\s\S]+?\s*\|\s*([^|\s]+)(?:\s*\|\s*(?:if=[^|]+|else))?(?:\s*\|\s*stat=[\s\S]+)?$/
+        RUN_DESIGN_CHOICE_RE
     ];
     for (let i = 0; i < lines.length; i++) {
         const line = String(lines[i]).trim();

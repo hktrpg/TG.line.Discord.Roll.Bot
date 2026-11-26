@@ -8,8 +8,12 @@ jest.mock('../modules/patreon/veryImportantPerson.js', () => ({
     viplevelCheckUser: jest.fn().mockResolvedValue(0)
 }));
 
+jest.mock('../modules/roll-worker/safe-fetch', () => ({ safeFetchText: jest.fn() }));
+
 const path = require('node:path');
 const fs = require('node:fs');
+const { randomUUID } = require('node:crypto');
+const { safeFetchText } = require('../modules/roll-worker/safe-fetch');
 
 describe('StoryTeller (.st) Module Tests', () => {
     /** @type {import('../roll/z-story-teller.js')} */
@@ -46,6 +50,61 @@ describe('StoryTeller (.st) Module Tests', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    test('RUN_DESIGN round-trips a choice with logical OR and stat changes', async () => {
+        const alias = 'choice-or-' + randomUUID();
+        const source = [
+            '[meta] title "Choice test"',
+            '[meta] author "Test"',
+            '[label] 0',
+            '[set] score=0x10 + 0b1',
+            '[choice]',
+            '-> Skip | 0 | if=score == 0 || score == 1',
+            '-> Open gate | 1a | if=score < 0o20 || score == 0x11 | stat=bonus+2',
+            '-> Stay | 0 | else',
+            '[label] 1',
+            '[ending]',
+            '[text] Ending bonus={bonus}',
+            '[choice]',
+            '-> Finish | END'
+        ].join('\n');
+        const cmd = (...args) => st.rollDiceCommand({ mainMsg: ['.st', ...args], userid: alias, botname: 'Discord' });
+        const upload = (action, text) => {
+            safeFetchText.mockResolvedValueOnce({ text });
+            return st.rollDiceCommand({
+                mainMsg: ['.st', action, alias],
+                userid: alias,
+                botname: 'Discord',
+                storyAttachmentMeta: {
+                    url: 'https://example.invalid/story.txt',
+                    filename: 'story.txt',
+                    size: Buffer.byteLength(text),
+                    contentType: 'text/plain'
+                }
+            });
+        };
+        const storyPath = path.join(__dirname, '..', 'roll', 'storyTeller', alias + '.json');
+        let exportedPath;
+        try {
+            const imported = await upload('import', source);
+            expect(imported.buttonCreate).toEqual(['.st start ' + alias]);
+
+            const exported = await cmd('export', alias);
+            [exportedPath] = exported.dmFileLink;
+            const exportedText = fs.readFileSync(exportedPath, 'utf8');
+            expect(exportedText).toContain('if=score < 0o20 || score == 0x11 | stat=bonus+2');
+            const updated = await upload('update', exportedText);
+            expect(updated.buttonCreate).toEqual(['.st start ' + alias]);
+
+            const started = await cmd('start', alias);
+            expect(started.buttonCreate).toEqual(['.st goto 1a']);
+            const ending = await cmd('goto', '1a');
+            expect(ending.text).toContain('Ending bonus=2');
+        } finally {
+            if (exportedPath) fs.rmSync(exportedPath, { force: true });
+            fs.rmSync(storyPath, { force: true });
+        }
     });
 
     test('Basic exports work', () => {

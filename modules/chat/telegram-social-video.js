@@ -1,6 +1,7 @@
 'use strict';
 
-const { findSocialVideoLink } = require('./social-video');
+const { InputFile } = require('grammy');
+const { findSocialVideoLink, formatSocialVideoSuccess } = require('./social-video');
 
 function socialVideoInput(message) {
     const text = message.text ?? message.caption;
@@ -44,6 +45,60 @@ function telegramVideoReply(message) {
     };
 }
 
+function createTelegramVideoRequest(ctx) {
+    const { message, from, chat } = ctx;
+    const group = chat.type === 'group' || chat.type === 'supergroup';
+    if (!group && chat.type !== 'private') return;
+    const topic = message.is_topic_message ? { message_thread_id: message.message_thread_id } : {};
+    const reply = { ...topic, reply_parameters: { message_id: message.message_id, allow_sending_without_reply: true } };
+    const input = socialVideoInput(message);
+    const linkPromptReply = /^[^./]/u.test(input.text?.trimStart() ?? '') && isTelegramVideoLinkReply(message, ctx.me.id);
+
+    function mediaOptions(url) {
+        const mention = `@${from.username || from.first_name}`;
+        let caption = formatSocialVideoSuccess(mention, url);
+        const caption_entities = [{ type: 'text_mention', offset: 0, length: mention.length, user: from }];
+        if (caption.length > 1024) {
+            const label = '原始連結';
+            caption = formatSocialVideoSuccess(mention, label);
+            caption_entities.push({ type: 'text_link', offset: caption.length - label.length, length: label.length, url });
+        }
+        return { ...topic, caption, caption_entities };
+    }
+
+    return {
+        platform: 'Telegram',
+        groupId: group ? chat.id : undefined,
+        userId: from?.id,
+        commandBotName: ctx.me.username,
+        messageContext: { id: message.message_id, replyToId: message.reply_to_message?.message_id, linkPromptReply },
+        ...input,
+        getRepliedMessage: telegramVideoReply(message),
+        promptForLink: () => ctx.reply(videoLinkPrompt, {
+            ...reply,
+            entities: [{ ...videoLinkPromptMention, user: from }],
+            reply_markup: { force_reply: true, selective: true, input_field_placeholder: '貼上公開貼文連結' },
+        }, AbortSignal.timeout(5000)),
+        sendVideo: (file, { url }) => ctx.replyWithVideo(new InputFile(file), {
+            ...mediaOptions(url), supports_streaming: true,
+        }, AbortSignal.timeout(45_000)),
+        sendImages: (images, { url }) => {
+            const options = mediaOptions(url);
+            const signal = AbortSignal.timeout(45_000);
+            if (images.length === 1) return ctx.replyWithPhoto(new InputFile(images[0].file), options, signal);
+            const { caption, caption_entities, ...albumOptions } = options;
+            const album = images.map(({ file }, index) => ({
+                type: 'photo',
+                media: new InputFile(file),
+                ...(index === 0 && { caption, caption_entities }),
+            }));
+            return ctx.replyWithMediaGroup(album, albumOptions, signal);
+        },
+        sendText: content => ctx.reply(content, reply, AbortSignal.timeout(5000)),
+        deleteCommand: () => ctx.deleteMessage(AbortSignal.timeout(5000)),
+    };
+}
+
 module.exports = {
-    socialVideoInput, telegramVideoReply, isTelegramVideoLinkReply, videoLinkPrompt, videoLinkPromptMention,
+    createTelegramVideoRequest, socialVideoInput, telegramVideoReply, isTelegramVideoLinkReply, videoLinkPrompt, videoLinkPromptMention,
 };

@@ -45,7 +45,11 @@ async function runTelegramCommand(deliver, failUpload = false, text = '.video ' 
         './roll-worker/parse-router': { shouldSkipLocalFindRollList: () => false },
         './roll-worker/defer-queue': { registerDeliverer: () => {} },
         './roll-worker/dark-rolling': {},
-        './chat/social-video': { handleSocialVideo(input) { delivery.push(Promise.resolve().then(() => deliver(input))); } },
+        './chat/social-video': { handleSocialVideo(input) {
+            const task = Promise.resolve().then(() => deliver(input));
+            delivery.push(task);
+            return task;
+        } },
         './chat/telegram-social-video': telegramVideo,
         './chat/message': {},
         './i18n/i18n.js': { resolveLocale: async () => 'zh-tw' },
@@ -68,12 +72,15 @@ async function runTelegramCommand(deliver, failUpload = false, text = '.video ' 
 }
 
 test('Telegram sends a mention and original link before deleting the successful command', async () => {
-    const { calls, result } = await runTelegramCommand(input => input.sendVideo('fake.mp4', { url }));
+    const { calls, result } = await runTelegramCommand(async input => {
+        await input.sendVideo('fake.mp4', { url });
+        await input.deleteCommand();
+    });
 
     expect(result.status).toBe('fulfilled');
     expect(calls.map(call => call.method)).toEqual(['sendVideo', 'deleteMessage']);
     expect(calls[0].payload).toMatchObject({
-        caption: '@TestSender: 已下載 ' + url,
+        caption: '@TestSender : 已下載 ' + url,
         caption_entities: [{ type: 'text_mention', offset: 0, length: '@TestSender'.length, user }],
         message_thread_id: 10,
     });
@@ -84,15 +91,16 @@ test('Telegram sends a mention and original link before deleting the successful 
 test('Telegram delivers a .video reply with a caption and deletes only the command', async () => {
     const original = { message_id: 499, chat, from: user, text: url };
     const { calls, result } = await runTelegramCommand(async input => {
-        expect(input.telegramMessage).toMatchObject({ id: 500, replyToId: original.message_id });
+        expect(input.messageContext).toMatchObject({ id: 500, replyToId: original.message_id });
         const { text } = await input.getRepliedMessage();
         await input.sendVideo('fake.mp4', { url: text });
+        await input.deleteCommand();
     }, false, '.video', original);
 
     expect(result.status).toBe('fulfilled');
     expect(calls.map(call => call.method)).toEqual(['sendVideo', 'deleteMessage']);
     expect(calls[0].payload).toMatchObject({
-        caption: '@TestSender: 已下載 ' + url,
+        caption: '@TestSender : 已下載 ' + url,
         message_thread_id: 10,
     });
     expect(calls[0].payload.reply_parameters).toBeUndefined();
@@ -118,13 +126,13 @@ test('only the intended user can use a /video link prompt as an explicit request
         entities: [{ ...telegramVideo.videoLinkPromptMention, user }],
     };
     const { calls, result } = await runTelegramCommand(async input => {
-        expect(input.telegramMessage.linkPromptReply).toBe(true);
+        expect(input.messageContext.linkPromptReply).toBe(true);
         await input.sendVideo('fake.mp4', { url });
     }, false, url, prompt);
 
     expect(result.status).toBe('fulfilled');
     expect(calls.map(call => call.method)).toEqual(['sendVideo']);
-    expect(calls[0].payload.caption).toBe('@TestSender: 已下載 ' + url);
+    expect(calls[0].payload.caption).toBe('@TestSender : 已下載 ' + url);
     expect(telegramVideo.isTelegramVideoLinkReply({ reply_to_message: prompt, from: { id: 102 } }, botInfo.id)).toBe(false);
     expect(telegramVideo.isTelegramVideoLinkReply({ reply_to_message: prompt, from: user }, 103)).toBe(false);
 });
@@ -137,22 +145,23 @@ test('Telegram keeps the command when the attachment fails to send', async () =>
 });
 
 test('Telegram attaches the caption once for a downloaded photo album', async () => {
-    const { calls, result } = await runTelegramCommand(input =>
-        input.sendImages([{ file: 'fake.jpg' }, { file: 'other.jpg' }], { url })
-    );
+    const { calls, result } = await runTelegramCommand(async input => {
+        await input.sendImages([{ file: 'fake.jpg' }, { file: 'other.jpg' }], { url });
+        await input.deleteCommand();
+    });
 
     expect(result.status).toBe('fulfilled');
     expect(calls.map(call => call.method)).toEqual(['sendMediaGroup', 'deleteMessage']);
-    expect(calls[0].payload.media[0].caption).toBe('@TestSender: 已下載 ' + url);
+    expect(calls[0].payload.media[0].caption).toBe('@TestSender : 已下載 ' + url);
     expect(calls[0].payload.media[1].caption).toBeUndefined();
     expect(calls[0].payload.message_thread_id).toBe(10);
 });
 
-test('Telegram retains the normal reply for an automatic link without a command', async () => {
-    const { calls, result } = await runTelegramCommand(input => input.sendVideo('fake.mp4'), false, url);
+test('Telegram attaches the same caption for an automatic link', async () => {
+    const { calls, result } = await runTelegramCommand(input => input.sendVideo('fake.mp4', { url }), false, url);
 
     expect(result.status).toBe('fulfilled');
     expect(calls.map(call => call.method)).toEqual(['sendVideo']);
-    expect(calls[0].payload.reply_parameters).toMatchObject({ message_id: 500 });
-    expect(calls[0].payload.caption).toBeUndefined();
+    expect(calls[0].payload.reply_parameters).toBeUndefined();
+    expect(calls[0].payload.caption).toBe('@TestSender : 已下載 ' + url);
 });

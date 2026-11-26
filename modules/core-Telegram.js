@@ -2,7 +2,7 @@
 if (!process.env.TELEGRAM_CHANNEL_SECRET) {
     return;
 }
-const { Bot, GrammyError, HttpError, InputFile } = require('grammy');
+const { Bot, GrammyError, HttpError } = require('grammy');
 const WebSocket = require('ws');
 const candle = require('../modules/misc/candleDays.js');
 const agenda = require('../modules/runtime/schedule')
@@ -13,9 +13,7 @@ const parseRouter = require('./roll-worker/parse-router');
 const deferQueue = require('./roll-worker/defer-queue');
 const darkRolling = require('./roll-worker/dark-rolling');
 const { handleSocialVideo } = require('./chat/social-video');
-const {
-    socialVideoInput, telegramVideoReply, isTelegramVideoLinkReply, videoLinkPrompt, videoLinkPromptMention,
-} = require('./chat/telegram-social-video');
+const { createTelegramVideoRequest } = require('./chat/telegram-social-video');
 
 deferQueue.registerDeliverer('Telegram', async (job, result) => {
 	const text = result?.text || '';
@@ -50,65 +48,10 @@ const courtMessage = require('./chat/logs').courtMessage || function () { };
 TGclient.on('message:text', (ctx) => {
     if (ctx.from?.is_bot) return;
 
-    const socialVideoGroup = ctx.chat.type === 'group' || ctx.chat.type === 'supergroup';
-    if (socialVideoGroup || ctx.chat.type === 'private') {
-        const topic = ctx.message.is_topic_message ? { message_thread_id: ctx.message.message_thread_id } : {};
-        const reply = { ...topic, reply_parameters: { message_id: ctx.message.message_id, allow_sending_without_reply: true } };
-        const input = socialVideoInput(ctx.message);
-        const linkPromptReply = /^[^./]/u.test(input.text?.trimStart() ?? '') && isTelegramVideoLinkReply(ctx.message, ctx.me.id);
-
-        async function sendMedia(send, download) {
-            let options = reply;
-            if (download) {
-                const mention = `@${ctx.from.username || ctx.from.first_name}`;
-                const prefix = `${mention}: 已下載 `;
-                const displayed = prefix.length + download.url.length <= 1024 ? download.url : '原始連結';
-                const caption_entities = [{ type: 'text_mention', offset: 0, length: mention.length, user: ctx.from }];
-                if (displayed !== download.url) {
-                    caption_entities.push({ type: 'text_link', offset: prefix.length, length: displayed.length, url: download.url });
-                }
-                options = { ...topic, caption: prefix + displayed, caption_entities };
-            }
-            await send(options, AbortSignal.timeout(45_000));
-            if (download && !linkPromptReply) {
-                await ctx.deleteMessage(AbortSignal.timeout(5000)).catch(error => {
-                    console.warn('[Telegram] Could not delete the delivered .video command', error.error_code || error.name);
-                });
-            }
-        }
-
-        void handleSocialVideo({
-            platform: 'Telegram',
-            groupId: socialVideoGroup ? ctx.chat.id : undefined,
-            userId: ctx.from?.id,
-            commandBotName: ctx.me.username,
-            telegramMessage: {
-                id: ctx.message.message_id,
-                replyToId: ctx.message.reply_to_message?.message_id,
-                linkPromptReply,
-            },
-            ...input,
-            promptForLink: () => ctx.reply(videoLinkPrompt, {
-                ...reply,
-                entities: [{ ...videoLinkPromptMention, user: ctx.from }],
-                reply_markup: { force_reply: true, selective: true, input_field_placeholder: '貼上公開貼文連結' },
-            }, AbortSignal.timeout(5000)),
-            getRepliedMessage: telegramVideoReply(ctx.message),
-            sendVideo: (video, download) => sendMedia(
-                (options, signal) => ctx.replyWithVideo(new InputFile(video), { ...options, supports_streaming: true }, signal),
-                download,
-            ),
-            sendImages: (images, download) => sendMedia((options, signal) => {
-                if (images.length === 1) return ctx.replyWithPhoto(new InputFile(images[0].file), options, signal);
-                const { caption, caption_entities, ...albumOptions } = options;
-                const album = images.map(({ file }, index) => ({
-                    type: 'photo',
-                    media: new InputFile(file),
-                    ...(index === 0 && { caption, caption_entities }),
-                }));
-                return ctx.replyWithMediaGroup(album, albumOptions, signal);
-            }, download),
-            sendText: content => ctx.reply(content, reply, AbortSignal.timeout(5000)),
+    const videoRequest = createTelegramVideoRequest(ctx);
+    if (videoRequest) {
+        void handleSocialVideo(videoRequest).catch(error => {
+            console.error('[Social video] Telegram request failed unexpectedly', error?.name);
         });
     }
 

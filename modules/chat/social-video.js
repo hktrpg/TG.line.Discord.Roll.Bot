@@ -28,7 +28,7 @@ const platforms = {
 };
 let active = false;
 let nextBusyReply = 0;
-let automaticTelegramJob;
+let activeAutomaticJob;
 const telegramQueue = [];
 let servingTelegramQueue = false;
 
@@ -421,7 +421,6 @@ const failureMessages = {
     groupDisabled: '這個群組尚未啟用 .video，請群組管理員檢查影片功能設定。',
     dmDisabled: '此 bot 尚未啟用私訊影片功能。',
     link: '請在 .video 後貼上支援的公開貼文連結，或用 .video 回覆含有連結的訊息。',
-    telegramReplyMissing: '未收到可供讀取的回覆資料。請直接輸入 .video <完整連結>。',
     reference: '未能從原訊息讀到支援的公開連結，請直接輸入 .video <完整連結>。',
     threads: 'Threads 媒體擷取尚未啟用。',
     busy: 'Bot 正在處理另一段影片，一次只處理一個請求。請等完成後再試。',
@@ -470,7 +469,8 @@ function videoErrorMessage(error, stage, fallback) {
  * The upload callback must finish before it resolves, since the file is then removed.
  */
 async function handleSocialVideo({
-    platform, groupId, userId, commandBotName, telegramMessage, text, urls, getRepliedMessage, promptForLink, sendVideo, sendImages, sendText,
+    platform, groupId, userId, commandBotName, messageContext, text, urls, getRepliedMessage, promptForLink,
+    sendVideo, sendImages, sendText, deleteCommand,
 }) {
     const config = platforms[platform];
     const actor = String(userId || '');
@@ -480,10 +480,11 @@ async function handleSocialVideo({
     const matchedCommand = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
     if (matchedCommand?.[1] && matchedCommand[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
     const telegram = platform === 'Telegram';
-    const command = Boolean(matchedCommand || (telegram && telegramMessage?.linkPromptReply));
+    const command = Boolean(matchedCommand || messageContext?.linkPromptReply);
+    const delivery = { sendVideo, sendImages, sendText, deleteCommand: matchedCommand ? deleteCommand : undefined };
     let automaticJob;
     const reply = (reason, message = failureMessages[reason]) => {
-        if (automaticJob) automaticTelegramJob = undefined;
+        if (automaticJob) activeAutomaticJob = undefined;
         return (automaticJob?.command?.sendText ?? sendText)(message).catch(() => {});
     };
     if (!allEnabled) {
@@ -503,7 +504,7 @@ async function handleSocialVideo({
     const referenceRequested = bareCommand && getRepliedMessage;
     const needsLinkPrompt = telegram && !link && bareCommand && !referenceRequested && matchedCommand[0].startsWith('/') && promptForLink;
     if (!link && !referenceRequested && !needsLinkPrompt) {
-        if (command) await reply(platform === 'Telegram' && bareCommand ? 'telegramReplyMissing' : 'link');
+        if (command) await reply('link');
         return;
     }
 
@@ -569,16 +570,15 @@ async function handleSocialVideo({
         const recipient = {
             platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,
         };
+        // An author replying to their own active auto-download can take over before upload starts.
+        const job = activeAutomaticJob;
+        if (referenceRequested && job && !job.command && job.platform === platform
+            && job.messageId === messageContext?.replyToId && job.groupId === groupId
+            && job.actor === actor && job.url === link.url && job.scope === recipient.scope) {
+            job.command = delivery;
+            return;
+        }
         if (queueCommand) {
-            // An author replying to their own active auto-download can take over before upload starts.
-            const job = automaticTelegramJob;
-            if (referenceRequested && job && !job.command
-                && job.messageId === telegramMessage?.replyToId && job.groupId === groupId
-                && job.actor === actor && job.url === link.url
-                && job.scope === recipient.scope) {
-                job.command = { sendVideo, sendImages, sendText };
-                return;
-            }
             const limit = Math.min(4, Math.floor(level)) * 3;
             const ticket = enqueueTelegramVideo(`${recipient.scope}:${recipient.id}`, limit);
             if (!ticket) return await reply('busy', `影片隊列已滿。VIP LV ${level} 最多可以等候 ${limit} 條請求。`);
@@ -617,9 +617,9 @@ async function handleSocialVideo({
             await reply(reservation.reason);
             return;
         }
-        if (platform === 'Telegram' && !queueCommand && telegramMessage?.id) {
-            automaticJob = { messageId: telegramMessage.id, groupId, actor, url: link.url, scope: recipient.scope };
-            automaticTelegramJob = automaticJob;
+        if (!command && messageContext?.id) {
+            automaticJob = { platform, messageId: messageContext.id, groupId, actor, url: link.url, scope: recipient.scope };
+            activeAutomaticJob = automaticJob;
         }
         stage = 'download';
         post = await resolveShareLink(link);
@@ -638,13 +638,17 @@ async function handleSocialVideo({
         const media = isImages
             ? await downloadPostImages(primary.urls, directory)
             : await downloadSocialVideo(post, directory, config.maxBytes, primary);
-        if (automaticJob) automaticTelegramJob = undefined;
-        const delivery = queueCommand || automaticJob?.command ? [{ url: link.url }] : [];
-        const send = isImages
-            ? (automaticJob?.command?.sendImages ?? sendImages)
-            : (automaticJob?.command?.sendVideo ?? sendVideo);
+        if (automaticJob) activeAutomaticJob = undefined;
+        const target = automaticJob?.command ?? delivery;
+        const send = isImages ? target.sendImages : target.sendVideo;
         stage = 'upload';
-        await send(media, ...delivery);
+        await send(media, { url: link.url });
+        try {
+            await target.deleteCommand?.();
+        } catch (error) {
+            // Delivery succeeded. A missing permission or a stale command does not affect the upload.
+            console.warn('[Social video] Could not delete the delivered command', { platform, status: error?.status ?? error?.error_code });
+        }
     } catch (error) {
         const status = Number(error?.error_code || error?.status);
         if (reservation?.refund) {
@@ -658,7 +662,7 @@ async function handleSocialVideo({
         }));
         await reply(replyKey, videoErrorMessage(error, stage, replyKey));
     } finally {
-        if (automaticJob) automaticTelegramJob = undefined;
+        if (automaticJob) activeAutomaticJob = undefined;
         try {
             if (directory) await rm(directory, { recursive: true, force: true });
         } catch (cleanupError) {
@@ -674,4 +678,8 @@ async function handleSocialVideo({
     }
 }
 
-module.exports = { findSocialVideoLink, handleSocialVideo };
+function formatSocialVideoSuccess(mention, url) {
+    return `${mention} : 已下載 ${url}`;
+}
+
+module.exports = { findSocialVideoLink, formatSocialVideoSuccess, handleSocialVideo };

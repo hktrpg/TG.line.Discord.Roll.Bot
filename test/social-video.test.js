@@ -206,6 +206,65 @@ test('a bare Discord .video reply resolves the Facebook link from the original m
     expect(request.sendVideo).toHaveBeenCalledTimes(1);
 });
 
+test.each([
+    ['Telegram', -100_123, '.video '],
+    ['Discord', '456', '.video '],
+    ['Telegram', -100_123, '.video'],
+    ['Discord', '456', '.video'],
+])('%s in %s deletes a successful explicit command only after upload (%s)', async (platform, groupId, command) => {
+    const url = 'https://www.instagram.com/reel/DdYZybhJ9s6/';
+    const started = Promise.withResolvers();
+    const upload = Promise.withResolvers();
+    const text = command.endsWith(' ') ? command + url + '?stkn=tracking' : command;
+    const request = telegram({
+        platform, groupId, text,
+        getRepliedMessage: jest.fn().mockResolvedValue({ text: url + '?stkn=tracking' }),
+        sendVideo: jest.fn(() => { started.resolve(); return upload.promise; }),
+        deleteCommand: jest.fn(),
+    });
+    const task = handleSocialVideo(request);
+    try {
+        await Promise.race([started.promise, task]);
+        expect(request.sendVideo).toHaveBeenCalledTimes(1);
+        expect(request.deleteCommand).not.toHaveBeenCalled();
+    } finally {
+        upload.resolve();
+        await task;
+    }
+    expect(request.deleteCommand).toHaveBeenCalledTimes(1);
+    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url });
+    expect(request.sendText).not.toHaveBeenCalled();
+});
+
+test.each([['Telegram', -100_123], ['Discord', '456']])('%s labels an automatic link without deleting it', async (platform, groupId) => {
+    const request = telegram({ platform, groupId, deleteCommand: jest.fn() });
+    await handleSocialVideo(request);
+    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: request.text });
+    expect(request.deleteCommand).not.toHaveBeenCalled();
+});
+
+test.each([['Telegram', -100_123], ['Discord', '456']])('%s preserves a command when the upload fails', async (platform, groupId) => {
+    const request = telegram({ platform, groupId, text: '.video https://www.facebook.com/reel/123', deleteCommand: jest.fn() });
+    request.sendVideo.mockRejectedValue(Object.assign(new Error('Permission denied'), { status: 403 }));
+    await handleSocialVideo(request);
+    expect(request.sendText).toHaveBeenCalledWith('聊天平台拒絕上傳（HTTP 403）。請檢查 Bot 有冇傳送附件嘅權限。');
+    expect(request.deleteCommand).not.toHaveBeenCalled();
+    expect(refund).toHaveBeenCalledWith({ keepUpload: false });
+});
+
+test('a rejected command deletion keeps the delivered media and the charged quota', async () => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const request = telegram({
+        platform: 'Discord', groupId: '456', text: '.video https://www.facebook.com/reel/123',
+        deleteCommand: jest.fn().mockRejectedValue(Object.assign(new Error('Missing permission'), { status: 403 })),
+    });
+    await handleSocialVideo(request);
+    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.deleteCommand).toHaveBeenCalledTimes(1);
+    expect(request.sendText).not.toHaveBeenCalled();
+    expect(refund).not.toHaveBeenCalled();
+});
+
 test('an addressed Telegram reply can use a hidden link from the original caption', async () => {
     const request = telegram({
         text: '/video@HKTRPGBot ', commandBotName: 'HKTRPGBot',
@@ -261,17 +320,20 @@ test.each([['text', 'entities'], ['caption', 'caption_entities']])(
     },
 );
 
-test.each([null, { kind: 'empty' }])('a Telegram .video reply takes over its own active download (%j)', async primary => {
+test.each([
+    ['Telegram', -100_123, null], ['Telegram', -100_123, { kind: 'empty' }],
+    ['Discord', '456', null], ['Discord', '456', { kind: 'empty' }],
+])('a %s .video reply takes over its own active download (%s, %j)', async (platform, groupId, primary) => {
     const downloading = Promise.withResolvers();
     const finishDownload = Promise.withResolvers();
     readPrimaryMedia.mockImplementationOnce(() => {
         downloading.resolve();
         return finishDownload.promise;
     });
-    const original = telegram({ telegramMessage: { id: 500 } });
+    const original = telegram({ platform, groupId, messageContext: { id: 500 }, deleteCommand: jest.fn() });
     const request = telegram({
-        text: '.video',
-        telegramMessage: { id: 501, replyToId: 500 },
+        platform, groupId, text: '.video', deleteCommand: jest.fn(),
+        messageContext: { id: 501, replyToId: 500 },
         getRepliedMessage: telegramVideoReply({ reply_to_message: { text: original.text } }),
     });
     const queued = Promise.withResolvers();
@@ -290,14 +352,17 @@ test.each([null, { kind: 'empty' }])('a Telegram .video reply takes over its own
 
     expect(original.sendVideo).not.toHaveBeenCalled();
     expect(original.sendText).not.toHaveBeenCalled();
+    expect(original.deleteCommand).not.toHaveBeenCalled();
     expect(reserveVideoQuota).toHaveBeenCalledTimes(1);
     if (primary) {
         expect(request.sendVideo).not.toHaveBeenCalled();
         expect(request.sendText).toHaveBeenCalledTimes(1);
         expect(refund).toHaveBeenCalledTimes(1);
+        expect(request.deleteCommand).not.toHaveBeenCalled();
     } else {
         expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: original.text });
         expect(request.sendText).not.toHaveBeenCalled();
+        expect(request.deleteCommand).toHaveBeenCalledTimes(1);
         expect(execFile.mock.calls.filter(([program]) => program === 'yt-dlp')).toHaveLength(1);
     }
 });
@@ -314,20 +379,21 @@ test('a bare Telegram /video from the menu prompts for a link without using quot
 });
 
 test('a reply to a Telegram /video prompt uses the command delivery for the supplied link', async () => {
-    const request = telegram({ telegramMessage: { linkPromptReply: true }, promptForLink: jest.fn() });
+    const request = telegram({ messageContext: { linkPromptReply: true }, promptForLink: jest.fn(), deleteCommand: jest.fn() });
 
     await handleSocialVideo(request);
 
     expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: request.text });
     expect(request.promptForLink).not.toHaveBeenCalled();
+    expect(request.deleteCommand).not.toHaveBeenCalled();
 });
 
-test('a bare Telegram command without reply data explains that the reply details were missing', async () => {
-    const request = telegram({ text: '.video' });
+test.each([['Telegram', -100_123], ['Discord', '456']])('%s gives the same guidance for a bare command without a reply', async (platform, groupId) => {
+    const request = telegram({ platform, groupId, text: '.video' });
     await handleSocialVideo(request);
 
     expect(request.sendText).toHaveBeenCalledWith(
-        '未收到可供讀取的回覆資料。請直接輸入 .video <完整連結>。'
+        '請在 .video 後貼上支援的公開貼文連結，或用 .video 回覆含有連結的訊息。'
     );
     expect(reserveVideoQuota).not.toHaveBeenCalled();
 });
@@ -753,11 +819,15 @@ test('posts images for a photo-only story and shares the normal daily quota', as
     downloadPostImages.mockResolvedValue([attachment]);
     const request = telegram({
         platform: 'Discord', groupId: '456',
-        text: 'https://www.facebook.com/story.php?story_fbid=1607357098088246&id=Philipslightinghongkong',
+        text: '.video https://www.facebook.com/story.php?story_fbid=1607357098088246&id=Philipslightinghongkong',
+        deleteCommand: jest.fn(),
     });
     await handleSocialVideo(request);
     expect(reserveVideoQuota).toHaveBeenCalledTimes(1);
-    expect(request.sendImages).toHaveBeenCalledWith([attachment]);
+    expect(request.sendImages).toHaveBeenCalledWith([attachment], {
+        url: 'https://www.facebook.com/Philipslightinghongkong/posts/1607357098088246/',
+    });
+    expect(request.deleteCommand).toHaveBeenCalledTimes(1);
     expect(request.sendVideo).not.toHaveBeenCalled();
     expect(execFile).not.toHaveBeenCalled();
 });

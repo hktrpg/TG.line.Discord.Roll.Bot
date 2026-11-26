@@ -470,7 +470,7 @@ function videoErrorMessage(error, stage, fallback) {
  */
 async function handleSocialVideo({
     platform, groupId, userId, commandBotName, messageContext, text, urls, getRepliedMessage, promptForLink,
-    sendVideo, sendImages, sendText, deleteCommand,
+    sendMedia, sendText, deleteCommand,
 }) {
     const config = platforms[platform];
     const actor = String(userId || '');
@@ -481,21 +481,28 @@ async function handleSocialVideo({
     if (matchedCommand?.[1] && matchedCommand[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
     const telegram = platform === 'Telegram';
     const command = Boolean(matchedCommand || messageContext?.linkPromptReply);
-    const delivery = { sendVideo, sendImages, sendText, deleteCommand: matchedCommand ? deleteCommand : undefined };
+    const delivery = { sendMedia, sendText, deleteCommand: matchedCommand ? deleteCommand : undefined };
     let automaticJob;
-    const reply = (reason, message = failureMessages[reason]) => {
-        if (automaticJob) activeAutomaticJob = undefined;
-        return (automaticJob?.command?.sendText ?? sendText)(message).catch(() => {});
+    const destination = () => automaticJob?.command ?? delivery;
+    const stopHandoff = () => {
+        if (activeAutomaticJob === automaticJob) activeAutomaticJob = undefined;
+    };
+    const reply = async message => {
+        try {
+            await destination().sendText(message);
+        } catch {
+            // The chat platform may reject a status message.
+        }
     };
     if (!allEnabled) {
         if (groupId) {
             const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
             if (!configured && !(command && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) {
-                if (command) await reply('groupDisabled');
+                if (command) await reply(failureMessages.groupDisabled);
                 return;
             }
         } else if (!isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) {
-            if (command) await reply('dmDisabled');
+            if (command) await reply(failureMessages.dmDisabled);
             return;
         }
     }
@@ -504,14 +511,17 @@ async function handleSocialVideo({
     const referenceRequested = bareCommand && getRepliedMessage;
     const needsLinkPrompt = telegram && !link && bareCommand && !referenceRequested && matchedCommand[0].startsWith('/') && promptForLink;
     if (!link && !referenceRequested && !needsLinkPrompt) {
-        if (command) await reply('link');
+        if (command) await reply(failureMessages.link);
         return;
     }
 
     async function busy() {
-        if (Date.now() < nextBusyReply) return;
-        nextBusyReply = Date.now() + 10_000;
-        await reply('busy');
+        if (!command) {
+            const now = Date.now();
+            if (now < nextBusyReply) return;
+            nextBusyReply = now + 10_000;
+        }
+        await reply(failureMessages.busy);
     }
 
     const queueCommand = telegram && command;
@@ -519,7 +529,7 @@ async function handleSocialVideo({
     async function notifyQueued() {
         if (queueNotice) return;
         queueNotice = true;
-        await reply('busy', '已加入影片隊列，輪到時會自動處理。');
+        await reply('已加入影片隊列，輪到時會自動處理。');
     }
 
     async function acquireQueueLease() {
@@ -548,23 +558,23 @@ async function handleSocialVideo({
             if (command) {
                 const locale = await i18n.resolveLocale({ groupid: groupId, userid: actor });
                 const key = groupId ? 'common.patreon.group_or_personal_vip_required' : 'common.patreon.personal_vip_required';
-                await sendText(i18n.createTranslator(locale)(key)).catch(() => {});
+                await reply(i18n.createTranslator(locale)(key));
             }
             return;
         }
         if (needsLinkPrompt) {
-            await promptForLink().catch(() => reply('link'));
+            await promptForLink().catch(() => reply(failureMessages.link));
             return;
         }
         if (!link) {
             stage = 'reference';
             const original = await getRepliedMessage();
             link = findSocialVideoLink(original?.text, original?.urls);
-            if (!link) return await reply('reference');
+            if (!link) return await reply(failureMessages.reference);
             stage = 'service';
         }
         if (link.extractor === 'threads' && !allEnabled && !isEnvEnabled('SOCIAL_VIDEO_THREADS_ENABLED')) {
-            await reply('threads');
+            await reply(failureMessages.threads);
             return;
         }
         const recipient = {
@@ -581,7 +591,7 @@ async function handleSocialVideo({
         if (queueCommand) {
             const limit = Math.min(4, Math.floor(level)) * 3;
             const ticket = enqueueTelegramVideo(`${recipient.scope}:${recipient.id}`, limit);
-            if (!ticket) return await reply('busy', `影片隊列已滿。VIP LV ${level} 最多可以等候 ${limit} 條請求。`);
+            if (!ticket) return await reply(`影片隊列已滿。VIP LV ${level} 最多可以等候 ${limit} 條請求。`);
             if (ticket.waiting) void notifyQueued();
             leaveQueue = await ticket.turn;
             while (active) await delay(250);
@@ -595,7 +605,7 @@ async function handleSocialVideo({
         stage = 'scratch';
         directory = await createVideoScratch();
         stage = 'service';
-        if (!await hasVideoCapacity()) return await reply('capacity');
+        if (!await hasVideoCapacity()) return await reply(failureMessages.capacity);
         reservation = await reserveVideoQuota(lease, recipient);
         while (queueCommand && reservation.reason === 'cooldown') {
             await lease.release();
@@ -610,11 +620,11 @@ async function handleSocialVideo({
             const message = seconds > 0
                 ? `影片請求太頻繁，請等 ${seconds} 秒再試。`
                 : '影片請求的冷卻時間已結束，可以再試。';
-            await sendText(message).catch(() => {});
+            await reply(message);
             return;
         }
         if (reservation.reason) {
-            await reply(reservation.reason);
+            await reply(failureMessages[reservation.reason]);
             return;
         }
         if (!command && messageContext?.id) {
@@ -631,18 +641,21 @@ async function handleSocialVideo({
         if (primary?.kind === 'empty' || primary?.kind === 'unavailable'
             || (post.extractor === 'threads' && !primary?.url && !primary?.tracks && primary?.kind !== 'images')) {
             if (reservation?.refund) await reservation.refund().catch(() => console.warn('[Social video] Could not refund video quota'));
-            await reply(primary?.kind === 'empty' ? 'empty' : 'download');
+            stopHandoff();
+            await reply(primary?.kind === 'empty' ? failureMessages.empty : failureMessages.download);
             return;
         }
-        const isImages = primary?.kind === 'images';
-        const media = isImages
+        const attachments = primary?.kind === 'images'
             ? await downloadPostImages(primary.urls, directory)
-            : await downloadSocialVideo(post, directory, config.maxBytes, primary);
-        if (automaticJob) activeAutomaticJob = undefined;
-        const target = automaticJob?.command ?? delivery;
-        const send = isImages ? target.sendImages : target.sendVideo;
+            : [{
+                file: await downloadSocialVideo(post, directory, config.maxBytes, primary),
+                name: 'social-video.mp4',
+                contentType: 'video/mp4',
+            }];
+        stopHandoff();
+        const target = destination();
         stage = 'upload';
-        await send(media, { url: link.url });
+        await target.sendMedia({ attachments, url: link.url });
         try {
             await target.deleteCommand?.();
         } catch (error) {
@@ -660,9 +673,10 @@ async function handleSocialVideo({
         console.warn('[Social video] request failed', socialVideoFailureDetails({
             platform, stage, link: post || link, groupId, userId: actor, error, reply: replyKey,
         }));
-        await reply(replyKey, videoErrorMessage(error, stage, replyKey));
+        stopHandoff();
+        await reply(videoErrorMessage(error, stage, replyKey));
     } finally {
-        if (automaticJob) activeAutomaticJob = undefined;
+        stopHandoff();
         try {
             if (directory) await rm(directory, { recursive: true, force: true });
         } catch (cleanupError) {

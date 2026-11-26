@@ -32,6 +32,7 @@ jest.mock('../modules/patreon/veryImportantPerson', () => ({
 
 const originalEnv = process.env;
 const scratchRoot = tmpdir();
+const videoAttachment = [{ file: expect.any(String), name: 'social-video.mp4', contentType: 'video/mp4' }];
 let sourceBytes;
 let videoDuration;
 let refund;
@@ -88,8 +89,7 @@ function telegram(options = {}) {
         groupId: -100_123,
         userId: 123,
         text: 'https://www.facebook.com/reel/123',
-        sendVideo: jest.fn().mockResolvedValue(),
-        sendImages: jest.fn().mockResolvedValue(),
+        sendMedia: jest.fn().mockResolvedValue(),
         sendText: jest.fn().mockResolvedValue(),
         ...options,
     };
@@ -167,7 +167,7 @@ test('the main flag alone automatically handles a link in any VIP guild', async 
     const request = telegram({ platform: 'Discord', groupId: '999' });
     await handleSocialVideo(request);
     expect(viplevelCheckGroup).toHaveBeenCalledWith('999', 'Discord');
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test('the main flag enables Threads in DMs even when legacy switches are off', async () => {
@@ -179,7 +179,7 @@ test('the main flag enables Threads in DMs even when legacy switches are off', a
     const request = telegram({ groupId: null, text: 'https://www.threads.com/share/abc' });
     await handleSocialVideo(request);
     expect(viplevelCheckUser).toHaveBeenCalledWith('123', 'Telegram');
-    expect(request.sendImages).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test('an explicit false master flag disables legacy entry points', async () => {
@@ -203,7 +203,7 @@ test('a bare Discord .video reply resolves the Facebook link from the original m
     await handleSocialVideo(request);
     expect(getRepliedMessage).toHaveBeenCalledTimes(1);
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/789/');
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test.each([
@@ -219,33 +219,33 @@ test.each([
     const request = telegram({
         platform, groupId, text,
         getRepliedMessage: jest.fn().mockResolvedValue({ text: url + '?stkn=tracking' }),
-        sendVideo: jest.fn(() => { started.resolve(); return upload.promise; }),
+        sendMedia: jest.fn(() => { started.resolve(); return upload.promise; }),
         deleteCommand: jest.fn(),
     });
     const task = handleSocialVideo(request);
     try {
         await Promise.race([started.promise, task]);
-        expect(request.sendVideo).toHaveBeenCalledTimes(1);
+        expect(request.sendMedia).toHaveBeenCalledTimes(1);
         expect(request.deleteCommand).not.toHaveBeenCalled();
     } finally {
         upload.resolve();
         await task;
     }
     expect(request.deleteCommand).toHaveBeenCalledTimes(1);
-    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url });
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment, url });
     expect(request.sendText).not.toHaveBeenCalled();
 });
 
 test.each([['Telegram', -100_123], ['Discord', '456']])('%s labels an automatic link without deleting it', async (platform, groupId) => {
     const request = telegram({ platform, groupId, deleteCommand: jest.fn() });
     await handleSocialVideo(request);
-    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: request.text });
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment, url: request.text });
     expect(request.deleteCommand).not.toHaveBeenCalled();
 });
 
 test.each([['Telegram', -100_123], ['Discord', '456']])('%s preserves a command when the upload fails', async (platform, groupId) => {
     const request = telegram({ platform, groupId, text: '.video https://www.facebook.com/reel/123', deleteCommand: jest.fn() });
-    request.sendVideo.mockRejectedValue(Object.assign(new Error('Permission denied'), { status: 403 }));
+    request.sendMedia.mockRejectedValue(Object.assign(new Error('Permission denied'), { status: 403 }));
     await handleSocialVideo(request);
     expect(request.sendText).toHaveBeenCalledWith('聊天平台拒絕上傳（HTTP 403）。請檢查 Bot 有冇傳送附件嘅權限。');
     expect(request.deleteCommand).not.toHaveBeenCalled();
@@ -259,7 +259,7 @@ test('a rejected command deletion keeps the delivered media and the charged quot
         deleteCommand: jest.fn().mockRejectedValue(Object.assign(new Error('Missing permission'), { status: 403 })),
     });
     await handleSocialVideo(request);
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
     expect(request.deleteCommand).toHaveBeenCalledTimes(1);
     expect(request.sendText).not.toHaveBeenCalled();
     expect(refund).not.toHaveBeenCalled();
@@ -274,7 +274,7 @@ test('an addressed Telegram reply can use a hidden link from the original captio
     });
     await handleSocialVideo(request);
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/456/');
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test.each([
@@ -296,7 +296,7 @@ test.each([
     await handleSocialVideo(request);
 
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/456/');
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test.each([['text', 'entities'], ['caption', 'caption_entities']])(
@@ -315,7 +315,7 @@ test.each([['text', 'entities'], ['caption', 'caption_entities']])(
 
         await handleSocialVideo(request);
 
-        expect(request.sendVideo).toHaveBeenCalledTimes(1);
+        expect(request.sendMedia).toHaveBeenCalledTimes(1);
         expect(execFile.mock.calls[0][1].at(-1)).toBe(url);
     },
 );
@@ -350,17 +350,17 @@ test.each([
         await Promise.all([autoTask, commandTask]);
     }
 
-    expect(original.sendVideo).not.toHaveBeenCalled();
+    expect(original.sendMedia).not.toHaveBeenCalled();
     expect(original.sendText).not.toHaveBeenCalled();
     expect(original.deleteCommand).not.toHaveBeenCalled();
     expect(reserveVideoQuota).toHaveBeenCalledTimes(1);
     if (primary) {
-        expect(request.sendVideo).not.toHaveBeenCalled();
+        expect(request.sendMedia).not.toHaveBeenCalled();
         expect(request.sendText).toHaveBeenCalledTimes(1);
         expect(refund).toHaveBeenCalledTimes(1);
         expect(request.deleteCommand).not.toHaveBeenCalled();
     } else {
-        expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: original.text });
+        expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment, url: original.text });
         expect(request.sendText).not.toHaveBeenCalled();
         expect(request.deleteCommand).toHaveBeenCalledTimes(1);
         expect(execFile.mock.calls.filter(([program]) => program === 'yt-dlp')).toHaveLength(1);
@@ -383,7 +383,7 @@ test('a reply to a Telegram /video prompt uses the command delivery for the supp
 
     await handleSocialVideo(request);
 
-    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: request.text });
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment, url: request.text });
     expect(request.promptForLink).not.toHaveBeenCalled();
     expect(request.deleteCommand).not.toHaveBeenCalled();
 });
@@ -412,7 +412,7 @@ test.each(['.video \u200B', '.video\u200B'])('a Telegram .video reply ignores in
     const request = telegram({ text, getRepliedMessage });
     await handleSocialVideo(request);
     expect(getRepliedMessage).toHaveBeenCalledTimes(1);
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
     expect(request.sendText).not.toHaveBeenCalled();
 });
 
@@ -422,7 +422,7 @@ test('a link in the command wins and a regular reply does not fetch the referenc
     const request = telegram({ text: '.video https://www.facebook.com/reel/789/', getRepliedMessage });
     await handleSocialVideo(request);
     expect(getRepliedMessage).not.toHaveBeenCalled();
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test.each([undefined, { text: 'No links here' }])('an unavailable reply link costs no quota', async original => {
@@ -494,7 +494,7 @@ test.each(['Telegram', 'Discord'])('personal VIP can use an enabled %s DM', asyn
     await handleSocialVideo(request);
     expect(viplevelCheckUser).toHaveBeenLastCalledWith('123', platform);
     expect(viplevelCheckGroup).not.toHaveBeenCalled();
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test('consumes group quota first even when the sender is a personal VIP', async () => {
@@ -519,7 +519,7 @@ test('a personal VIP uses personal quota and receives the file in a non-VIP grou
     expect(reserveVideoQuota).toHaveBeenCalledWith(expect.anything(), {
         platform: 'Telegram', scope: 'user', id: '123', userId: '123',
     });
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test.each([
@@ -548,7 +548,7 @@ test.each([[1, 3], [2, 6], [3, 9], [4, 12], [7, 12]])(
         const order = [];
         const text = '.video https://www.facebook.com/reel/123';
         const first = telegram({ text });
-        first.sendVideo.mockImplementation(async () => {
+        first.sendMedia.mockImplementation(async () => {
             firstStarted.resolve();
             await continueFirst.promise;
             order.push(0);
@@ -561,15 +561,15 @@ test.each([[1, 3], [2, 6], [3, 9], [4, 12], [7, 12]])(
                 const next = telegram({ text, userId: 123 + index });
                 const queued = Promise.withResolvers();
                 next.sendText.mockImplementation(async message => queued.resolve(message));
-                next.sendVideo.mockImplementation(async () => { order.push(index); });
+                next.sendMedia.mockImplementation(async () => { order.push(index); });
                 tasks.push(handleSocialVideo(next));
                 await expect(queued.promise).resolves.toContain('已加入影片隊列');
-                expect(next.sendVideo).not.toHaveBeenCalled();
+                expect(next.sendMedia).not.toHaveBeenCalled();
             }
             const overflow = telegram({ text, userId: 1000 });
             await handleSocialVideo(overflow);
             expect(overflow.sendText).toHaveBeenCalledWith(expect.stringContaining('最多可以等候 ' + limit));
-            expect(overflow.sendVideo).not.toHaveBeenCalled();
+            expect(overflow.sendMedia).not.toHaveBeenCalled();
         } finally {
             continueFirst.resolve();
             await Promise.all(tasks);
@@ -586,7 +586,7 @@ test('personal VIP uses one waiting limit across private chats and non-VIP group
     const started = Promise.withResolvers();
     const unblock = Promise.withResolvers();
     const first = telegram({ text, groupId: null });
-    first.sendVideo.mockImplementation(async () => {
+    first.sendMedia.mockImplementation(async () => {
         started.resolve();
         await unblock.promise;
     });
@@ -621,13 +621,13 @@ test('a Telegram .video waits through a successful cooldown without sending a ra
 
     expect(request.sendText).toHaveBeenCalledWith(expect.stringContaining('已加入影片隊列'));
     expect(request.sendText.mock.calls.every(([message]) => !message.includes('太頻繁'))).toBe(true);
-    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), { url: 'https://www.facebook.com/reel/123' });
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment, url: 'https://www.facebook.com/reel/123' });
     expect(release).toHaveBeenCalledTimes(2);
 });
 
 test('an uncertain Telegram upload failure restores cooldown without returning the upload allowance', async () => {
     const request = telegram({ text: '.video https://www.facebook.com/reel/123' });
-    request.sendVideo.mockRejectedValue(new Error('connection failed'));
+    request.sendMedia.mockRejectedValue(new Error('connection failed'));
     jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     await handleSocialVideo(request);
@@ -661,7 +661,7 @@ test('resolves a Facebook share to a Reel, uploads the file, then cleans up', as
         new Response(null, { status: 302, headers: { Location: '/reel/123/?tracking=1' } }),
     );
     const request = telegram({ text: 'https://www.facebook.com/share/r/abc/' });
-    request.sendVideo.mockImplementation(async file => {
+    request.sendMedia.mockImplementation(async ({ attachments: [{ file }] }) => {
         const details = await stat(file);
         expect(details.isFile()).toBe(true);
     });
@@ -669,8 +669,8 @@ test('resolves a Facebook share to a Reel, uploads the file, then cleans up', as
     expect(fetcher).toHaveBeenCalledWith('https://www.facebook.com/share/r/abc/', expect.objectContaining({ redirect: 'manual' }));
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/reel/123/');
     expect(execFile.mock.calls[0][1]).toContain(String(30 * 1024 * 1024));
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
-    await expect(stat(request.sendVideo.mock.calls[0][0])).rejects.toMatchObject({ code: 'ENOENT' });
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
+    await expect(stat(request.sendMedia.mock.calls[0][0].attachments[0].file)).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
 test('rejects a Facebook redirect to a different host before fetching it', async () => {
@@ -695,7 +695,7 @@ test('follows a Facebook video share through story.php and a localized video slu
     await handleSocialVideo(request);
     expect(fetcher).toHaveBeenNthCalledWith(2, `https://www.facebook.com${story}`, expect.anything());
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/watch/?v=789');
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test('resolves a Facebook video share through its public canonical post when story.php redirects to login', async () => {
@@ -715,7 +715,7 @@ test('resolves a Facebook video share through its public canonical post when sto
     expect(fetcher).toHaveBeenCalledTimes(3);
     expect(fetcher).toHaveBeenNthCalledWith(3, 'https://www.facebook.com/100063738685814/posts/1867816297994985/', expect.anything());
     expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/watch/?v=1867816297994985');
-    expect(request.sendVideo).toHaveBeenCalledWith(expect.any(String), {
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment,
         url: 'https://www.facebook.com/share/v/19sWN9xGhY/',
     });
 });
@@ -723,14 +723,14 @@ test('resolves a Facebook video share through its public canonical post when sto
 test('compresses a short clip that exceeds the Discord cap and refunds a rejected upload', async () => {
     sourceBytes = 21 * 1024 * 1024;
     const request = telegram({ platform: 'Discord', groupId: '456' });
-    request.sendVideo.mockRejectedValue(Object.assign(new Error('Upload failed'), { status: 403 }));
+    request.sendMedia.mockRejectedValue(Object.assign(new Error('Upload failed'), { status: 403 }));
     await handleSocialVideo(request);
     const encoding = execFile.mock.calls.find(([, args]) => args.includes('libx264'));
     expect(encoding?.[1]).toContain(String(20 * 1024 * 1024));
     expect(encoding?.[2].timeout).toBe(30_000);
     expect(request.sendText).toHaveBeenCalledTimes(1);
     expect(refund).toHaveBeenCalledTimes(1);
-    await expect(stat(request.sendVideo.mock.calls[0][0])).rejects.toMatchObject({ code: 'ENOENT' });
+    await expect(stat(request.sendMedia.mock.calls[0][0].attachments[0].file)).rejects.toMatchObject({ code: 'ENOENT' });
 });
 
 test.each([
@@ -745,7 +745,7 @@ test.each([
     await handleSocialVideo(request);
 
     expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(expected));
-    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(request.sendMedia).not.toHaveBeenCalled();
     expect(refund).toHaveBeenCalledTimes(1);
     expect(execFile.mock.calls[0][1]).toContain('--no-simulate');
 });
@@ -757,7 +757,7 @@ test('explains the clip-length limit when FFprobe discovers it after download', 
     await handleSocialVideo(request);
 
     expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(/5 分 1 秒.*5 分鐘上限/));
-    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(request.sendMedia).not.toHaveBeenCalled();
     expect(refund).toHaveBeenCalledTimes(1);
 });
 
@@ -783,7 +783,7 @@ test('rejects an oversized long clip before encoding and refunds the upload quot
     const request = telegram({ platform: 'Discord', groupId: '456' });
     await handleSocialVideo(request);
     expect(execFile).toHaveBeenCalledTimes(2);
-    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(request.sendMedia).not.toHaveBeenCalled();
     expect(request.sendText).toHaveBeenCalledWith(expect.stringMatching(/1 分 31 秒.*1 分 30 秒.*20 MiB/));
     expect(refund).toHaveBeenCalledTimes(1);
 });
@@ -809,7 +809,7 @@ test('requires opt-in for the Threads extractor', async () => {
     downloadPostVideo.mockImplementation((url, file) => writeFile(file, 'video'));
     await handleSocialVideo(request);
     expect(downloadPostVideo).toHaveBeenCalledTimes(1);
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
 test('posts images for a photo-only story and shares the normal daily quota', async () => {
@@ -824,11 +824,11 @@ test('posts images for a photo-only story and shares the normal daily quota', as
     });
     await handleSocialVideo(request);
     expect(reserveVideoQuota).toHaveBeenCalledTimes(1);
-    expect(request.sendImages).toHaveBeenCalledWith([attachment], {
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: [attachment],
         url: 'https://www.facebook.com/Philipslightinghongkong/posts/1607357098088246/',
     });
     expect(request.deleteCommand).toHaveBeenCalledTimes(1);
-    expect(request.sendVideo).not.toHaveBeenCalled();
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
     expect(execFile).not.toHaveBeenCalled();
 });
 
@@ -843,5 +843,24 @@ test('uses the source audio and smaller video rendition before considering encod
     await handleSocialVideo(request);
     expect(downloadPostVideo.mock.calls.map(([url]) => url)).toEqual([tracks.video, tracks.audio]);
     expect(execFile.mock.calls.some(([, args]) => args.includes('libx264'))).toBe(false);
-    expect(request.sendVideo).toHaveBeenCalledTimes(1);
+    expect(request.sendMedia).toHaveBeenCalledTimes(1);
+});
+
+test('every explicit Discord command gets a busy reply while automatic notices are throttled', async () => {
+    jest.spyOn(Date, 'now').mockReturnValue(Date.now() + 60_000);
+    acquireVideoLease.mockResolvedValue(null);
+    const createRequest = text => telegram({ platform: 'Discord', groupId: '456', text });
+    const link = 'https://www.facebook.com/reel/123';
+    const firstAuto = createRequest(link);
+    const secondAuto = createRequest(link);
+    const commands = [createRequest('.video ' + link), createRequest('.video ' + link)];
+    for (const request of [firstAuto, secondAuto, ...commands]) await handleSocialVideo(request);
+    const busy = 'Bot 正在處理另一段影片，一次只處理一個請求。請等完成後再試。';
+    expect(firstAuto.sendText).toHaveBeenCalledWith(busy);
+    expect(secondAuto.sendText).not.toHaveBeenCalled();
+    for (const request of commands) {
+        expect(request.sendText).toHaveBeenCalledTimes(1);
+        expect(request.sendText).toHaveBeenCalledWith(busy);
+    }
+    expect(reserveVideoQuota).not.toHaveBeenCalled();
 });

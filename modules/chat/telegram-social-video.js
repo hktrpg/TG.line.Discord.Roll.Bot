@@ -79,15 +79,18 @@ function createTelegramVideoRequest(ctx) {
             entities: [{ ...videoLinkPromptMention, user: from }],
             reply_markup: { force_reply: true, selective: true, input_field_placeholder: '貼上公開貼文連結' },
         }, AbortSignal.timeout(5000)),
-        sendVideo: (file, { url }) => ctx.replyWithVideo(new InputFile(file), {
-            ...mediaOptions(url), supports_streaming: true,
-        }, AbortSignal.timeout(45_000)),
-        sendImages: (images, { url }) => {
+        sendMedia({ attachments, url }) {
             const options = mediaOptions(url);
             const signal = AbortSignal.timeout(45_000);
-            if (images.length === 1) return ctx.replyWithPhoto(new InputFile(images[0].file), options, signal);
+            if (attachments.length === 1) {
+                const [{ file, contentType }] = attachments;
+                const media = new InputFile(file);
+                return contentType === 'video/mp4'
+                    ? ctx.replyWithVideo(media, { ...options, supports_streaming: true }, signal)
+                    : ctx.replyWithPhoto(media, options, signal);
+            }
             const { caption, caption_entities, ...albumOptions } = options;
-            const album = images.map(({ file }, index) => ({
+            const album = attachments.map(({ file }, index) => ({
                 type: 'photo',
                 media: new InputFile(file),
                 ...(index === 0 && { caption, caption_entities }),

@@ -191,7 +191,7 @@ async function readXMedia(original, maxBytes) {
     const id = xPostRoute.exec(original.pathname)?.[1];
     if (!id) return null;
     // The token is derived from the public post ID by X's embed client.
-    const token = (Number(id) / 1e15 * Math.PI).toString(36).replace(/[0.]/g, '');
+    const token = (Number(id) / 1e15 * Math.PI).toString(36).replaceAll(/[0.]/g, '');
     const url = new URL('https://cdn.syndication.twimg.com/tweet-result');
     url.search = new URLSearchParams({ id, token });
     const bytes = MIB;
@@ -201,7 +201,8 @@ async function readXMedia(original, maxBytes) {
             && target.pathname === url.pathname && target.searchParams.get('id') === id, {
             signal: AbortSignal.timeout(8000), bytes,
         });
-        post = JSON.parse((await readBody(response, bytes)).toString('utf8'));
+        const body = await readBody(response, bytes);
+        post = JSON.parse(body.toString('utf8'));
     } catch (error) {
         // Keep the existing video extractor available when public embeds are unavailable.
         const status = error?.status;
@@ -224,7 +225,7 @@ async function readXMedia(original, maxBytes) {
         const video = selectRendition(mp4, maxBytes, duration);
         if (video) return { kind: 'video', url: video, duration };
     }
-    if (videos.length) return null;
+    if (videos.length > 0) return null;
 
     const photos = post.mediaDetails.filter(media => media?.type === 'photo').map(media => ({
         image: safeURL(media.media_url_https, target => target.hostname === 'pbs.twimg.com' && target.pathname.startsWith('/media/'))?.href,
@@ -237,7 +238,8 @@ async function readRedditVideo(id, maxBytes) {
     const bytes = 256 * 1024;
     const { response } = await fetchBounded(url, target => target.hostname === redditVideoHost
         && target.pathname === `/${id}/DASHPlaylist.mpd`, { signal: AbortSignal.timeout(8000), bytes });
-    const $ = load((await readBody(response, bytes)).toString('utf8'), { xmlMode: true });
+    const body = await readBody(response, bytes);
+    const $ = load(body.toString('utf8'), { xmlMode: true });
     const manifest = $('MPD').first();
     if (manifest.attr('type') !== 'static' || $('Period').length !== 1) return { kind: 'unavailable' };
     const time = /^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+(?:\.\d+)?)S)?$/.exec(manifest.attr('mediaPresentationDuration') || '');
@@ -271,11 +273,12 @@ async function readRedditMedia(original, maxBytes) {
     const bytes = 2 * MIB;
     const { response } = await fetchBounded(embed.href, target => target.origin === embed.origin
         && redditPostRoute.exec(target.pathname)?.[1] === postId, { signal: AbortSignal.timeout(8000), bytes });
-    const $ = load((await readBody(response, bytes)).toString('utf8'), { scriptingEnabled: false });
+    const body = await readBody(response, bytes);
+    const $ = load(body.toString('utf8'), { scriptingEnabled: false });
     const post = $(`#t3_${postId}-embed-wrapper #embed-container`).first();
-    if (!post.length) return { kind: 'unavailable' };
+    if (post.length === 0) return { kind: 'unavailable' };
     const player = post.find(`shreddit-player[post-id="t3_${postId}"]`).first();
-    if (player.length) {
+    if (player.length > 0) {
         const video = safeURL(player.attr('src'), target => target.hostname === redditVideoHost);
         const videoId = /^\/([a-z0-9]+)\/HLSPlaylist\.m3u8$/i.exec(video?.pathname ?? '')?.[1];
         return videoId ? readRedditVideo(videoId, maxBytes) : { kind: 'unavailable' };

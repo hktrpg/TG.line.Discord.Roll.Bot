@@ -786,7 +786,7 @@ test('uses the finished video pixel aspect ratio and orientation for Telegram di
     const request = telegram();
     await handleSocialVideo(request);
 
-    const [, probeOptions] = execFile.mock.calls.filter(([command]) => command === 'ffprobe').at(-1);
+    const [, probeOptions] = execFile.mock.calls.findLast(([command]) => command === 'ffprobe');
     expect(probeOptions[probeOptions.indexOf('-show_entries') + 1]).toContain('sample_aspect_ratio:stream_side_data=rotation');
     expect(request.sendMedia).toHaveBeenCalledWith({
         attachments: [expect.objectContaining({ dimensions: { width: 240, height: 480 } })],

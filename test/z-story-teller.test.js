@@ -13,6 +13,7 @@ jest.mock('../modules/roll-worker/safe-fetch', () => ({ safeFetchText: jest.fn()
 const path = require('node:path');
 const fs = require('node:fs');
 const { randomUUID } = require('node:crypto');
+const assert = require('assert');
 const { safeFetchText } = require('../modules/roll-worker/safe-fetch');
 
 describe('StoryTeller (.st) Module Tests', () => {
@@ -237,7 +238,6 @@ describe('StoryTeller (.st) Module Tests', () => {
     });
 });
 
-const assert = require('assert');
 const storyTeller = require('../roll/z-story-teller.js');
 
 describe('StoryTeller Discord-only restrictions', function () {

@@ -14,8 +14,8 @@ jest.mock('../modules/db/schema.js', () => ({
     chatRoom: { find: mockFind }
 }));
 
-const records = require('../modules/db/records.js');
 const { setImmediate: nextTurn } = require('node:timers/promises');
+const records = require('../modules/db/records.js');
 
 describe('chatRoomGet query guard', () => {
     beforeEach(() => {

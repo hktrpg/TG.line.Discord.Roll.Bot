@@ -37,8 +37,8 @@ function createDiscordVideoRequest(message) {
                 for (const { file, name, contentType } of attachments) {
                     files.push({ name, data: await readFile(file), contentType });
                 }
-            } catch (cause) {
-                throw new VideoAttachmentReadError('Could not read the prepared media attachment', { cause });
+            } catch (error) {
+                throw new VideoAttachmentReadError('Could not read the prepared media attachment', { cause: error });
             }
             if (content.length > MAX_MESSAGE_LENGTH) {
                 content = formatSocialVideoSuccess(mention, '原始連結');

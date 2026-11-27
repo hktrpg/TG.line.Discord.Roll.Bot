@@ -79,7 +79,7 @@ const sources = [
     {
         extractor: 'facebook.*',
         hosts: ['facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com'],
-        path: /^\/share\/(?:r|v|p)\/[\w-]+\/?$/,
+        path: /^\/share\/[\w-]+\/[\w-]+\/?$/,
         redirect: true,
     },
     { extractor: 'facebook.*', hosts: ['fb.watch'], path: /^\/[\w-]+\/?$/, redirect: true },
@@ -184,7 +184,6 @@ function checkDownloaderMetadata(stdout) {
 }
 
 async function resolveShareLink(link) {
-    const videoShare = new URL(link.url).pathname.startsWith('/share/v/');
     const signal = AbortSignal.timeout(8000);
     for (let redirects = 0; link.redirect && redirects < 5; redirects++) {
         const response = await fetch(link.url, { redirect: 'manual', signal });
@@ -196,7 +195,7 @@ async function resolveShareLink(link) {
             throw new VideoRequestError('Facebook 分享連結未能轉到影片。請貼原始公開貼文或 Reel 連結。');
         }
         const destination = new URL(location, link.url);
-        if (videoShare && link.story && destination.origin === new URL(link.url).origin
+        if (link.story && destination.origin === new URL(link.url).origin
             && /^\/login\/?$/.test(destination.pathname)) {
             // Facebook can require login for the share's story route even when its canonical post is public.
             link = { ...parseLink(link.url), redirect: true, storyPost: true };

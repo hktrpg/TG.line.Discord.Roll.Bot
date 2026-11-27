@@ -702,26 +702,59 @@ test('follows a Facebook video share through story.php and a localized video slu
     expect(request.sendMedia).toHaveBeenCalledTimes(1);
 });
 
-test('resolves a Facebook video share through its public canonical post when story.php redirects to login', async () => {
-    const share = 'https://www.facebook.com/share/v/19sWN9xGhY/?mibextid=wwXIfr';
+test.each([
+    ['/share/v/19sWN9xGhY/', '100063738685814', '1867816297994985', '1867816297994985'],
+    ['/share/r/14xF9qxShWq/', '100064545168586', '1561296706031820', '28984817944543438'],
+    ['/share/p/post-token/', '456', '123', '789'],
+    ['/share/new-kind/reel-token_123', '456', '123', '789'],
+])('resolves a Facebook %s link through the public post when story.php redirects to login', async (sharePath, ownerId, postId, videoId) => {
+    const origin = 'https://www.facebook.com';
+    const share = origin + sharePath;
     const fetcher = jest.spyOn(globalThis, 'fetch')
         .mockResolvedValueOnce(new Response(null, { status: 302, headers: {
-            location: '/story.php?story_fbid=1867816297994985&id=100063738685814',
+            location: '/story.php?story_fbid=' + postId + '&id=' + ownerId,
         } }))
         .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: '/login/?next=private' } }))
         .mockResolvedValueOnce(new Response(null, { status: 302, headers: {
-            location: '/incgmedia/videos/%E7%89%87%E5%90%8D/1867816297994985/',
+            location: '/page/videos/%E7%89%87%E5%90%8D/' + videoId + '/',
         } }));
-    const request = telegram({ text: '.video ' + share });
+    const request = telegram({ text: '.video ' + share + '?mibextid=wwXIfr' });
 
     await handleSocialVideo(request);
 
     expect(fetcher).toHaveBeenCalledTimes(3);
-    expect(fetcher).toHaveBeenNthCalledWith(3, 'https://www.facebook.com/100063738685814/posts/1867816297994985/', expect.anything());
-    expect(execFile.mock.calls[0][1].at(-1)).toBe('https://www.facebook.com/watch/?v=1867816297994985');
-    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment,
-        url: 'https://www.facebook.com/share/v/19sWN9xGhY/',
-    });
+    expect(fetcher).toHaveBeenNthCalledWith(3, origin + '/' + ownerId + '/posts/' + postId + '/', expect.anything());
+    expect(execFile.mock.calls[0][1].at(-1)).toBe(origin + '/watch/?v=' + videoId);
+    expect(request.sendMedia).toHaveBeenCalledWith({ attachments: videoAttachment, url: share });
+});
+
+test('an unrecognized Facebook share kind still rejects a redirect to another host', async () => {
+    const fetcher = jest.spyOn(globalThis, 'fetch').mockResolvedValue(
+        new Response(null, { status: 302, headers: { location: 'https://example.org/reel/123/' } }),
+    );
+    const request = telegram({ text: '.video https://www.facebook.com/share/new-kind/token/' });
+
+    await handleSocialVideo(request);
+
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(execFile).not.toHaveBeenCalled();
+    expect(request.sendMedia).not.toHaveBeenCalled();
+});
+
+test('a Facebook share cannot download when its canonical post also requires login', async () => {
+    const fetcher = jest.spyOn(globalThis, 'fetch')
+        .mockResolvedValueOnce(new Response(null, { status: 302, headers: {
+            location: '/story.php?story_fbid=123&id=456',
+        } }))
+        .mockResolvedValue(new Response(null, { status: 302, headers: { location: '/login/?next=private' } }));
+    const request = telegram({ text: '.video https://www.facebook.com/share/new-kind/token/' });
+
+    await handleSocialVideo(request);
+
+    expect(fetcher).toHaveBeenCalledTimes(3);
+    expect(fetcher).toHaveBeenNthCalledWith(3, 'https://www.facebook.com/456/posts/123/', expect.anything());
+    expect(execFile).not.toHaveBeenCalled();
+    expect(request.sendMedia).not.toHaveBeenCalled();
 });
 
 test('compresses a short clip that exceeds the Discord cap and refunds a rejected upload', async () => {

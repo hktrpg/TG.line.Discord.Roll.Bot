@@ -27,15 +27,15 @@ can supply a preview image. Replies and quoted posts are ignored.
    Executable names without a path use PATH. Clear old overrides when
    switching to the bundled tools.
 2. Set `SOCIAL_VIDEO_ENABLED=true` in the gateway's environment. This enables
-   automatic links in groups and DMs, `.video <link>`, Threads, and Windows
-   temporary storage. Set it to `false` to turn the feature off. Existing
+   `.video <link>` and `.video` replies in groups and DMs, including Threads,
+   plus Windows temporary storage. Set it to `false` to turn the feature off. Existing
    deployments using individual media switches retain their settings if the
    new switch is unset.
 
 A VIP group uses its group quota. In other groups and in DMs, the sender
 needs personal VIP. The bot must be able to read messages and attach files.
-For Telegram automatic group reposts, make the bot a group admin or disable
-its BotFather privacy mode. With privacy mode enabled, use
+To receive `.video` in Telegram groups, make the bot a group admin or disable
+its BotFather privacy mode. If the bot cannot receive `.video`, use
 `/video@BotUsername <link>` to address the bot explicitly. Threads accepts
 public post and `/share/` links. Images must be JPEG or PNG and at most 3 MiB
 each. A provider login wall can prevent retrieval.

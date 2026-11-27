@@ -47,7 +47,6 @@ test('Discord reads the replied message and deletes only the command addressed b
         content: '.video', type: MessageType.Reply, reference: { messageId: '499', channelId: '200' },
     });
     rest.get.mockResolvedValue({ content: 'View this', embeds: [{ url }] });
-    expect(request.messageContext).toEqual({ id: '500', replyToId: '499' });
     await expect(request.getRepliedMessage()).resolves.toEqual({ text: 'View this', urls: [url] });
     expect(rest.get).toHaveBeenCalledTimes(1);
     expect(rest.delete).not.toHaveBeenCalled();

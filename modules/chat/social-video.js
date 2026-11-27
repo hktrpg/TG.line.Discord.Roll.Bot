@@ -26,8 +26,6 @@ const platforms = {
     Discord: { groups: 'SOCIAL_VIDEO_DISCORD_GUILD_IDS', maxBytes: 20 * MIB },
 };
 let active = false;
-let nextBusyReply = 0;
-let activeAutomaticJob;
 const telegramQueue = [];
 let servingTelegramQueue = false;
 
@@ -483,7 +481,7 @@ function videoErrorMessage(error, stage, fallback) {
  * The upload callback must finish before it resolves, since the file is then removed.
  */
 async function handleSocialVideo({
-    platform, groupId, userId, commandBotName, messageContext, text, urls, getRepliedMessage, promptForLink,
+    platform, groupId, userId, commandBotName, linkPromptReply, text, urls, getRepliedMessage, promptForLink,
     sendMedia, sendText, deleteCommand,
 }) {
     const config = platforms[platform];
@@ -494,16 +492,11 @@ async function handleSocialVideo({
     const matchedCommand = /^(?:\.video|\/video(?:@(\w+))?)(?=[\s\p{Default_Ignorable_Code_Point}]|$)/iu.exec(text || '');
     if (matchedCommand?.[1] && matchedCommand[1].toLowerCase() !== commandBotName?.toLowerCase()) return;
     const telegram = platform === 'Telegram';
-    const command = Boolean(matchedCommand || messageContext?.linkPromptReply);
-    const delivery = { sendMedia, sendText, deleteCommand: matchedCommand ? deleteCommand : undefined };
-    let automaticJob;
-    const destination = () => automaticJob?.command ?? delivery;
-    const stopHandoff = () => {
-        if (activeAutomaticJob === automaticJob) activeAutomaticJob = undefined;
-    };
+    if (!matchedCommand && !(telegram && linkPromptReply)) return;
+
     const reply = async message => {
         try {
-            await destination().sendText(message);
+            await sendText(message);
         } catch {
             // The chat platform may reject a status message.
         }
@@ -512,29 +505,18 @@ async function handleSocialVideo({
     if (!allEnabled) {
         if (groupId) {
             const configured = process.env[config.groups]?.split(',').some(group => group.trim() === String(groupId));
-            if (!configured && !(command && isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED'))) {
+            if (!configured && !isEnvEnabled('SOCIAL_VIDEO_GROUP_COMMAND_ENABLED')) {
                 disabledMessage = failureMessages.groupDisabled;
             }
         } else if (!isEnvEnabled('SOCIAL_VIDEO_DM_ENABLED')) {
             disabledMessage = failureMessages.dmDisabled;
         }
     }
-    if (!command && disabledMessage) return;
     let link = findSocialVideoLink(text, urls);
-    if (!command && !link) return;
     const bareCommand = matchedCommand && /^[\s\p{Default_Ignorable_Code_Point}]*$/u.test(text.slice(matchedCommand[0].length));
     const referenceRequested = bareCommand && getRepliedMessage;
     const needsLinkPrompt = telegram && !link && bareCommand && !referenceRequested && matchedCommand[0].startsWith('/') && promptForLink;
-    async function busy() {
-        if (!command) {
-            const now = Date.now();
-            if (now < nextBusyReply) return;
-            nextBusyReply = now + 10_000;
-        }
-        await reply(failureMessages.busy);
-    }
 
-    const queueCommand = telegram && command;
     let queueNotice = false;
     async function notifyQueued() {
         if (queueNotice) return;
@@ -587,15 +569,7 @@ async function handleSocialVideo({
         const recipient = {
             platform, scope: groupVip ? 'group' : 'user', id: groupVip ? String(groupId) : actor, userId: actor,
         };
-        // An author replying to their own active auto-download can take over before upload starts.
-        const job = activeAutomaticJob;
-        if (referenceRequested && job && !job.command && job.platform === platform
-            && job.messageId === messageContext?.replyToId && job.groupId === groupId
-            && job.actor === actor && job.url === link.url && job.scope === recipient.scope) {
-            job.command = delivery;
-            return;
-        }
-        if (queueCommand) {
+        if (telegram) {
             const limit = Math.min(4, Math.floor(level)) * 3;
             const ticket = enqueueTelegramVideo(`${recipient.scope}:${recipient.id}`, limit);
             if (!ticket) return await reply(`影片隊列已滿。VIP LV ${level} 最多可以等候 ${limit} 條請求。`);
@@ -603,18 +577,18 @@ async function handleSocialVideo({
             leaveQueue = await ticket.turn;
             while (active) await delay(250);
         } else if (active || servingTelegramQueue) {
-            return await busy();
+            return await reply(failureMessages.busy);
         }
         active = true;
         localSlot = true;
-        lease = queueCommand ? await acquireQueueLease() : await acquireVideoLease();
-        if (!lease) return await busy();
+        lease = telegram ? await acquireQueueLease() : await acquireVideoLease();
+        if (!lease) return await reply(failureMessages.busy);
         stage = 'scratch';
         directory = await createVideoScratch();
         stage = 'service';
         if (!await hasVideoCapacity()) return await reply(failureMessages.capacity);
         reservation = await reserveVideoQuota(lease, recipient);
-        while (queueCommand && reservation.reason === 'cooldown') {
+        while (telegram && reservation.reason === 'cooldown') {
             await lease.release();
             lease = undefined;
             await notifyQueued();
@@ -634,10 +608,6 @@ async function handleSocialVideo({
             await reply(failureMessages[reservation.reason]);
             return;
         }
-        if (!command && messageContext?.id) {
-            automaticJob = { platform, messageId: messageContext.id, groupId, actor, url: link.url, scope: recipient.scope };
-            activeAutomaticJob = automaticJob;
-        }
         stage = 'download';
         post = await resolveShareLink(link);
         const primary = await readPrimaryMedia(post, config.maxBytes).catch(error => {
@@ -648,7 +618,6 @@ async function handleSocialVideo({
         if (primary?.kind === 'empty' || primary?.kind === 'unavailable'
             || (post.extractor === 'threads' && !primary?.url && !primary?.tracks && primary?.kind !== 'images')) {
             if (reservation?.refund) await reservation.refund().catch(() => console.warn('[Social video] Could not refund video quota'));
-            stopHandoff();
             await reply(primary?.kind === 'empty' ? failureMessages.empty : failureMessages.download);
             return;
         }
@@ -659,12 +628,10 @@ async function handleSocialVideo({
                 name: 'social-video.mp4',
                 contentType: 'video/mp4',
             }];
-        stopHandoff();
-        const target = destination();
         stage = 'upload';
-        await target.sendMedia({ attachments, url: link.url });
+        await sendMedia({ attachments, url: link.url });
         try {
-            await target.deleteCommand?.();
+            if (matchedCommand) await deleteCommand?.();
         } catch (error) {
             // Delivery succeeded. A missing permission or a stale command does not affect the upload.
             console.warn('[Social video] Could not delete the delivered command', { platform, status: error?.status ?? error?.error_code });
@@ -684,10 +651,8 @@ async function handleSocialVideo({
         console.warn('[Social video] request failed', socialVideoFailureDetails({
             platform, stage, link: post || link, groupId, userId: actor, error, reply: replyKey,
         }));
-        stopHandoff();
         if (stage !== 'eligibility') await reply(videoErrorMessage(error, stage, replyKey));
     } finally {
-        stopHandoff();
         try {
             if (directory) await rm(directory, { recursive: true, force: true });
         } catch (cleanupError) {

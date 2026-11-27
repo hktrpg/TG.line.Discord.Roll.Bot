@@ -71,7 +71,7 @@ function createTelegramVideoRequest(ctx) {
         groupId: group ? chat.id : undefined,
         userId: from?.id,
         commandBotName: ctx.me.username,
-        messageContext: { id: message.message_id, replyToId: message.reply_to_message?.message_id, linkPromptReply },
+        linkPromptReply,
         ...input,
         getRepliedMessage: telegramVideoReply(message),
         promptForLink: () => ctx.reply(videoLinkPrompt, {

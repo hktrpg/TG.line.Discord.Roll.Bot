@@ -93,7 +93,6 @@ test('Telegram attaches a mention and original link to the video in the same top
 test('Telegram reads the replied post but its delete callback targets the command', async () => {
     const original = { message_id: 499, chat, from: user, text: url };
     const { calls, result } = await runTelegramCommand(async input => {
-        expect(input.messageContext).toMatchObject({ id: 500, replyToId: original.message_id });
         expect(await input.getRepliedMessage()).toMatchObject({ text: url });
         await input.deleteCommand();
     }, false, '.video', original);
@@ -122,7 +121,7 @@ test('only the intended user can use a /video link prompt as an explicit request
         entities: [{ ...telegramVideo.videoLinkPromptMention, user }],
     };
     const { calls, result } = await runTelegramCommand(async input => {
-        expect(input.messageContext.linkPromptReply).toBe(true);
+        expect(input.linkPromptReply).toBe(true);
         await input.sendMedia({ attachments: video, url });
     }, false, url, prompt);
 
@@ -149,13 +148,4 @@ test('Telegram attaches the caption once for a downloaded photo album', async ()
     expect(calls[0].payload.media[0].caption).toBe('@TestSender : 已下載 ' + url);
     expect(calls[0].payload.media[1].caption).toBeUndefined();
     expect(calls[0].payload.message_thread_id).toBe(10);
-});
-
-test('Telegram attaches the same caption for an automatic link', async () => {
-    const { calls, result } = await runTelegramCommand(input => input.sendMedia({ attachments: video, url }), false, url);
-
-    expect(result.status).toBe('fulfilled');
-    expect(calls.map(call => call.method)).toEqual(['sendVideo']);
-    expect(calls[0].payload.reply_parameters).toBeUndefined();
-    expect(calls[0].payload.caption).toBe('@TestSender : 已下載 ' + url);
 });

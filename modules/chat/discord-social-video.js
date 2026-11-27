@@ -22,7 +22,6 @@ function createDiscordVideoRequest(message) {
         groupId: guildId,
         userId: author.id,
         text: message.content,
-        messageContext: { id, replyToId },
         getRepliedMessage: replyToId ? async () => {
             const cached = message.channel?.messages?.cache.get(replyToId);
             const original = cached && !cached.partial ? cached

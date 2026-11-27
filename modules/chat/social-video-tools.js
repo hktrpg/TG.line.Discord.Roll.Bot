@@ -1,7 +1,7 @@
 'use strict';
 
 const { accessSync, constants, statSync } = require('node:fs');
-const { dirname, join, resolve } = require('node:path');
+const { dirname, isAbsolute, join, resolve } = require('node:path');
 
 const ytDlpVersion = '2026.11.23';
 const ffmpegPackageVersion = '5.3.0';
@@ -26,7 +26,7 @@ function toolTarget(platform = process.platform, arch = process.arch, libc) {
 
 function bundledTools(target, env = process.env) {
     const base = env.HKTRPG_SOCIAL_VIDEO_TOOLS_DIR || join(root, 'node_modules', '.cache', 'hktrpg-media-tools');
-    const directory = resolve(base, target.key, `${ytDlpVersion}-ffmpeg-${ffmpegPackageVersion}`);
+    const directory = resolve(root, base, target.key, `${ytDlpVersion}-ffmpeg-${ffmpegPackageVersion}`);
     return {
         directory,
         ytDlp: join(directory, 'yt-dlp', `yt-dlp${target.extension}`),
@@ -45,20 +45,26 @@ function isExecutable(path) {
     }
 }
 
+function executableOverride(value) {
+    const isPath = value && (/[\\/]/.test(value) || (process.platform === 'win32' && /^[a-z]:/i.test(value)));
+    return isPath ? resolve(root, value) : value;
+}
+
 function getVideoExecutables(env = process.env) {
     const target = toolTarget();
     const bundled = target && bundledTools(target, env);
     const extension = process.platform === 'win32' ? '.exe' : '';
-    const ffmpegOverride = env.SOCIAL_VIDEO_FFMPEG_PATH;
-    const probeSibling = ffmpegOverride && join(dirname(ffmpegOverride), `ffprobe${extension}`);
+    const ffmpegOverride = executableOverride(env.SOCIAL_VIDEO_FFMPEG_PATH);
+    const ffmpegPath = ffmpegOverride && isAbsolute(ffmpegOverride) ? ffmpegOverride : undefined;
+    const probeSibling = ffmpegPath && join(dirname(ffmpegPath), `ffprobe${extension}`);
     const ffmpeg = ffmpegOverride || (isExecutable(bundled?.ffmpeg) ? bundled.ffmpeg : `ffmpeg${extension}`);
     return {
-        ytDlp: env.SOCIAL_VIDEO_YTDLP_PATH || (isExecutable(bundled?.ytDlp) ? bundled.ytDlp : `yt-dlp${extension}`),
+        ytDlp: executableOverride(env.SOCIAL_VIDEO_YTDLP_PATH) || (isExecutable(bundled?.ytDlp) ? bundled.ytDlp : `yt-dlp${extension}`),
         ffmpeg,
-        ffprobe: env.SOCIAL_VIDEO_FFPROBE_PATH
+        ffprobe: executableOverride(env.SOCIAL_VIDEO_FFPROBE_PATH)
             || (isExecutable(probeSibling) && probeSibling)
             || (isExecutable(bundled?.ffprobe) ? bundled.ffprobe : `ffprobe${extension}`),
-        ffmpegLocation: ffmpegOverride || (ffmpeg === bundled?.ffmpeg ? bundled.directory : undefined),
+        ffmpegLocation: ffmpegPath || (ffmpeg === bundled?.ffmpeg ? bundled.directory : undefined),
     };
 }
 

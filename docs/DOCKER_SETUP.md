@@ -23,7 +23,9 @@ can supply a preview image. Replies and quoted posts are ignored.
    configure the executable paths with `SOCIAL_VIDEO_YTDLP_PATH` and
    `SOCIAL_VIDEO_FFMPEG_PATH`. If ffprobe is in a separate directory, configure
    `SOCIAL_VIDEO_FFPROBE_PATH` as well. Explicit paths take precedence over
-   the bundle. Clear old overrides when switching to the bundled tools.
+   the bundle. Relative paths are resolved from the project directory.
+   Executable names without a path use PATH. Clear old overrides when
+   switching to the bundled tools.
 2. Set `SOCIAL_VIDEO_ENABLED=true` in the gateway's environment. This enables
    automatic links in groups and DMs, `.video <link>`, Threads, and Windows
    temporary storage. Set it to `false` to turn the feature off. Existing

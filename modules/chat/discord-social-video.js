@@ -2,7 +2,7 @@
 
 const { readFile } = require('node:fs/promises');
 const { ChannelType, MessageType, Routes } = require('discord.js');
-const { formatSocialVideoSuccess } = require('./social-video');
+const { formatSocialVideoSuccess, VideoAttachmentReadError } = require('./social-video');
 
 const MAX_MESSAGE_LENGTH = 2000;
 
@@ -32,9 +32,14 @@ function createDiscordVideoRequest(message) {
         async sendMedia({ attachments, url }) {
             const mention = `<@${author.id}>`;
             let content = formatSocialVideoSuccess(mention, `<${url}>`);
-            const files = await Promise.all(attachments.map(async ({ file, name, contentType }) => ({
-                name, data: await readFile(file), contentType,
-            })));
+            const files = [];
+            try {
+                for (const { file, name, contentType } of attachments) {
+                    files.push({ name, data: await readFile(file), contentType });
+                }
+            } catch (cause) {
+                throw new VideoAttachmentReadError('Could not read the prepared media attachment', { cause });
+            }
             if (content.length > MAX_MESSAGE_LENGTH) {
                 content = formatSocialVideoSuccess(mention, '原始連結');
                 files.push({ name: 'source-link.txt', data: Buffer.from(url), contentType: 'text/plain' });

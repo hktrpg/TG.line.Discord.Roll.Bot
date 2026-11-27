@@ -95,6 +95,25 @@ test('does not substitute the video thumbnail if the post says it has a video an
         .resolves.toMatchObject({ kind: 'video' });
 });
 
+test.each([
+    ['a 503 response', () => new Response(null, { status: 503 })],
+    ['invalid JSON', () => new Response('Not JSON')],
+    ['an empty response', () => new Response(null)],
+    ['a timeout', () => { throw new DOMException('Timed out', 'TimeoutError'); }],
+    ['a network failure', () => { throw new TypeError('fetch failed', { cause: new Error('Network unavailable') }); }],
+])('lets the video extractor take over when the X preview returns %s', async (_description, preview) => {
+    jest.spyOn(globalThis, 'fetch').mockImplementation(async () => preview());
+    await expect(readPrimaryMedia({ url: 'https://x.com/user/status/123', extractor: 'twitter.*' })).resolves.toBeNull();
+});
+
+test('an X preview redirect to an unapproved host is still rejected', async () => {
+    jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response(null, {
+        status: 302, headers: { location: 'https://unrelated.example/preview' },
+    }));
+    await expect(readPrimaryMedia({ url: 'https://x.com/user/status/123', extractor: 'twitter.*' }))
+        .rejects.toThrow('Unexpected media host or route');
+});
+
 test('reads X photos from the requested public post and ignores the quoted post', async () => {
     const url = 'https://pbs.twimg.com/media/target.jpg';
     jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(Response.json({

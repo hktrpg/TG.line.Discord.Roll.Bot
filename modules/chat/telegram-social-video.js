@@ -83,10 +83,10 @@ function createTelegramVideoRequest(ctx) {
             const options = mediaOptions(url);
             const signal = AbortSignal.timeout(45_000);
             if (attachments.length === 1) {
-                const [{ file, contentType }] = attachments;
+                const [{ file, contentType, dimensions }] = attachments;
                 const media = new InputFile(file);
                 return contentType === 'video/mp4'
-                    ? ctx.replyWithVideo(media, { ...options, supports_streaming: true }, signal)
+                    ? ctx.replyWithVideo(media, { ...options, ...dimensions, supports_streaming: true }, signal)
                     : ctx.replyWithPhoto(media, options, signal);
             }
             const { caption, caption_entities, ...albumOptions } = options;

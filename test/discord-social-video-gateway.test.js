@@ -5,8 +5,10 @@ jest.mock('node:fs/promises', () => ({
     readFile: jest.fn(async () => Buffer.from('media')),
 }));
 
+const { readFile } = require('node:fs/promises');
 const { ChannelType, MessageType, Routes } = require('discord.js');
 const { createDiscordVideoRequest } = require('../modules/chat/discord-social-video');
+const { VideoAttachmentReadError } = require('../modules/chat/social-video');
 
 const url = 'https://www.instagram.com/reel/DdYZybhJ9s6/';
 const video = [{ file: 'fake.mp4', name: 'social-video.mp4', contentType: 'video/mp4' }];
@@ -52,6 +54,16 @@ test('Discord reads the replied message and deletes only the command addressed b
     await request.deleteCommand();
     expect(rest.delete).toHaveBeenCalledTimes(1);
     expect(rest.delete).toHaveBeenCalledWith(Routes.channelMessage('200', '500'), expect.anything());
+});
+
+test('Discord reports a failed file read before starting any upload', async () => {
+    const { request, rest } = fixture();
+    const cause = Object.assign(new Error('Missing file'), { code: 'ENOENT' });
+    readFile.mockRejectedValueOnce(cause);
+    const upload = request.sendMedia({ attachments: video, url });
+    await expect(upload).rejects.toBeInstanceOf(VideoAttachmentReadError);
+    await expect(upload).rejects.toMatchObject({ cause });
+    expect(rest.post).not.toHaveBeenCalled();
 });
 
 test('Discord sends one caption for a photo album and replies to status messages', async () => {

@@ -6,7 +6,7 @@ const { tmpdir } = require('node:os');
 const { viplevelCheckGroup, viplevelCheckUser } = require('../modules/patreon/veryImportantPerson');
 const { acquireVideoLease, reserveVideoQuota } = require('../modules/chat/social-video-quota');
 const { readPrimaryMedia, postVideoLength, downloadPostVideo, downloadPostImages } = require('../modules/chat/social-post-media');
-const { findSocialVideoLink, handleSocialVideo } = require('../modules/chat/social-video');
+const { findSocialVideoLink, handleSocialVideo, VideoAttachmentReadError } = require('../modules/chat/social-video');
 const { socialVideoInput, telegramVideoReply } = require('../modules/chat/telegram-social-video');
 
 jest.mock('node:child_process', () => ({ execFile: jest.fn() }));
@@ -31,9 +31,12 @@ jest.mock('../modules/patreon/veryImportantPerson', () => ({
 
 const originalEnv = process.env;
 const scratchRoot = tmpdir();
-const videoAttachment = [{ file: expect.any(String), name: 'social-video.mp4', contentType: 'video/mp4' }];
+const videoAttachment = [{
+    file: expect.any(String), name: 'social-video.mp4', contentType: 'video/mp4', dimensions: { width: 720, height: 1280 },
+}];
 let sourceBytes;
 let videoDuration;
+let outputVideoMetadata;
 let refund;
 let release;
 
@@ -58,10 +61,12 @@ beforeEach(() => {
     readFile.mockImplementation(file => Promise.resolve(file === '/proc/meminfo' ? 'MemAvailable: 1048576 kB' : 'max'));
     sourceBytes = 5;
     videoDuration = 10;
+    outputVideoMetadata = {};
     execFile.mockImplementation((command, args, options, callback) => {
         if (command === 'ffprobe') {
+            const metadata = args.at(-1).endsWith('social-video.mp4') ? outputVideoMetadata : {};
             callback(null, { stdout: JSON.stringify({
-                streams: [{ codec_type: 'video', codec_name: 'h264', width: 720, height: 1280, avg_frame_rate: '30/1' }],
+                streams: [{ codec_type: 'video', codec_name: 'h264', width: 720, height: 1280, avg_frame_rate: '30/1', ...metadata }],
                 format: { duration: videoDuration },
             }) });
             return;
@@ -262,6 +267,23 @@ test('a rejected command deletion keeps the delivered media and the charged quot
     expect(request.deleteCommand).toHaveBeenCalledTimes(1);
     expect(request.sendText).not.toHaveBeenCalled();
     expect(refund).not.toHaveBeenCalled();
+});
+
+test.each([
+    ['Discord', '456', () => new VideoAttachmentReadError('File missing')],
+    ['Telegram', -100_123, file => Object.assign(new Error('File missing'), { code: 'ENOENT', syscall: 'open', path: file })],
+])('%s refunds a local attachment read failure and keeps the command', async (platform, groupId, fileError) => {
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    const request = telegram({
+        platform, groupId, text: '.video https://www.facebook.com/reel/123', deleteCommand: jest.fn(),
+    });
+    request.sendMedia.mockImplementation(async ({ attachments: [{ file }] }) => {
+        throw fileError(file);
+    });
+    await handleSocialVideo(request);
+    expect(refund).toHaveBeenCalledWith({ keepUpload: false });
+    expect(request.sendText).toHaveBeenCalledWith('伺服器未能讀取已處理的媒體檔案，請稍後再試。');
+    expect(request.deleteCommand).not.toHaveBeenCalled();
 });
 
 test('an addressed Telegram reply can use a hidden link from the original caption', async () => {
@@ -755,6 +777,21 @@ test('a Facebook share cannot download when its canonical post also requires log
     expect(fetcher).toHaveBeenNthCalledWith(3, 'https://www.facebook.com/456/posts/123/', expect.anything());
     expect(execFile).not.toHaveBeenCalled();
     expect(request.sendMedia).not.toHaveBeenCalled();
+});
+
+test('uses the finished video pixel aspect ratio and orientation for Telegram dimensions', async () => {
+    outputVideoMetadata = {
+        width: 320, height: 240, sample_aspect_ratio: '3:2', side_data_list: [{}, { rotation: -90 }],
+    };
+    const request = telegram();
+    await handleSocialVideo(request);
+
+    const [, probeOptions] = execFile.mock.calls.filter(([command]) => command === 'ffprobe').at(-1);
+    expect(probeOptions[probeOptions.indexOf('-show_entries') + 1]).toContain('sample_aspect_ratio:stream_side_data=rotation');
+    expect(request.sendMedia).toHaveBeenCalledWith({
+        attachments: [expect.objectContaining({ dimensions: { width: 240, height: 480 } })],
+        url: request.text,
+    });
 });
 
 test('compresses a short clip that exceeds the Discord cap and refunds a rejected upload', async () => {

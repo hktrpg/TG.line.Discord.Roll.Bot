@@ -190,31 +190,7 @@ function createRollWorkerApp(options = {}) {
 		);
 	}
 
-	app.use((req, res, next) => {
-		// Health stays open for probes; mutate endpoints require a shared secret when configured.
-		if (req.path === '/health') {
-			return next();
-		}
-
-		if (!expectedToken) {
-			if (allowNoToken) {
-				return next();
-			}
-			return res.status(401).json({
-				error: 'Unauthorized: ROLL_WORKER_TOKEN required',
-			});
-		}
-
-		const header = req.headers.authorization || '';
-		const token = header.startsWith('Bearer ') ? header.slice(7) : '';
-		if (!timingSafeTokenEqual(token, expectedToken)) {
-			return res.status(401).json({ error: 'Unauthorized' });
-		}
-		return next();
-	});
-	// Reject unauthorized clients before allocating or parsing large JSON bodies.
-	app.use(express.json({ limit: jsonLimit }));
-
+	// GET and HEAD health probes do not need to read the request body.
 	app.get('/health', (req, res) => {
 		// Probes always get ok+role. Counters/uptime require Bearer when token is configured (L6).
 		const base = {
@@ -248,6 +224,26 @@ function createRollWorkerApp(options = {}) {
 			version: buildInfo.getPublic(),
 		});
 	});
+
+	app.use((req, res, next) => {
+		if (!expectedToken) {
+			if (allowNoToken) {
+				return next();
+			}
+			return res.status(401).json({
+				error: 'Unauthorized: ROLL_WORKER_TOKEN required',
+			});
+		}
+
+		const header = req.headers.authorization || '';
+		const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+		if (!timingSafeTokenEqual(token, expectedToken)) {
+			return res.status(401).json({ error: 'Unauthorized' });
+		}
+		return next();
+	});
+	// Reject unauthorized clients before allocating or parsing large JSON bodies.
+	app.use(express.json({ limit: jsonLimit }));
 
 	app.post('/v1/parse', async (req, res) => {
 		try {

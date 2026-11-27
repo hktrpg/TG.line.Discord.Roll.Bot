@@ -2,7 +2,7 @@
 
 const { mkdir, mkdtemp, readFile, rm, writeFile } = require('node:fs/promises');
 const { tmpdir } = require('node:os');
-const { join } = require('node:path');
+const { join, resolve } = require('node:path');
 const { bundledTools, getVideoExecutables, toolTarget } = require('../modules/chat/social-video-tools');
 const { locateYtDlp } = require('../scripts/setup-social-video');
 
@@ -26,7 +26,22 @@ test('unsupported architectures can use manually configured executables', () => 
         ytDlp: 'override-yt-dlp',
         ffmpeg: 'override-ffmpeg',
         ffprobe: 'override-ffprobe',
-        ffmpegLocation: 'override-ffmpeg',
+        ffmpegLocation: undefined,
+    });
+});
+
+test('resolves configured paths against the project before subprocesses change directory', () => {
+    const root = resolve(__dirname, '..');
+    const env = {
+        SOCIAL_VIDEO_YTDLP_PATH: './custom/yt-dlp',
+        SOCIAL_VIDEO_FFMPEG_PATH: './custom/ffmpeg',
+        SOCIAL_VIDEO_FFPROBE_PATH: './custom/ffprobe',
+    };
+    expect(getVideoExecutables(env)).toEqual({
+        ytDlp: join(root, 'custom', 'yt-dlp'),
+        ffmpeg: join(root, 'custom', 'ffmpeg'),
+        ffprobe: join(root, 'custom', 'ffprobe'),
+        ffmpegLocation: join(root, 'custom', 'ffmpeg'),
     });
 });
 

@@ -12,6 +12,14 @@ test('worker rejects unauthorized requests before its JSON parser', () => {
         const stack = app._router.stack;
         const jsonIndex = stack.findIndex(layer => layer.name === 'jsonParser');
         expect(jsonIndex).toBeGreaterThan(0);
+        const healthIndex = stack.findIndex(layer => layer.route?.path === '/health');
+        expect(healthIndex).toBeGreaterThanOrEqual(0);
+        expect(healthIndex).toBeLessThan(jsonIndex - 1);
+        const health = stack[healthIndex].route;
+        expect(health._handles_method('GET')).toBe(true);
+        expect(health._handles_method('HEAD')).toBe(true);
+        expect(health._handles_method('POST')).toBe(false);
+
         const auth = stack[jsonIndex - 1].handle;
         const req = { path: '/v1/parse', headers: { authorization: 'Bearer incorrect' } };
         const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
@@ -21,6 +29,10 @@ test('worker rejects unauthorized requests before its JSON parser', () => {
         expect(next).not.toHaveBeenCalled();
         req.headers.authorization = 'Bearer isolated-test-token';
         auth(req, res, next);
+        expect(next).toHaveBeenCalledTimes(1);
+        auth({ path: '/health', method: 'POST', headers: {} }, res, next);
+        expect(res.status).toHaveBeenCalledTimes(2);
+        expect(res.status).toHaveBeenLastCalledWith(401);
         expect(next).toHaveBeenCalledTimes(1);
         clearInterval(app.locals.peerIdleTimer);
     } finally {

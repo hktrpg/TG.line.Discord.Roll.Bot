@@ -6,7 +6,9 @@ const grammy = require('grammy');
 const telegramVideo = require('../modules/chat/telegram-social-video');
 
 const url = 'https://www.facebook.com/reel/123';
-const video = [{ file: 'fake.mp4', name: 'social-video.mp4', contentType: 'video/mp4' }];
+const video = [{
+    file: 'fake.mp4', name: 'social-video.mp4', contentType: 'video/mp4', dimensions: { width: 720, height: 1280 },
+}];
 const botInfo = { id: 100, is_bot: true, first_name: 'Local Test', username: 'LocalTestBot' };
 const user = { id: 101, is_bot: false, first_name: 'Test Sender', username: 'TestSender' };
 const chat = { id: -100_123, type: 'supergroup', title: 'Local Fixture' };
@@ -81,6 +83,8 @@ test('Telegram attaches a mention and original link to the video in the same top
         caption: '@TestSender : 已下載 ' + url,
         caption_entities: [{ type: 'text_mention', offset: 0, length: '@TestSender'.length, user }],
         message_thread_id: 10,
+        width: 720,
+        height: 1280,
         supports_streaming: true,
     });
     expect(calls[0].payload.reply_parameters).toBeUndefined();

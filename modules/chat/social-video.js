@@ -160,6 +160,7 @@ function findSocialVideoLink(text, urls = []) {
 }
 
 class VideoRequestError extends Error {}
+class VideoAttachmentReadError extends Error {}
 
 function formatVideoDuration(duration) {
     const seconds = Math.ceil(duration);
@@ -220,7 +221,7 @@ function subprocessEnv(directory) {
 async function probeVideo(file, ffprobe, options) {
     const { stdout } = await runFile(ffprobe, [
         '-v', 'error', '-max_alloc', String(64 * MIB), '-protocol_whitelist', 'file,pipe', '-f', 'mov',
-        '-show_entries', 'format=duration:stream=codec_name,codec_type,width,height,avg_frame_rate',
+        '-show_entries', 'format=duration:stream=codec_name,codec_type,width,height,avg_frame_rate,sample_aspect_ratio:stream_side_data=rotation',
         '-of', 'json', file,
     ], { ...options, timeout: 8000 });
     const { streams, format } = JSON.parse(stdout);
@@ -232,6 +233,20 @@ async function probeVideo(file, ffprobe, options) {
     }
     checkVideoDuration(duration);
     return { video, audio, duration };
+}
+
+function videoDisplayDimensions(video) {
+    const { width, height } = video;
+    if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1) return;
+
+    const [horizontal, vertical] = (video.sample_aspect_ratio ?? '').split(':').map(Number);
+    const displayWidth = horizontal > 0 && vertical > 0 ? Math.round(width * horizontal / vertical) : width;
+    if (!Number.isSafeInteger(displayWidth) || displayWidth < 1) return;
+
+    const rotation = video.side_data_list?.find(entry => Number.isFinite(entry.rotation))?.rotation ?? 0;
+    return Math.abs(rotation) % 180 === 90
+        ? { width: height, height: displayWidth }
+        : { width: displayWidth, height };
 }
 
 async function stagePostTracks(tracks, input, directory, maxBytes, ffmpeg, options) {
@@ -367,7 +382,7 @@ async function downloadSocialVideo(link, directory, maxBytes, primary) {
     if (ready.duration < duration - 0.5) {
         throw new VideoRequestError(`處理後的影片只有約 ${formatVideoDuration(ready.duration)}，原片約 ${formatVideoDuration(duration)}。請試較短或較小的影片，本平台的附件上限為 ${maxBytes / MIB} MiB。`);
     }
-    return output;
+    return { file: output, dimensions: videoDisplayDimensions(ready.video) };
 }
 
 function sanitizeSocialVideoLogText(value, maxLength = 400) {
@@ -427,6 +442,7 @@ const failureMessages = {
     empty: '主貼文沒有可取得的影片或圖片。',
     scratch: '媒體暫存位置不可用。伺服器需要可寫入的暫存目錄及足夠空間（Linux 至少 62 MiB，Windows 至少 64 MiB）。',
     download: `來源未提供可用的媒體，或伺服器未能處理來源檔案。請試原始公開連結，影片須在 ${MAX_DURATION / 60} 分鐘及 ${MAX_SOURCE_BYTES / MIB} MiB 以內。`,
+    attachment: '伺服器未能讀取已處理的媒體檔案，請稍後再試。',
     upload: '媒體上傳失敗或逾時。請確認 bot 可以傳送附件，再稍後重試。',
     service: '影片功能暫時無法使用，請稍後再試。',
 };
@@ -542,6 +558,7 @@ async function handleSocialVideo({
     let reservation;
     let directory;
     let post;
+    let attachments;
     let stage = 'eligibility';
     try {
         const { viplevelCheckGroup, viplevelCheckUser } = require('../patreon/veryImportantPerson');
@@ -635,10 +652,10 @@ async function handleSocialVideo({
             await reply(primary?.kind === 'empty' ? failureMessages.empty : failureMessages.download);
             return;
         }
-        const attachments = primary?.kind === 'images'
+        attachments = primary?.kind === 'images'
             ? await downloadPostImages(primary.urls, directory)
             : [{
-                file: await downloadSocialVideo(post, directory, config.maxBytes, primary),
+                ...await downloadSocialVideo(post, directory, config.maxBytes, primary),
                 name: 'social-video.mp4',
                 contentType: 'video/mp4',
             }];
@@ -653,6 +670,10 @@ async function handleSocialVideo({
             console.warn('[Social video] Could not delete the delivered command', { platform, status: error?.status ?? error?.error_code });
         }
     } catch (error) {
+        if (stage === 'upload' && (error instanceof VideoAttachmentReadError
+            || (['open', 'read'].includes(error?.syscall) && attachments.some(({ file }) => file === error.path)))) {
+            stage = 'attachment';
+        }
         const status = Number(error?.error_code || error?.status);
         if (reservation?.refund) {
             const keepUpload = stage === 'upload' && !(status >= 400 && status < 500);
@@ -686,4 +707,4 @@ function formatSocialVideoSuccess(mention, url) {
     return `${mention} : 已下載 ${url}`;
 }
 
-module.exports = { findSocialVideoLink, formatSocialVideoSuccess, handleSocialVideo };
+module.exports = { findSocialVideoLink, formatSocialVideoSuccess, handleSocialVideo, VideoAttachmentReadError };

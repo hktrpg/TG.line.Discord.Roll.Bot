@@ -185,6 +185,8 @@ class Records extends EventEmitter {
         super();
         this.maxChatMessages = 100;
         this.ChatRoomModel = schema.chatRoom;
+        this.pendingChatRetention = new Set();
+        this.chatRetentionRunning = false;
         this.dbOperations = {};
 
         // Initialize database operations for each schema
@@ -542,29 +544,44 @@ class Records extends EventEmitter {
             // Clear cache for this room
             cache.del(`chatRoom:${roomNumber}`);
 
-            try {
-                const messageCount = await this.ChatRoomModel.countDocuments({ 'roomNumber': roomNumber });
-                if (messageCount < this.maxChatMessages) return savedMessage;
-
-                const overflowCount = messageCount - this.maxChatMessages;
-                const oldestMessages = await this.ChatRoomModel.find({ 'roomNumber': roomNumber })
-                    .sort({ 'time': 1 });
-
-                if (!oldestMessages[overflowCount - 1]) return savedMessage;
-
-                await this.ChatRoomModel.deleteMany({
-                    'roomNumber': roomNumber,
-                    time: { $lt: oldestMessages[overflowCount - 1].time }
-                });
-            } catch (error) {
-                // The message was saved already; retention failure must not report a failed send.
-                console.error('[Records] Chat room retention failed:', error.message);
-            }
+            void this.queueChatRoomRetention(roomNumber);
             return savedMessage;
         } catch (error) {
             console.error('[Records] Chat room push failed:', error.message);
             throw error;
         }
+    }
+
+    async queueChatRoomRetention(roomNumber) {
+        this.pendingChatRetention.add(roomNumber);
+        if (this.chatRetentionRunning) return;
+
+        this.chatRetentionRunning = true;
+        try {
+            // Serialize cleanup and combine pending writes in the same room.
+            for (const room of this.pendingChatRetention) {
+                this.pendingChatRetention.delete(room);
+                try {
+                    await this.pruneChatRoom(room);
+                } catch (error) {
+                    console.error('[Records] Chat room retention failed:', error?.message);
+                }
+            }
+        } finally {
+            this.chatRetentionRunning = false;
+        }
+    }
+
+    async pruneChatRoom(roomNumber) {
+        const messageCount = await this.ChatRoomModel.countDocuments({ roomNumber });
+        if (messageCount <= this.maxChatMessages) return;
+
+        const overflowCount = messageCount - this.maxChatMessages;
+        const oldestMessages = await this.ChatRoomModel.find({ roomNumber }).sort({ time: 1 });
+        const cutoff = oldestMessages[overflowCount - 1];
+        if (!cutoff) return;
+
+        await this.ChatRoomModel.deleteMany({ roomNumber, time: { $lt: cutoff.time } });
     }
 
     async chatRoomGet(roomNumber) {

@@ -15,6 +15,7 @@ jest.mock('../modules/db/schema.js', () => ({
 }));
 
 const records = require('../modules/db/records.js');
+const { setImmediate: nextTurn } = require('node:timers/promises');
 
 describe('chatRoomGet query guard', () => {
     beforeEach(() => {
@@ -64,10 +65,45 @@ test('retention failure does not report an already saved message as unsent', asy
         await expect(records.chatRoomPush({ name: 'Tester', msg: 'hello', roomNumber: 'test-room' })).resolves.toMatchObject({ _id: 'test-id' });
         expect(save).toHaveBeenCalledTimes(1);
         expect(onMessage).toHaveBeenCalledWith(expect.objectContaining({ _id: 'test-id' }));
+        await nextTurn();
         expect(spy).toHaveBeenCalledWith('[Records] Chat room retention failed:', 'retention unavailable');
     } finally {
         records.ChatRoomModel = oldModel;
         records.off('new_message', onMessage);
         spy.mockRestore();
+    }
+});
+
+test('saved messages finish before retention and pending cleanup is coalesced by room', async () => {
+    const oldModel = records.ChatRoomModel;
+    const pendingCount = Promise.withResolvers();
+    const save = jest.fn().mockResolvedValue();
+    const Model = jest.fn(() => ({ save, _id: 'test-id' }));
+    Model.countDocuments = jest.fn().mockReturnValueOnce(pendingCount.promise).mockResolvedValue(0);
+    records.ChatRoomModel = Model;
+    const onMessage = jest.fn();
+    records.on('new_message', onMessage);
+    const message = { name: 'Tester', msg: 'hello', roomNumber: 'test-room' };
+    const firstWrite = records.chatRoomPush(message);
+    try {
+        await expect(Promise.race([firstWrite, nextTurn().then(() => null)])).resolves.toMatchObject({ _id: 'test-id' });
+        expect(onMessage).toHaveBeenCalledTimes(1);
+        await Promise.all([
+            records.chatRoomPush(message), records.chatRoomPush(message),
+            records.chatRoomPush({ ...message, roomNumber: 'other-room' }),
+        ]);
+        expect(save).toHaveBeenCalledTimes(4);
+        expect(Model.countDocuments).toHaveBeenCalledTimes(1);
+        pendingCount.resolve(0);
+        await nextTurn();
+        expect(Model.countDocuments.mock.calls).toEqual([
+            [{ roomNumber: 'test-room' }], [{ roomNumber: 'test-room' }], [{ roomNumber: 'other-room' }],
+        ]);
+    } finally {
+        pendingCount.resolve(0);
+        await firstWrite;
+        await nextTurn();
+        records.ChatRoomModel = oldModel;
+        records.off('new_message', onMessage);
     }
 });

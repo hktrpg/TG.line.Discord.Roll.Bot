@@ -53,7 +53,9 @@ async function fetchBounded(url, allowed, { headers, signal, bytes, method = 'GE
             await response.body?.cancel();
             throw Object.assign(new Error('Media is too large'), { code: 'SOCIAL_VIDEO_FETCH_LIMIT', limit: bytes });
         }
-        if (method !== 'HEAD' && !response.body) throw new Error('Media response has no body');
+        if (method !== 'HEAD' && !response.body) {
+            throw Object.assign(new Error('Media response has no body'), { code: 'SOCIAL_VIDEO_EMPTY_RESPONSE' });
+        }
         return { response, url };
     }
     throw new Error('Too many media redirects');
@@ -202,7 +204,11 @@ async function readXMedia(original, maxBytes) {
         post = JSON.parse((await readBody(response, bytes)).toString('utf8'));
     } catch (error) {
         // Keep the existing video extractor available when public embeds are unavailable.
-        if ([401, 403, 404, 429].includes(error.status)) return null;
+        const status = error?.status;
+        if ([401, 403, 404, 429].includes(status) || (status >= 500 && status < 600)
+            || error?.code === 'SOCIAL_VIDEO_EMPTY_RESPONSE'
+            || ['TimeoutError', 'AbortError'].includes(error?.name)
+            || error instanceof SyntaxError || (error instanceof TypeError && error.cause)) return null;
         throw error;
     }
     if (post?.id_str !== id || !Array.isArray(post.mediaDetails)) return null;
